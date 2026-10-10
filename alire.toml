@@ -1,0 +1,34 @@
+name = "pomarine"
+description = "Ada UI library."
+version = "0.1.0-dev"
+
+authors = ["Matt Rawcliffe"]
+licenses = "GPL-3.0-only"
+website = ""
+tags = []
+
+[[depends-on]]
+pomarine_ui = "*"
+coretext = "*"
+sdl3 = "*"
+texts = "*"
+typeset = "*"
+yoga = "*"
+
+[[pins]]
+pomarine_ui = { path = "ui" }
+coretext = { path = "coretext" }
+sdl3 = { path = "sdl3" }
+texts = { path = "texts" }
+typeset = { path = "typeset" }
+yoga = { path = "yoga" }
+
+[build-switches]
+"*".ada_version = "Ada2022"
+"*".compile_checks = "Errors"
+"*".runtime_checks = "Everything"
+"*".style_checks = "Yes"
+"*".contracts = "Yes"
+
+[[depends-on]]
+ada_sqlite3 = "~0.1.1"

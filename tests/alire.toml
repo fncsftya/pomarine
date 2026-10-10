@@ -1,0 +1,37 @@
+name = "pomarine_tests"
+description = "Golden-image tests of what pomarine draws"
+version = "0.1.0-dev"
+
+authors = ["Matt Rawcliffe"]
+licenses = "GPL-3.0-only"
+website = ""
+tags = []
+
+executables = ["golden"]
+
+[available.'case(os)']
+macos = true
+'...' = false
+
+[[depends-on]]
+pomarine = "*"
+pomarine_goldens = "*"
+pomarine_ui = "*"
+texts = "*"
+
+[[pins]]
+pomarine = { path = ".." }
+pomarine_goldens = { path = "../goldens" }
+pomarine_ui = { path = "../ui" }
+coretext = { path = "../coretext" }
+sdl3 = { path = "../sdl3" }
+texts = { path = "../texts" }
+typeset = { path = "../typeset" }
+yoga = { path = "../yoga" }
+
+[build-switches]
+"*".ada_version = "Ada2022"
+"*".compile_checks = "Errors"
+"*".runtime_checks = "Everything"
+"*".style_checks = "Yes"
+"*".contracts = "Yes"
