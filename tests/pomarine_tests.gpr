@@ -1,23 +1,18 @@
-with "config/bonxie_config.gpr";
-with "bonxie_ui.gpr";
-with "coretext.gpr";
-with "sdl3.gpr";
-with "speech.gpr";
+with "config/pomarine_tests_config.gpr";
+with "pomarine.gpr";
+with "pomarine_ui.gpr";
 with "texts.gpr";
-with "typeset.gpr";
-with "vision.gpr";
-with "webshot.gpr";
-with "yoga.gpr";
-project Bonxie is
+project Pomarine_Tests is
 
-   for Source_Dirs use ("src/**", "config/");
-   for Object_Dir use "obj/" & Bonxie_Config.Build_Profile;
+   for Source_Dirs use ("src/", "config/");
+   for Object_Dir use "obj/" & Pomarine_Tests_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
-   for Main use ("bonxie.adb");
+   for Main use ("golden.adb");
 
    package Compiler is
-      for Default_Switches ("Ada") use Bonxie_Config.Ada_Compiler_Switches &
+      for Default_Switches ("Ada") use
+        Pomarine_Tests_Config.Ada_Compiler_Switches &
         ("-gnatwh",          --  local declarations hiding others
          "-gnatyM120",        --  longest line
          "-gnatVa",          --  validity checks everywhere
@@ -35,8 +30,4 @@ project Bonxie is
       for Switches ("Ada") use ("-Es"); --  Symbolic traceback
    end Binder;
 
-   package Install is
-      for Artifacts (".") use ("share");
-   end Install;
-
-end Bonxie;
+end Pomarine_Tests;

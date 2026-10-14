@@ -593,7 +593,7 @@ procedure Golden is
       Goldens.Check_Text
         ("home-is-first", "HOME",
          Viewer.Screens'Image (Viewer.Screen (Session)));
-      Goldens.Check_Text ("home-title", "bonxie", Viewer.Title (Session));
+      Goldens.Check_Text ("home-title", "pomarine", Viewer.Title (Session));
       Viewer.Render (Session, Drawn);
       Goldens.Check ("home-empty", Drawn);
    end Home_Empty;
@@ -694,7 +694,7 @@ procedure Golden is
 
    procedure Fetching is
       use type Downloads.States;
-      Folder : constant String := "/tmp/bonxie-download-test";
+      Folder : constant String := "/tmp/pomarine-download-test";
       Source : constant String := Folder & "/source.bin";
       Target : constant String := Folder & "/made/here/model.gguf";
       Bytes  : constant := 3_000_000;
@@ -760,7 +760,7 @@ procedure Golden is
       Session : Viewer.Session;
       Drawn   : Images.Image;
    begin
-      Viewer.Open (Session, "Bonxie", Home_Width, Home_Height);
+      Viewer.Open (Session, "Pomarine", Home_Width, Home_Height);
       Home.Add_Project (Session, "Episode 1", Hour);
       Settings.Choose_Theme (Session, Preferences.Dark);
       Viewer.Render (Session, Drawn);
@@ -774,7 +774,7 @@ procedure Golden is
    --  The choices are kept in one file, each on its own line, so that
    --  saving one keeps the others.
    procedure Preferences_Kept is
-      Config : constant String := "/tmp/bonxie-preferences-test";
+      Config : constant String := "/tmp/pomarine-preferences-test";
       use type Preferences.Speech_Models;
       use type Preferences.Theme_Choices;
    begin
@@ -813,7 +813,7 @@ procedure Golden is
       Session : Viewer.Session;
       Drawn   : Images.Image;
    begin
-      Viewer.Open (Session, "Bonxie", Home_Width, Home_Height);
+      Viewer.Open (Session, "Pomarine", Home_Width, Home_Height);
       Home.Add_Project (Session, "Episode 1", Hour);
       Click_On (Session, Actions_X, New_Y);
       Goldens.Check_Text

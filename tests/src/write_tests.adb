@@ -736,7 +736,7 @@ package body Write_Tests is
 
    procedure Sharing_Marks is
       Session : Viewer.Session;
-      Folder  : constant String := "/tmp/bonxie-write-page";
+      Folder  : constant String := "/tmp/pomarine-write-page";
       Page    : constant String := Folder & "/page.html";
       File    : Ada.Text_IO.File_Type;
       Tick    : SDL3.Events.Milliseconds := 1_000;

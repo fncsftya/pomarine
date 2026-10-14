@@ -1,3 +1,3 @@
-# Bonxie
+# Pomarine
 
-A MacOS-only tool for planning and writing podcasts.
+A MacOS-only GUI library.

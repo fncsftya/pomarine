@@ -69,7 +69,7 @@ package body Sheet_Tests is
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
       Widgets.Set_Line_Texts (Item.Tree, Item.Lines);
-      UI.Icons.Set_Directory (Item.Icons, "../share/bonxie/icons");
+      UI.Icons.Set_Directory (Item.Icons, "../share/pomarine/icons");
       Widgets.Set_Icons (Item.Tree, Item.Icons);
       Widgets.Set_Root (Item.Tree, Item.Root);
       Panels.Set_Fill (Item.Root, UI.Themes.Background);

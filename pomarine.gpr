@@ -1,0 +1,28 @@
+with "config/pomarine_config.gpr";
+with "pomarine_ui.gpr";
+with "coretext.gpr";
+with "sdl3.gpr";
+with "texts.gpr";
+with "typeset.gpr";
+with "vision.gpr";
+with "yoga.gpr";
+project Pomarine is
+
+   for Source_Dirs use ("config/");
+   for Object_Dir use "obj/" & Pomarine_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+
+   package Compiler is
+      for Default_Switches ("Ada") use Pomarine_Config.Ada_Compiler_Switches &
+        ("-gnatwh",          --  local declarations hiding others
+         "-gnatyM120",        --  longest line
+         "-gnatVa",          --  validity checks everywhere
+         "-fstack-check",    --  detect stack overflow
+         "-fstack-protector-strong");
+   end Compiler;
+
+   package Install is
+      for Artifacts (".") use ("share");
+   end Install;
+
+end Pomarine;

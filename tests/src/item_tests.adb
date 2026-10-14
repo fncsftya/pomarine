@@ -1360,7 +1360,7 @@ package body Item_Tests is
 
    procedure Source_Words is
       Session : Viewer.Session;
-      Folder  : constant String := "/tmp/bonxie-source-words";
+      Folder  : constant String := "/tmp/pomarine-source-words";
       Page    : constant String := Folder & "/page.html";
       File    : Ada.Text_IO.File_Type;
       Key     : Projects.Id;
@@ -1438,7 +1438,7 @@ package body Item_Tests is
    procedure Source_Pages is
       Session : Viewer.Session;
       Folder  : constant String :=
-        "/tmp/bonxie-source-page";
+        "/tmp/pomarine-source-page";
       Page    : constant String := Folder & "/page.html";
       File    : Ada.Text_IO.File_Type;
       Key     : Projects.Id;
