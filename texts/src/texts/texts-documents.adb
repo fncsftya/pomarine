@@ -223,37 +223,38 @@ package body Texts.Documents is
    --  as the machine can look.
 
    procedure Load (Item : in out Document; Content : String) is
+      Clean : constant String := Sanitized (Content);
       use type System.Address;
       use type System.Storage_Elements.Storage_Offset;
-      Start : Positive := Content'First;
+      Start : Positive := Clean'First;
    begin
       Clear (Item);
       Item.Paragraphs.Reserve_Capacity
-        (Ada.Containers.Count_Type (Content'Length / 64 + 1));
-      while Start <= Content'Last loop
+        (Ada.Containers.Count_Type (Clean'Length / 64 + 1));
+      while Start <= Clean'Last loop
          declare
             Found : constant System.Address :=
               Find_Byte
-                (Content (Start)'Address, Character'Pos (ASCII.LF),
-                 Interfaces.C.size_t (Content'Last - Start + 1));
+                (Clean (Start)'Address, Character'Pos (ASCII.LF),
+                 Interfaces.C.size_t (Clean'Last - Start + 1));
             Break : Positive;
          begin
             exit when Found = System.Null_Address;
             Break := Start
-              + Integer (Found - Content (Start)'Address);
+              + Integer (Found - Clean (Start)'Address);
             Item.Paragraphs.Append
               (Uncounted
-                 (Content
+                 (Clean
                     (Start
                      .. (if Break > Start
-                           and then Content (Break - 1) = ASCII.CR
+                           and then Clean (Break - 1) = ASCII.CR
                          then Break - 2 else Break - 1)),
                   Fresh (Item)));
             Start := Break + 1;
          end;
       end loop;
       Item.Paragraphs.Append
-        (Uncounted (Content (Start .. Content'Last), Fresh (Item)));
+        (Uncounted (Clean (Start .. Clean'Last), Fresh (Item)));
 
       Item.Undos.Clear;
       Item.Redos.Clear;
@@ -695,18 +696,19 @@ package body Texts.Documents is
       Undo_As  : Edit_Kind := Other;
       Recorded : Boolean := True)
    is
+      Clean      : constant String := Sanitized (By);
       Removed    : constant Unbounded.Unbounded_String :=
         (if Recorded
          then Unbounded.To_Unbounded_String (Between (Item, From, To))
          else Unbounded.Null_Unbounded_String);
       Gone, Made : Named_Vectors.Vector;
    begin
-      Splice (Item, From, To, By, Named_Vectors.Empty_Vector, Gone, Made);
+      Splice (Item, From, To, Clean, Named_Vectors.Empty_Vector, Gone, Made);
       if Recorded then
          Push (Item,
                (From      => From,
                 Removed   => Removed,
-                Inserted  => Unbounded.To_Unbounded_String (By),
+                Inserted  => Unbounded.To_Unbounded_String (Clean),
                 Gone      => Gone,
                 Made      => Made,
                 Kind      => Undo_As,

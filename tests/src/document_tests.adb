@@ -2,6 +2,7 @@ with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with CoreText.Fonts;
 with CoreText.Wrapping;
+with CoreText.Strings;
 with Goldens;
 with Texts.Documents;
 with Typeset.Layouts;
@@ -48,6 +49,52 @@ package body Document_Tests is
       Goldens.Check_Text
         ("document-loaded-state", " 0", Docs.State (Doc)'Image);
    end Loading;
+
+   procedure Byte_Order_Marks is
+      Doc : Docs.Document;
+      BOM : constant String :=
+        [Character'Val (16#EF#), Character'Val (16#BB#), Character'Val (16#BF#)];
+      Joiner : constant String :=
+        [Character'Val (16#E2#), Character'Val (16#81#), Character'Val (16#A0#)];
+   begin
+      --  A mark at the start of a paragraph, as CoreFoundation would drop.
+      Docs.Load (Doc, BOM & "one" & LF & "two" & LF & BOM & "three");
+      Check ("document-bom-loaded", Doc,
+             Joiner & "one" & LF & "two" & LF & Joiner & "three");
+      Goldens.Check_Text
+        ("document-bom-units", " 4 3 6",
+         Docs.Length (Doc, 1)'Image & Docs.Length (Doc, 2)'Image
+         & Docs.Length (Doc, 3)'Image);
+      Docs.Replace (Doc, (2, 1), (2, 1), BOM);
+      Check ("document-bom-typed", Doc,
+             Joiner & "one" & LF & Joiner & "two" & LF & Joiner & "three");
+   end Byte_Order_Marks;
+
+   procedure Ill_Formed is
+      Doc : Docs.Document;
+      Bad : constant String :=
+        "a" & Character'Val (16#80#) & "b" & Character'Val (16#E0#) & Character'Val (16#80#)
+        & Character'Val (16#80#) & "c" & Character'Val (16#ED#) & Character'Val (16#A0#)
+        & Character'Val (16#80#) & Character'Val (16#F0#) & Character'Val (16#9F#);
+      Held : CoreText.Strings.Text;
+   begin
+      --  Text from EPUBs, PDFs or speech need not be UTF-8: each bad byte is "?".
+      Docs.Load (Doc, Bad & LF & "ok");
+      Check ("document-ill-formed", Doc, "a?b???c???" & "??" & LF & "ok");
+      Goldens.Check_Text
+        ("document-ill-formed-units", " 12 2",
+         Docs.Length (Doc, 1)'Image & Docs.Length (Doc, 2)'Image);
+
+      --  CoreFoundation agrees with the count it is held to.
+      CoreText.Strings.Set (Held, Bad);
+      Goldens.Check_Text
+        ("strings-ill-formed", Natural'Image (CoreText.UTF16_Length (Bad)),
+         Natural'Image (CoreText.Strings.Length (Held)));
+      CoreText.Strings.Set
+        (Held, Character'Val (16#EF#) & Character'Val (16#BB#) & Character'Val (16#BF#) & "x");
+      Goldens.Check_Text
+        ("strings-bom", " 2", Natural'Image (CoreText.Strings.Length (Held)));
+   end Ill_Formed;
 
    procedure Splicing is
       Doc : Docs.Document;

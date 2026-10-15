@@ -4,6 +4,8 @@
 package Document_Tests is
 
    procedure Loading;
+   procedure Byte_Order_Marks;
+   procedure Ill_Formed;
    procedure Splicing;
    procedure Ids;
    procedure Kinds;

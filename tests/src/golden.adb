@@ -40,6 +40,8 @@ procedure Golden is
    end Run;
 begin
    Run ("document-loading", Document_Tests.Loading'Access);
+   Run ("document-bom", Document_Tests.Byte_Order_Marks'Access);
+   Run ("document-ill-formed", Document_Tests.Ill_Formed'Access);
    Run ("document-splicing", Document_Tests.Splicing'Access);
    Run ("document-ids", Document_Tests.Ids'Access);
    Run ("document-kinds", Document_Tests.Kinds'Access);

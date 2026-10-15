@@ -6,10 +6,12 @@ package body CoreText.Core is
    use type System.Address;
 
    function Create_String (Text : String) return Thin.Ref is
+      function Make (Bytes : String) return Thin.Ref is
+        (Thin.CF_String_Create_With_Bytes
+           (Thin.Null_Ref, Bytes'Address, Interfaces.C.long (Bytes'Length),
+            Thin.UTF8, Thin.C_False));
       Result : constant Thin.Ref :=
-        Thin.CF_String_Create_With_Bytes
-          (Thin.Null_Ref, Text'Address, Interfaces.C.long (Text'Length),
-           Thin.UTF8, Thin.C_False);
+        (if Is_Clean (Text) then Make (Text) else Make (Sanitized (Text)));
    begin
       if Result = Thin.Null_Ref then
          raise Error with "CFStringCreateWithBytes failed";
