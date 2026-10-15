@@ -1,6 +1,6 @@
+with SDL3.Painters;
 with SDL3.Cursors;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 private with Pomarine.Boxes;
 
 --  A place to take hold of and drag, as a window's title bar to move it
@@ -86,7 +86,7 @@ package Pomarine.Widgets.Grips is
 
    overriding procedure Draw
      (Item   : in out Grip;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed

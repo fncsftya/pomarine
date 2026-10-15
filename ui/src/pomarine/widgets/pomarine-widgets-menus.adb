@@ -1,10 +1,12 @@
 with Pomarine.Boxes;
 with Yoga.Nodes;
-
 package body Pomarine.Widgets.Menus is
 
+   use type Semantics.Action;
+   use type Semantics.Role;
+
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    --  In points
 
@@ -217,7 +219,7 @@ package body Pomarine.Widgets.Menus is
 
    overriding procedure Draw
      (Item   : in out Menu;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -344,5 +346,67 @@ package body Pomarine.Widgets.Menus is
          end;
       end loop;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Menu;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Menu;
+      end if;
+   end Describe;
+
+   overriding function Part_Count (Item : Menu) return Natural is (Item.Used);
+
+   overriding procedure Describe_Part
+     (Item   : Menu;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle)
+   is
+      Pixels : constant Float := Density (Item);
+      Top    : Float := First_Top (Item);
+      Row    : Line renames Item.Rows (Part);
+   begin
+      for Before in 1 .. Part - 1 loop
+         Top := Top + Float'Rounding (Row_Height (Item.Rows (Before).Kind) * Pixels);
+      end loop;
+      Bounds :=
+        (Left   => Left_Of (Item),
+         Top    => Top,
+         Right  => Left_Of (Item) + Width_Of (Item) - Pomarine.Boxes.Offset (Pixels),
+         Bottom => Top + Float'Rounding (Row_Height (Row.Kind) * Pixels));
+      case Row.Kind is
+         when Heading =>
+            Facts.Kind := Semantics.Heading;
+         when Action =>
+            Facts.Kind := Semantics.Menu_Item;
+            Facts.Actions (Semantics.Click) := True;
+         when Check =>
+            Facts.Kind := Semantics.Menu_Item;
+            Facts.Checked := (if Row.Checked then Semantics.On else Semantics.Off);
+            Facts.Actions (Semantics.Click) := True;
+         when Separator =>
+            Facts.Kind := Semantics.Separator;
+         when Note =>
+            Facts.Kind := Semantics.Label;
+      end case;
+      Semantics.Name_As (Facts, Row.Text (1 .. Row.Length));
+   end Describe_Part;
+
+   overriding procedure Perform_Part
+     (Item    : in out Menu;
+      Part    : Positive;
+      Request : Semantics.Request;
+      Done    : out Boolean) is
+   begin
+      Done := Request.Doing = Semantics.Click and then Part <= Item.Used
+        and then Can_Click (Item.Rows (Part).Kind);
+      if Done then
+         Item.Chosen := Part;
+         Notify (Item, Choose, Row => Part);
+         Invalidate (Item);
+      end if;
+   end Perform_Part;
 
 end Pomarine.Widgets.Menus;

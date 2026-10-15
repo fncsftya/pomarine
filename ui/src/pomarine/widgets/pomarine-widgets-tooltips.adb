@@ -1,6 +1,8 @@
 package body Pomarine.Widgets.Tooltips is
 
-   use SDL3.Windows.Renderers;
+   use type Semantics.Role;
+
+   use all type SDL3.Painters.Painter;
 
    Pad : constant Float := 8.0;  --  in points, at each side
 
@@ -27,7 +29,7 @@ package body Pomarine.Widgets.Tooltips is
 
    overriding procedure Draw
      (Item   : in out Tooltip;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -47,5 +49,15 @@ package body Pomarine.Widgets.Tooltips is
             Pomarine.Line_Texts.Strong);
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Tooltip;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Tooltip;
+      end if;
+      Semantics.Name_As (Facts, Text (Item));
+   end Describe;
 
 end Pomarine.Widgets.Tooltips;

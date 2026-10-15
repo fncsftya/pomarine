@@ -1,5 +1,4 @@
 with Pomarine.Text_Areas;
-
 package body Pomarine.Widgets.Text_Fields is
 
    Longest : constant := 100_000.0;

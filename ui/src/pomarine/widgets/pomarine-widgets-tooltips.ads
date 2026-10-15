@@ -1,5 +1,6 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
-with SDL3.Windows.Renderers;
 
 --  A tooltip: a short name for what is under the pointer, white on the
 --  dark bars' colour, in the middle of its box. The application shows it
@@ -27,8 +28,12 @@ package Pomarine.Widgets.Tooltips is
 
    overriding procedure Draw
      (Item   : in out Tooltip;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
+
+   overriding procedure Describe
+     (Item  : Tooltip;
+      Facts : in out Semantics.Description);
 
 private
 

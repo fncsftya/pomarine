@@ -1,5 +1,7 @@
+with Yoga.Nodes;
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
-with SDL3.Windows.Renderers;
 with Pomarine.Icons;
 
 --  A line of text to read, on the left of its box, in the middle of its
@@ -45,14 +47,31 @@ package Pomarine.Widgets.Labels is
    procedure Set_Icon (Item : in out Label; To : Pomarine.Icons.Icon);
    --  Show the icon before the text, in its ink, if the tree has icons.
 
+   procedure Set_Intrinsic (Item : in out Label; To : Boolean := True);
+   --  Let the layout size it to its text (and its icon) where its style
+   --  does not: as wide as the text is, and as high as a line. Not so to
+   --  begin with, when it is as its style makes it.
+
    procedure Set_Ink (Item : in out Label; To : Themes.Slot);
    --  Show it in To, rather than the theme's foreground: as on a dark
    --  bar.
 
    overriding procedure Draw
      (Item   : in out Label;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
+
+   overriding procedure Measure
+     (Item      : in out Label;
+      Room_Wide : Float;
+      Wide_Mode : Yoga.Nodes.Measure_Mode;
+      Room_High : Float;
+      High_Mode : Yoga.Nodes.Measure_Mode;
+      Result    : out Yoga.Nodes.Measured_Size);
+
+   overriding procedure Describe
+     (Item  : Label;
+      Facts : in out Semantics.Description);
 
 private
 
@@ -70,6 +89,11 @@ private
       Fit_Width  : Float := -1.0;
       Fit_Length : Natural range 0 .. Text_Capacity := 0;
       Fit_Cut    : Boolean := False;
+      Measure_Valid : Boolean := False;
+      Measure_Wide, Measure_High : Float := 0.0;
+      Measure_Pixels : Float := 0.0;
+      --  What it measured as, for the density it was: kept until the text,
+      --  its style, its scale, its icon or the density change.
       --  How much of the text fits a box Fit_Width pixels wide, and whether
       --  that is not all of it: worked out when drawn, and kept until the
       --  text, its style or its scale change (negative: not yet).

@@ -1,9 +1,8 @@
 with Pomarine.Boxes;
-
 package body Pomarine.Scrollbars is
 
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    type Parts is record
       Present : Boolean := False;
@@ -62,7 +61,7 @@ package body Pomarine.Scrollbars is
 
    procedure Draw
      (Item   : Bar;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme;
       Within : Metrics)
    is

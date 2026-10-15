@@ -1,4 +1,4 @@
-with SDL3.Windows.Renderers;
+with SDL3.Painters;
 with Pomarine.Themes;
 
 --  How a box is drawn: filled, with an outline a point wide, solid or
@@ -48,7 +48,7 @@ package Pomarine.Boxes is
    --  What the shadow takes of the box at its right and its foot.
 
    procedure Draw
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Item    : Look;
       Left, Top, Width, Height : Float;
       Density : Float)
@@ -56,7 +56,7 @@ package Pomarine.Boxes is
    --  In pixels from the top left of Target.
 
    procedure Outline
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Ink     : Themes.Color;
       Left, Top, Width, Height : Float;
       Thick   : Float;
@@ -67,7 +67,7 @@ package Pomarine.Boxes is
    --  points, if Dashed.
 
    procedure Bevel
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Light   : Themes.Color;
       Dark    : Themes.Color;
       Left, Top, Width, Height : Float;
@@ -80,7 +80,7 @@ package Pomarine.Boxes is
    --  a gradient.
 
    procedure Draw_Control
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Colors  : Themes.Theme;
       Fill    : Themes.Color;
       Edge_Color : Themes.Color;
@@ -96,7 +96,7 @@ package Pomarine.Boxes is
    --  Pressed, hovered or turned off is a matter of the colours given.
 
    procedure Draw_Flat
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Fill    : Themes.Color;
       Edge_Color : Themes.Color;
       Left, Top, Width, Height : Float;

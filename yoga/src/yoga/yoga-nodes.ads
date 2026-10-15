@@ -1,5 +1,5 @@
 private with Ada.Finalization;
-private with System;
+with System;
 
 package Yoga.Nodes is
 
@@ -44,6 +44,43 @@ package Yoga.Nodes is
    procedure Set_Margin (Item : Node; Side : Edge; Value : Float);
    procedure Set_Padding (Item : Node; Side : Edge; Value : Float);
    procedure Set_Gap (Item : Node; Which : Gutter; Value : Float);
+
+   --  Content that measures itself
+
+   type Measure_Mode is (Undefined, Exactly, At_Most);
+   --  What the parent says of the room: none, exactly that much, or no
+   --  more than that.
+
+   type Measured_Size is record
+      Width, Height : Float;
+   end record;
+
+   type Measure_Handler is access function
+     (Context     : System.Address;
+      Width       : Float;
+      Width_Mode  : Measure_Mode;
+      Height      : Float;
+      Height_Mode : Measure_Mode) return Measured_Size;
+   --  How big a leaf that has no size of its own is, in the room it has,
+   --  given what its owner said it was (see Set_Measured).
+
+   procedure Set_Measure_Handler (Handler : Measure_Handler);
+   --  The one function that measures every node that is measured: it is
+   --  given each node's own context.
+
+   procedure Set_Measured (Item : Node; Context : System.Address);
+   --  Have Item measured by the handler, with Context, where its style
+   --  does not give it a size. Mark_Dirty when what it holds has changed.
+
+   procedure Mark_Dirty (Item : Node);
+   --  Say that what a measured node holds has changed, so that it is
+   --  measured again.
+
+   function Has_New_Layout (Item : Node) return Boolean;
+   --  Whether the last Calculate_Layout may have changed its layout, or
+   --  its descendants'. Clear_New_Layout once it is looked at.
+
+   procedure Clear_New_Layout (Item : Node);
 
    --  Layout
 

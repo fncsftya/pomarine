@@ -1,3 +1,4 @@
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with Ada.Strings.Unbounded;
 with SDL3.Windows.Renderers.Textures;
@@ -57,7 +58,7 @@ package Pomarine.Icons is
 
    procedure Draw
      (Item   : in out Library;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Which  : Icon;
       Value  : SDL3.Windows.Renderers.Color;
       Left, Top : Float;

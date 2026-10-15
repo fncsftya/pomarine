@@ -110,6 +110,18 @@ package SDL3.Windows.Renderers is
 
    function Current_Clip (Item : Renderer) return Clip;
 
+   No_Clip : constant Clip;
+   --  Draws anywhere.
+
+   function Narrowed
+     (Value : Clip; X, Y, Width, Height : Integer) return Clip
+     with Pre => Width >= 0 and then Height >= 0;
+   --  Value, and only the rectangle Width x Height pixels with its top
+   --  left at X, Y: what Narrow_Clip makes of the clip, without a
+   --  renderer, for a painter that records.
+
+   function Is_Clipped (Value : Clip) return Boolean;
+
    procedure Restore_Clip (Item : Renderer; Value : Clip);
    --  Set the clip to Value, as Current_Clip gave it.
 
@@ -141,6 +153,10 @@ private
       Enabled : Boolean := False;
       X, Y, Width, Height : Integer := 0;
    end record;
+
+   No_Clip : constant Clip := (Enabled => False, others => 0);
+
+   function Is_Clipped (Value : Clip) return Boolean is (Value.Enabled);
 
    type Renderer is new Ada.Finalization.Limited_Controlled with record
       Handle : System.Address := System.Null_Address;

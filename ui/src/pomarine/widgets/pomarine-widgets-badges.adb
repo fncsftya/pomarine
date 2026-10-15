@@ -1,9 +1,10 @@
 with Ada.Strings.Fixed;
 with Pomarine.Boxes;
-
 package body Pomarine.Widgets.Badges is
 
-   use SDL3.Windows.Renderers;
+   use type Semantics.Role;
+
+   use all type SDL3.Painters.Painter;
 
    Tag_Pad   : constant Float := 6.0;  --  in points, at each side of a tag
    Count_Pad : constant Float := 4.0;  --  of a count of several figures
@@ -74,7 +75,7 @@ package body Pomarine.Widgets.Badges is
 
    overriding procedure Draw
      (Item   : in out Badge;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -116,5 +117,19 @@ package body Pomarine.Widgets.Badges is
             Top + High / 2.0, Pixels, Using);
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Badge;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Label;
+      end if;
+      Semantics.Name_As
+        (Facts,
+         (if Item.Form = Number
+          then Ada.Strings.Fixed.Trim (Natural'Image (Item.Value), Ada.Strings.Left)
+          else Item.Content (1 .. Item.Length)));
+   end Describe;
 
 end Pomarine.Widgets.Badges;

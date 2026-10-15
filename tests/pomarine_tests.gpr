@@ -1,6 +1,7 @@
 with "config/pomarine_tests_config.gpr";
 with "pomarine.gpr";
 with "pomarine_goldens.gpr";
+with "pomarine_native.gpr";
 with "pomarine_ui.gpr";
 with "texts.gpr";
 project Pomarine_Tests is

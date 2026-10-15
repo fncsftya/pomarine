@@ -57,6 +57,14 @@ See the comment at the top of `Pomarine.Widgets` for the whole loop.
 | `Pomarine.Widgets` | The tree, the events, damage and drawing; the base of every widget. |
 | `Pomarine.Widgets.Layouts` | `Set_Layout`: a box's style, in points, one call. |
 | `Pomarine.Widgets.Commands` | The application's own enumeration, for what widgets are for. |
+| `Pomarine.Widgets.Callbacks` | A procedure of the application's own for what one widget says. |
+| `Pomarine.Widgets.Lists`, `Pomarine.Models` | A list of rows read from a model: a screenful asked for, drawn and described. |
+| `Pomarine.Semantics` | What a widget is to someone who cannot see it: role, name, value, actions. |
+| `Pomarine.Accessibility` (`native/`) | The adapter that tells the system's accessibility (AccessKit, VoiceOver). |
+| `Pomarine.Native_Menus` (`native/`) | The menu bar, and the keys that choose from it. |
+| `Pomarine.System_Settings` (`native/`) | Less motion, more contrast: what the person asked of every application. |
+| `Pomarine.Application` | Work from other threads, run by the window's. |
+| `SDL3.Painters` | What widgets draw with: a renderer's painter, and a recorder that keeps and replays. |
 | `Pomarine.Widgets.*` | Buttons, labels, panels, grips, checks, switches, sliders, fields, menus, scrollers, frames and the rest. |
 | `Pomarine.Themes` | Colours: a palette made into a theme; the application's own slots. |
 | `Pomarine.Icons` | Icons from SVG files in the application's own folder. |
@@ -75,6 +83,92 @@ many it was.
 The same things can be asked for, instead, with a widget's `Take_...`
 (`Buttons.Take_Click` and the like): for gestures that are better looked at
 as they go on than said when they end, as a drag.
+
+### Handlers of a widget's own
+
+A widget can instead have a procedure of the application's own for each kind of
+event it says, called with an object of the application's:
+
+```ada
+package Mixer_Callbacks is new Pomarine.Widgets.Callbacks (Mixer);
+Mixer_Callbacks.On (Volume, Change, Mixer'Access, Louder'Access);
+```
+
+A widget that has a handler for a kind of event does not say it to the listener
+as well. An event carries only what its kind has to say: a `Row` of a `Choose`,
+an `Across` and a `Down` of a `Drag`.
+
+### Commands, keys and menus
+
+A command is what the application can be asked to do, by a button, a key, a
+menu or an assistive technology, and it is the same thing whichever asks. Give
+the tree a validator (`Set_Validator`) and every widget that has a command is
+told what it is for now: offered, possible, in force. Bind keys with
+`Bind_Key`; the command goes to the widget with the focus and the widgets it is
+in (`Handle_Command`, as the edit commands do to a field), and last to the
+listener. With `Pomarine.Native_Menus` the same commands are in the system's
+menu bar, and the validator dims and ticks its items.
+
+## Nodes
+
+The tree keeps its widgets in a table of nodes, which hot passes (hit-testing,
+layout, painting) read a field at a time, so it is cheap to walk. A node is
+named by a `Node_Id`: a place and which use of the place it is, so that the id
+of a widget that was taken out is never the id of another. It is a number to
+keep and send (`To_Unsigned_64`). Each node has three dirty marks, for its
+layout, its looks and what it is to an assistive technology; each pass clears
+its own. Setting something to what it was damages nothing.
+
+## Painting
+
+Widgets draw with a `SDL3.Painters.Painter`: a few primitives (boxes, lines,
+discs, clips, text and images). A `Renderer_Painter` draws at once; a `Recorder`
+keeps the commands to replay into any painter, as a test does to see what was
+drawn without its pixels.
+
+## Lists and models
+
+A `Pomarine.Widgets.Lists.List` reads its rows from a model
+(`Pomarine.Models.List_Model`: how many, a number for each row that lasts, what
+each shows). Only the rows that show are asked for, drawn and described to an
+assistive technology (each as a list item that says which it is of how many),
+so a hundred thousand rows cost what a screenful does.
+
+## Accessibility
+
+Every widget describes itself (`Describe`: a role, a name, a value, its state
+and the actions it takes) and does what an assistive technology asks
+(`Perform`) as it would do the click or the key. Widgets that have things in
+them that are not widgets (the rows of a menu, the paragraphs of a text) say so
+as parts. `Describe_Changes` tells a `Semantic_Sink` only what changed since
+last time; with `Pomarine.Accessibility`, in the `native/` crate, that sink is
+AccessKit, and nothing is done until VoiceOver (or another) asks. The window's
+own widgets are named and hidden by the application where its own idea of them
+will not do (`Set_Accessible_Name`, `Hide_From_Accessibility`). Checks,
+switches, sliders and buttons can be made to take the focus and be worked from
+the keyboard (`Set_Focusable`), and `Set_Tab_Navigation` has Tab go round them.
+
+## Layout
+
+Layout is Yoga's, and only what it changed is placed again. A label can be
+sized to its text (`Labels.Set_Intrinsic`), measured when its text, style or the
+density changes and not otherwise.
+
+## Animation
+
+`Widgets.Animate` runs a number from one value to another over a little time
+for a widget to show, run by `Update`, with `Until_Update` saying when the next
+frame is wanted. With `Set_Reduced_Motion` (from
+`Pomarine.System_Settings.Reduce_Motion`) the widget is given where it was
+going at once.
+
+## Other threads and the system
+
+Work from another thread is `Pomarine.Application.Post`ed and run by the
+window's thread between its events (`Run_Posted`); posting wakes the loop. The
+`native/` crate reaches what the system gives only to Rust and Objective-C
+(AccessKit, the menu bar, settings) through a small Rust static library built by
+`cargo` the first time; it needs `cargo`.
 
 ## Themes
 
@@ -100,7 +194,9 @@ on, unless given other files.
 The room for text, icons, menu rows and the application's colours is fixed, to
 allocate nothing while it runs. Each is a configuration variable of the
 `pomarine_ui` crate (see `ui/alire.toml`): `Label_Capacity`, `Button_Label`,
-`Icon_Capacity`, `Menu_Rows`, `Custom_Colors`; set them in the application's
+`Icon_Capacity`, `Menu_Rows`, `Custom_Colors`, `Node_Capacity` (widgets in a
+tree), `Semantic_Text` and `Semantic_Value` (characters of a name and of a
+value an assistive technology is told); set them in the application's
 `alire.toml` under `[configuration.values]`.
 
 ## Testing and measuring

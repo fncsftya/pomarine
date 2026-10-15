@@ -17,6 +17,7 @@ private package SDL3.Thin is
 
    type Event_Type is new Interfaces.Unsigned_32;
    Event_Quit        : constant Event_Type := 16#100#;
+   Event_User        : constant Event_Type := 16#8000#;
    Event_Key_Down    : constant Event_Type := 16#300#;
    Event_Text_Editing : constant Event_Type := 16#302#;
    Event_Text_Input  : constant Event_Type := 16#303#;
@@ -474,6 +475,9 @@ private package SDL3.Thin is
 
    function Poll_Event (E : access Event) return Interfaces.C.C_bool
      with Import, Convention => C, External_Name => "SDL_PollEvent";
+
+   function Push_Event (E : access Event) return Interfaces.C.C_bool
+     with Import, Convention => C, External_Name => "SDL_PushEvent";
 
    type Event_Filter is access function
      (User_Data : System.Address; E : access Event) return Interfaces.C.C_bool

@@ -1,0 +1,45 @@
+with "config/pomarine_native_config.gpr";
+with "pomarine_ui.gpr";
+with "sdl3.gpr";
+project Pomarine_Native is
+
+   for Library_Name use "pomarine_native_ada";
+   for Library_Version use
+     Project'Library_Name & ".so." & Pomarine_Native_Config.Crate_Version;
+
+   for Source_Dirs use ("src/**", "config/");
+   for Object_Dir use "obj/" & Pomarine_Native_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Library_Dir use "lib";
+
+   type Library_Type_Type is ("relocatable", "static", "static-pic");
+   Library_Type : Library_Type_Type :=
+     external ("POMARINE_NATIVE_LIBRARY_TYPE", external ("LIBRARY_TYPE", "static"));
+   for Library_Kind use Library_Type;
+
+   package Compiler is
+      for Default_Switches ("Ada") use Pomarine_Native_Config.Ada_Compiler_Switches &
+        ("-gnatwh",          --  local declarations hiding others
+         "-gnatyM120",       --  longest line
+         "-gnatVa",          --  validity checks everywhere
+         "-fstack-check",    --  detect stack overflow
+         "-fstack-protector-strong");
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+   --  The small C interface in rust/ (AccessKit, the menu bar), built to a
+   --  static library, and the system's libraries it needs.
+   package Linker is
+      for Linker_Options use
+        ("-L" & Project'Project_Dir & "rust/target/release",
+         "-lpomarine_native",
+         "-framework", "AppKit",
+         "-framework", "Foundation",
+         "-framework", "CoreGraphics",
+         "-lobjc");
+   end Linker;
+
+end Pomarine_Native;

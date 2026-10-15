@@ -1,4 +1,8 @@
+with SDL3.Windows;
+with SDL3.Windows.Renderers;
 package body Pomarine.Widgets.Labels is
+
+   use type Semantics.Role;
 
    function Fitted (Value : String) return String is
      (Value (Value'First ..
@@ -7,6 +11,8 @@ package body Pomarine.Widgets.Labels is
    use type Themes.Slot;
 
    use SDL3.Windows.Renderers;
+
+   use all type SDL3.Painters.Painter;
 
    Icon_Size : constant Float := 12.0;
    Icon_Gap  : constant Float := 6.0;
@@ -22,6 +28,8 @@ package body Pomarine.Widgets.Labels is
          Item.Length := Value'Length;
          Item.Content (1 .. Item.Length) := Value;
          Item.Fit_Width := -1.0;
+         Item.Measure_Valid := False;
+         Content_Changed (Item);
          if Is_Attached (Item) then
             Invalidate (Item);
          end if;
@@ -34,6 +42,8 @@ package body Pomarine.Widgets.Labels is
       if To /= Item.Using then
          Item.Using := To;
          Item.Fit_Width := -1.0;
+         Item.Measure_Valid := False;
+         Content_Changed (Item);
          if Is_Attached (Item) then
             Invalidate (Item);
          end if;
@@ -47,11 +57,47 @@ package body Pomarine.Widgets.Labels is
          Item.Iconed := True;
          Item.Which := To;
          Item.Fit_Width := -1.0;
+         Item.Measure_Valid := False;
+         Content_Changed (Item);
          if Is_Attached (Item) then
             Invalidate (Item);
          end if;
       end if;
    end Set_Icon;
+
+   procedure Set_Intrinsic (Item : in out Label; To : Boolean := True) is
+   begin
+      Set_Measured (Item, To);
+   end Set_Intrinsic;
+
+   overriding procedure Measure
+     (Item      : in out Label;
+      Room_Wide : Float;
+      Wide_Mode : Yoga.Nodes.Measure_Mode;
+      Room_High : Float;
+      High_Mode : Yoga.Nodes.Measure_Mode;
+      Result    : out Yoga.Nodes.Measured_Size)
+   is
+      pragma Unreferenced (Room_Wide, Wide_Mode, Room_High, High_Mode);
+      --  A line does not wrap: its size is of its text, whatever the room.
+      Pixels : constant Float := Density (Item) * Item.Scaled;
+   begin
+      if not Item.Measure_Valid or else Item.Measure_Pixels /= Density (Item) then
+         Item.Measure_Pixels := Density (Item);
+         if Text_Lines (Item) /= null then
+            Item.Measure_Wide :=
+              (if Item.Length = 0 then 0.0
+               else Line_Texts.Width (Text_Lines (Item).all, Text (Item), Pixels, Item.Using))
+              + Icon_Room (Item);
+            Item.Measure_High := Line_Texts.Height (Text_Lines (Item).all, Pixels, Item.Using);
+         else
+            Item.Measure_Wide := Float (Item.Length * Debug_Text_Size) * Pixels;
+            Item.Measure_High := Float (Debug_Text_Size) * Pixels;
+         end if;
+         Item.Measure_Valid := True;
+      end if;
+      Result := (Width => Float'Ceiling (Item.Measure_Wide), Height => Float'Ceiling (Item.Measure_High));
+   end Measure;
 
    procedure Set_Ink (Item : in out Label; To : Themes.Slot) is
    begin
@@ -89,6 +135,8 @@ package body Pomarine.Widgets.Labels is
       if To /= Item.Scaled then
          Item.Scaled := To;
          Item.Fit_Width := -1.0;
+         Item.Measure_Valid := False;
+         Content_Changed (Item);
          if Is_Attached (Item) then
             Invalidate (Item);
          end if;
@@ -158,7 +206,7 @@ package body Pomarine.Widgets.Labels is
 
    overriding procedure Draw
      (Item   : in out Label;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Scale : constant Positive :=
@@ -219,5 +267,16 @@ package body Pomarine.Widgets.Labels is
             Text (Item), Scale);
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Label;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := (if Item.Using in Line_Texts.Heading | Line_Texts.Display
+                        then Semantics.Heading else Semantics.Label);
+      end if;
+      Semantics.Name_As (Facts, Text (Item));
+   end Describe;
 
 end Pomarine.Widgets.Labels;

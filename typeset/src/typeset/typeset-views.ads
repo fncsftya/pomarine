@@ -3,6 +3,7 @@ with Ada.Finalization;
 with CoreText.Shaping;
 with Typeset.Glyph_Atlas;
 with Typeset.Layouts;
+with SDL3.Painters;
 with SDL3.Windows.Renderers;
 
 --  Draws a document, as a layout has it, into a Renderer: the visible
@@ -25,7 +26,7 @@ package Typeset.Views is
      (Item   : in out View;
       Laid   : in out Layouts.Layout;
       Doc    : Layouts.Document;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Value  : SDL3.Windows.Renderers.Color;
       Anchor : in out Positive;
       Offset : in out Float;

@@ -1,9 +1,11 @@
 with Pomarine.Boxes;
-
 package body Pomarine.Widgets.Toasts is
 
+   use type Semantics.Action;
+   use type Semantics.Role;
+
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    --  In points
    Bar_Width    : constant Float := 4.0;
@@ -135,7 +137,7 @@ package body Pomarine.Widgets.Toasts is
 
    overriding procedure Draw
      (Item   : in out Toast;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -178,5 +180,53 @@ package body Pomarine.Widgets.Toasts is
             Pomarine.Line_Texts.Strong);
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Toast;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Status;
+      end if;
+      Facts.Live := True;
+      Semantics.Name_As (Facts, Message (Item));
+   end Describe;
+
+   overriding function Part_Count (Item : Toast) return Natural is
+     (if Item.Label_Length > 0 then 1 else 0);
+
+   overriding procedure Describe_Part
+     (Item   : Toast;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle)
+   is
+      pragma Unreferenced (Part);
+   begin
+      Facts.Kind := Semantics.Button;
+      Semantics.Name_As (Facts, Action (Item));
+      Facts.Actions (Semantics.Click) := True;
+      --  Where the button is drawn is the right end of the toast.
+      Bounds := (Left => Left_Of (Item) + Width_Of (Item) / 2.0,
+                 Top => Top_Of (Item),
+                 Right => Left_Of (Item) + Width_Of (Item),
+                 Bottom => Top_Of (Item) + Height_Of (Item));
+   end Describe_Part;
+
+   overriding procedure Perform_Part
+     (Item    : in out Toast;
+      Part    : Positive;
+      Request : Semantics.Request;
+      Done    : out Boolean)
+   is
+      pragma Unreferenced (Part);
+   begin
+      Done := Request.Doing = Semantics.Click;
+      if Done then
+         Item.Clicked := True;
+         Notify (Item, Click);
+         Invalidate (Item);
+      end if;
+   end Perform_Part;
 
 end Pomarine.Widgets.Toasts;

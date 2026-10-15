@@ -1,0 +1,610 @@
+V "GNAT Lib v16"
+A -O3
+A -gnatA
+A -gnatn
+A -ffunction-sections
+A -fdata-sections
+A -gnato
+A -gnatwa
+A -gnatw.X
+A -gnatVa
+A -gnatwe
+A -gnata
+A -gnaty3
+A -gnatya
+A -gnatyA
+A -gnatyB
+A -gnatyb
+A -gnatyc
+A -gnaty-
+A -gnatyd
+A -gnatye
+A -gnatyf
+A -gnatyh
+A -gnatyi
+A -gnatyI
+A -gnatyk
+A -gnatyl
+A -gnatym
+A -gnatyn
+A -gnatyO
+A -gnatyp
+A -gnatyr
+A -gnatyS
+A -gnatyt
+A -gnatyu
+A -gnatyx
+A -gnat2022
+A -gnatW8
+A -gnatwh
+A -gnatyM120
+A -gnatVa
+A -fstack-check=specific
+A -fstack-protector-strong
+A -mmacosx-version-min=26.0.0
+A -mcpu=apple-m1
+A -mlittle-endian
+A -mabi=lp64
+A -fPIC
+P SS ZX
+
+RN
+RV NO_ACCESS_SUBPROGRAMS
+RV NO_DISPATCHING_CALLS
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTIONS
+RV NO_FINALIZATION
+RV NO_FLOATING_POINT
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_PROTECTED_TYPES
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_UNCHECKED_CONVERSION
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_IMPLICIT_LOOPS
+RV NO_ELABORATION_CODE
+RV MAX_ENTRY_QUEUE_LENGTH=1+
+
+U pomarine.accessibility%b  pomarine-accessibility.adb  3ebd7897 OO PF PK
+W ada%s			ada.ads			ada.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.unchecked_conversion%s
+W interfaces%s		interfac.ads		interfac.ali
+W interfaces.c%s	i-c.adb			i-c.ali
+W pomarine%s		pomarine.ads		pomarine.ali
+W sdl3%s		sdl3.adb		sdl3.ali
+W sdl3.events%s		sdl3-events.adb		sdl3-events.ali
+Z system%s		system.ads		system.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.fat_flt%s	s-fatflt.ads		s-fatflt.ali
+Z system.fat_lflt%s	s-fatlfl.ads		s-fatlfl.ali
+Z system.finalization_primitives%s  s-finpri.adb  s-finpri.ali
+Z system.pool_global%s	s-pooglo.adb		s-pooglo.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+Z system.soft_links%s	s-soflin.adb		s-soflin.ali
+Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
+
+U pomarine.accessibility%s  pomarine-accessibility.ads  5adf7427 EE OO PF PK
+W ada%s			ada.ads			ada.ali
+W ada.finalization%s	a-finali.ads		a-finali.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+Z ada.tags%s		a-tags.adb		a-tags.ali
+W pomarine%s		pomarine.ads		pomarine.ali
+W pomarine.semantics%s	pomarine-semantics.adb	pomarine-semantics.ali
+W pomarine.widgets%s	pomarine-widgets.adb	pomarine-widgets.ali
+W sdl3%s		sdl3.adb		sdl3.ali
+W sdl3.windows%s	sdl3-windows.adb	sdl3-windows.ali
+W system%s		system.ads		system.ali
+Z system.put_images%s	s-putima.adb		s-putima.ali
+Z system.soft_links%s	s-soflin.adb		s-soflin.ali
+Z system.tasking%s	s-taskin.adb		s-taskin.ali
+Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
+
+D ada.ads		20260610194523 76789da1 ada%s
+D a-assert.ads		20260610194523 ba465f5c ada.assertions%s
+D a-charac.ads		20260610194523 2d3ec45b ada.characters%s
+D a-chlat1.ads		20260610194523 e0d72e76 ada.characters.latin_1%s
+D a-contai.ads		20260610194523 61e5e089 ada.containers%s
+D a-cohata.ads		20260610194523 bea783e3 ada.containers.hash_tables%s
+D a-cohama.ads		20260610194523 477ea40a ada.containers.hashed_maps%s
+D a-conhel.ads		20260610194523 46fe1ce3 ada.containers.helpers%s
+D a-cihama.ads		20260610194523 e9fd232a ada.containers.indefinite_hashed_maps%s
+D a-coinve.ads		20260610194523 2d0a9a0e ada.containers.indefinite_vectors%s
+D a-convec.ads		20260610194523 cb0f314a ada.containers.vectors%s
+D a-except.ads		20260610194523 8699d7ff ada.exceptions%s
+D a-finali.ads		20260610194523 099c16e4 ada.finalization%s
+D a-iteint.ads		20260610194523 49a8bee2 ada.iterator_interfaces%s
+D a-stream.ads		20260610194523 cb01a8f8 ada.streams%s
+D a-string.ads		20260610194523 90ac6797 ada.strings%s
+D a-strhas.ads		20260610194523 e06866e7 ada.strings.hash%s
+D a-strmap.ads		20260610194523 f7e6ca10 ada.strings.maps%s
+D a-strsea.ads		20260610194523 18c3c634 ada.strings.search%s
+D a-sttebu.ads		20260610194523 f1ad67a2 ada.strings.text_buffers%s
+D a-strunb.ads		20260610194523 8d6ccba7 ada.strings.unbounded%s
+D a-strunb.adb		20260610194523 30f67b52 ada.strings.unbounded%b
+D a-stuten.ads		20260610194523 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20260610194523 2dbf449c ada.tags%s
+D a-unccon.ads		20260610194523 0e9b276f ada.unchecked_conversion%s
+D a-uncdea.ads		20260610194523 c3a8ac65 ada.unchecked_deallocation%s
+D coretext.ads		20261015101840 1374cfbc coretext%s
+D coretext-fonts.ads	20261015101840 0fec9be9 coretext.fonts%s
+D coretext-shaping.ads	20261015101840 3bba3825 coretext.shaping%s
+D coretext-shaping-glyphs.ads  20261015101840 bd00a416 coretext.shaping.glyphs%s
+D coretext-strings.ads	20261015101840 2839f9bf coretext.strings%s
+D interfac.ads		20260610194523 9111f9c1 interfaces%s
+D i-c.ads		20260610194523 dbdd3be7 interfaces.c%s
+D i-cstrin.ads		20260610194523 49eced87 interfaces.c.strings%s
+D pomarine.ads		20261015101840 e3c80774 pomarine%s
+D pomarine-accessibility.ads  20261015123135 278c1d8d pomarine.accessibility%s
+D pomarine-accessibility.adb  20261015125016 77d7161b pomarine.accessibility%b
+D pomarine-clipboards.ads  20261015101840 dc9f2e9c pomarine.clipboards%s
+D pomarine-icons.ads	20261015120609 704bf59d pomarine.icons%s
+D pomarine-line_texts.ads  20261015125449 41b75229 pomarine.line_texts%s
+D pomarine-semantics.ads  20261015125705 b1110656 pomarine.semantics%s
+D pomarine-themes.ads	20261015114304 f41e6398 pomarine.themes%s
+D pomarine-widgets.ads	20261015130932 3f328ec1 pomarine.widgets%s
+D pomarine_ui_config.ads  20261015122345 f8cdcfa9 pomarine_ui_config%s
+D sdl3.ads		20261015101840 f4da8c34 sdl3%s
+D sdl3-cursors.ads	20261015101840 9e8b92ce sdl3.cursors%s
+D sdl3-events.ads	20261015130932 bba06f89 sdl3.events%s
+D sdl3-painters.ads	20261015120609 4433428e sdl3.painters%s
+D sdl3-pictures.ads	20261015101840 37e92f70 sdl3.pictures%s
+D sdl3-thin.ads		20261015122921 ba5ff48f sdl3.thin%s
+D sdl3-windows.ads	20261015122825 9345ea6e sdl3.windows%s
+D sdl3-windows-renderers.ads  20261015120609 ecd218f0 sdl3.windows.renderers%s
+D sdl3-windows-renderers-textures.ads  20261015101840 ba7c6adb sdl3.windows.renderers.textures%s
+D system.ads		20260610194523 8a611ac3 system%s
+D s-atacco.ads		20260610194523 5868e3ba system.address_to_access_conversions%s
+D s-assert.ads		20260610194523 9c4520c7 system.assertions%s
+D s-atocou.ads		20260610194523 dc18efc3 system.atomic_counters%s
+D s-atocou.adb		20260610194523 6fe685de system.atomic_counters%b
+D s-atopri.ads		20260610194523 e19c1d89 system.atomic_primitives%s
+D s-c_time.ads		20260610194523 e502d0c0 system.c_time%s
+D s-exctab.ads		20260610194523 91bef6ef system.exception_table%s
+D s-fatflt.ads		20260610194523 11beb392 system.fat_flt%s
+D s-fatgen.ads		20260610194523 d28c6cfe system.fat_gen%s
+D s-fatgen.adb		20260610194523 6cc1fec9 system.fat_gen%b
+D s-fatlfl.ads		20260610194523 378cba9f system.fat_lflt%s
+D s-finpri.ads		20260610194523 5970d55a system.finalization_primitives%s
+D s-finpri.adb		20260610194523 02c85f69 system.finalization_primitives%b
+D s-finroo.ads		20260610194523 0a7c3ed4 system.finalization_root%s
+D s-multip.ads		20260610194523 38ac9f73 system.multiprocessors%s
+D s-oscons.ads		20260626180535 42ad9981 system.os_constants%s
+D s-osinte.ads		20260610194523 6d01fcda system.os_interface%s
+D s-oslock.ads		20260610194523 bcc789d2 system.os_locks%s
+D s-parame.ads		20260610194523 a1aeab5c system.parameters%s
+D s-pooglo.ads		20260610194523 91708d21 system.pool_global%s
+D s-putima.ads		20260610194523 1b989439 system.put_images%s
+D s-retsta.ads		20260610194523 0f6b06cb system.return_stack%s
+D s-secsta.ads		20260610194523 578279f5 system.secondary_stack%s
+D s-soflin.ads		20260610194523 5d88fdea system.soft_links%s
+D s-stache.ads		20260610194523 0b81c1fe system.stack_checking%s
+D s-stausa.ads		20260610194523 f470ae2d system.stack_usage%s
+D s-stalib.ads		20260610194523 1c9580f6 system.standard_library%s
+D s-stoele.ads		20260610194523 ccded4e8 system.storage_elements%s
+D s-stopoo.ads		20260610194523 45459446 system.storage_pools%s
+D s-stratt.ads		20260610194523 80b8dafb system.stream_attributes%s
+D s-tasinf.ads		20260610194523 801abd01 system.task_info%s
+D s-taspri.ads		20260610194523 4fd5ef41 system.task_primitives%s
+D s-taskin.ads		20260610194523 e3b5765b system.tasking%s
+D s-taprob.ads		20260610194523 acd6094d system.tasking.protected_objects%s
+D s-traent.ads		20260610194523 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20260610194523 fa2a7f59 system.unsigned_types%s
+D s-wchcon.ads		20260610194523 d9032363 system.wch_con%s
+D s-wchstw.ads		20260610194523 2d112c01 system.wch_stw%s
+D typeset.ads		20261015101840 9b9c0031 typeset%s
+D typeset-glyph_atlas.ads  20261015120609 0dca8536 typeset.glyph_atlas%s
+D yoga.ads		20261015101840 18821540 yoga%s
+D yoga-nodes.ads	20261015125347 bd995798 yoga.nodes%s
+G a e
+G c Z s b [attach pomarine__accessibility 28 14 none]
+G c Z s b [is_attached pomarine__accessibility 36 13 none]
+G c Z s b [detach pomarine__accessibility 38 14 none]
+G c Z s b [is_active pomarine__accessibility 41 13 none]
+G c Z s b [is_waiting pomarine__accessibility 44 13 none]
+G c Z s b [update pomarine__accessibility 49 14 none]
+G c Z s b [window_focus_changed pomarine__accessibility 54 14 none]
+G c Z s b [requests_dropped pomarine__accessibility 61 13 none]
+G c Z s b [activated pomarine__accessibility__mailbox 73 17 none]
+G c Z s b [put pomarine__accessibility__mailbox 74 17 none]
+G c Z s b [take pomarine__accessibility__mailbox 75 17 none]
+G c Z s b [take_activation pomarine__accessibility__mailbox 77 17 none]
+G c Z s b [waiting pomarine__accessibility__mailbox 78 16 none]
+G c Z s b [dropped pomarine__accessibility__mailbox 79 16 none]
+G c Z s b [mailbox__activatedN pomarine__accessibility 73 7 none]
+G c Z s b [mailbox__activatedP pomarine__accessibility 73 7 none]
+G c Z s b [mailbox__putN pomarine__accessibility 74 7 none]
+G c Z s b [mailbox__putP pomarine__accessibility 74 7 none]
+G c Z s b [mailbox__takeN pomarine__accessibility 75 7 none]
+G c Z s b [mailbox__takeP pomarine__accessibility 75 7 none]
+G c Z s b [mailbox__take_activationN pomarine__accessibility 77 7 none]
+G c Z s b [mailbox__take_activationP pomarine__accessibility 77 7 none]
+G c Z s b [mailbox__waitingN pomarine__accessibility 78 7 none]
+G c Z s b [mailbox__waitingP pomarine__accessibility 78 7 none]
+G c Z s b [mailbox__droppedN pomarine__accessibility 79 7 none]
+G c Z s b [mailbox__droppedP pomarine__accessibility 79 7 none]
+G c Z s b [finalize pomarine__accessibility 99 25 none]
+G c Z s b [begin_update pomarine__accessibility 101 25 none]
+G c Z s b [describe_node pomarine__accessibility 107 25 none]
+G c Z s b [end_update pomarine__accessibility 114 25 none]
+G c Z s s [request_entryIP pomarine__accessibility 65 9 none]
+G c Z s s [Trequest_arrayBIP pomarine__accessibility 70 4 none]
+G c Z s s [mailboxVIP pomarine__accessibility 72 4 none]
+G c Z s s [adapterDF pomarine__accessibility 88 9 none]
+G c Z s s [adapterIP pomarine__accessibility 88 9 none]
+G c Z b b [adapter_new pomarine__accessibility 71 13 none]
+G c Z b b [adapter_free pomarine__accessibility 78 14 none]
+G c Z b b [adapter_is_active pomarine__accessibility 81 13 none]
+G c Z b b [adapter_send pomarine__accessibility 84 14 none]
+G c Z b b [adapter_window_focus pomarine__accessibility 91 14 none]
+G c Z b b [update_new pomarine__accessibility 94 13 none]
+G c Z b b [update_add pomarine__accessibility 100 14 none]
+G c Z b b [role_code pomarine__accessibility 105 13 none]
+G c Z b b [node_recordIP pomarine__accessibility 18 9 none]
+G c Z b b [action_bits pomarine__accessibility 108 13 none]
+G c Z b b [activated pomarine__accessibility 125 14 none]
+G c Z b b [acted pomarine__accessibility 128 14 none]
+G c Z b b [owner_of pomarine__accessibility 141 13 none]
+G r c none [attach pomarine__accessibility 28 14 none] [is_open sdl3__windows 21 13 none]
+G r c none [update pomarine__accessibility 49 14 none] [has_root pomarine__widgets 392 13 none]
+G r s request [update pomarine__accessibility 49 14 none] [requestIP pomarine__semantics 153 9 none]
+G r c none [update pomarine__accessibility 49 14 none] [act pomarine__widgets 831 14 none]
+G r c none [update pomarine__accessibility 49 14 none] [describe_changes pomarine__widgets 820 14 none]
+G r c none [begin_update pomarine__accessibility 101 25 none] [to_unsigned_64 pomarine__widgets 487 13 none]
+G r c none [describe_node pomarine__accessibility 107 25 none] [to_string pomarine__semantics 91 13 none]
+G r c none [describe_node pomarine__accessibility 107 25 none] [to_string pomarine__semantics 99 13 none]
+G r c none [describe_node pomarine__accessibility 107 25 none] [to_unsigned_64 pomarine__widgets 487 13 none]
+G r c none [describe_node pomarine__accessibility 107 25 none] [is_named pomarine__semantics 166 13 none]
+G r c none [describe_node pomarine__accessibility 107 25 none] [part_of pomarine__widgets 471 13 none]
+G r s node_id [request_entryIP pomarine__accessibility 65 9 none] [node_idIP pomarine__widgets 881 9 none]
+G r s request [request_entryIP pomarine__accessibility 65 9 none] [requestIP pomarine__semantics 153 9 none]
+G r s node_id [Trequest_arrayBIP pomarine__accessibility 70 4 none] [node_idIP pomarine__widgets 881 9 none]
+G r s request [Trequest_arrayBIP pomarine__accessibility 70 4 none] [requestIP pomarine__semantics 153 9 none]
+G r s node_id [mailboxVIP pomarine__accessibility 72 4 none] [node_idIP pomarine__widgets 881 9 none]
+G r s request [mailboxVIP pomarine__accessibility 72 4 none] [requestIP pomarine__semantics 153 9 none]
+G r s node_id [adapterIP pomarine__accessibility 88 9 none] [node_idIP pomarine__widgets 881 9 none]
+G r s request [adapterIP pomarine__accessibility 88 9 none] [requestIP pomarine__semantics 153 9 none]
+G r c none [activated pomarine__accessibility 125 14 none] [wake sdl3__events 102 14 none]
+G r s request [acted pomarine__accessibility 128 14 none] [requestIP pomarine__semantics 153 9 none]
+G r c none [acted pomarine__accessibility 128 14 none] [set pomarine__semantics 95 14 none]
+G r c none [acted pomarine__accessibility 128 14 none] [from_unsigned_64 pomarine__widgets 488 13 none]
+G r c none [acted pomarine__accessibility 128 14 none] [part_number_of pomarine__widgets 475 13 none]
+G r c none [acted pomarine__accessibility 128 14 none] [wake sdl3__events 102 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 36|1r6 25r32 88r32 37|1r6 142r31
+X 13 a-finali.ads
+40K13*Finalization 68e21 36|1w10 25r36 88r36
+50H9*Limited_Controlled<68|40R9> 66e55 36|25r49 88r49
+53U14*Initialize<68|48p14>
+X 25 a-unccon.ads
+23v14*Unchecked_Conversion 37|1w10 142r35
+X 32 interfac.ads
+47K9*Interfaces 247e15 37|2r6 8r13 10r22 19r23 22r23 23r23 26r23 28r23 30r23
+. 32r23 33r23 34r23 35r23 37r23 38r23 39r23 43r33 44r33 45r33 46r33 47r33
+. 48r33 49r33 50r33 51r33 52r34 53r33 60r22 61r22 64r22 65r22 66r22 67r22
+. 68r22 88r16 95r14 96r15 108r62 109r16 113r33 130r22 131r22 134r22 135r22
+. 136r22 137r22 138r22 155r22 156r22 159r22 160r22 161r22 162r22 163r22 167r19
+. 319r64 320r15 323r43 356r26 358r26 360r26 369r26 374r26 376r26 377r26 378r26
+92M9*Unsigned_32 37|8r24 22r34 23r34 26r34 28r34 30r34 33r34 35r34 37r34
+. 38r34 39r34 43r44 44r44 45r44 46r44 47r44 48r44 49r44 50r44 51r44 52r45
+. 53r44 60r33 64r33 66r33 68r33 88r27 108r73 109r27 130r33 134r33 136r33
+. 138r33 155r33 159r33 161r33 163r33 167r30 320r26 323r54 356r37 358r37 360r37
+. 369r37 374r37 376r37 377r37 378r37
+95M9*Unsigned_64 37|19r34 32r34 34r34 61r33 65r33 67r33 95r25 96r26 131r33
+. 135r33 137r33 156r33 160r33 162r33 319r75
+154V13*Shift_Left{92M9} 37|113s44
+X 33 i-c.ads
+33K20*C 605e17 37|2w17 10r33
+76M9*unsigned_char 37|12r15 20r25 21r25 81r66 91r73 97r17 105r56 106r9 348r28
+102F9*double<long_float> 37|24r36 31r42 62r24 132r24 157r24 351r28 352r28
+. 353r28 354r28 361r28 362r28 363r28 364r28
+X 35 pomarine.ads
+4K9*Pomarine 6e13 36|4r6 5r6 23r9 116r5 37|5r14 388r5
+X 36 pomarine-accessibility.ads
+23K18*Accessibility 35|4k9 36|65E9 116l14 116e27 37|5b23 388l14 388t27
+25R9*Adapter<13|50R9><43|790R9> 13|53P14 36|28p14 28r36 36p13 36r33 38p14
+. 38r36 41p13 41r31 44p13 44r32 49p14 49r36 54p14 54r50 61p13 61r38 88c9
+. 97e14 99P25 99r49 101P25 102r21 107P25 108r25 114P25 114r51 37|13r38 141r60
+. 235r36 244r49 249r33 252r36 260r31 264r32 266r38 268r50 275r36 298r21 310r25
+. 382r51 68|46p14
+28U14*Attach 28=22 28>45 37|235b14
+28r22 Item{25R9} 29r75 30r32 37|235b22 239m10 240m65 240r65
+28r45 Window{51|6R9} 29r41 37|235b45 236r71
+36V13*Is_Attached{boolean} 29s62 30s19 36>26 39s23 50s18 55s18 37|249b13
+36r26 Item{25R9} 37|250r7
+38U14*Detach 38=22 37|246s7 252b14
+38r22 Item{25R9} 39r36 37|252b22 254r10 255r24 256m10
+41V13*Is_Active{boolean} 41>24 37|260b13 291s10
+41r24 Item{25R9} 37|261r7 262r35
+44V13*Is_Waiting{boolean} 44>25 37|264b13
+44r25 Item{25R9} 37|264r60
+49U14*Update 49=22 49=45 37|275b14 295l8 295t14
+49r22 Item{25R9} 50r31 37|275b22 282r7 284m10 287r10 291r21 292m42 292r57
+. 293m10
+49r45 Tree{43|100R9} 50r64 37|275b45 289m23 292m36
+54U14*Window_Focus_Changed 54=36 54>59 37|268b14 271l8 271t28
+54r36 Item{25R9} 55r31 37|268b36 270r29
+54b59 Focused{boolean} 37|268b59 270r46
+58N4*Request_Capacity 70r38 37|198r21 201r44 214r32
+61V13*Requests_Dropped{natural} 61>31 37|266b13
+61r31 Item{25R9} 37|266r66
+65R9 Request_Entry 68e14 70r59
+66r7*Node{43|113R9} 37|212r35
+67r7*Request{41|153R9} 37|213r38
+70A9 Request_Array(65R9)<integer> 81r16
+72W19 Mailbox 81E7 86l8 86e15 94r17 37|189b19 231l8 231t15
+73U17 Activated 37|149s28 191b17 194l11 194t20
+74U17 Put 74>22 74>46 37|185s28 196b17 204l11 204t14
+74r22 Node{43|113R9} 37|196b22 201r70
+74r46 Request{41|153R9} 37|196b46 201r76
+75U17 Take 75<23 75<51 76<23 37|206b17 219l11 219t15 287s20
+75r23 Node{43|113R9} 37|207b10 212m13 217m13
+75r51 Request{41|153R9} 37|207b38 213m13
+76b23 Found{boolean} 37|208b10 210m10 211r13
+77U17 Take_Activation 77<34 37|221b17 225l11 225t26 282s17
+77b34 Was{boolean} 37|221b34 223m10
+78V16 Waiting{boolean} 37|227b16 264s70
+79V16 Dropped{natural} 37|229b16 266s76
+81a7 Queue{70A9} 37|201r13 212r21 213r24
+82i7 First{positive} 37|201r21 212r28 213r31 214r13 214r22
+83i7 Count{natural} 37|198r13 201r29 202r13 202r22 210r19 215r13 215r22 227r57
+84b7 Asked{boolean} 37|193r10 223r17 224r10 227r43
+85i7 Lost{natural} 37|199r13 199r21 229r43
+90m7 Handle{54|67M9} 37|239m15 250r12 254r15 255r29 256m15 261r12 262r40
+. 270r34 384r26
+92m7 Pending{54|67M9} 37|303m12 379r24 384r39 385m12
+94w7 Mail{72W19} 37|149r23 185r23 264r65 266r71 282r12 287r15
+95b7 Whole{boolean} 37|284m15 292r62 293m15
+99U25 Finalize<13|54p14> 99=35 37|244b25 247l8 247t16
+99r35 Item{25R9} 37|244b35 246m15
+101U25 Begin_Update<43|796p14> 102=7 103>7 104>7 105>7 37|297b25 307l8 307t20
+102r7 Self{25R9} 37|298b7 303m7
+103r7 Root{43|113R9} 37|299b7 305r36
+104r7 Focused{43|113R9} 37|300b7 305r67
+105b7 Whole{boolean} 37|301b7 306r16
+107U25 Describe_Node<43|804p14> 108=7 109>7 110>7 111>7 112>7 37|309b25 380l8
+. 380t21
+108r7 Self{25R9} 37|310b7 379r19
+109r7 Id{43|113R9} 37|311b7 346r50 367r52 372r52
+110r7 Facts{41|111R9} 37|312b7 316r55 317r55 318r55 333r13 334r13 335r13
+. 336r13 337r13 338r13 339r13 340r13 341r13 342r13 343r33 347r37 348r65 350r39
+. 361r36 362r36 363r36 364r36 365r30 367r56 369r50 370r30 372r56 374r50 377r50
+. 378r50
+111r7 Bounds{41|148R9} 37|313b7 351r36 352r36 353r36 354r36
+112a7 Children{43|794A9} 37|314b7 319r43 330r16 331r20 331r67 375r30 376r50
+114U25 End_Update<43|814p14> 114=37 37|382b25 386l8 386t18
+114r37 Self{25R9} 37|382b37 384r21 384r34 385m7
+X 37 pomarine-accessibility.adb
+10K12 C=10:33 12r13 20r23 21r23 24r34 31r40 62r22 81r64 91r71 97r15 105r54
+. 106r7 132r22 157r22 348r26 351r26 352r26 353r26 354r26 361r26 362r26 363r26
+. 364r26
+13P9 Adapter_Access(36|25R9) 142r73
+18R9 Node_Record 41e6 100r73 321r23
+19m7*Id{32|95M9} 346m10
+20m7*Role{33|76M9} 347m10
+21m7*Toggled{33|76M9} 348m10
+22m7*Flags{32|92M9} 349m10
+23m7*Actions{32|92M9} 350m10
+24f7*Left{33|102F9} 351m10
+24f13*Top{33|102F9} 352m10
+24f18*Right{33|102F9} 353m10
+24f25*Bottom{33|102F9} 354m10
+25m7*Name{54|67M9} 355m10
+26m7*Name_Length{32|92M9} 356m10
+27m7*Value{54|67M9} 357m10
+28m7*Value_Length{32|92M9} 358m10
+29m7*Help{54|67M9} 359m10
+30m7*Help_Length{32|92M9} 360m10
+31f7*Number{33|102F9} 361m10
+31f15*Minimum{33|102F9} 362m10
+31f24*Maximum{33|102F9} 363m10
+31f33*Step{33|102F9} 364m10
+32m7*Anchor_Node{32|95M9} 365m10
+33m7*Anchor_Chars{32|92M9} 369m10
+34m7*Caret_Node{32|95M9} 370m10
+35m7*Caret_Chars{32|92M9} 374m10
+36m7*Children{54|67M9} 375m10
+37m7*Child_Count{32|92M9} 376m10
+38m7*Position{32|92M9} 377m10
+39m7*Set_Size{32|92M9} 378m10
+43m4 Flag_Disabled{32|92M9} 333r29
+44m4 Flag_Selected{32|92M9} 334r29
+45m4 Flag_Expanded{32|92M9} 335r29
+46m4 Flag_Has_Expanded{32|92M9} 336r33
+47m4 Flag_Read_Only{32|92M9} 337r30
+48m4 Flag_Invalid{32|92M9} 338r28
+49m4 Flag_Modal{32|92M9} 339r26
+50m4 Flag_Live{32|92M9} 340r25
+51m4 Flag_Has_Number{32|92M9} 341r31
+52m4 Flag_Has_Selection{32|92M9} 342r34
+53m4 Flag_Named{32|92M9} 343r41
+55P9 Activated_Callback 55>49 73r19
+55m49 User{54|67M9}
+58P9 Acted_Callback 59>7 60>7 61>7 62>7 63>7 64>7 65>7 66>7 67>7 68>7 74r19
+59m7 User{54|67M9}
+60m7 Action{32|92M9}
+61m7 Node{32|95M9}
+62f7 Number{33|102F9}
+63m7 Value{54|67M9}
+64m7 Value_Length{32|92M9}
+65m7 Anchor_Node{32|95M9}
+66m7 Anchor_Chars{32|92M9}
+67m7 Focus_Node{32|95M9}
+68m7 Focus_Chars{32|92M9}
+71V13 Adapter_New{54|67M9} 72>7 73>7 74>7 75>7 240s12
+72m7 Window{54|67M9}
+73p7 Activated{55P9}
+74p7 Acted{58P9}
+75m7 User{54|67M9}
+78U14 Adapter_Free 78>28 255s10
+78m28 Handle{54|67M9}
+81V13 Adapter_Is_Active{33|76M9} 81>32 262s16
+81m32 Handle{54|67M9}
+84U14 Adapter_Send 85>7 86>7 87>7 88>7 384s7
+85m7 Handle{54|67M9}
+86m7 Batch{54|67M9}
+87m7 Title{54|67M9}
+88m7 Length{32|92M9}
+91U14 Adapter_Window_Focus 91>36 91>61 270s7
+91m36 Handle{54|67M9}
+91m61 Focused{33|76M9}
+94V13 Update_New{54|67M9} 95>7 96>7 97>7 304s9
+95m7 Root{32|95M9}
+96m7 Focus{32|95M9}
+97m7 Whole{33|76M9}
+100U14 Update_Add 100>26 100^50 379s7
+100m26 Batch{54|67M9}
+100p50 Node(18R9)
+105V13 Role_Code{33|76M9} 105b13 105>24 347s26
+105e24 Item{41|15E9} 106r44
+108V13 Action_Bits{32|92M9} 108b13 108>26 117l8 117t19 350s26
+108a26 Item{41|69A9} 112r13
+109m7 Result{32|92M9} 113m13 113r23 116r14
+111e11 A{41|49E9} 112r19 113r81
+125U14 Activated 125>25 147b14 151l8 151t17 240r33
+125m25 User{54|67M9} 147b25 149r17
+128U14 Acted 129>7 130>7 131>7 132>7 133>7 134>7 135>7 136>7 137>7 138>7
+. 153b14 187l8 187t13 240r51
+129m7 User{54|67M9} 154b7 185r17
+130m7 Action{32|92M9} 155b7 167r10 170r46
+131m7 Node{32|95M9} 156b7 185r59
+132f7 Number{33|102F9} 157b7 171r32
+133m7 Value{54|67M9} 158b7 172r10 175r39
+134m7 Value_Length{32|92M9} 159b7 172r48 174r42
+135m7 Anchor_Node{32|95M9} 160b7 181r80
+136m7 Anchor_Chars{32|92M9} 161b7 182r34
+137m7 Focus_Node{32|95M9} 162b7 183r79
+138m7 Focus_Chars{32|92M9} 163b7 184r33
+141V13 Owner_Of(36|25R9) 141b13 141>23 145l8 145t16 149s7 185s7
+141m23 User{54|67M9} 144r23
+142V16 Convert[25|23]{13P9} 144s14
+165r7 Request{41|153R9} 170m7 171m7 177m28 177r28 178m13 181m7 182m7 183m7
+. 184m7 185r66
+174a13 Text{string} 177r46
+236m7 Native{54|67M9} 238r10 240r25
+276r7 Node{43|113R9} 287m26 289r29
+277r7 Request{41|153R9} 287m32 289r35
+278b7 Found{boolean} 287m41 288r24
+279b7 Done{boolean} 289m44
+280b7 Asked{boolean} 282m34 283r10
+316a7 Name{string} 355r30 355r51 356r50
+317a7 Value{string} 357r30 357r52 358r50
+318a7 Help{string} 359r30 359r51 360r50
+319a7 Kids(32|95M9) 331m10 375m55 375r55
+320m7 Flags{32|92M9} 326m13 326r22 349r26
+321r7 Raw{18R9} 345m7 379r33
+323U17 Flag 323b17 323>23 323>37 328l11 328t15 333s7 334s7 335s7 336s7 337s7
+. 338s7 339s7 340s7 341s7 342s7 343s7
+323b23 On{boolean} 325r13
+323m37 Bit{32|92M9} 326r31
+330i11 I{integer} 331r16 331r77
+X 38 pomarine-clipboards.ads
+6h9*Clipboard
+X 41 pomarine-semantics.ads
+13K18*Semantics 36|4w15 67r17 74r56 75r65 110r18 111r18 37|105r31 106r24
+. 108r33 111r16 113r59 119r19 119r39 120r28 120r48 121r28 121r50 165r17 167r43
+. 167r65 170r24 177r13 196r56 207r52 277r17 312r18 313r18 316r34 317r34 318r34
+. 343r13 348r43 41|209e23
+15E9*Role 37|105r41 106r34 119r29 120r38 41|42e16
+17n7*Window{15E9} 37|120r58
+42n7*Text_Run{15E9} 37|119r49
+49E9*Action 37|111r26 113r69 121r38 167r53 167r75 170r34 41|67e20
+67n7*Hide_Tooltip{49E9} 37|121r60
+69A9*Action_Set(boolean)<49E9> 37|108r43
+73E9*Toggle 37|348r53 41|73e48
+91V13*To_String{string} 37|316s44 318s44
+95U14*Set 37|177s23
+99V13*To_String{string} 37|317s44
+105i7*Part{natural} 37|367r69 372r68
+107i7*Characters{natural} 37|369r63 374r62
+111R9*Description 36|110r28 37|312r28 41|146e14
+112e7*Kind{15E9} 37|347r43
+113r7*Name{83R9} 37|316r61
+115r7*Value{85R9} 37|317r61
+117r7*Help{83R9} 37|318r61
+119b7*Disabled{boolean} 37|333r19
+121b7*Selected{boolean} 37|334r19
+122b7*Expanded{boolean} 37|335r19
+123b7*Has_Expanded{boolean} 37|336r19
+125b7*Read_Only{boolean} 37|337r19
+126b7*Invalid{boolean} 37|338r19
+127b7*Modal{boolean} 37|339r19
+128b7*Live{boolean} 37|340r19
+130e7*Checked{73E9} 37|348r71
+131a7*Actions{69A9} 37|350r45
+132b7*Has_Number{boolean} 37|341r19
+133f7*Number{float} 37|361r42
+134f7*Minimum{float} 37|362r42
+135f7*Maximum{float} 37|363r42
+136f7*Step{float} 37|364r42
+138i7*Position{natural} 37|377r56
+139i7*Set_Size{natural} 37|378r56
+141b7*Has_Selection{boolean} 37|342r19 365r36 370r36
+142r7*Anchor{104R9} 37|367r62 369r56
+142r15*Caret{104R9} 37|372r62 374r56
+148R9*Rectangle 36|111r28 37|313r28 41|150e14
+149f7*Left{float} 37|351r43
+149f13*Top{float} 37|352r43
+149f18*Right{float} 37|353r43
+149f25*Bottom{float} 37|354r43
+153R9*Request 36|67r27 74r66 75r75 37|165r27 196r66 207r62 277r27 41|164e14
+154e7*Doing{49E9} 37|170m15
+155f7*Number{float} 37|171m15
+157r7*Contents{83R9} 37|177m36
+159b7*Has_Text{boolean} 37|178m21
+160i7*Anchor_Part{natural} 37|181m15
+160i20*Focus_Part{natural} 37|183m15
+161i7*Anchor{natural} 37|182m15
+161i15*Focus{natural} 37|184m15
+166V13*Is_Named{boolean} 37|343s23
+X 43 pomarine-widgets.ads
+54K18*Widgets 36|5w15 26r10 49r59 50r46 66r17 74r29 75r34 89r10 103r14 104r17
+. 109r18 112r18 37|181r30 181r54 183r29 183r53 185r33 196r29 207r21 217r21
+. 275r59 276r17 289r10 292r10 299r14 300r17 305r12 305r43 311r18 314r18 331r43
+. 346r26 366r32 367r35 371r32 372r35 43|1080e21
+100R9*Tree<13|50R9> 36|49r67 37|275r67 43|1074e14
+113R9*Node_Id 36|66r25 74r37 75r42 103r22 104r25 109r26 37|196r37 207r29
+. 276r25 299r22 300r25 311r26 43|888e14
+121r4*No_Node{113R9} 37|217r29
+392V13*Has_Root{boolean} 36|50s54
+471V13*Part_Of{113R9} 37|367s43 372s43
+475V13*Part_Number_Of{natural} 37|181s38 183s37
+487V13*To_Unsigned_64{32|95M9} 37|305s20 305s51 331s51 346s34 366s40 371s40
+488V13*From_Unsigned_64{113R9} 37|181s62 183s61 185s41
+790h9*Semantic_Sink 36|26r18 89r18
+794A9*Node_Id_Array(113R9)<integer> 36|112r26 37|314r26
+820U14*Describe_Changes 37|292s18
+823b7 Whole{boolean} 37|292r48
+831U14*Act 37|289s18
+X 45 sdl3.ads
+2K9*SDL3 36|3r6 28r54 29r19 37|3r6 150r7 186r7 235r54 236r43 45|13e9
+X 47 sdl3-events.ads
+3K14*Events 37|3w11 150r12 186r12 47|113e16
+102U14*Wake 37|150s19 186s19
+X 48 sdl3-painters.ads
+26h9*Painter
+X 51 sdl3-windows.ads
+4K14*Windows 36|3w11 28r59 29r24 37|235r59 236r48 51|94e17
+6R9*Window<13|50R9> 36|28r67 37|235r67 51|90e14
+21V13*Is_Open{boolean} 36|29s32
+73V13*Native_Handle{54|67M9} 37|236s56
+X 54 system.ads
+37K9*System 36|2w6 90r17 90r35 92r17 92r35 37|7r13 25r23 27r23 29r23 36r23
+. 55r56 59r22 63r22 72r19 75r19 75r42 78r37 81r41 85r16 86r16 87r16 91r45
+. 97r39 100r34 125r32 129r22 133r22 141r30 142r57 147r32 154r22 158r22 172r19
+. 236r25 238r20 250r22 254r25 256r25 261r22 355r69 357r71 359r69 375r73 384r48
+. 385r23 54|173e11
+67M9*Address 36|90r24 92r24 37|7r20 25r30 27r30 29r30 36r30 55r63 59r29 63r29
+. 72r26 75r26 75r49 78r44 81r48 85r23 86r23 87r23 91r52 97r46 100r41 125r39
+. 129r29 133r29 141r37 142r64 147r39 154r29 158r29 236r32
+69m4*Null_Address{67M9} 36|90r42 92r42 37|172r26 238r27 250r29 254r32 256r32
+. 261r29 355r76 357r78 359r76 375r80 384r55 385r30
+81V14*"="{boolean} 37|172r16 238r17 250r19 254r22 261r19
+X 68 s-finroo.ads
+46U14*Adjust
+X 80 s-stausa.ads
+206U14*Initialize 207i<c,__gnat_stack_usage_initialize>22
+265U14*Output_Results 269i<c,__gnat_stack_usage_output_results>22
+

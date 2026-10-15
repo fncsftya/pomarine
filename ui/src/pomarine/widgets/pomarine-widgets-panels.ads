@@ -1,4 +1,4 @@
-with SDL3.Windows.Renderers;
+with SDL3.Painters;
 private with Pomarine.Boxes;
 
 --  A box that holds other widgets, to lay them out: with a colour to
@@ -43,12 +43,12 @@ package Pomarine.Widgets.Panels is
 
    overriding procedure Draw
      (Item   : in out Panel;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Draw_Over
      (Item   : in out Panel;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
 private

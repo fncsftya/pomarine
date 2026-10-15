@@ -1,13 +1,13 @@
 package body Pomarine.Boxes is
 
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Dash : constant Float := 4.0;
    Gap  : constant Float := 3.0;
    --  In points, of a dashed outline.
 
    procedure Outline
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Ink     : Themes.Color;
       Left, Top, Width, Height : Float;
       Thick   : Float;
@@ -53,7 +53,7 @@ package body Pomarine.Boxes is
    end Outline;
 
    procedure Draw
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Item    : Look;
       Left, Top, Width, Height : Float;
       Density : Float)
@@ -75,7 +75,7 @@ package body Pomarine.Boxes is
    end Draw;
 
    procedure Bevel
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Light   : Themes.Color;
       Dark    : Themes.Color;
       Left, Top, Width, Height : Float;
@@ -98,7 +98,7 @@ package body Pomarine.Boxes is
    end Bevel;
 
    procedure Draw_Control
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Colors  : Themes.Theme;
       Fill    : Themes.Color;
       Edge_Color : Themes.Color;
@@ -119,7 +119,7 @@ package body Pomarine.Boxes is
    end Draw_Control;
 
    procedure Draw_Flat
-     (Target  : SDL3.Windows.Renderers.Renderer;
+     (Target  : SDL3.Painters.Painter'Class;
       Fill    : Themes.Color;
       Edge_Color : Themes.Color;
       Left, Top, Width, Height : Float;

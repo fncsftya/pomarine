@@ -1,5 +1,6 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
-with SDL3.Windows.Renderers;
 
 --  A small mark to say something of a thing, beside it: a count, white
 --  in a dark square (as how many there are of what a button opens); or a
@@ -39,8 +40,12 @@ package Pomarine.Widgets.Badges is
 
    overriding procedure Draw
      (Item   : in out Badge;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
+
+   overriding procedure Describe
+     (Item  : Badge;
+      Facts : in out Semantics.Description);
 
 private
 

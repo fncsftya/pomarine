@@ -58,9 +58,20 @@ package body Pomarine.Line_Texts is
       end;
    end Width;
 
+   function Height
+     (Item  : in out Drawer;
+      Scale : Float;
+      Using : Style := Regular) return Float is
+   begin
+      if not CoreText.Fonts.Is_Open (Item.Faces (Using)) then
+         CoreText.Fonts.Open (Item.Faces (Using), Face_Name (Using), Size (Using));
+      end if;
+      return CoreText.Fonts.Line_Height (Item.Faces (Using)) * Scale;
+   end Height;
+
    procedure Draw
      (Item   : in out Drawer;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Value  : SDL3.Windows.Renderers.Color;
       Text   : String;
       Left   : Float;

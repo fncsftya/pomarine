@@ -3,7 +3,7 @@ package body Pomarine.Widgets.Grips is
    use type Themes.Slot;
 
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Dot_Size : constant Float := 2.0;
    --  A dot's side, in points, and the space between dots.
@@ -214,7 +214,7 @@ package body Pomarine.Widgets.Grips is
 
    overriding procedure Draw
      (Item   : in out Grip;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Side : constant Float := Float'Rounding (Dot_Size * Density (Item));

@@ -1,3 +1,4 @@
+with SDL3.Painters;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
@@ -68,7 +69,7 @@ package body Text_Area_Tests is
       Drawn : Images.Image;
    begin
       Renderers.Clear (Item.Target, Colors (Pomarine.Themes.Background));
-      Text_Areas.Draw (Item.Area, Item.Target, Colors);
+      Text_Areas.Draw (Item.Area, SDL3.Painters.To (Item.Target), Colors);
       Images.Read (Drawn, Item.Target);
       Goldens.Check (Name, Drawn);
    end Check;
@@ -622,8 +623,8 @@ package body Text_Area_Tests is
          Text_Areas.Caret (Broad).Paragraph'Image);
 
       Renderers.Clear (Target, Colors (Pomarine.Themes.Background));
-      Text_Areas.Draw (Narrow, Target, Colors);
-      Text_Areas.Draw (Broad, Target, Colors);
+      Text_Areas.Draw (Narrow, SDL3.Painters.To (Target), Colors);
+      Text_Areas.Draw (Broad, SDL3.Painters.To (Target), Colors);
       Images.Read (Drawn, Target);
       Goldens.Check ("textarea-two-views", Drawn);
 

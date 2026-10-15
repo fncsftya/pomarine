@@ -1,6 +1,7 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 
 --  A chip: a small white box, outlined, that names a thing (a square of
 --  its colour, if it is given one, and its name) and has a small button
@@ -32,11 +33,29 @@ package Pomarine.Widgets.Chips is
 
    overriding procedure Draw
      (Item   : in out Chip;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
      (Item : in out Chip; Hovered : Boolean);
+
+   overriding procedure Describe
+     (Item  : Chip;
+      Facts : in out Semantics.Description);
+
+   overriding function Part_Count (Item : Chip) return Natural is (1);
+
+   overriding procedure Describe_Part
+     (Item   : Chip;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle);
+
+   overriding procedure Perform_Part
+     (Item    : in out Chip;
+      Part    : Positive;
+      Request : Semantics.Request;
+      Done    : out Boolean);
 
 private
 

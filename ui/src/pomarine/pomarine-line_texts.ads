@@ -1,3 +1,4 @@
+with SDL3.Painters;
 with Ada.Strings.Unbounded;
 with CoreText.Fonts;
 with CoreText.Shaping;
@@ -63,9 +64,17 @@ package Pomarine.Line_Texts is
      with Pre => Scale > 0.0;
    --  Of Text in pixels, at Scale pixels to a point.
 
+   function Height
+     (Item  : in out Drawer;
+      Scale : Float;
+      Using : Style := Regular) return Float
+     with Pre => Scale > 0.0;
+   --  Of a line of text in pixels, at Scale pixels to a point: the font's
+   --  ascent, descent and leading.
+
    procedure Draw
      (Item   : in out Drawer;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Value  : SDL3.Windows.Renderers.Color;
       Text   : String;
       Left   : Float;

@@ -1,7 +1,6 @@
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
-
 package body Pomarine.Icons is
 
    package Textures renames SDL3.Windows.Renderers.Textures;
@@ -42,7 +41,7 @@ package body Pomarine.Icons is
 
    procedure Make
      (Item   : in out Library;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Which  : Icon;
       Size   : Positive;
       Made_It : out Boolean);
@@ -50,7 +49,7 @@ package body Pomarine.Icons is
 
    procedure Make
      (Item   : in out Library;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Which  : Icon;
       Size   : Positive;
       Made_It : out Boolean)
@@ -69,7 +68,7 @@ package body Pomarine.Icons is
       Each.Failed := Size;  --  until it is not
       if Ada.Directories.Exists (Path) then
          Each.Size := 0;
-         Textures.Create_Mask_From_SVG (Each.Image, Target, Path, Size, Size);
+         Textures.Create_Mask_From_SVG (Each.Image, Target.Device.all, Path, Size, Size);
          Each.Size := Size;
          Each.Failed := 0;
          Made_It := True;
@@ -84,7 +83,7 @@ package body Pomarine.Icons is
 
    procedure Draw
      (Item   : in out Library;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Which  : Icon;
       Value  : SDL3.Windows.Renderers.Color;
       Left, Top : Float;
@@ -93,7 +92,7 @@ package body Pomarine.Icons is
    begin
       Make (Item, Target, Which, Size, Drawn);
       if Drawn then
-         Textures.Draw_Tinted
+         SDL3.Painters.Draw_Tinted
            (Target, Item.Icons (Which).Image, Left, Top, Value);
       end if;
    end Draw;

@@ -1,6 +1,5 @@
 with Pomarine.Boxes;
 with Yoga.Nodes;
-
 package body Pomarine.Widgets.Layouts is
 
    procedure Set_Layout

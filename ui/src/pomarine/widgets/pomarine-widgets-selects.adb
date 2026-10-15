@@ -1,10 +1,12 @@
 with Pomarine.Boxes;
 with Pomarine.Icons;
-
 package body Pomarine.Widgets.Selects is
 
+   use type Semantics.Action;
+   use type Semantics.Role;
+
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Pad        : constant Float := 8.0;   --  in points, before the value
    Inner      : constant Float := 2.0;   --  round the button, in points
@@ -111,7 +113,7 @@ package body Pomarine.Widgets.Selects is
 
    overriding procedure Draw
      (Item   : in out Select_Field;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -171,5 +173,39 @@ package body Pomarine.Widgets.Selects is
             Left + Pad * Pixels, Top + High / 2.0, Pixels);
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Select_Field;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Button;
+      end if;
+      Semantics.Value_As (Facts, Value (Item));
+      Facts.Disabled := not Item.Enabled;
+      Facts.Has_Expanded := True;
+      Facts.Expanded := Item.Open;
+      Facts.Actions (Semantics.Click) := Item.Enabled;
+   end Describe;
+
+   overriding procedure Perform
+     (Item    : in out Select_Field;
+      Request : Semantics.Request;
+      Done    : out Boolean) is
+   begin
+      Done := False;
+      if Request.Doing = Semantics.Click and then Item.Enabled then
+         Item.Clicked := True;
+         Notify (Item, Click);
+         Invalidate (Item);
+         Done := True;
+      end if;
+   end Perform;
+
+   overriding procedure Command_State_Changed
+     (Item : in out Select_Field; State : Command_State) is
+   begin
+      Set_Enabled (Item, State in Enabled | Ticked);
+   end Command_State_Changed;
 
 end Pomarine.Widgets.Selects;

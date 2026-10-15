@@ -1,6 +1,7 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 
 --  A toast: a short message that something has been done, on a white box,
 --  outlined, casting a solid shadow, with a bar of the theme's primary
@@ -41,11 +42,29 @@ package Pomarine.Widgets.Toasts is
 
    overriding procedure Draw
      (Item   : in out Toast;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
      (Item : in out Toast; Hovered : Boolean);
+
+   overriding procedure Describe
+     (Item  : Toast;
+      Facts : in out Semantics.Description);
+
+   overriding function Part_Count (Item : Toast) return Natural;
+
+   overriding procedure Describe_Part
+     (Item   : Toast;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle);
+
+   overriding procedure Perform_Part
+     (Item    : in out Toast;
+      Part    : Positive;
+      Request : Semantics.Request;
+      Done    : out Boolean);
 
 private
 

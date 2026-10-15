@@ -84,6 +84,34 @@ private package Yoga.Thin is
    procedure Set_Gap (Node : Node_Ref; Which : YG_Gutter; V : C_float)
      with Import, Convention => C, External_Name => "YGNodeStyleSetGap";
 
+   type YG_Measure_Mode is (Undefined, Exactly, At_Most) with Convention => C;
+
+   type YG_Size is record
+      Width, Height : C_float;
+   end record
+     with Convention => C;
+
+   type Measure_Func is access function
+     (Node        : Node_Ref;
+      Width       : C_float;
+      Width_Mode  : YG_Measure_Mode;
+      Height      : C_float;
+      Height_Mode : YG_Measure_Mode) return YG_Size
+     with Convention => C;
+
+   procedure Set_Measure_Func (Node : Node_Ref; Func : Measure_Func)
+     with Import, Convention => C, External_Name => "YGNodeSetMeasureFunc";
+   procedure Set_Context (Node : Node_Ref; Context : System.Address)
+     with Import, Convention => C, External_Name => "YGNodeSetContext";
+   function Get_Context (Node : Node_Ref) return System.Address
+     with Import, Convention => C, External_Name => "YGNodeGetContext";
+   procedure Mark_Dirty (Node : Node_Ref)
+     with Import, Convention => C, External_Name => "YGNodeMarkDirty";
+   function Get_Has_New_Layout (Node : Node_Ref) return Interfaces.C.C_bool
+     with Import, Convention => C, External_Name => "YGNodeGetHasNewLayout";
+   procedure Set_Has_New_Layout (Node : Node_Ref; V : Interfaces.C.C_bool)
+     with Import, Convention => C, External_Name => "YGNodeSetHasNewLayout";
+
    function Layout_Left (Node : Node_Ref) return C_float
      with Import, Convention => C, External_Name => "YGNodeLayoutGetLeft";
    function Layout_Top (Node : Node_Ref) return C_float

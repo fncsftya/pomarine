@@ -16,6 +16,24 @@ dragging, double and triple clicks, copying, zooming and scrolling). Tests
 also check text with `Goldens.Check_Text`, and documents and layouts
 without drawing (`document-*`, `layout-*`).
 
+Not pictures: `painters-*` (what a recording keeps, and that drawing it again
+is drawing it), `semantics-*` (the tree as an assistive technology is told it,
+and only what changed, and what its actions do), `commands-*` (a widget's own
+handlers, a validator, keys, and where a command goes), `lists-*` (that a list
+asks for only the rows that show, and how it is chosen from and described),
+`layout-*` (a label sized to its text, and what is placed again),
+`animation-*`, `keyboard-*` (the focus going round, and what a widget does with
+the keys), and `application-*`, `menus-*`, `settings-*` (work posted from other
+threads, what is chosen from the menu bar, and the system's settings).
+`semantics-*` and the rest use a sink or a listener that writes down what it is
+told, so they do not draw.
+
+The `native/` crate (`pomarine_native`, which the tests use) builds a small Rust
+library first: it needs `cargo`, and a network the first time. Checking the
+system's own accessibility is by hand: run the application and ask it with
+System Events (`entire contents of window 1` of the process, and `perform
+action "AXPress"`), or turn on VoiceOver.
+
 The library has no icons of its own: the tests draw plain shapes from
 `tests/icons`, given to the widgets by `Test_Icons`. The `pictures-*`
 tests read `golden/textarea-typing.png` as their picture: when that

@@ -1,7 +1,8 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 
 --  A switch, on or off, with a label after it: a track, grey when off, in
 --  the theme's primary colour when on, and a knob in it, at the left when
@@ -47,13 +48,40 @@ package Pomarine.Widgets.Switches is
 
    overriding procedure Draw
      (Item   : in out Switch;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
      (Item : in out Switch; Hovered : Boolean);
 
    overriding function Cursor (Item : Switch) return SDL3.Cursors.Kind;
+
+   overriding procedure Describe
+     (Item  : Switch;
+      Facts : in out Semantics.Description);
+   overriding procedure Perform
+     (Item    : in out Switch;
+      Request : Semantics.Request;
+      Done    : out Boolean);
+
+   overriding procedure Command_State_Changed
+     (Item : in out Switch; State : Command_State);
+
+   procedure Set_Focusable (Item : in out Switch; To : Boolean);
+   --  Let it take the focus, by a click or from the application, and then
+   --  be operated from the keyboard, with a ring to show it has it. Not so
+   --  to begin with, so that clicking it does not take the focus from what
+   --  is being typed into.
+
+   overriding function Accepts_Focus (Item : Switch) return Boolean;
+
+   overriding procedure Focus_Changed
+     (Item : in out Switch; Focused : Boolean);
+
+   overriding procedure Draw_Over
+     (Item   : in out Switch;
+      Target : SDL3.Painters.Painter'Class;
+      Colors : Themes.Theme);
 
 private
 
@@ -64,6 +92,8 @@ private
       Enabled : Boolean := True;
       Down    : Boolean := False;
       Changed : Boolean := False;
+      By_Command : Boolean := False;
+      Focusable : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Switches;

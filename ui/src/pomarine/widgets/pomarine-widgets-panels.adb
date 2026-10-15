@@ -91,7 +91,7 @@ package body Pomarine.Widgets.Panels is
 
    overriding procedure Draw
      (Item   : in out Panel;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Look : Pomarine.Boxes.Look := Item.Look;
@@ -108,7 +108,7 @@ package body Pomarine.Widgets.Panels is
 
    overriding procedure Draw_Over
      (Item   : in out Panel;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Off : constant Float := Pomarine.Boxes.Inset (Item.Look, Density (Item));

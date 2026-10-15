@@ -1,10 +1,14 @@
 with Pomarine.Boxes;
 with Pomarine.Icons;
-
 package body Pomarine.Widgets.Checks is
 
+   use type SDL3.Events.Key_Code;
+
+   use type Semantics.Action;
+   use type Semantics.Role;
+
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Gap         : constant Float := 7.0;
    Swatch_Size : constant Float := 9.0;
@@ -112,6 +116,12 @@ package body Pomarine.Widgets.Checks is
                Handled := True;
                Invalidate (Item);
             end if;
+         when SDL3.Events.Key_Down =>
+            if Has_Focus (Item) and then Event.Key = SDL3.Events.Key_Space
+              and then not Event.Command
+            then
+               Perform (Item, (Doing => Semantics.Click, others => <>), Handled);
+            end if;
          when others =>
             null;
       end case;
@@ -130,7 +140,7 @@ package body Pomarine.Widgets.Checks is
 
    overriding procedure Draw
      (Item   : in out Check;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -209,5 +219,84 @@ package body Pomarine.Widgets.Checks is
             Top_Of (Item) + Height_Of (Item) / 2.0, Pixels);
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Check;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := (if Item.Form = Radio then Semantics.Radio_Button
+                        else Semantics.Check_Box);
+      end if;
+      Semantics.Name_As (Facts, Label (Item));
+      Facts.Disabled := not Item.Enabled;
+      Facts.Checked := (if Item.Checked then Semantics.On else Semantics.Off);
+      Facts.Selected := Item.Checked and then Item.Form = Radio;
+      Facts.Actions (Semantics.Click) := Item.Enabled;
+   end Describe;
+
+   overriding procedure Perform
+     (Item    : in out Check;
+      Request : Semantics.Request;
+      Done    : out Boolean) is
+   begin
+      Done := False;
+      if Request.Doing = Semantics.Click and then Item.Enabled then
+         --  A radio that is chosen stays so.
+         if not (Item.Form = Radio and then Item.Checked) then
+            Item.Checked := not Item.Checked;
+            Item.Changed := True;
+            Notify (Item, Change);
+            Invalidate (Item);
+         end if;
+         Done := True;
+      end if;
+   end Perform;
+
+   overriding procedure Command_State_Changed
+     (Item : in out Check; State : Command_State) is
+   begin
+      Set_Enabled (Item, State in Enabled | Ticked);
+      if State = Ticked then
+         Item.By_Command := True;
+         Set_Checked (Item, True);
+      elsif Item.By_Command then
+         Item.By_Command := False;
+         Set_Checked (Item, False);
+      end if;
+   end Command_State_Changed;
+
+   procedure Set_Focusable (Item : in out Check; To : Boolean) is
+   begin
+      Item.Focusable := To;
+      if not To and then Is_Attached (Item) and then Has_Focus (Item) then
+         Release_Focus (Item);
+      end if;
+   end Set_Focusable;
+
+   overriding function Accepts_Focus (Item : Check) return Boolean is
+     (Item.Focusable);
+
+   overriding procedure Focus_Changed
+     (Item : in out Check; Focused : Boolean)
+   is
+      pragma Unreferenced (Focused);
+   begin
+      Invalidate (Item);
+   end Focus_Changed;
+
+   overriding procedure Draw_Over
+     (Item   : in out Check;
+      Target : SDL3.Painters.Painter'Class;
+      Colors : Themes.Theme) is
+   begin
+      if Item.Focusable and then Has_Focus (Item) then
+         Pomarine.Boxes.Outline
+           (Target, Colors (Themes.Focus),
+            Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),
+            Thick => Float'Max (1.0, Float'Rounding (2.0 * Density (Item))),
+            Density => Density (Item));
+      end if;
+   end Draw_Over;
 
 end Pomarine.Widgets.Checks;

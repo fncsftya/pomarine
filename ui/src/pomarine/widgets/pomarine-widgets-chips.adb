@@ -1,10 +1,12 @@
 with Pomarine.Boxes;
 with Pomarine.Icons;
-
 package body Pomarine.Widgets.Chips is
 
+   use type Semantics.Action;
+   use type Semantics.Role;
+
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    --  In points
    Pad         : constant Float := 6.0;
@@ -115,7 +117,7 @@ package body Pomarine.Widgets.Chips is
 
    overriding procedure Draw
      (Item   : in out Chip;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -170,5 +172,49 @@ package body Pomarine.Widgets.Chips is
          end;
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Chip;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Group;
+      end if;
+      Semantics.Name_As (Facts, Label (Item));
+   end Describe;
+
+   overriding procedure Describe_Part
+     (Item   : Chip;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle)
+   is
+      pragma Unreferenced (Part);
+   begin
+      Facts.Kind := Semantics.Button;
+      Semantics.Name_As (Facts, "close " & Label (Item));
+      Facts.Actions (Semantics.Click) := True;
+      --  The cross is at the right end.
+      Bounds := (Left => Left_Of (Item) + Width_Of (Item) - Height_Of (Item),
+                 Top => Top_Of (Item),
+                 Right => Left_Of (Item) + Width_Of (Item),
+                 Bottom => Top_Of (Item) + Height_Of (Item));
+   end Describe_Part;
+
+   overriding procedure Perform_Part
+     (Item    : in out Chip;
+      Part    : Positive;
+      Request : Semantics.Request;
+      Done    : out Boolean)
+   is
+      pragma Unreferenced (Part);
+   begin
+      Done := Request.Doing = Semantics.Click;
+      if Done then
+         Item.Closed := True;
+         Notify (Item, Close);
+         Invalidate (Item);
+      end if;
+   end Perform_Part;
 
 end Pomarine.Widgets.Chips;
