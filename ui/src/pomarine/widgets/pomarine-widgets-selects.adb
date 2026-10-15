@@ -133,7 +133,7 @@ package body Pomarine.Widgets.Selects is
         and then (Item.Open or else (Item.Down and then Is_Hovered (Item)));
    begin
       Fill_Rect
-        (Target, (if Item.Enabled then Themes.White else Colors (Themes.Tint)),
+        (Target, (if Item.Enabled then Colors (Themes.Page) else Colors (Themes.Tint)),
          Left, Top, Wide, High);
       Pomarine.Boxes.Outline
         (Target, (if Item.Open then Colors (Themes.Focus) else Colors (Themes.Border)),

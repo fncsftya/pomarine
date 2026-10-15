@@ -226,7 +226,7 @@ package body Pomarine.Widgets.Menus is
       Edge   : constant Float := Pomarine.Boxes.Edge (Pixels);
       Look   : constant Pomarine.Boxes.Look :=
         (Filled   => True,
-         Fill     => Themes.White,
+         Fill     => Colors (Themes.Page),
          Bordered => True,
          Border   => Colors (Themes.Border),
          Dashed   => False,
@@ -297,7 +297,7 @@ package body Pomarine.Widgets.Menus is
             case Each.Kind is
                when Separator =>
                   Fill_Rect
-                    (Target, Themes.Mix (Colors (Themes.Border), Themes.White, 0.4),
+                    (Target, Themes.Mix (Colors (Themes.Border), Colors (Themes.Page), 0.4),
                      Inner_Left, Float'Rounding (Middle), Inner_Width, Edge);
                when Check =>
                   declare
@@ -307,7 +307,7 @@ package body Pomarine.Widgets.Menus is
                        Float'Rounding (Middle - Side / 2.0);
                   begin
                      Fill_Rect
-                       (Target, Themes.White, Float'Rounding (After), Box_Top,
+                       (Target, Colors (Themes.Page), Float'Rounding (After), Box_Top,
                         Side, Side);
                      Pomarine.Boxes.Outline
                        (Target,
