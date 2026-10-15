@@ -45,6 +45,10 @@ package Yoga.Nodes is
    procedure Set_Padding (Item : Node; Side : Edge; Value : Float);
    procedure Set_Gap (Item : Node; Which : Gutter; Value : Float);
 
+   procedure Scale_Style (Item : Node; By : Float);
+   --  Multiply the sizes, edges, positions and gaps of Item, those that
+   --  are set in lengths, by By, to go on in a different unit.
+
    --  Content that measures itself
 
    type Measure_Mode is (Undefined, Exactly, At_Most);

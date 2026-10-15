@@ -4,6 +4,7 @@ with Yoga.Thin;
 package body Yoga.Nodes is
 
    use type System.Address;
+   use type Interfaces.C.C_float;
 
    function C (Value : Float) return Interfaces.C.C_float is
      (Interfaces.C.C_float (Value));
@@ -187,6 +188,49 @@ package body Yoga.Nodes is
       Thin.Set_Gap
         (Item.Handle, Thin.YG_Gutter'Val (Gutter'Pos (Which)), C (Value));
    end Set_Gap;
+
+   procedure Scale_Style (Item : Node; By : Float) is
+      use type Interfaces.C.int;
+      Point : constant := 1;
+      Sides : constant array (1 .. 4) of Thin.YG_Edge :=
+        [Thin.Left, Thin.Top, Thin.Right, Thin.Bottom];
+      Value : Thin.YG_Value;
+      pragma Suppress (Validity_Check);  --  a gap not set is NaN
+   begin
+      Value := Thin.Get_Width (Item.Handle);
+      if Value.Unit = Point then
+         Thin.Set_Width (Item.Handle, Value.Value * C (By));
+      end if;
+      Value := Thin.Get_Height (Item.Handle);
+      if Value.Unit = Point then
+         Thin.Set_Height (Item.Handle, Value.Value * C (By));
+      end if;
+      for Side of Sides loop
+         Value := Thin.Get_Position (Item.Handle, Side);
+         if Value.Unit = Point then
+            Thin.Set_Position (Item.Handle, Side, Value.Value * C (By));
+         end if;
+         Value := Thin.Get_Margin (Item.Handle, Side);
+         if Value.Unit = Point then
+            Thin.Set_Margin (Item.Handle, Side, Value.Value * C (By));
+         end if;
+         Value := Thin.Get_Padding (Item.Handle, Side);
+         if Value.Unit = Point then
+            Thin.Set_Padding (Item.Handle, Side, Value.Value * C (By));
+         end if;
+      end loop;
+      for Which in Thin.YG_Gutter range Thin.Column .. Thin.Row loop
+         declare
+            Gap : constant Interfaces.C.C_float :=
+              Thin.Get_Gap (Item.Handle, Which);
+         begin
+            --  Not set, it is NaN, which is not equal to itself.
+            if Gap = Gap then
+               Thin.Set_Gap (Item.Handle, Which, Gap * C (By));
+            end if;
+         end;
+      end loop;
+   end Scale_Style;
 
    procedure Calculate_Layout
      (Item             : Tree;

@@ -28,8 +28,12 @@ package body Pomarine.Widgets.Frames is
    Mini_Chars    : constant := 16;
    --  How many characters of a title the bar in the dock shows.
 
+   function Pixels_Per_Point (Item : Frame) return Float is
+     (if Is_Attached (Item.Outline_Panel) then Density (Item.Outline_Panel)
+      else Item.Pixels);
+
    function Edge (Item : Frame) return Float is
-     (Pomarine.Boxes.Edge (Item.Pixels * Outline));
+     (Pomarine.Boxes.Edge (Pixels_Per_Point (Item) * Outline));
    --  Whole pixels: a border that is not is a pixel more or less where it
    --  is drawn, or none.
 
@@ -265,7 +269,7 @@ package body Pomarine.Widgets.Frames is
 
    procedure Set_Scale (Item : in out Frame; To : Float) is
       use Yoga.Nodes;
-      Pixels : constant Float := Item.Pixels * To;
+      Pixels : constant Float := Pixels_Per_Point (Item) * To;
    begin
       Item.Scale := To;
       Set_Height (Node (Item.Title_Bar), Bar_Height * Pixels);
@@ -329,7 +333,7 @@ package body Pomarine.Widgets.Frames is
    end Place;
 
    function Status_Width (Item : Frame; Wide : Float) return Float is
-     (Wide - 2.0 * Edge (Item) - Pomarine.Boxes.Offset (Item.Pixels));
+     (Wide - 2.0 * Edge (Item) - Pomarine.Boxes.Offset (Pixels_Per_Point (Item)));
 
    function Left_Of (Item : Frame) return Float is
      (Widgets.Left_Of (Item.Outline_Panel));
