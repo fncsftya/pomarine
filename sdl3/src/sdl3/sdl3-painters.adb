@@ -52,6 +52,15 @@ package body SDL3.Painters is
       Renderers.Fill_Circle (Item.Target.all, Value, Centre_X, Centre_Y, Radius);
    end Fill_Circle;
 
+   overriding procedure Fill_Triangles
+     (Item           : Renderer_Painter;
+      Value          : Color;
+      Points         : Point_Array;
+      Triangle_Count : Natural) is
+   begin
+      Renderers.Fill_Triangles (Item.Target.all, Value, Points, Triangle_Count);
+   end Fill_Triangles;
+
    overriding procedure Set_Clip
      (Item : Renderer_Painter; X, Y, Width, Height : Integer) is
    begin
@@ -266,6 +275,36 @@ package body SDL3.Painters is
       end if;
    end Fill_Circle;
 
+   overriding procedure Fill_Triangles
+     (Item           : Recorder;
+      Value          : Color;
+      Points         : Point_Array;
+      Triangle_Count : Natural)
+   is
+      Cmd  : Command;
+      Ok   : Boolean;
+      Used : constant Natural := 3 * Triangle_Count;
+   begin
+      Add (Item, Do_Triangles, Cmd, Ok);
+      if Ok and then Item.Into.Verts + Used > Vertex_Capacity then
+         Item.Into.Full := True;
+         Ok := False;
+      end if;
+      if Ok then
+         Cmd.Value := Value;
+         Cmd.First := Item.Into.Verts + 1;
+         Cmd.Cells := Triangle_Count;
+         for I in 1 .. Used loop
+            Item.Into.Vertices (Item.Into.Verts + I) :=
+              (X => Points (Points'First + I - 1).X,
+               Y => Points (Points'First + I - 1).Y,
+               others => 0.0);
+         end loop;
+         Item.Into.Verts := Item.Into.Verts + Used;
+         Keep (Item, Cmd);
+      end if;
+   end Fill_Triangles;
+
    overriding procedure Set_Clip
      (Item : Recorder; X, Y, Width, Height : Integer)
    is
@@ -455,6 +494,17 @@ package body SDL3.Painters is
                   Onto.Draw_Line (C.Value, C.A, C.B, C.C, C.D, C.Thick);
                when Do_Disc =>
                   Onto.Fill_Circle (C.Value, C.A, C.B, C.C);
+               when Do_Triangles =>
+                  declare
+                     Corners : Point_Array (1 .. 3 * C.Cells);
+                  begin
+                     for I in Corners'Range loop
+                        Corners (I) :=
+                          (X => Item.Vertices (C.First + I - 1).X,
+                           Y => Item.Vertices (C.First + I - 1).Y);
+                     end loop;
+                     Onto.Fill_Triangles (C.Value, Corners, C.Cells);
+                  end;
                when Do_Clip_To =>
                   Onto.Set_Clip (C.Left, C.Top, C.Wide, C.High);
                when Do_Clip_Off =>
@@ -532,6 +582,8 @@ package body SDL3.Painters is
                   Append (Result, "image " & Img (C.A) & " " & Img (C.B));
                when Do_Quads =>
                   Append (Result, "quads" & Natural'Image (C.Cells));
+               when Do_Triangles =>
+                  Append (Result, "triangles" & Natural'Image (C.Cells));
             end case;
             Append (Result, ASCII.LF);
          end;

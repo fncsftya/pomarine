@@ -245,6 +245,31 @@ package body SDL3.Windows.Renderers is
          "SDL_RenderGeometry");
    end Draw_Triangles;
 
+   procedure Fill_Triangles
+     (Item           : Renderer;
+      Value          : Color;
+      Points         : Point_Array;
+      Triangle_Count : Natural)
+   is
+      Batch : constant := 3_000;
+      --  Corners drawn in one call: a multiple of three.
+      Corners : array (1 .. Batch) of Thin.Vertex;
+      Done    : Natural := 0;
+      Held    : Natural;
+   begin
+      while Done < 3 * Triangle_Count loop
+         Held := Natural'Min (Batch, 3 * Triangle_Count - Done);
+         for Index in 1 .. Held loop
+            Corners (Index) :=
+              Vertex (Points (Points'First + Done + Index - 1).X,
+                      Points (Points'First + Done + Index - 1).Y, Value, 1.0);
+         end loop;
+         Draw_Triangles
+           (Item, Corners (1)'Address, Held, System.Null_Address, 0);
+         Done := Done + Held;
+      end loop;
+   end Fill_Triangles;
+
    procedure Draw_Line
      (Item : Renderer;
       Value : Color;

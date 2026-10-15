@@ -55,6 +55,16 @@ package SDL3.Painters is
      (Item : Painter; Value : Color; Centre_X, Centre_Y, Radius : Float)
    is abstract;
 
+   subtype Point is Renderers.Point;
+   subtype Point_Array is Renderers.Point_Array;
+
+   procedure Fill_Triangles
+     (Item           : Painter;
+      Value          : Color;
+      Points         : Point_Array;
+      Triangle_Count : Natural) is abstract;
+   --  As Renderers.Fill_Triangles.
+
    procedure Set_Clip
      (Item : Painter; X, Y, Width, Height : Integer) is abstract;
 
@@ -119,6 +129,11 @@ package SDL3.Painters is
       Width : Float := 1.0);
    overriding procedure Fill_Circle
      (Item : Renderer_Painter; Value : Color; Centre_X, Centre_Y, Radius : Float);
+   overriding procedure Fill_Triangles
+     (Item           : Renderer_Painter;
+      Value          : Color;
+      Points         : Point_Array;
+      Triangle_Count : Natural);
    overriding procedure Set_Clip
      (Item : Renderer_Painter; X, Y, Width, Height : Integer);
    overriding procedure Clear_Clip (Item : Renderer_Painter);
@@ -205,6 +220,11 @@ package SDL3.Painters is
       Width : Float := 1.0);
    overriding procedure Fill_Circle
      (Item : Recorder; Value : Color; Centre_X, Centre_Y, Radius : Float);
+   overriding procedure Fill_Triangles
+     (Item           : Recorder;
+      Value          : Color;
+      Points         : Point_Array;
+      Triangle_Count : Natural);
    overriding procedure Set_Clip
      (Item : Recorder; X, Y, Width, Height : Integer);
    overriding procedure Clear_Clip (Item : Recorder);
@@ -248,7 +268,7 @@ private
    type Command_Kind is
      (Do_Clear, Do_Fill, Do_Fill_Blended, Do_Line, Do_Disc, Do_Clip_To,
       Do_Clip_Off, Do_Clip_Back, Do_Clip_Narrower, Do_Text, Do_Tinted,
-      Do_Image, Do_Scaled, Do_Quads);
+      Do_Image, Do_Scaled, Do_Quads, Do_Triangles);
 
    type Command is record
       Kind   : Command_Kind := Do_Clear;
@@ -264,7 +284,8 @@ private
       First  : Natural := 0;
       Cells  : Natural := 0;
       --  Text: where its characters start in the letters, and how many;
-      --  Quads: where the first vertex is, and how many quads.
+      --  Quads: where the first vertex is, and how many quads; Triangles:
+      --  where the first corner is (its X, Y), and how many triangles.
       Scale  : Positive := 1;
       Source : Texture_Access;
    end record;

@@ -116,21 +116,21 @@ D i-cstrin.ads		20260610194523 49eced87 interfaces.c.strings%s
 D pomarine.ads		20261015101840 e3c80774 pomarine%s
 D pomarine-clipboards.ads  20261015101840 dc9f2e9c pomarine.clipboards%s
 D pomarine-icons.ads	20261015120609 704bf59d pomarine.icons%s
-D pomarine-line_texts.ads  20261015125449 41b75229 pomarine.line_texts%s
+D pomarine-line_texts.ads  20261015172802 3cb65ad3 pomarine.line_texts%s
 D pomarine-native_menus.ads  20261015171149 e6b303d7 pomarine.native_menus%s
 D pomarine-native_menus.adb  20261015171149 c142c47b pomarine.native_menus%b
 D pomarine-semantics.ads  20261015125705 b1110656 pomarine.semantics%s
 D pomarine-themes.ads	20261015114304 f41e6398 pomarine.themes%s
 D pomarine-widgets.ads	20261015160256 40345f58 pomarine.widgets%s
-D pomarine_ui_config.ads  20261015122345 f8cdcfa9 pomarine_ui_config%s
+D pomarine_ui_config.ads  20261015175307 f8cdcfa9 pomarine_ui_config%s
 D sdl3.ads		20261015101840 f4da8c34 sdl3%s
 D sdl3-cursors.ads	20261015101840 9e8b92ce sdl3.cursors%s
 D sdl3-events.ads	20261015130932 bba06f89 sdl3.events%s
-D sdl3-painters.ads	20261015120609 4433428e sdl3.painters%s
+D sdl3-painters.ads	20261015172536 a85227f2 sdl3.painters%s
 D sdl3-pictures.ads	20261015101840 37e92f70 sdl3.pictures%s
 D sdl3-thin.ads		20261015122921 ba5ff48f sdl3.thin%s
 D sdl3-windows.ads	20261015171149 3431669d sdl3.windows%s
-D sdl3-windows-renderers.ads  20261015120609 ecd218f0 sdl3.windows.renderers%s
+D sdl3-windows-renderers.ads  20261015172536 5a9d049b sdl3.windows.renderers%s
 D sdl3-windows-renderers-textures.ads  20261015101840 ba7c6adb sdl3.windows.renderers.textures%s
 D system.ads		20260610194523 8a611ac3 system%s
 D s-atacco.ads		20260610194523 5868e3ba system.address_to_access_conversions%s
@@ -217,7 +217,7 @@ X 1 ada.ads
 18K9*Ada 22e8 40|1r6 109r27
 X 14 a-iteint.ads
 24h9 Forward_Iterator
-32h9 Reversible_Iterator<24R9[11|119]>
+32h9 Reversible_Iterator<24R9[10|84]>
 X 25 a-unccon.ads
 23v14*Unchecked_Conversion 40|1w10 109r31
 X 32 interfac.ads
