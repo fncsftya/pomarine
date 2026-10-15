@@ -1,9 +1,13 @@
 with Pomarine.Boxes;
-
 package body Pomarine.Widgets.Switches is
 
+   use type SDL3.Events.Key_Code;
+
+   use type Semantics.Action;
+   use type Semantics.Role;
+
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Gap  : constant Float := 8.0;  --  in points, before the label
    Room : constant Float := 2.0;  --  in points, round the knob in the track
@@ -88,6 +92,12 @@ package body Pomarine.Widgets.Switches is
                Handled := True;
                Invalidate (Item);
             end if;
+         when SDL3.Events.Key_Down =>
+            if Has_Focus (Item) and then Event.Key = SDL3.Events.Key_Space
+              and then not Event.Command
+            then
+               Perform (Item, (Doing => Semantics.Click, others => <>), Handled);
+            end if;
          when others =>
             null;
       end case;
@@ -106,7 +116,7 @@ package body Pomarine.Widgets.Switches is
 
    overriding procedure Draw
      (Item   : in out Switch;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -164,5 +174,79 @@ package body Pomarine.Widgets.Switches is
             Top_Of (Item) + Height_Of (Item) / 2.0, Pixels);
       end if;
    end Draw;
+
+   overriding procedure Describe
+     (Item  : Switch;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Switch;
+      end if;
+      Semantics.Name_As (Facts, Label (Item));
+      Facts.Disabled := not Item.Enabled;
+      Facts.Checked := (if Item.On then Semantics.On else Semantics.Off);
+      Facts.Actions (Semantics.Click) := Item.Enabled;
+   end Describe;
+
+   overriding procedure Perform
+     (Item    : in out Switch;
+      Request : Semantics.Request;
+      Done    : out Boolean) is
+   begin
+      Done := False;
+      if Request.Doing = Semantics.Click and then Item.Enabled then
+         Item.On := not Item.On;
+         Item.Changed := True;
+         Notify (Item, Change);
+         Invalidate (Item);
+         Done := True;
+      end if;
+   end Perform;
+
+   overriding procedure Command_State_Changed
+     (Item : in out Switch; State : Command_State) is
+   begin
+      Set_Enabled (Item, State in Enabled | Ticked);
+      if State = Ticked then
+         Item.By_Command := True;
+         Set_On (Item, True);
+      elsif Item.By_Command then
+         Item.By_Command := False;
+         Set_On (Item, False);
+      end if;
+   end Command_State_Changed;
+
+   procedure Set_Focusable (Item : in out Switch; To : Boolean) is
+   begin
+      Item.Focusable := To;
+      if not To and then Is_Attached (Item) and then Has_Focus (Item) then
+         Release_Focus (Item);
+      end if;
+   end Set_Focusable;
+
+   overriding function Accepts_Focus (Item : Switch) return Boolean is
+     (Item.Focusable);
+
+   overriding procedure Focus_Changed
+     (Item : in out Switch; Focused : Boolean)
+   is
+      pragma Unreferenced (Focused);
+   begin
+      Invalidate (Item);
+   end Focus_Changed;
+
+   overriding procedure Draw_Over
+     (Item   : in out Switch;
+      Target : SDL3.Painters.Painter'Class;
+      Colors : Themes.Theme) is
+   begin
+      if Item.Focusable and then Has_Focus (Item) then
+         Pomarine.Boxes.Outline
+           (Target, Colors (Themes.Focus),
+            Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),
+            Thick => Float'Max (1.0, Float'Rounding (2.0 * Density (Item))),
+            Density => Density (Item));
+      end if;
+   end Draw_Over;
 
 end Pomarine.Widgets.Switches;

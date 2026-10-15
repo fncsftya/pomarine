@@ -1,11 +1,16 @@
+with SDL3.Windows;
+with SDL3.Windows.Renderers;
 with Ada.Strings.Fixed;
 with Pomarine.Boxes;
-
 package body Pomarine.Widgets.Buttons is
+
+   use type Semantics.Action;
+   use type Semantics.Role;
 
    use type SDL3.Events.Event_Kind;
    use type SDL3.Events.Key_Code;
    use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Icon_Size : constant := 16.0;  --  in points, a side
    Caption_Gap : constant := 7.0;  --  between an icon and its label
@@ -234,7 +239,7 @@ package body Pomarine.Widgets.Buttons is
 
    overriding procedure Draw
      (Item   : in out Button;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels  : constant Float := Density (Item);
@@ -405,5 +410,85 @@ package body Pomarine.Widgets.Buttons is
          end if;
       end if;
    end Draw;
+
+   function Icon_Words (Item : Button) return String;
+   --  What a button of a picture alone is called: the name of the
+   --  picture's file, without its extension, as words.
+
+   function Icon_Words (Item : Button) return String is
+      Library : constant Icons_Access := Icon_Library (Item);
+   begin
+      if Library = null then
+         return "";
+      end if;
+      declare
+         File : constant String := Pomarine.Icons.File_Name (Library.all, Item.Which);
+         Stop : constant Natural :=
+           Ada.Strings.Fixed.Index (File, ".", Ada.Strings.Backward);
+         Stem : String :=
+           (if Stop > 0 then File (File'First .. Stop - 1) else File);
+      begin
+         for C of Stem loop
+            if C = '_' or else C = '-' then
+               C := ' ';
+            end if;
+         end loop;
+         return Stem;
+      end;
+   end Icon_Words;
+
+   overriding procedure Describe
+     (Item  : Button;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Button;
+      end if;
+      if Item.Length > 0 then
+         Semantics.Name_As (Facts, Label (Item));
+      elsif Item.Picture then
+         Semantics.Name_As (Facts, Icon_Words (Item));
+      end if;
+      if Item.Badge > 0 then
+         Semantics.Help_As
+           (Facts, Ada.Strings.Fixed.Trim (Natural'Image (Item.Badge), Ada.Strings.Left));
+      end if;
+      Facts.Disabled := not Item.Enabled;
+      Facts.Selected := Item.Selected;
+      Facts.Focusable := Item.Focusable and then Item.Enabled;
+      if Item.Dropdown then
+         Facts.Has_Expanded := True;
+         Facts.Expanded := Item.Selected;
+      end if;
+      Facts.Actions (Semantics.Click) := Item.Enabled;
+      Facts.Actions (Semantics.Focus) := Facts.Focusable;
+   end Describe;
+
+   overriding procedure Perform
+     (Item    : in out Button;
+      Request : Semantics.Request;
+      Done    : out Boolean) is
+   begin
+      Done := False;
+      if Request.Doing = Semantics.Click and then Item.Enabled then
+         Item.Clicked := True;
+         Notify (Item, Click);
+         Invalidate (Item);
+         Done := True;
+      end if;
+   end Perform;
+
+   overriding procedure Command_State_Changed
+     (Item : in out Button; State : Command_State) is
+   begin
+      Set_Enabled (Item, State in Enabled | Ticked);
+      if State = Ticked then
+         Item.By_Command := True;
+         Set_Selected (Item, True);
+      elsif Item.By_Command then
+         Item.By_Command := False;
+         Set_Selected (Item, False);
+      end if;
+   end Command_State_Changed;
 
 end Pomarine.Widgets.Buttons;

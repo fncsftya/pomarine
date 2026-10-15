@@ -8,6 +8,64 @@ package body Yoga.Nodes is
    function C (Value : Float) return Interfaces.C.C_float is
      (Interfaces.C.C_float (Value));
 
+   --  Measuring
+
+   Handler_In_Use : Measure_Handler;
+
+   function To_Mode (Item : Thin.YG_Measure_Mode) return Measure_Mode is
+     (case Item is
+         when Thin.Undefined => Undefined,
+         when Thin.Exactly   => Exactly,
+         when Thin.At_Most   => At_Most);
+
+   function Measure_Trampoline
+     (Leaf        : Thin.Node_Ref;
+      Room_Wide   : Interfaces.C.C_float;
+      Wide_Mode   : Thin.YG_Measure_Mode;
+      Room_High   : Interfaces.C.C_float;
+      High_Mode   : Thin.YG_Measure_Mode) return Thin.YG_Size
+     with Convention => C;
+
+   function Measure_Trampoline
+     (Leaf        : Thin.Node_Ref;
+      Room_Wide   : Interfaces.C.C_float;
+      Wide_Mode   : Thin.YG_Measure_Mode;
+      Room_High   : Interfaces.C.C_float;
+      High_Mode   : Thin.YG_Measure_Mode) return Thin.YG_Size
+   is
+      Result : constant Measured_Size :=
+        Handler_In_Use
+          (Thin.Get_Context (Leaf), Float (Room_Wide), To_Mode (Wide_Mode),
+           Float (Room_High), To_Mode (High_Mode));
+   begin
+      return (Width => Interfaces.C.C_float (Result.Width),
+              Height => Interfaces.C.C_float (Result.Height));
+   end Measure_Trampoline;
+
+   procedure Set_Measure_Handler (Handler : Measure_Handler) is
+   begin
+      Handler_In_Use := Handler;
+   end Set_Measure_Handler;
+
+   procedure Set_Measured (Item : Node; Context : System.Address) is
+   begin
+      Thin.Set_Context (Item.Handle, Context);
+      Thin.Set_Measure_Func (Item.Handle, Measure_Trampoline'Access);
+   end Set_Measured;
+
+   procedure Mark_Dirty (Item : Node) is
+   begin
+      Thin.Mark_Dirty (Item.Handle);
+   end Mark_Dirty;
+
+   function Has_New_Layout (Item : Node) return Boolean is
+     (Boolean (Thin.Get_Has_New_Layout (Item.Handle)));
+
+   procedure Clear_New_Layout (Item : Node) is
+   begin
+      Thin.Set_Has_New_Layout (Item.Handle, Interfaces.C.C_bool (False));
+   end Clear_New_Layout;
+
    overriding procedure Initialize (Item : in out Tree) is
    begin
       Item.Root_Node.Handle := Thin.Node_New;

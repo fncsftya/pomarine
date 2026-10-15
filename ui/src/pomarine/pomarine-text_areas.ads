@@ -1,5 +1,5 @@
+with SDL3.Painters;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Pomarine.Clipboards;
 with Pomarine.Scrollbars;
@@ -375,7 +375,7 @@ package Pomarine.Text_Areas is
 
    procedure Draw
      (Item      : in out Text_Area;
-      Target    : SDL3.Windows.Renderers.Renderer;
+      Target    : SDL3.Painters.Painter'Class;
       Colors    : Themes.Theme;
       Settled   : Boolean := True;
       Rows_From : Float := Float'First;

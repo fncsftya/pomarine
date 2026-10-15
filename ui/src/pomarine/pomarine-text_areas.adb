@@ -1,5 +1,6 @@
+with SDL3.Windows;
+with SDL3.Windows.Renderers;
 with CoreText.Wrapping;
-
 package body Pomarine.Text_Areas is
 
    package Docs renames Texts.Documents;
@@ -1341,7 +1342,7 @@ package body Pomarine.Text_Areas is
 
    procedure Draw_Range
      (Item        : in out Text_Area;
-      Target      : SDL3.Windows.Renderers.Renderer;
+      Target      : SDL3.Painters.Painter'Class;
       From, To    : Position;
       First, Last : Positive;
       Value       : SDL3.Windows.Renderers.Color;
@@ -1353,7 +1354,7 @@ package body Pomarine.Text_Areas is
 
    procedure Draw_Range
      (Item        : in out Text_Area;
-      Target      : SDL3.Windows.Renderers.Renderer;
+      Target      : SDL3.Painters.Painter'Class;
       From, To    : Position;
       First, Last : Positive;
       Value       : SDL3.Windows.Renderers.Color;
@@ -1422,7 +1423,7 @@ package body Pomarine.Text_Areas is
                         Wide : constant Float := (X_B - X_A) * Scale (Item);
                      begin
                         if Underlined then
-                           SDL3.Windows.Renderers.Fill_Rect
+                           SDL3.Painters.Fill_Rect
                              (Target, Value, Left,
                               Y + Layouts.Ascent (Item.Laid) * Scale (Item)
                               + Underline_Gap * Item.Density,
@@ -1444,7 +1445,7 @@ package body Pomarine.Text_Areas is
                            begin
                               --  On whole pixels: rows meet, not overlap
                               --  or leave a gap.
-                              SDL3.Windows.Renderers.Fill_Rect
+                              SDL3.Painters.Fill_Rect
                                 (Target, Value, Left, Row, Wide,
                                  Float'Floor (Bottom) - Row);
                            end;
@@ -1504,13 +1505,14 @@ package body Pomarine.Text_Areas is
 
    procedure Draw
      (Item      : in out Text_Area;
-      Target    : SDL3.Windows.Renderers.Renderer;
+      Target    : SDL3.Painters.Painter'Class;
       Colors    : Themes.Theme;
       Settled   : Boolean := True;
       Rows_From : Float := Float'First;
       Rows_To   : Float := Float'Last)
    is
       use SDL3.Windows.Renderers;
+      use all type SDL3.Painters.Painter;
       Edge : constant Float :=
         (if Item.Grows then 0.0
          elsif Item.Focused then Focus_Outline else Outline) * Item.Density;

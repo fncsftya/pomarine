@@ -1,6 +1,7 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with SDL3.Cursors;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 
 --  An infinite two-dimensional canvas, seen through its box, which can be
 --  panned and zoomed. Things on it have places in canvas units, which are
@@ -110,12 +111,12 @@ package Pomarine.Widgets.Canvases is
 
    overriding procedure Draw
      (Item   : in out Canvas;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Draw_Over
      (Item   : in out Canvas;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Handle
@@ -124,6 +125,10 @@ package Pomarine.Widgets.Canvases is
       Handled : out Boolean);
 
    overriding function Cursor (Item : Canvas) return SDL3.Cursors.Kind;
+
+   overriding procedure Describe
+     (Item  : Canvas;
+      Facts : in out Semantics.Description);
 
 private
 

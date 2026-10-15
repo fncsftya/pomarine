@@ -1,5 +1,5 @@
+with System;
 private with Ada.Finalization;
-private with System;
 
 package SDL3.Windows is
 
@@ -69,6 +69,11 @@ package SDL3.Windows is
    --  On macOS, whether the system moves the window when its title bar is
    --  dragged. Off, the content has the whole top of the window, and the
    --  program moves the window itself with Set_Position. Nothing elsewhere.
+
+   function Native_Handle (Item : Window) return System.Address
+     with Pre => Is_Open (Item);
+   --  On macOS, the window's NSWindow, for the system's own interfaces to
+   --  work on (as the accessibility adapter does). Null if there is none.
 
    procedure Global_Pointer (X, Y : out Float);
    --  Where the pointer is on the desktop, in points.

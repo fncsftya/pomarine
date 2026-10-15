@@ -1,5 +1,4 @@
 with Ada.Characters.Handling;
-
 package body Pomarine.Icons.Sets is
 
    function File_Of (Which : Name) return String is

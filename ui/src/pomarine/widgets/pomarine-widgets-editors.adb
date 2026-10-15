@@ -1,4 +1,7 @@
+with Texts;
 package body Pomarine.Widgets.Editors is
+
+   use type Semantics.Role;
 
    package Docs renames Texts.Documents;
 
@@ -7,6 +10,7 @@ package body Pomarine.Widgets.Editors is
    --  In points: of the icon before a single line, and the room it is in.
 
    use type Docs.Version;
+   use type Texts.Position;
 
    procedure Configure
      (Item    : in out Editor;
@@ -150,7 +154,7 @@ package body Pomarine.Widgets.Editors is
 
    overriding procedure Draw
      (Item   : in out Editor;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme) is
    begin
       if Has_Document (Item) then
@@ -270,6 +274,15 @@ package body Pomarine.Widgets.Editors is
                 Height => Integer (Float'Ceiling (High)) + 3));
          end;
       end if;
+      --  Where the caret and the selection are is part of what an
+      --  assistive technology is told.
+      if Text_Areas.Caret (Item.Text) /= Item.Told_Caret
+        or else Text_Areas.Mark (Item.Text) /= Item.Told_Mark
+      then
+         Item.Told_Caret := Text_Areas.Caret (Item.Text);
+         Item.Told_Mark := Text_Areas.Mark (Item.Text);
+         Mark_Dirty (Item, Semantics_Dirty);
+      end if;
       --  The document may have been changed from elsewhere.
       declare
          Doc : constant Docs.Document_Access :=
@@ -307,5 +320,222 @@ package body Pomarine.Widgets.Editors is
          Invalidate (Item);
       end if;
    end Focus_Changed;
+
+   Paragraphs_Told : constant := 24;
+   --  How many paragraphs each side of the caret an assistive technology
+   --  is told of, of a long text: the rest it asks for by moving.
+
+   function First_Told (Item : Editor) return Positive;
+   function Last_Told (Item : Editor) return Positive;
+   --  The paragraphs told of: those near the caret.
+
+   function First_Told (Item : Editor) return Positive is
+     (if not Has_Document (Item) then 1
+      else Positive'Max
+             (1, Text_Areas.Caret (Item.Text).Paragraph - Paragraphs_Told));
+
+   function Last_Told (Item : Editor) return Positive is
+     (if not Has_Document (Item) then 1
+      else Positive'Min
+             (Docs.Count (Text_Areas.Document (Item.Text).all),
+              Text_Areas.Caret (Item.Text).Paragraph + Paragraphs_Told));
+
+   function Characters_Before
+     (Doc : Docs.Document; Para : Positive; Index : Positive) return Natural;
+   --  How many characters of the paragraph are before byte Index.
+
+   function Characters_Before
+     (Doc : Docs.Document; Para : Positive; Index : Positive) return Natural
+   is
+      Count : Natural := 0;
+   begin
+      if Index = 1 then
+         return 0;
+      end if;
+      for C of Docs.Slice (Doc, Para, 1, Index) loop
+         if not Texts.Is_Continuation (C) then
+            Count := Count + 1;
+         end if;
+      end loop;
+      return Count;
+   end Characters_Before;
+
+   function Byte_After
+     (Doc : Docs.Document; Para : Positive; Characters : Natural) return Positive;
+   --  The byte index that many characters into the paragraph, or its end.
+
+   function Byte_After
+     (Doc : Docs.Document; Para : Positive; Characters : Natural) return Positive
+   is
+      Text  : constant String := Docs.Text (Doc, Para);
+      Seen  : Natural := 0;
+   begin
+      for Index in Text'Range loop
+         if not Texts.Is_Continuation (Text (Index)) then
+            if Seen = Characters then
+               return Index;
+            end if;
+            Seen := Seen + 1;
+         end if;
+      end loop;
+      return Text'Last + 1;
+   end Byte_After;
+
+   overriding procedure Describe
+     (Item  : Editor;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind :=
+           (if Has_Document (Item) and then Text_Areas.Is_Single_Line (Item.Text)
+            then Semantics.Text_Input else Semantics.Multiline_Text_Input);
+      end if;
+      Facts.Disabled := not Item.Enabled;
+      Facts.Invalid := Item.Invalid;
+      Facts.Focusable := Item.Enabled and then Has_Document (Item);
+      if Item.Hint_Length > 0 then
+         Semantics.Help_As (Facts, Item.Hint (1 .. Item.Hint_Length));
+      end if;
+      if not Has_Document (Item) then
+         return;
+      end if;
+      declare
+         Doc    : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
+         Anchor : constant Texts.Position := Text_Areas.Mark (Item.Text);
+         Caret  : constant Texts.Position := Text_Areas.Caret (Item.Text);
+         First  : constant Positive := First_Told (Item);
+         Last   : constant Positive := Last_Told (Item);
+
+         function Place_Of (At_Point : Texts.Position) return Semantics.Text_Place is
+            Para : constant Positive :=
+              Positive'Max (First, Positive'Min (Last, At_Point.Paragraph));
+            Byte : constant Positive :=
+              (if Para = At_Point.Paragraph then At_Point.Index
+               elsif Para < At_Point.Paragraph
+               then Docs.Byte_Length (Doc.all, Para) + 1 else 1);
+         begin
+            return (Part => Positive (Docs.Id (Doc.all, Para)),
+                    Characters => Characters_Before (Doc.all, Para, Byte));
+         end Place_Of;
+      begin
+         if Docs.Count (Doc.all) = 1 then
+            Semantics.Value_As (Facts, Docs.Text (Doc.all, 1));
+         end if;
+         Facts.Has_Selection := True;
+         Facts.Anchor := Place_Of (Anchor);
+         Facts.Caret := Place_Of (Caret);
+      end;
+      Facts.Actions (Semantics.Focus) := Item.Enabled;
+      Facts.Actions (Semantics.Replace_Selected_Text) := Item.Enabled;
+      Facts.Actions (Semantics.Set_Value) := Item.Enabled;
+      Facts.Actions (Semantics.Set_Text_Selection) := True;
+   end Describe;
+
+   overriding function Part_Count (Item : Editor) return Natural is
+     (if Has_Document (Item) then Last_Told (Item) - First_Told (Item) + 1 else 0);
+
+   overriding function Part_Number (Item : Editor; Index : Positive) return Positive is
+     (Positive (Docs.Id (Text_Areas.Document (Item.Text).all, First_Told (Item) + Index - 1)));
+
+   overriding procedure Describe_Part
+     (Item   : Editor;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle)
+   is
+      Doc  : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
+      Para : constant Natural := Docs.Find (Doc.all, Texts.Paragraph_Id (Part));
+   begin
+      Facts.Kind := Semantics.Text_Run;
+      if Para > 0 then
+         Semantics.Value_As (Facts, Docs.Text (Doc.all, Para));
+      end if;
+      --  Where each line is drawn is the text area's; the whole is told.
+      Bounds := (Left => Left_Of (Item), Top => Top_Of (Item),
+                 Right => Left_Of (Item) + Width_Of (Item),
+                 Bottom => Top_Of (Item) + Height_Of (Item));
+   end Describe_Part;
+
+   overriding procedure Perform
+     (Item    : in out Editor;
+      Request : Semantics.Request;
+      Done    : out Boolean) is
+   begin
+      Done := False;
+      if not Has_Document (Item) or else not Item.Enabled then
+         return;
+      end if;
+      declare
+         Doc : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
+      begin
+         case Request.Doing is
+            when Semantics.Replace_Selected_Text =>
+               Text_Areas.Insert (Item.Text, Semantics.To_String (Request.Contents));
+               Invalidate (Item);
+               Done := True;
+            when Semantics.Set_Value =>
+               Text_Areas.Select_All (Item.Text);
+               Text_Areas.Insert (Item.Text, Semantics.To_String (Request.Contents));
+               Invalidate (Item);
+               Done := True;
+            when Semantics.Set_Text_Selection =>
+               declare
+                  function At_Place (Part, Characters : Natural) return Texts.Position is
+                     Para : constant Natural :=
+                       Docs.Find (Doc.all, Texts.Paragraph_Id (Positive'Max (1, Part)));
+                  begin
+                     if Para = 0 then
+                        return Text_Areas.Caret (Item.Text);
+                     end if;
+                     return (Paragraph => Para,
+                             Index => Byte_After (Doc.all, Para, Characters));
+                  end At_Place;
+               begin
+                  Text_Areas.Select_Range
+                    (Item.Text,
+                     At_Place (Request.Anchor_Part, Request.Anchor),
+                     At_Place (Request.Focus_Part, Request.Focus));
+                  Invalidate (Item);
+                  Done := True;
+               end;
+            when others =>
+               null;
+         end case;
+      end;
+   end Perform;
+
+   overriding procedure Command_State_Changed
+     (Item : in out Editor; State : Command_State) is
+   begin
+      Set_Enabled (Item, State in Enabled | Ticked);
+   end Command_State_Changed;
+
+   overriding procedure Handle_Command
+     (Item : in out Editor; Tag : Integer; Done : out Boolean) is
+   begin
+      Done := False;
+      if not Has_Document (Item) or else not Item.Enabled then
+         return;
+      end if;
+      Done := True;
+      if Tag = Edit_Undo then
+         Text_Areas.Undo (Item.Text);
+      elsif Tag = Edit_Redo then
+         Text_Areas.Redo (Item.Text);
+      elsif Tag = Edit_Cut then
+         Text_Areas.Cut (Item.Text, Clipboard (Item).all);
+      elsif Tag = Edit_Copy then
+         Text_Areas.Copy (Item.Text, Clipboard (Item).all);
+      elsif Tag = Edit_Paste then
+         Text_Areas.Paste (Item.Text, Clipboard (Item).all);
+      elsif Tag = Edit_Select_All then
+         Text_Areas.Select_All (Item.Text);
+      else
+         Done := False;
+      end if;
+      if Done then
+         Invalidate (Item);
+      end if;
+   end Handle_Command;
 
 end Pomarine.Widgets.Editors;

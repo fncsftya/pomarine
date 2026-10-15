@@ -1,0 +1,38 @@
+name = "pomarine_native"
+description = "Pomarine on macOS: accessibility, the menu bar, settings"
+version = "0.1.0-dev"
+
+authors = ["Matt Rawcliffe"]
+licenses = "GPL-3.0-only"
+website = ""
+tags = []
+
+[available.'case(os)']
+macos = true
+'...' = false
+
+[[depends-on]]
+pomarine_ui = "*"
+sdl3 = "*"
+
+[[pins]]
+pomarine_ui = { path = "../ui" }
+coretext = { path = "../coretext" }
+sdl3 = { path = "../sdl3" }
+texts = { path = "../texts" }
+typeset = { path = "../typeset" }
+yoga = { path = "../yoga" }
+
+# What the system gives only to Objective-C and Rust (AccessKit, the menu
+# bar) is reached through the small C interface in rust/, built to a
+# static library first (needs cargo, and a network the first time).
+[[actions]]
+type = "pre-build"
+command = ["cargo", "build", "--release", "--manifest-path", "rust/Cargo.toml"]
+
+[build-switches]
+"*".ada_version = "Ada2022"
+"*".compile_checks = "Errors"
+"*".runtime_checks = "Everything"
+"*".style_checks = "Yes"
+"*".contracts = "Yes"

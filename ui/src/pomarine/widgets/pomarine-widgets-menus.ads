@@ -1,7 +1,8 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 with Pomarine.Icons;
 
 --  A menu, as of a dropdown or a context menu: a column of rows on a white
@@ -83,13 +84,31 @@ package Pomarine.Widgets.Menus is
 
    overriding procedure Draw
      (Item   : in out Menu;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
      (Item : in out Menu; Hovered : Boolean);
 
    overriding function Cursor (Item : Menu) return SDL3.Cursors.Kind;
+
+   overriding procedure Describe
+     (Item  : Menu;
+      Facts : in out Semantics.Description);
+
+   overriding function Part_Count (Item : Menu) return Natural;
+
+   overriding procedure Describe_Part
+     (Item   : Menu;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle);
+
+   overriding procedure Perform_Part
+     (Item    : in out Menu;
+      Part    : Positive;
+      Request : Semantics.Request;
+      Done    : out Boolean);
 
 private
 

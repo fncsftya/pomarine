@@ -1,3 +1,5 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with SDL3.Cursors;
 with SDL3.Events;
 with SDL3.Windows.Renderers.Textures;
@@ -168,7 +170,7 @@ package Pomarine.Widgets.Pictures is
 
    overriding procedure Draw
      (Item   : in out Picture;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Update
@@ -190,6 +192,10 @@ package Pomarine.Widgets.Pictures is
 
    overriding procedure Focus_Changed
      (Item : in out Picture; Focused : Boolean);
+
+   overriding procedure Describe
+     (Item  : Picture;
+      Facts : in out Semantics.Description);
 
 private
 

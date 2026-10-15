@@ -1,7 +1,7 @@
 package body Pomarine.Widgets.Pins is
 
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Edge        : constant Float := 1.0;
    Target_Edge : constant Float := 2.5;
@@ -99,7 +99,7 @@ package body Pomarine.Widgets.Pins is
 
    overriding procedure Draw
      (Item   : in out Pin;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);

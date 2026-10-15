@@ -1,5 +1,4 @@
 with SDL3.Clipboard;
-
 package body Pomarine.Clipboards is
 
    overriding function Text (Item : System_Clipboard) return String is

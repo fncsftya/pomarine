@@ -22,6 +22,7 @@ package SDL3.Events is
    subtype Key_Code is Interfaces.Unsigned_32;
 
    Key_Backspace : constant Key_Code := 16#08#;
+   Key_Tab       : constant Key_Code := 16#09#;
    Key_Return    : constant Key_Code := 16#0D#;
    Key_Escape    : constant Key_Code := 16#1B#;
    Key_Space     : constant Key_Code := 16#20#;
@@ -97,6 +98,11 @@ package SDL3.Events is
    --  Wait for the next event, without using the processor: for at most
    --  Timeout_MS milliseconds, or as long as it takes if that is
    --  negative. False if none came.
+
+   procedure Wake;
+   --  Make a Wait that is waiting return, with an event of kind Other:
+   --  from another thread, to have the loop look at what it has done. Safe
+   --  to call from any thread.
 
    function Command_Held return Boolean;
    --  Whether Control or Command is held now.

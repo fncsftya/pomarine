@@ -1,3 +1,4 @@
+with SDL3.Painters;
 with Ada.Command_Line;
 with Ada.Float_Text_IO;
 with Ada.Real_Time;
@@ -66,7 +67,7 @@ procedure Text_Area_Bench is
       procedure Draw is
       begin
          Renderers.Clear (Target, Colors (Pomarine.Themes.Background));
-         Text_Areas.Draw (Area, Target, Colors);
+         Text_Areas.Draw (Area, SDL3.Painters.To (Target), Colors);
       end Draw;
 
       function Each
@@ -339,7 +340,7 @@ begin
             Text_Areas.Handle
               (Area, Events.Text_Event ("x"), Board, Handled);
             Renderers.Clear (Target, Colors (Pomarine.Themes.Background));
-            Text_Areas.Draw (Area, Target, Colors);
+            Text_Areas.Draw (Area, SDL3.Painters.To (Target), Colors);
          end loop;
       end;
    elsif Ada.Command_Line.Argument_Count > 0 then

@@ -1,5 +1,6 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 with Pomarine.Scrollbars;
 
 --  A box that shows part of what is taller than it is, to scroll with the
@@ -31,9 +32,15 @@ package Pomarine.Widgets.Scrollers is
    --  Show the child from To points down, no further than shows its end,
    --  as of the last layout, and no less than its start.
 
+   procedure Scroll_Smoothly (Item : in out Scroller; To : Float; Milliseconds : Natural := 180)
+     with Pre => Is_Attached (Item) and then Child_Count (Item) = 1;
+   --  As Scroll_To, over Milliseconds, as an animation of the tree's (see
+   --  Pomarine.Widgets.Animate): at once if the system asks for less
+   --  movement.
+
    overriding procedure Draw_Over
      (Item   : in out Scroller;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
    --  Its scroll bar, over the child.
 
@@ -44,6 +51,14 @@ package Pomarine.Widgets.Scrollers is
      (Item    : in out Scroller;
       Event   : SDL3.Events.Event;
       Handled : out Boolean);
+
+   overriding procedure Describe
+     (Item  : Scroller;
+      Facts : in out Semantics.Description);
+   overriding procedure Perform
+     (Item    : in out Scroller;
+      Request : Semantics.Request;
+      Done    : out Boolean);
 
 private
 

@@ -208,6 +208,15 @@ package body SDL3.Events is
         and then Decode (Raw, Item);
    end Wait;
 
+   procedure Wake is
+      Raw     : aliased Thin.Event :=
+        (Kind => Thin.Event_User, Padding => [others => Interfaces.C.nul]);
+      Pushed  : constant Interfaces.C.C_bool := Thin.Push_Event (Raw'Access);
+      pragma Unreferenced (Pushed);
+   begin
+      null;
+   end Wake;
+
    function System_Is_Dark return Boolean is
      (Thin.Get_System_Theme = 2);
 

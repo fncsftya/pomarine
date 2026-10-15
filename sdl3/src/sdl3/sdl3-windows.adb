@@ -101,6 +101,9 @@ package body SDL3.Windows is
          Title_Hidden);
    end Extend_Into_Title_Bar;
 
+   function Native_Handle (Item : Window) return System.Address is
+     (Windows_Cocoa (Item));
+
    procedure Set_Movable (Item : Window; Movable : Boolean) is
       use Interfaces.C;
       Cocoa : constant System.Address := Windows_Cocoa (Item);

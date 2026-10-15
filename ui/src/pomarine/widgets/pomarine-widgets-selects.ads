@@ -1,7 +1,8 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 
 --  A field to choose a value in, from a menu: white, outlined, as a field
 --  to type in, with the value at the left and, at the right, a button
@@ -45,7 +46,7 @@ package Pomarine.Widgets.Selects is
 
    overriding procedure Draw
      (Item   : in out Select_Field;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
@@ -53,6 +54,17 @@ package Pomarine.Widgets.Selects is
 
    overriding function Cursor
      (Item : Select_Field) return SDL3.Cursors.Kind;
+
+   overriding procedure Describe
+     (Item  : Select_Field;
+      Facts : in out Semantics.Description);
+   overriding procedure Perform
+     (Item    : in out Select_Field;
+      Request : Semantics.Request;
+      Done    : out Boolean);
+
+   overriding procedure Command_State_Changed
+     (Item : in out Select_Field; State : Command_State);
 
 private
 

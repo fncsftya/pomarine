@@ -21,3 +21,12 @@ KEEP lines to at most 120 columns (`-gnatyM120` in each project).
 ## Testing
 
 See TESTING.md
+## The native crate
+
+`native/` is Ada over a small Rust static library (`native/rust`, built by
+`cargo` before the crate: a pre-build action in its `alire.toml`). Anything
+that has to be reached through Objective-C belongs in `native/rust/src` with a
+C function, and an `Import` in Ada over it; the numbers of roles and actions in
+`rust/src/lib.rs` must agree with `Pomarine.Semantics` (there is an assertion
+for the last of each). `gprbuild` does not relink an executable when only the
+Rust library changed: remove the executable, or touch a unit of it.

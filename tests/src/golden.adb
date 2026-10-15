@@ -1,11 +1,19 @@
 with Ada.Command_Line;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
+with Animation_Tests;
+with Command_Tests;
 with Document_Tests;
 with Field_Tests;
 with Goldens;
+with Layout_Tests;
+with Keyboard_Tests;
+with List_Tests;
 with Listener_Tests;
+with Painter_Tests;
 with Picture_Tests;
+with Platform_Tests;
+with Semantic_Tests;
 with Sheet_Tests;
 with Text_Area_Tests;
 with Widget_Tests;
@@ -77,6 +85,48 @@ begin
    Run ("field-long", Field_Tests.Long_Line'Access);
    Run ("field-click", Field_Tests.Clicking'Access);
    Run ("field-up-down", Field_Tests.Up_And_Down'Access);
+
+   Run ("painters-recording", Painter_Tests.Recording_Kept'Access);
+   Run ("painters-replay", Painter_Tests.Replay_Is_Drawing'Access);
+   Run ("painters-clips", Painter_Tests.Clips_Nest'Access);
+   Run ("painters-full", Painter_Tests.Full_Recording'Access);
+
+   Run ("semantics-whole", Semantic_Tests.Whole_Tree'Access);
+   Run ("semantics-changes", Semantic_Tests.Only_Changes'Access);
+   Run ("semantics-hiding", Semantic_Tests.Hiding_And_Showing'Access);
+   Run ("semantics-actions", Semantic_Tests.Actions'Access);
+   Run ("semantics-ids", Semantic_Tests.Stale_Ids'Access);
+   Run ("semantics-menu", Semantic_Tests.Menu_Parts'Access);
+
+   Run ("commands-handlers", Command_Tests.Own_Handlers'Access);
+   Run ("commands-validated", Command_Tests.Validated'Access);
+   Run ("commands-keys", Command_Tests.Keys'Access);
+   Run ("commands-responders", Command_Tests.Responders'Access);
+   Run ("commands-payloads", Command_Tests.Event_Payloads'Access);
+
+   Run ("lists-few-rows", List_Tests.Few_Rows_Asked'Access);
+   Run ("lists-choosing", List_Tests.Choosing'Access);
+   Run ("lists-keys", List_Tests.Keys'Access);
+   Run ("lists-rows-change", List_Tests.Rows_Come_And_Go'Access);
+   Run ("lists-described", List_Tests.Described'Access);
+   Run ("lists-drawn", List_Tests.Drawn'Access);
+
+   Run ("layout-intrinsic", Layout_Tests.Intrinsic_Labels'Access);
+   Run ("layout-pruned", Layout_Tests.Only_What_Changed'Access);
+
+   Run ("application-posts", Platform_Tests.Posted_Work'Access);
+   Run ("menus-choices", Platform_Tests.Menu_Choices'Access);
+   Run ("settings-system", Platform_Tests.System_Settings'Access);
+
+   Run ("animation-time", Animation_Tests.Moves_Over_Time'Access);
+   Run ("animation-replaced", Animation_Tests.Replaced'Access);
+   Run ("animation-reduced", Animation_Tests.Less_Movement'Access);
+   Run ("animation-wakes", Animation_Tests.Wakes_The_Loop'Access);
+   Run ("animation-scroll", Animation_Tests.Smooth_Scroll'Access);
+
+   Run ("keyboard-tab", Keyboard_Tests.Tab_Order'Access);
+   Run ("keyboard-operate", Keyboard_Tests.Operating_Widgets'Access);
+   Run ("keyboard-off", Keyboard_Tests.Off_Until_Asked'Access);
 
    Run ("widgets-layout", Widget_Tests.Layout'Access);
    Run ("widgets-idle", Widget_Tests.Idle'Access);

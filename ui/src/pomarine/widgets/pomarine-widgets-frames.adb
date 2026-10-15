@@ -1,3 +1,4 @@
+with Pomarine.Semantics;
 with SDL3.Cursors;
 with System;
 with Pomarine.Boxes;
@@ -5,7 +6,6 @@ with Pomarine.Icons;
 with Pomarine.Line_Texts;
 with Pomarine.Text_Areas;
 with Yoga.Nodes;
-
 package body Pomarine.Widgets.Frames is
 
    use type System.Address;
@@ -95,6 +95,12 @@ package body Pomarine.Widgets.Frames is
          Add (Item.Mini_Area, Item.Mini_Title);
          Add (Item.Mini, Item.Mini_Close);
       end if;
+
+      --  What an assistive technology hears: a window with a title, and
+      --  not the square of a colour, or the corner to size it by.
+      Set_Accessible_Role (Item.Outline_Panel, Semantics.Group);
+      Hide_From_Accessibility (Item.Tag);
+      Hide_From_Accessibility (Item.Corner);
 
       --  An outline round a column of the bar, the content and the status
       --  line: placed by its edges, or filling its parent. Its outline is
@@ -241,6 +247,7 @@ package body Pomarine.Widgets.Frames is
    procedure Set_Title (Item : in out Frame; To : String) is
    begin
       Labels.Set_Text (Item.Title_Label, Labels.Fitted (To));
+      Set_Accessible_Name (Item.Outline_Panel, To);
       if Item.Docked then
          Labels.Set_Text (Item.Mini_Title, Labels.Fitted (Shortened (To)));
       end if;

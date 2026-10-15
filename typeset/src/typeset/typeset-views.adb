@@ -99,7 +99,7 @@ package body Typeset.Views is
      (Item   : in out View;
       Laid   : in out Layouts.Layout;
       Doc    : Layouts.Document;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Value  : SDL3.Windows.Renderers.Color;
       Anchor : in out Positive;
       Offset : in out Float;

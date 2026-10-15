@@ -1,7 +1,8 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 
 --  A box to tick, or one of a set to choose among (a radio): a small white
 --  square, outlined, with a label after it, and a square of
@@ -59,13 +60,40 @@ package Pomarine.Widgets.Checks is
 
    overriding procedure Draw
      (Item   : in out Check;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
      (Item : in out Check; Hovered : Boolean);
 
    overriding function Cursor (Item : Check) return SDL3.Cursors.Kind;
+
+   overriding procedure Describe
+     (Item  : Check;
+      Facts : in out Semantics.Description);
+   overriding procedure Perform
+     (Item    : in out Check;
+      Request : Semantics.Request;
+      Done    : out Boolean);
+
+   overriding procedure Command_State_Changed
+     (Item : in out Check; State : Command_State);
+
+   procedure Set_Focusable (Item : in out Check; To : Boolean);
+   --  Let it take the focus, by a click or from the application, and then
+   --  be operated from the keyboard, with a ring to show it has it. Not so
+   --  to begin with, so that clicking it does not take the focus from what
+   --  is being typed into.
+
+   overriding function Accepts_Focus (Item : Check) return Boolean;
+
+   overriding procedure Focus_Changed
+     (Item : in out Check; Focused : Boolean);
+
+   overriding procedure Draw_Over
+     (Item   : in out Check;
+      Target : SDL3.Painters.Painter'Class;
+      Colors : Themes.Theme);
 
 private
 
@@ -79,6 +107,8 @@ private
       Enabled  : Boolean := True;
       Down     : Boolean := False;
       Changed  : Boolean := False;
+      By_Command : Boolean := False;
+      Focusable : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Checks;

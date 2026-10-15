@@ -74,7 +74,8 @@ package body Listener_Tests is
          Add (Widgets.Event_Kind'Image (Item.Seen (K).Kind)
               & " tag" & Image (Item.Seen (K).Tag)
               & " index" & Image (Item.Seen (K).Index)
-              & (if Item.Seen (K).Row > 0
+              & (if Item.Seen (K).Kind in Widgets.Choose | Widgets.Select_Tag
+                      and then Item.Seen (K).Row > 0
                  then " row" & Image (Item.Seen (K).Row) else "")
               & "; ");
       end loop;

@@ -1,3 +1,4 @@
+with SDL3.Painters;
 with Ada.Command_Line;
 with Ada.Float_Text_IO;
 with Ada.Real_Time;
@@ -262,7 +263,7 @@ begin
          Renderers.Clear (Target, Paper);
          Started := Clock;
          Typeset.Views.Draw
-           (Viewed, Laid, Doc, Target, Ink, Anchor, Offset,
+           (Viewed, Laid, Doc, SDL3.Painters.To (Target), Ink, Anchor, Offset,
             Left    => Float'Max
                          (0.0, (Float (Width) - 640.0 * Scale) / 2.0),
             Top     => 0.0,

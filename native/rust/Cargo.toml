@@ -1,0 +1,23 @@
+[package]
+name = "pomarine_native"
+version = "0.1.0"
+edition = "2021"
+description = "A small C interface to what macOS gives only to Rust and Objective-C, for the Ada in ../src"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+accesskit = "0.25"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+accesskit_macos = "0.27"
+objc2 = "0.5"
+objc2-foundation = { version = "0.2", features = ["NSString", "NSObject", "NSGeometry"] }
+objc2-app-kit = { version = "0.2", features = ["NSApplication", "NSMenu", "NSMenuItem", "NSCell", "NSResponder", "NSEvent", "NSWorkspace"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+panic = "abort"

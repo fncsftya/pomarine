@@ -1,10 +1,11 @@
 with Ada.Numerics.Elementary_Functions;
-
 package body Pomarine.Widgets.Canvases is
+
+   use type Semantics.Role;
 
    use type SDL3.Events.Event_Kind;
    use type SDL3.Events.Key_Code;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Points_Per_Notch : constant Float := 24.0;
    --  How far a notch of the wheel pans.
@@ -285,7 +286,7 @@ package body Pomarine.Widgets.Canvases is
    end Placed;
 
    procedure Stroke
-     (Target : SDL3.Windows.Renderers.Renderer;
+     (Target : SDL3.Painters.Painter'Class;
       Style  : Line;
       Colors : Themes.Theme;
       From_X, From_Y, To_X, To_Y : Float;
@@ -365,7 +366,7 @@ package body Pomarine.Widgets.Canvases is
 
    overriding procedure Draw
      (Item   : in out Canvas;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels  : constant Float := Density (Item);
@@ -433,7 +434,7 @@ package body Pomarine.Widgets.Canvases is
 
    overriding procedure Draw_Over
      (Item   : in out Canvas;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme) is
    begin
       if Item.Ghosted then
@@ -563,5 +564,14 @@ package body Pomarine.Widgets.Canvases is
 
    overriding function Cursor (Item : Canvas) return SDL3.Cursors.Kind is
      (if Item.Panning then SDL3.Cursors.Move else SDL3.Cursors.Default);
+
+   overriding procedure Describe
+     (Item  : Canvas;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Canvas;
+      end if;
+   end Describe;
 
 end Pomarine.Widgets.Canvases;

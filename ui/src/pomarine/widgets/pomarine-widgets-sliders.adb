@@ -1,9 +1,13 @@
+with Ada.Strings.Fixed;
 with Pomarine.Boxes;
-
 package body Pomarine.Widgets.Sliders is
 
+   use type SDL3.Events.Key_Code;
+
+   use type Semantics.Role;
+
    use type SDL3.Events.Event_Kind;
-   use SDL3.Windows.Renderers;
+   use all type SDL3.Painters.Painter;
 
    Knob_Points  : constant Float := 9.0;
    Track_Points : constant Float := 4.0;
@@ -89,6 +93,22 @@ package body Pomarine.Widgets.Sliders is
                Invalidate (Item);
                Handled := True;
             end if;
+         when SDL3.Events.Key_Down =>
+            if Has_Focus (Item) and then not Event.Command then
+               if Event.Key = SDL3.Events.Key_Right_Arrow
+                 or else Event.Key = SDL3.Events.Key_Up_Arrow
+               then
+                  Perform (Item, (Doing => Semantics.Increment, others => <>), Handled);
+               elsif Event.Key = SDL3.Events.Key_Left_Arrow
+                 or else Event.Key = SDL3.Events.Key_Down_Arrow
+               then
+                  Perform (Item, (Doing => Semantics.Decrement, others => <>), Handled);
+               elsif Event.Key = SDL3.Events.Key_Home then
+                  Perform (Item, (Doing => Semantics.Set_Value, Number => 0.0, others => <>), Handled);
+               elsif Event.Key = SDL3.Events.Key_End then
+                  Perform (Item, (Doing => Semantics.Set_Value, Number => 1.0, others => <>), Handled);
+               end if;
+            end if;
          when others =>
             null;
       end case;
@@ -107,7 +127,7 @@ package body Pomarine.Widgets.Sliders is
 
    overriding procedure Draw
      (Item   : in out Slider;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
@@ -140,5 +160,86 @@ package body Pomarine.Widgets.Sliders is
             Knob, Top_Of (Item), Wide, High, Pixels, Sunken => Item.Held);
       end;
    end Draw;
+
+   Key_Step : constant := 0.05;
+   --  How far Increment and Decrement move it, of the whole.
+
+   overriding procedure Describe
+     (Item  : Slider;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Slider;
+      end if;
+      Facts.Has_Number := True;
+      Facts.Number := Item.Fraction;
+      Facts.Minimum := 0.0;
+      Facts.Maximum := 1.0;
+      Facts.Step := Key_Step;
+      Semantics.Value_As
+        (Facts, Ada.Strings.Fixed.Trim
+                  (Integer'Image (Integer (Item.Fraction * 100.0)), Ada.Strings.Left) & "%");
+      Facts.Actions (Semantics.Increment) := True;
+      Facts.Actions (Semantics.Decrement) := True;
+      Facts.Actions (Semantics.Set_Value) := True;
+   end Describe;
+
+   overriding procedure Perform
+     (Item    : in out Slider;
+      Request : Semantics.Request;
+      Done    : out Boolean)
+   is
+      To : Float := Item.Fraction;
+   begin
+      Done := True;
+      case Request.Doing is
+         when Semantics.Increment => To := Item.Fraction + Key_Step;
+         when Semantics.Decrement => To := Item.Fraction - Key_Step;
+         when Semantics.Set_Value => To := Request.Number;
+         when others => Done := False;
+      end case;
+      if Done then
+         To := Float'Max (0.0, Float'Min (1.0, To));
+         if To /= Item.Fraction then
+            Item.Fraction := To;
+            Item.Moved := True;
+            Notify (Item, Change);
+            Invalidate (Item);
+         end if;
+      end if;
+   end Perform;
+
+   procedure Set_Focusable (Item : in out Slider; To : Boolean) is
+   begin
+      Item.Focusable := To;
+      if not To and then Is_Attached (Item) and then Has_Focus (Item) then
+         Release_Focus (Item);
+      end if;
+   end Set_Focusable;
+
+   overriding function Accepts_Focus (Item : Slider) return Boolean is
+     (Item.Focusable);
+
+   overriding procedure Focus_Changed
+     (Item : in out Slider; Focused : Boolean)
+   is
+      pragma Unreferenced (Focused);
+   begin
+      Invalidate (Item);
+   end Focus_Changed;
+
+   overriding procedure Draw_Over
+     (Item   : in out Slider;
+      Target : SDL3.Painters.Painter'Class;
+      Colors : Themes.Theme) is
+   begin
+      if Item.Focusable and then Has_Focus (Item) then
+         Pomarine.Boxes.Outline
+           (Target, Colors (Themes.Focus),
+            Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),
+            Thick => Float'Max (1.0, Float'Rounding (2.0 * Density (Item))),
+            Density => Density (Item));
+      end if;
+   end Draw_Over;
 
 end Pomarine.Widgets.Sliders;

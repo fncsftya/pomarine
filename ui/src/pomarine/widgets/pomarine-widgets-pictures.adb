@@ -1,7 +1,10 @@
+with SDL3.Windows;
+with SDL3.Windows.Renderers;
 with SDL3.Pictures;
 with SDL3.Pictures.Jobs;
-
 package body Pomarine.Widgets.Pictures is
+
+   use type Semantics.Role;
 
    function Clamped_Mark (Left, Right, Y : Float) return Mark is
       function Unit (Value : Float) return Float is
@@ -489,13 +492,13 @@ package body Pomarine.Widgets.Pictures is
 
    overriding procedure Draw
      (Item   : in out Picture;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme)
    is
       Box  : constant Float := Width_Of (Item);
       Wide : constant Float := Box * Item.Zoomed;
    begin
-      SDL3.Windows.Renderers.Fill_Rect
+      SDL3.Painters.Fill_Rect
         (Target, Themes.White,
          Left_Of (Item), Top_Of (Item), Box, Height_Of (Item));
       if Item.Length = 0 or else Item.Failed then
@@ -509,7 +512,7 @@ package body Pomarine.Widgets.Pictures is
             return;
          elsif Item.Job /= 0 and then Jobs.State (Item.Job) = Jobs.Done then
             begin
-               Jobs.Finish (Item.Job, Item.Pixels, Target, Item.Dark);
+               Jobs.Finish (Item.Job, Item.Pixels, Target.Device.all, Item.Dark);
                Item.Job := 0;
                Item.Loaded := True;
             exception
@@ -532,7 +535,7 @@ package body Pomarine.Widgets.Pictures is
         Float'Min (Item.Down, Furthest (Item, Height_Of (Item)));
       Item.Across := Float'Min (Item.Across, 1.0);
       if Item.Loaded then
-         Textures.Draw_Scaled
+         SDL3.Painters.Draw_Scaled
            (Target, Item.Pixels,
             Left_Of (Item) - Item.Across * Float'Max (0.0, Wide - Box),
             Top_Of (Item) - Item.Down * Item.Fitted,
@@ -547,7 +550,7 @@ package body Pomarine.Widgets.Pictures is
             declare
                Each : Mark renames Item.Marked (Index);
             begin
-               SDL3.Windows.Renderers.Fill_Rect
+               SDL3.Painters.Fill_Rect
                  (Target, Colors (Themes.Marker),
                   (if Item.Dark then SDL3.Windows.Renderers.Add
                    else SDL3.Windows.Renderers.Multiply),
@@ -570,7 +573,7 @@ package body Pomarine.Widgets.Pictures is
                declare
                   Each : Pomarine.Words.Word renames Item.Found.Words (Index);
                begin
-                  SDL3.Windows.Renderers.Fill_Rect
+                  SDL3.Painters.Fill_Rect
                     (Target, Tint,
                      Left + Each.Left * Wide, Top + Each.Top * Item.Fitted,
                      Each.Width * Wide, Each.Height * Item.Fitted);
@@ -736,5 +739,14 @@ package body Pomarine.Widgets.Pictures is
          Handled := True;
       end if;
    end Handle;
+
+   overriding procedure Describe
+     (Item  : Picture;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Image;
+      end if;
+   end Describe;
 
 end Pomarine.Widgets.Pictures;

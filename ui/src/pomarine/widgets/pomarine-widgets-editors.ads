@@ -1,5 +1,6 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Pomarine.Icons;
 with Pomarine.Text_Areas;
@@ -101,7 +102,7 @@ package Pomarine.Widgets.Editors is
 
    overriding procedure Draw
      (Item   : in out Editor;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
@@ -122,6 +123,30 @@ package Pomarine.Widgets.Editors is
    overriding procedure Focus_Changed
      (Item : in out Editor; Focused : Boolean);
 
+   overriding procedure Describe
+     (Item  : Editor;
+      Facts : in out Semantics.Description);
+   overriding procedure Perform
+     (Item    : in out Editor;
+      Request : Semantics.Request;
+      Done    : out Boolean);
+
+   overriding function Part_Count (Item : Editor) return Natural;
+
+   overriding function Part_Number (Item : Editor; Index : Positive) return Positive;
+
+   overriding procedure Describe_Part
+     (Item   : Editor;
+      Part   : Positive;
+      Facts  : in out Semantics.Description;
+      Bounds : out Semantics.Rectangle);
+
+   overriding procedure Command_State_Changed
+     (Item : in out Editor; State : Command_State);
+
+   overriding procedure Handle_Command
+     (Item : in out Editor; Tag : Integer; Done : out Boolean);
+
 private
 
    type Editor is new Widget with record
@@ -137,6 +162,9 @@ private
       Which     : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
       Shown   : Texts.Documents.Version := 0;
       Shown_Serial : Natural := 0;
+      Told_Caret, Told_Mark : Texts.Position;
+      --  Where the caret and the other end of the selection were when an
+      --  assistive technology was last told, to tell it when they move.
       --  Of the document, as of the last time it was drawn or seen to be
       --  changed.
    end record;

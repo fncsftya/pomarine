@@ -1,4 +1,5 @@
-with SDL3.Windows.Renderers;
+with Pomarine.Semantics;
+with SDL3.Painters;
 
 --  A bar that fills from the left as a job goes on: a track, and over it
 --  the part done, from 0.0 to 1.0. It takes no events; the application
@@ -17,8 +18,12 @@ package Pomarine.Widgets.Progress_Bars is
 
    overriding procedure Draw
      (Item   : in out Progress_Bar;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
+
+   overriding procedure Describe
+     (Item  : Progress_Bar;
+      Facts : in out Semantics.Description);
 
 private
 

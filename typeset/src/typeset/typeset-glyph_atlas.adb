@@ -116,18 +116,18 @@ package body Typeset.Glyph_Atlas is
 
    procedure Flush_Page
      (Item   : in out Atlas;
-      Target : Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Index  : Positive) is
    begin
       if Item.Pages (Index).Quads > 0 then
-         Textures.Draw_Quads
+         SDL3.Painters.Draw_Quads
            (Target, Item.Pages (Index).Image,
             Item.Pages (Index).Vertices.all, Item.Pages (Index).Quads);
          Item.Pages (Index).Quads := 0;
       end if;
    end Flush_Page;
 
-   procedure Flush (Item : in out Atlas; Target : Renderer) is
+   procedure Flush (Item : in out Atlas; Target : SDL3.Painters.Painter'Class) is
    begin
       for I in 1 .. Item.Count loop
          Flush_Page (Item, Target, I);
@@ -206,7 +206,7 @@ package body Typeset.Glyph_Atlas is
 
    procedure Find_Room
      (Item   : in out Atlas;
-      Target : Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Width, Height : Positive;
       Index  : out Positive;
       X, Y   : out Natural)
@@ -215,7 +215,7 @@ package body Typeset.Glyph_Atlas is
 
    procedure Find_Room
      (Item   : in out Atlas;
-      Target : Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Width, Height : Positive;
       Index  : out Positive;
       X, Y   : out Natural) is
@@ -232,7 +232,7 @@ package body Typeset.Glyph_Atlas is
          Item.Count := Item.Count + 1;
          Index := Item.Count;
          Textures.Create_Blank
-           (Item.Pages (Index).Image, Target, Page_Size, Page_Size,
+           (Item.Pages (Index).Image, Target.Device.all, Page_Size, Page_Size,
             Smooth => True);
          Item.Pages (Index).Vertices :=
            new Textures.Vertex_Array (1 .. 4 * Textures.Max_Quads);
@@ -256,7 +256,7 @@ package body Typeset.Glyph_Atlas is
    function Slot_For
      (Item    : in out Atlas;
       Reg     : CoreText.Shaping.Registry;
-      Target  : Renderer;
+      Target  : SDL3.Painters.Painter'Class;
       Font    : CoreText.Shaping.Font_Id;
       Id      : Interfaces.Unsigned_16;
       Size    : Float;
@@ -266,7 +266,7 @@ package body Typeset.Glyph_Atlas is
    function Slot_For
      (Item    : in out Atlas;
       Reg     : CoreText.Shaping.Registry;
-      Target  : Renderer;
+      Target  : SDL3.Painters.Painter'Class;
       Font    : CoreText.Shaping.Font_Id;
       Id      : Interfaces.Unsigned_16;
       Size    : Float;
@@ -340,7 +340,7 @@ package body Typeset.Glyph_Atlas is
    procedure Draw
      (Item     : in out Atlas;
       Reg      : CoreText.Shaping.Registry;
-      Target   : Renderer;
+      Target   : SDL3.Painters.Painter'Class;
       Line     : CoreText.Shaping.Glyph_Array;
       X        : Float;
       Baseline : Float;
@@ -424,7 +424,7 @@ package body Typeset.Glyph_Atlas is
    procedure Draw
      (Item     : in out Atlas;
       Reg      : CoreText.Shaping.Registry;
-      Target   : Renderer;
+      Target   : SDL3.Painters.Painter'Class;
       Line     : CoreText.Shaping.Shaped;
       X        : Float;
       Baseline : Float;

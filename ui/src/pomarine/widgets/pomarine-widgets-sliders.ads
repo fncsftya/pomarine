@@ -1,6 +1,7 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with SDL3.Cursors;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 
 --  A slider to drag: a track with a knob on it, whose place along the
 --  track is a value from 0.0, at the left, to 1.0, at the right. The
@@ -39,7 +40,7 @@ package Pomarine.Widgets.Sliders is
 
    overriding procedure Draw
      (Item   : in out Slider;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
@@ -47,12 +48,37 @@ package Pomarine.Widgets.Sliders is
 
    overriding function Cursor (Item : Slider) return SDL3.Cursors.Kind;
 
+   overriding procedure Describe
+     (Item  : Slider;
+      Facts : in out Semantics.Description);
+   overriding procedure Perform
+     (Item    : in out Slider;
+      Request : Semantics.Request;
+      Done    : out Boolean);
+
+   procedure Set_Focusable (Item : in out Slider; To : Boolean);
+   --  Let it take the focus, by a click or from the application, and then
+   --  be operated from the keyboard, with a ring to show it has it. Not so
+   --  to begin with, so that clicking it does not take the focus from what
+   --  is being typed into.
+
+   overriding function Accepts_Focus (Item : Slider) return Boolean;
+
+   overriding procedure Focus_Changed
+     (Item : in out Slider; Focused : Boolean);
+
+   overriding procedure Draw_Over
+     (Item   : in out Slider;
+      Target : SDL3.Painters.Painter'Class;
+      Colors : Themes.Theme);
+
 private
 
    type Slider is new Widget with record
       Fraction : Float := 0.0;
       Held     : Boolean := False;
       Moved    : Boolean := False;
+      Focusable : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Sliders;

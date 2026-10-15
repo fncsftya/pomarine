@@ -2,6 +2,7 @@ with Ada.Finalization;
 with Interfaces;
 with CoreText.Shaping;
 with CoreText.Shaping.Glyphs;
+with SDL3.Painters;
 with SDL3.Windows.Renderers;
 with SDL3.Windows.Renderers.Textures;
 
@@ -40,7 +41,7 @@ package Typeset.Glyph_Atlas is
    procedure Draw
      (Item     : in out Atlas;
       Reg      : CoreText.Shaping.Registry;
-      Target   : SDL3.Windows.Renderers.Renderer;
+      Target   : SDL3.Painters.Painter'Class;
       Line     : CoreText.Shaping.Glyph_Array;
       X        : Float;
       Baseline : Float;
@@ -58,7 +59,7 @@ package Typeset.Glyph_Atlas is
    procedure Draw
      (Item     : in out Atlas;
       Reg      : CoreText.Shaping.Registry;
-      Target   : SDL3.Windows.Renderers.Renderer;
+      Target   : SDL3.Painters.Painter'Class;
       Line     : CoreText.Shaping.Shaped;
       X        : Float;
       Baseline : Float;
@@ -71,7 +72,7 @@ package Typeset.Glyph_Atlas is
 
    procedure Flush
      (Item   : in out Atlas;
-      Target : SDL3.Windows.Renderers.Renderer);
+      Target : SDL3.Painters.Painter'Class);
    --  Draw all the glyphs batched.
 
    function Glyphs_Made (Item : Atlas) return Natural;

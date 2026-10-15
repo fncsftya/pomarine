@@ -1,0 +1,350 @@
+V "GNAT Lib v16"
+A -O3
+A -gnatA
+A -gnatn
+A -ffunction-sections
+A -fdata-sections
+A -gnato
+A -gnatwa
+A -gnatw.X
+A -gnatVa
+A -gnatwe
+A -gnata
+A -gnaty3
+A -gnatya
+A -gnatyA
+A -gnatyB
+A -gnatyb
+A -gnatyc
+A -gnaty-
+A -gnatyd
+A -gnatye
+A -gnatyf
+A -gnatyh
+A -gnatyi
+A -gnatyI
+A -gnatyk
+A -gnatyl
+A -gnatym
+A -gnatyn
+A -gnatyO
+A -gnatyp
+A -gnatyr
+A -gnatyS
+A -gnatyt
+A -gnatyu
+A -gnatyx
+A -gnat2022
+A -gnatW8
+A -gnatwh
+A -gnatyM120
+A -gnatVa
+A -fstack-check=specific
+A -fstack-protector-strong
+A -mmacosx-version-min=26.0.0
+A -mcpu=apple-m1
+A -mlittle-endian
+A -mabi=lp64
+A -fPIC
+P SS ZX
+
+RN
+RV NO_ACCESS_SUBPROGRAMS
+RV NO_PROTECTED_TYPES
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_UNCHECKED_CONVERSION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV MAX_ENTRY_QUEUE_LENGTH=1+
+
+U pomarine.native_menus%b  pomarine-native_menus.adb  2c2dc820 NE OO PK
+W ada%s			ada.ads			ada.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+Z ada.tags%s		a-tags.adb		a-tags.ali
+W ada.unchecked_conversion%s
+W interfaces%s		interfac.ads		interfac.ali
+W interfaces.c%s	i-c.adb			i-c.ali
+W pomarine%s		pomarine.ads		pomarine.ali
+W sdl3%s		sdl3.adb		sdl3.ali
+W sdl3.events%s		sdl3-events.adb		sdl3-events.ali
+Z system%s		system.ads		system.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.soft_links%s	s-soflin.adb		s-soflin.ali
+Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
+
+U pomarine.native_menus%s  pomarine-native_menus.ads  df7d387b EE NE OO PK
+W pomarine%s		pomarine.ads		pomarine.ali
+W pomarine.widgets%s	pomarine-widgets.adb	pomarine-widgets.ali
+W system%s		system.ads		system.ali
+Z system.tasking%s	s-taskin.adb		s-taskin.ali
+Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
+
+D ada.ads		20260610194523 76789da1 ada%s
+D a-assert.ads		20260610194523 ba465f5c ada.assertions%s
+D a-charac.ads		20260610194523 2d3ec45b ada.characters%s
+D a-chlat1.ads		20260610194523 e0d72e76 ada.characters.latin_1%s
+D a-contai.ads		20260610194523 61e5e089 ada.containers%s
+D a-cohata.ads		20260610194523 bea783e3 ada.containers.hash_tables%s
+D a-cohama.ads		20260610194523 477ea40a ada.containers.hashed_maps%s
+D a-conhel.ads		20260610194523 46fe1ce3 ada.containers.helpers%s
+D a-cihama.ads		20260610194523 e9fd232a ada.containers.indefinite_hashed_maps%s
+D a-coinve.ads		20260610194523 2d0a9a0e ada.containers.indefinite_vectors%s
+D a-convec.ads		20260610194523 cb0f314a ada.containers.vectors%s
+D a-except.ads		20260610194523 8699d7ff ada.exceptions%s
+D a-finali.ads		20260610194523 099c16e4 ada.finalization%s
+D a-iteint.ads		20260610194523 49a8bee2 ada.iterator_interfaces%s
+D a-stream.ads		20260610194523 cb01a8f8 ada.streams%s
+D a-string.ads		20260610194523 90ac6797 ada.strings%s
+D a-strhas.ads		20260610194523 e06866e7 ada.strings.hash%s
+D a-strmap.ads		20260610194523 f7e6ca10 ada.strings.maps%s
+D a-strsea.ads		20260610194523 18c3c634 ada.strings.search%s
+D a-sttebu.ads		20260610194523 f1ad67a2 ada.strings.text_buffers%s
+D a-strunb.ads		20260610194523 8d6ccba7 ada.strings.unbounded%s
+D a-strunb.adb		20260610194523 30f67b52 ada.strings.unbounded%b
+D a-stuten.ads		20260610194523 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20260610194523 2dbf449c ada.tags%s
+D a-unccon.ads		20260610194523 0e9b276f ada.unchecked_conversion%s
+D a-uncdea.ads		20260610194523 c3a8ac65 ada.unchecked_deallocation%s
+D coretext.ads		20261015101840 1374cfbc coretext%s
+D coretext-fonts.ads	20261015101840 0fec9be9 coretext.fonts%s
+D coretext-shaping.ads	20261015101840 3bba3825 coretext.shaping%s
+D coretext-shaping-glyphs.ads  20261015101840 bd00a416 coretext.shaping.glyphs%s
+D coretext-strings.ads	20261015101840 2839f9bf coretext.strings%s
+D interfac.ads		20260610194523 9111f9c1 interfaces%s
+D i-c.ads		20260610194523 dbdd3be7 interfaces.c%s
+D i-cstrin.ads		20260610194523 49eced87 interfaces.c.strings%s
+D pomarine.ads		20261015101840 e3c80774 pomarine%s
+D pomarine-clipboards.ads  20261015101840 dc9f2e9c pomarine.clipboards%s
+D pomarine-icons.ads	20261015120609 704bf59d pomarine.icons%s
+D pomarine-line_texts.ads  20261015125449 41b75229 pomarine.line_texts%s
+D pomarine-native_menus.ads  20261015130444 89e6ab0d pomarine.native_menus%s
+D pomarine-native_menus.adb  20261015130025 5a3ce9ed pomarine.native_menus%b
+D pomarine-semantics.ads  20261015125705 b1110656 pomarine.semantics%s
+D pomarine-themes.ads	20261015114304 f41e6398 pomarine.themes%s
+D pomarine-widgets.ads	20261015130932 3f328ec1 pomarine.widgets%s
+D pomarine_ui_config.ads  20261015122345 f8cdcfa9 pomarine_ui_config%s
+D sdl3.ads		20261015101840 f4da8c34 sdl3%s
+D sdl3-cursors.ads	20261015101840 9e8b92ce sdl3.cursors%s
+D sdl3-events.ads	20261015130932 bba06f89 sdl3.events%s
+D sdl3-painters.ads	20261015120609 4433428e sdl3.painters%s
+D sdl3-pictures.ads	20261015101840 37e92f70 sdl3.pictures%s
+D sdl3-thin.ads		20261015122921 ba5ff48f sdl3.thin%s
+D sdl3-windows.ads	20261015122825 9345ea6e sdl3.windows%s
+D sdl3-windows-renderers.ads  20261015120609 ecd218f0 sdl3.windows.renderers%s
+D sdl3-windows-renderers-textures.ads  20261015101840 ba7c6adb sdl3.windows.renderers.textures%s
+D system.ads		20260610194523 8a611ac3 system%s
+D s-atacco.ads		20260610194523 5868e3ba system.address_to_access_conversions%s
+D s-assert.ads		20260610194523 9c4520c7 system.assertions%s
+D s-atocou.ads		20260610194523 dc18efc3 system.atomic_counters%s
+D s-atocou.adb		20260610194523 6fe685de system.atomic_counters%b
+D s-atopri.ads		20260610194523 e19c1d89 system.atomic_primitives%s
+D s-c_time.ads		20260610194523 e502d0c0 system.c_time%s
+D s-exctab.ads		20260610194523 91bef6ef system.exception_table%s
+D s-fatflt.ads		20260610194523 11beb392 system.fat_flt%s
+D s-fatgen.ads		20260610194523 d28c6cfe system.fat_gen%s
+D s-fatgen.adb		20260610194523 6cc1fec9 system.fat_gen%b
+D s-finpri.ads		20260610194523 5970d55a system.finalization_primitives%s
+D s-finroo.ads		20260610194523 0a7c3ed4 system.finalization_root%s
+D s-multip.ads		20260610194523 38ac9f73 system.multiprocessors%s
+D s-oscons.ads		20260626180535 42ad9981 system.os_constants%s
+D s-osinte.ads		20260610194523 6d01fcda system.os_interface%s
+D s-oslock.ads		20260610194523 bcc789d2 system.os_locks%s
+D s-parame.ads		20260610194523 a1aeab5c system.parameters%s
+D s-pooglo.ads		20260610194523 91708d21 system.pool_global%s
+D s-putima.ads		20260610194523 1b989439 system.put_images%s
+D s-retsta.ads		20260610194523 0f6b06cb system.return_stack%s
+D s-secsta.ads		20260610194523 578279f5 system.secondary_stack%s
+D s-soflin.ads		20260610194523 5d88fdea system.soft_links%s
+D s-stache.ads		20260610194523 0b81c1fe system.stack_checking%s
+D s-stausa.ads		20260610194523 f470ae2d system.stack_usage%s
+D s-stalib.ads		20260610194523 1c9580f6 system.standard_library%s
+D s-stoele.ads		20260610194523 ccded4e8 system.storage_elements%s
+D s-stopoo.ads		20260610194523 45459446 system.storage_pools%s
+D s-stratt.ads		20260610194523 80b8dafb system.stream_attributes%s
+D s-tasinf.ads		20260610194523 801abd01 system.task_info%s
+D s-taspri.ads		20260610194523 4fd5ef41 system.task_primitives%s
+D s-taskin.ads		20260610194523 e3b5765b system.tasking%s
+D s-taprob.ads		20260610194523 acd6094d system.tasking.protected_objects%s
+D s-traent.ads		20260610194523 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20260610194523 fa2a7f59 system.unsigned_types%s
+D s-wchcon.ads		20260610194523 d9032363 system.wch_con%s
+D s-wchstw.ads		20260610194523 2d112c01 system.wch_stw%s
+D typeset.ads		20261015101840 9b9c0031 typeset%s
+D typeset-glyph_atlas.ads  20261015120609 0dca8536 typeset.glyph_atlas%s
+D yoga.ads		20261015101840 18821540 yoga%s
+D yoga-nodes.ads	20261015125347 bd995798 yoga.nodes%s
+G a e
+G c Z s b [install pomarine__native_menus 28 14 none]
+G c Z s b [is_installed pomarine__native_menus 33 13 none]
+G c Z s b [add_menu pomarine__native_menus 35 14 none]
+G c Z s b [add_item pomarine__native_menus 39 14 none]
+G c Z s b [add_separator pomarine__native_menus 54 14 none]
+G c Z s b [update_states pomarine__native_menus 57 14 none]
+G c Z s b [is_waiting pomarine__native_menus 64 13 none]
+G c Z s b [pump pomarine__native_menus 67 14 none]
+G c Z s b [choose pomarine__native_menus 70 14 none]
+G c Z s b [put pomarine__native_menus__mailbox 85 17 none]
+G c Z s b [take pomarine__native_menus__mailbox 86 17 none]
+G c Z s b [waiting pomarine__native_menus__mailbox 87 16 none]
+G c Z s b [mailbox__putN pomarine__native_menus 85 7 none]
+G c Z s b [mailbox__putP pomarine__native_menus 85 7 none]
+G c Z s b [mailbox__takeN pomarine__native_menus 86 7 none]
+G c Z s b [mailbox__takeP pomarine__native_menus 86 7 none]
+G c Z s b [mailbox__waitingN pomarine__native_menus 87 7 none]
+G c Z s b [mailbox__waitingP pomarine__native_menus 87 7 none]
+G c Z s s [Ttag_arrayBIP pomarine__native_menus 79 4 none]
+G c Z s s [Tchosen_arrayBIP pomarine__native_menus 82 4 none]
+G c Z s s [mailboxVIP pomarine__native_menus 84 4 none]
+G c Z s s [menu_barIP pomarine__native_menus 94 9 none]
+G c Z s s [menuIP pomarine__native_menus 75 9 none]
+G c Z b b [install_native pomarine__native_menus 20 13 none]
+G c Z b b [add_menu_native pomarine__native_menus 24 13 none]
+G c Z b b [add_item_native pomarine__native_menus 28 14 none]
+G c Z b b [add_separator_native pomarine__native_menus 36 14 none]
+G c Z b b [set_state_native pomarine__native_menus 39 14 none]
+G c Z b b [to_bar pomarine__native_menus 70 13 none]
+G c Z b b [chosen pomarine__native_menus 72 14 none]
+G r c none [pump pomarine__native_menus 67 14 none] [perform_command pomarine__widgets 368 14 none]
+G r c none [chosen pomarine__native_menus 72 14 none] [wake sdl3__events 102 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 40|1r6 70r27
+X 14 a-iteint.ads
+24h9 Forward_Iterator
+32h9 Reversible_Iterator<24R9[11|119]>
+X 25 a-unccon.ads
+23v14*Unchecked_Conversion 40|1w10 70r31
+X 32 interfac.ads
+47K9*Interfaces 247e15 40|2w6 3r6 12r22 15r13 17r75 24r63 30r46 31r42 32r19
+. 33r13 40r13 72r51 75r51 93r41 107r19 122r36 123r23 124r10 146r16
+65I9*Integer_32<integer> 40|17r86 33r24 40r24 72r62 75r62 124r21 146r27
+92M9*Unsigned_32 40|15r24 24r74 30r57 31r53 32r30 93r52 107r30 122r47 123r34
+X 33 i-c.ads
+33K20*C 605e17 40|3w17 12r33
+76M9*unsigned_char 40|14r15 21r16 40r65
+X 35 pomarine.ads
+4K9*Pomarine 6e13 39|2r6 18r9 101r5 40|6r14 173r5
+X 36 pomarine-clipboards.ads
+6h9*Clipboard
+X 39 pomarine-native_menus.ads
+18K18*Native_Menus 35|4k9 39|75E9 101l14 101e26 40|6b23 173l14 173t26
+20R9*Menu_Bar 28r37 33r34 35r38 40r24 54r43 58r26 64r32 67r34 70r36 94c9
+. 99e14 40|69r34 81r37 87r34 89r38 97r24 130r43 137r26 154r32 156r34 168r36
+22R9*Menu 35r77 41r17 54r58 75c9 77e14 40|89r77 98r17 130r58
+25N4*Capacity 79r34 40|125r39
+28U14*Install 28=23 40|81b14
+28r23 Item{20R9} 29r33 40|81b23 83m7 84m40 84r40
+33V13*Is_Installed{boolean} 29s19 33>27 36s18 49s18 55s18 60s18 40|87b13
+33r27 Item{20R9} 40|87r63
+35U14*Add_Menu 35=24 35>48 35<64 40|89b14 94l8 94t16
+35r24 Item{20R9} 36r32 40|89b24 90r28
+35a48 Title{string} 40|89b48 93r26 93r65
+35r64 Result{22R9} 40|89b64 92m7
+39U14*Add_Item 40=7 41>7 42>7 43>7 44>7 45>7 46>7 47>7 48>7 40|96b14 128l8
+. 128t16
+40r7 Item{20R9} 49r32 40|97b7 125r22 126m7 126r25 127m7 127r18
+41r7 To{22R9} 40|98b7 122r10
+42a7 Title{string} 40|99b7 122r21 122r60
+43i7 Tag{integer} 49r47 40|100b7 124r33 127r37
+44a7 Key{string} 40|101b7 123r10 123r47
+45b7 Command{boolean} 40|102b7 109r10
+46b7 Shift{boolean} 40|103b7 112r10
+47b7 Option{boolean} 40|104b7 115r10
+48b7 Control{boolean} 40|105b7 118r10
+54U14*Add_Separator 54=29 54>53 40|130b14 134l8 134t21
+54r29 Item{20R9} 55r32 40|130b29 131r28
+54r53 To{22R9} 40|130b53 133r29
+57U14*Update_States 58=7 59>7 40|136b14 152l8 152t21
+58r7 Item{20R9} 60r32 40|137b7 140r18 140r34
+59p7 Validator{43|348P9} 40|138b7 143r19 143r62
+64V13*Is_Waiting{boolean} 64>25 40|154b13
+64r25 Item{20R9} 40|154r61
+67U14*Pump 67=20 67=44 40|156b14 166l8 166t12
+67r20 Item{20R9} 40|156b20 162r10
+67r44 Tree{43|100R9} 40|156b44 164m35
+70U14*Choose 70=22 70>46 40|168b14 171l8 171t14
+70r22 Item{20R9} 40|168b22 170r7
+70i46 Tag{integer} 40|168b46 170r22
+76m7*Handle{54|67M9} 40|92m14 122r13 133r32
+79A9 Tag_Array(integer)<integer> 96r19
+81N4 Chosen_Capacity 82r37 40|47r21 48r44 58r32
+82A9 Chosen_Array(integer)<integer> 89r15
+84W19 Mailbox 89E7 92l8 92e15 98r19 40|43b19 67l8 67t15
+85U17 Put 85>22 40|45b17 51l11 51t14 77s26 170s17
+85i22 Tag{integer} 40|45b22 48r68
+86U17 Take 86<23 86<42 40|53b17 63l11 63t15 162s20
+86i23 Tag{integer} 40|53b23 57m13 61m13
+86b42 Found{boolean} 40|53b42 55m10 56r13
+87V16 Waiting{boolean} 40|65b16 154s71
+89a7 Items{82A9} 40|48r13 57r20
+90i7 First{positive} 40|48r21 57r27 58r13 58r22
+91i7 Count{natural} 40|47r13 48r29 49r13 49r22 55r19 59r13 59r22 65r43
+95b7*Installed{boolean} 40|83m12 87r68
+96a7*Tags{79A9} 40|127m12 140r23
+97i7*Tag_Count{natural} 40|125r27 126m12 126r30 127r23 140r39
+98w7*Mail{84W19} 40|77r21 154r66 162r15 170r12
+X 40 pomarine-native_menus.adb
+12K12 C=12:33 14r13 21r14 40r63
+17P9 Chosen_Callback 17>46 17>69 20r40
+17m46 User{54|67M9}
+17i69 Tag{32|65I9}
+20V13 Install_Native{33|76M9} 20>29 20>57 84s9
+20p29 Callback{17P9}
+20m57 User{54|67M9}
+24V13 Add_Menu_Native{54|67M9} 24>30 24>54 93s9
+24m30 Title{54|67M9}
+24m54 Length{32|92M9}
+28U14 Add_Item_Native 29>7 30>7 30>31 31>7 31>29 32>7 33>7 121s7
+29m7 Target{54|67M9}
+30m7 Title{54|67M9}
+30m31 Title_Length{32|92M9}
+31m7 Key{54|67M9}
+31m29 Key_Length{32|92M9}
+32m7 Modifiers{32|92M9}
+33i7 Tag{32|65I9}
+36U14 Add_Separator_Native 36>36 133s7
+36m36 Target{54|67M9}
+39U14 Set_State_Native 40>7 40>36 40>45 40>54 145s13
+40i7 Tag{32|65I9}
+40m36 Offered{33|76M9} 147r16
+40m45 Enabled{33|76M9} 148r16
+40m54 Ticked{33|76M9} 149r16
+69P9 Bar_Access(39|20R9) 70r69
+70V13 To_Bar[25|23]{69P9} 77s7
+72U14 Chosen 72>22 72>45 75b14 79l8 79t14 84r25
+72m22 User{54|67M9} 75b22 77r15
+72i45 Tag{32|65I9} 75b45 77r40
+107m7 Modifiers{32|92M9} 110m10 110r23 113m10 113r23 116m10 116r23 119m10
+. 119r23 123r60
+140i11 Tag=140:11{integer} 143r73 146r39
+142e13 State{43|344E9} 147r31 148r31 149r31
+157i7 Tag{integer} 162m26 164r41
+158b7 Found{boolean} 162m31 163r24
+159b7 Done{boolean} 164m46
+X 43 pomarine-widgets.ads
+54K18*Widgets 39|2w15 49r54 59r19 67r58 40|9r13 10r13 61r20 138r19 142r30
+. 143r41 147r39 148r40 148r58 149r39 156r58 164r10 43|1080e21
+75i4*No_Tag{integer} 39|49r62 40|61r28
+100R9*Tree<13|50R9> 39|67r66 40|156r66 43|1074e14
+344E9*Command_State 40|9r21 142r38 43|344e66
+344n27*Not_Offered{344E9} 40|147r47
+344n50*Enabled{344E9} 40|143r49 148r48
+344n59*Ticked{344E9} 40|148r66 149r47
+348P9*Command_Validator(344E9) 39|59r27 40|10r21 138r27
+368U14*Perform_Command 40|164s18
+X 45 sdl3.ads
+2K9*SDL3 40|4r6 78r7 45|13e9
+X 47 sdl3-events.ads
+3K14*Events 40|4w11 78r12 47|113e16
+102U14*Wake 40|78s19
+X 48 sdl3-painters.ads
+26h9*Painter
+X 54 system.ads
+37K9*System 39|1w6 76r16 76r34 40|8r13 17r53 20r64 24r38 25r14 29r16 30r15
+. 31r13 36r45 70r53 72r29 75r29 54|173e11
+67M9*Address 39|76r23 40|8r20 17r60 20r71 24r45 25r21 29r23 30r22 31r20 36r52
+. 70r60 72r36 75r36
+69m4*Null_Address{67M9} 39|76r41
+X 78 s-stausa.ads
+206U14*Initialize 207i<c,__gnat_stack_usage_initialize>22
+265U14*Output_Results 269i<c,__gnat_stack_usage_output_results>22
+

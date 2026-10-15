@@ -388,22 +388,29 @@ package body SDL3.Windows.Renderers is
       end if;
    end Restore_Clip;
 
-   procedure Narrow_Clip (Item : Renderer; X, Y, Width, Height : Integer) is
-      Was    : constant Clip := Current_Clip (Item);
+   function Narrowed
+     (Value : Clip; X, Y, Width, Height : Integer) return Clip
+   is
       Left   : constant Integer :=
-        (if Was.Enabled then Integer'Max (X, Was.X) else X);
+        (if Value.Enabled then Integer'Max (X, Value.X) else X);
       Top    : constant Integer :=
-        (if Was.Enabled then Integer'Max (Y, Was.Y) else Y);
+        (if Value.Enabled then Integer'Max (Y, Value.Y) else Y);
       Right  : constant Integer :=
-        (if Was.Enabled then Integer'Min (X + Width, Was.X + Was.Width)
+        (if Value.Enabled then Integer'Min (X + Width, Value.X + Value.Width)
          else X + Width);
       Bottom : constant Integer :=
-        (if Was.Enabled then Integer'Min (Y + Height, Was.Y + Was.Height)
+        (if Value.Enabled then Integer'Min (Y + Height, Value.Y + Value.Height)
          else Y + Height);
    begin
-      Set_Clip
-        (Item, Left, Top,
-         Integer'Max (0, Right - Left), Integer'Max (0, Bottom - Top));
+      return (Enabled => True, X => Left, Y => Top,
+              Width => Integer'Max (0, Right - Left),
+              Height => Integer'Max (0, Bottom - Top));
+   end Narrowed;
+
+   procedure Narrow_Clip (Item : Renderer; X, Y, Width, Height : Integer) is
+      Now : constant Clip := Narrowed (Current_Clip (Item), X, Y, Width, Height);
+   begin
+      Set_Clip (Item, Now.X, Now.Y, Now.Width, Now.Height);
    end Narrow_Clip;
 
    procedure Draw_Text

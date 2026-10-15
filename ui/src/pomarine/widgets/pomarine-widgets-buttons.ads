@@ -1,6 +1,7 @@
+with Pomarine.Semantics;
+with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Events;
-with SDL3.Windows.Renderers;
 with Pomarine.Icons;
 
 --  A button to click, with a short label.
@@ -97,7 +98,7 @@ package Pomarine.Widgets.Buttons is
 
    overriding procedure Draw
      (Item   : in out Button;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme);
 
    overriding procedure Hover_Changed
@@ -107,6 +108,17 @@ package Pomarine.Widgets.Buttons is
 
    overriding procedure Focus_Changed
      (Item : in out Button; Focused : Boolean);
+
+   overriding procedure Describe
+     (Item  : Button;
+      Facts : in out Semantics.Description);
+   overriding procedure Perform
+     (Item    : in out Button;
+      Request : Semantics.Request;
+      Done    : out Boolean);
+
+   overriding procedure Command_State_Changed
+     (Item : in out Button; State : Command_State);
 
 private
 
@@ -127,6 +139,7 @@ private
       Focusable : Boolean := False;
       Down    : Boolean := False;  --  pressed, and not yet let go
       Clicked : Boolean := False;
+      By_Command : Boolean := False;  --  selected as a command in force
    end record;
 
 end Pomarine.Widgets.Buttons;

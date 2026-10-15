@@ -1,6 +1,7 @@
 with Yoga.Nodes;
-
 package body Pomarine.Widgets.Scrollers is
+
+   use type Semantics.Role;
 
    use type SDL3.Events.Event_Kind;
 
@@ -43,9 +44,23 @@ package body Pomarine.Widgets.Scrollers is
       end if;
    end Scroll_To;
 
+   procedure Offset_Step (Item : in out Widget'Class; Value : Float);
+
+   procedure Offset_Step (Item : in out Widget'Class; Value : Float) is
+   begin
+      if Child_Count (Item) = 1 then
+         Scroll_To (Scroller (Item), Value);
+      end if;
+   end Offset_Step;
+
+   procedure Scroll_Smoothly (Item : in out Scroller; To : Float; Milliseconds : Natural := 180) is
+   begin
+      Animate (Item, Item.Moved, To, Milliseconds, Ease_Out, Offset_Step'Access);
+   end Scroll_Smoothly;
+
    overriding procedure Draw_Over
      (Item   : in out Scroller;
-      Target : SDL3.Windows.Renderers.Renderer;
+      Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme) is
    begin
       if Child_Count (Item) = 1 then
@@ -100,5 +115,40 @@ package body Pomarine.Widgets.Scrollers is
          Handled := True;
       end if;
    end Handle;
+
+   overriding procedure Describe
+     (Item  : Scroller;
+      Facts : in out Semantics.Description) is
+   begin
+      if Facts.Kind = Semantics.Unknown then
+         Facts.Kind := Semantics.Scroll_View;
+      end if;
+      Facts.Actions (Semantics.Scroll_Up) := not Item.Across;
+      Facts.Actions (Semantics.Scroll_Down) := not Item.Across;
+      Facts.Actions (Semantics.Scroll_Left) := Item.Across;
+      Facts.Actions (Semantics.Scroll_Right) := Item.Across;
+   end Describe;
+
+   overriding procedure Perform
+     (Item    : in out Scroller;
+      Request : Semantics.Request;
+      Done    : out Boolean)
+   is
+      Page : constant Float := 0.9 * (if Item.Across then Width_Of (Item) else Height_Of (Item))
+        / Density (Item);
+   begin
+      Done := Child_Count (Item) = 1;
+      if not Done then
+         return;
+      end if;
+      case Request.Doing is
+         when Semantics.Scroll_Up | Semantics.Scroll_Left =>
+            Scroll_Smoothly (Item, Item.Moved - Page);
+         when Semantics.Scroll_Down | Semantics.Scroll_Right =>
+            Scroll_Smoothly (Item, Item.Moved + Page);
+         when others =>
+            Done := False;
+      end case;
+   end Perform;
 
 end Pomarine.Widgets.Scrollers;
