@@ -101,6 +101,63 @@ package body SDL3.Windows is
          Title_Hidden);
    end Extend_Into_Title_Bar;
 
+   Button_Pitch : constant := 20.0;  --  from one button to the next
+
+   procedure Set_Title_Bar_Height (Item : Window; Height, Left : Float) is
+      use Interfaces.C;
+      Cocoa : constant System.Address := Windows_Cocoa (Item);
+   begin
+      if Cocoa = System.Null_Address then
+         return;  --  not on macOS
+      end if;
+      for Kind in 0 .. 2 loop
+         declare
+            Button : constant System.Address := Thin.Send_Address
+              (Cocoa, Thin.Selector (To_C ("standardWindowButton:")),
+               Interfaces.Unsigned_64 (Kind));
+            Strip  : constant System.Address :=
+              (if Button = System.Null_Address then System.Null_Address
+               else Thin.Send_Object (Button, Thin.Selector (To_C ("superview"))));
+            Holder : constant System.Address :=
+              (if Strip = System.Null_Address then System.Null_Address
+               else Thin.Send_Object (Strip, Thin.Selector (To_C ("superview"))));
+            High   : constant double := double (Height);
+            Wanted_X : constant double :=
+              double (Left) + double (Kind) * Button_Pitch;
+         begin
+            if Holder /= System.Null_Address then
+               declare
+                  Own   : constant Thin.Frame :=
+                    Thin.Send_Frame (Button, Thin.Selector (To_C ("frame")));
+                  Outer : constant Thin.Frame :=
+                    Thin.Send_Frame (Holder, Thin.Selector (To_C ("frame")));
+               begin
+                  --  Views count up from the bottom: keep the top where it
+                  --  is and grow or shrink the strip down from it, then
+                  --  centre the button in what is now the strip. The system
+                  --  puts them back as it lays the window out, so this is
+                  --  for the caller to do again, and does nothing when they
+                  --  are as wanted.
+                  if abs (Outer.H - High) > 0.01
+                    or else abs (Own.Y - (High - Own.H) / 2.0) > 0.01
+                    or else abs (Own.X - Wanted_X) > 0.01
+                  then
+                     Thin.Send_Rect
+                       (Holder, Thin.Selector (To_C ("setFrame:")),
+                        Outer.X, Outer.Y + Outer.H - High, Outer.W, High);
+                     Thin.Send_Rect
+                       (Strip, Thin.Selector (To_C ("setFrame:")),
+                        0.0, 0.0, Outer.W, High);
+                     Thin.Send_Point
+                       (Button, Thin.Selector (To_C ("setFrameOrigin:")),
+                        Wanted_X, (High - Own.H) / 2.0);
+                  end if;
+               end;
+            end if;
+         end;
+      end loop;
+   end Set_Title_Bar_Height;
+
    function Raw_Handle (Item : Window) return System.Address is (Item.Handle);
 
    function Native_Handle (Item : Window) return System.Address is
