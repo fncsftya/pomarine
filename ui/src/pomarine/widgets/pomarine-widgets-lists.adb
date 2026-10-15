@@ -69,6 +69,45 @@ package body Pomarine.Widgets.Lists is
 
    function Selected (Item : List) return Natural is (Row_Of_Id (Item, Item.Chosen));
 
+   --  A row's buttons: squares as high as the row, side by side at its
+   --  right end, before the bar, in the order the row has them.
+
+   Part_Stride : constant := 2 ** 20;
+   --  A part of a button is its row's id and, times this, which it is.
+
+   function Button_Part (Row_Id : Positive; Action : Positive) return Positive is
+     (Row_Id + Action * Part_Stride);
+
+   function Present_Count (Content : Pomarine.Models.Row_Content) return Natural is
+     (Pomarine.Models.Count_Actions (Content));
+
+   function Cell_Left (Item : List; Shown, Place : Positive) return Float is
+     (Left_Of (Item) + Width_Of (Item)
+      - Float'Rounding (Scrollbars.Thickness * Density (Item))
+      - Float (Shown - Place + 1) * Row_High (Item));
+   --  Where the Placeth of Shown buttons begins, in pixels.
+
+   function Action_At (Item : List; Row : Positive; X : Float) return Natural is
+      Content : Pomarine.Models.Row_Content;
+      Shown   : Natural := 0;
+      Place   : Natural := 0;
+   begin
+      Pomarine.Models.Describe_Row (Item.Model.all, Row, Content);
+      Shown := Present_Count (Content);
+      for Number in Content.Actions'Range loop
+         if Content.Actions (Number).Present then
+            Place := Place + 1;
+            if X >= Cell_Left (Item, Shown, Place)
+              and then X < Cell_Left (Item, Shown, Place) + Row_High (Item)
+            then
+               return Number;
+            end if;
+         end if;
+      end loop;
+      return 0;
+   end Action_At;
+   --  Which of Row's buttons is at pixel X; 0 if none.
+
    --  Setting
 
    procedure Set_Model (Item : in out List; Model : not null Pomarine.Models.Model_Access) is
@@ -199,17 +238,32 @@ package body Pomarine.Widgets.Lists is
                end if;
             end;
             if Event.Kind = SDL3.Events.Mouse_Move then
-               if Under /= Item.Over then
-                  Item.Over := Under;
-                  Invalidate (Item);
-               end if;
+               declare
+                  Over_Button : constant Natural :=
+                    (if Under > 0 then Action_At (Item, Under, Event.Mouse_X * Pixels) else 0);
+               begin
+                  if Under /= Item.Over or else Over_Button /= Item.Over_Action then
+                     Item.Over := Under;
+                     Item.Over_Action := Over_Button;
+                     Invalidate (Item);
+                  end if;
+               end;
             elsif Event.Kind = SDL3.Events.Mouse_Down
               and then Event.Button = 1 and then Under > 0
             then
-               Choose_Row (Item, Under);
-               if Event.Clicks >= 2 then
-                  Notify (Item, Double_Click);
-               end if;
+               declare
+                  Pressed : constant Natural := Action_At (Item, Under, Event.Mouse_X * Pixels);
+               begin
+                  if Pressed > 0 then
+                     Notify (Item, Act, Row => Under, Action => Pressed);
+                  else
+                     Choose_Row (Item, Under);
+                     Notify (Item, Click);
+                     if Event.Clicks >= 2 then
+                        Notify (Item, Double_Click);
+                     end if;
+                  end if;
+               end;
                Handled := True;
             end if;
 
@@ -243,6 +297,33 @@ package body Pomarine.Widgets.Lists is
                      To := Last;
                   elsif Event.Key = SDL3.Events.Key_Return and then Now > 0 then
                      Notify (Item, Submit);
+                     return;
+                  elsif Now > 0
+                    and then (Event.Key = SDL3.Events.Key_Space
+                              or else Event.Key = SDL3.Events.Key_Delete
+                              or else Event.Key = SDL3.Events.Key_Backspace)
+                  then
+                     --  Space does a row's first button, and Delete or
+                     --  Backspace its button that cannot be undone, if
+                     --  it has one.
+                     declare
+                        Content : Pomarine.Models.Row_Content;
+                        Number  : Natural := 0;
+                     begin
+                        Pomarine.Models.Describe_Row (Item.Model.all, Now, Content);
+                        for Each in Content.Actions'Range loop
+                           if Content.Actions (Each).Present
+                             and then (Event.Key = SDL3.Events.Key_Space or else Content.Actions (Each).Danger)
+                             and then Number = 0
+                           then
+                              Number := Each;
+                           end if;
+                        end loop;
+                        Handled := Number > 0;
+                        if Handled then
+                           Notify (Item, Act, Row => Now, Action => Number);
+                        end if;
+                     end;
                      return;
                   else
                      Handled := False;
@@ -280,6 +361,7 @@ package body Pomarine.Widgets.Lists is
       Scrollbars.Set_Pane (Item.Bar, Hovered);
       if not Hovered then
          Item.Over := 0;
+         Item.Over_Action := 0;
       end if;
       Invalidate (Item);
    end Hover_Changed;
@@ -323,15 +405,18 @@ package body Pomarine.Widgets.Lists is
               Pomarine.Models.Row_Id (Item.Model.all, Row) = Item.Chosen;
             Hot      : constant Boolean := Row = Item.Over and then not Chosen;
             Content  : Pomarine.Models.Row_Content;
-            Ink      : constant Themes.Color :=
-              (if Chosen then Colors (Themes.On_Accent) else Colors (Themes.Foreground));
+            Ink      : Themes.Color;
             Faint    : constant Themes.Color :=
               (if Chosen then Colors (Themes.On_Accent) else Colors (Themes.Muted));
-            Room     : constant Float := Width_Of (Item) - 2.0 * Gap;
+            Shown    : Natural;
          begin
             --  Of the rows, only those the part to draw touches.
             if Top + High > Float (Part.Top) and then Top < Float (Part.Top + Part.Height) then
                Pomarine.Models.Describe_Row (Item.Model.all, Row, Content);
+               Ink := (if Chosen then Colors (Themes.On_Accent)
+                       elsif Content.Dimmed then Colors (Themes.Muted)
+                       else Colors (Themes.Foreground));
+               Shown := Present_Count (Content);
                if Chosen then
                   SDL3.Painters.Fill_Rect
                     (Target, Colors (Themes.Accent), Left_Of (Item), Top, Width_Of (Item), High);
@@ -354,7 +439,7 @@ package body Pomarine.Widgets.Lists is
                      if Detail /= "" then
                         Line_Texts.Draw
                           (Text_Lines (Item).all, Target, Faint, Detail,
-                           Left_Of (Item) + Width_Of (Item) - Gap - Bar - Wide + Gap / 2.0,
+                           Left_Of (Item) + Width_Of (Item) - Gap - Bar - Float (Shown) * High - Wide + Gap / 2.0,
                            Top + High / 2.0, Pixels * 0.9, Line_Texts.Regular);
                      end if;
                   end;
@@ -364,12 +449,42 @@ package body Pomarine.Widgets.Lists is
                      Float'Rounding (Top + (High - 8.0) / 2.0),
                      Pomarine.Models.Text_Of (Content), 1);
                end if;
-               pragma Unreferenced (Room);
+               --  The buttons at the end.
+               declare
+                  Place : Natural := 0;
+                  Size  : constant Positive := Positive'Max (1, Natural (Float'Rounding (16.0 * Pixels)));
+               begin
+                  for Number in Content.Actions'Range loop
+                     if Content.Actions (Number).Present then
+                        Place := Place + 1;
+                        declare
+                           Cell  : constant Float := Cell_Left (Item, Shown, Place);
+                           Both  : constant Themes.Color :=
+                             (if Chosen then Colors (Themes.On_Accent)
+                              elsif Content.Actions (Number).Danger then Colors (Themes.Danger_Ink)
+                              elsif Content.Dimmed then Colors (Themes.Muted)
+                              else Colors (Themes.Foreground));
+                           Drawn : Boolean;
+                        begin
+                           if Row = Item.Over and then Number = Item.Over_Action then
+                              SDL3.Painters.Fill_Rect
+                                (Target, Colors (Themes.Tint), Cell, Top, High, High);
+                           end if;
+                           if Icon_Library (Item) /= null then
+                              Icons.Draw
+                                (Icon_Library (Item).all, Target, Content.Actions (Number).Icon, Both,
+                                 Float'Rounding (Cell + (High - Float (Size)) / 2.0),
+                                 Float'Rounding (Top + (High - Float (Size)) / 2.0), Size, Drawn);
+                           end if;
+                        end;
+                     end if;
+                  end loop;
+               end;
             end if;
          end;
       end loop;
       --  The ring of the focus, inside the box.
-      if Item.Has_Focus then
+      if Item.Has_Focus and then Is_Focus_Visible (Item) then
          declare
             Ring : constant Themes.Color := Colors (Themes.Focus);
          begin
@@ -424,12 +539,48 @@ package body Pomarine.Widgets.Lists is
       end case;
    end Perform;
 
-   overriding function Part_Count (Item : List) return Natural is
+   function Row_Parts (Item : List) return Natural is
      (if First_Shown (Item) = 0 then 0
       else Last_Shown (Item) - First_Shown (Item) + 1);
+   --  How many rows are described.
+
+   function Button_Parts (Item : List) return Natural is
+      Found   : Natural := 0;
+      Content : Pomarine.Models.Row_Content;
+   begin
+      for Row in First_Shown (Item) .. Last_Shown (Item) loop
+         Pomarine.Models.Describe_Row (Item.Model.all, Row, Content);
+         Found := Found + Present_Count (Content);
+      end loop;
+      return Found;
+   end Button_Parts;
+   --  How many buttons the rows described have.
+
+   overriding function Part_Count (Item : List) return Natural is
+     (if Item.Model = null then 0 else Row_Parts (Item) + Button_Parts (Item));
+   --  The rows, and then the buttons of the rows in turn.
 
    overriding function Part_Number (Item : List; Index : Positive) return Positive is
-     (Pomarine.Models.Row_Id (Item.Model.all, First_Shown (Item) + Index - 1));
+      Rows    : constant Natural := Row_Parts (Item);
+      Seen    : Natural := Rows;
+      Content : Pomarine.Models.Row_Content;
+   begin
+      if Index <= Rows then
+         return Pomarine.Models.Row_Id (Item.Model.all, First_Shown (Item) + Index - 1);
+      end if;
+      for Row in First_Shown (Item) .. Last_Shown (Item) loop
+         Pomarine.Models.Describe_Row (Item.Model.all, Row, Content);
+         for Number in Content.Actions'Range loop
+            if Content.Actions (Number).Present then
+               Seen := Seen + 1;
+               if Seen = Index then
+                  return Pomarine.Models.Row_Id (Item.Model.all, Row) + Number * Part_Stride;
+               end if;
+            end if;
+         end loop;
+      end loop;
+      return 1;
+   end Part_Number;
 
    overriding procedure Describe_Part
      (Item   : List;
@@ -437,15 +588,38 @@ package body Pomarine.Widgets.Lists is
       Facts  : in out Semantics.Description;
       Bounds : out Semantics.Rectangle)
    is
-      Row     : constant Natural := Row_Of_Id (Item, Part);
+      Number  : constant Natural := Part / Part_Stride;
+      Row     : constant Natural := Row_Of_Id (Item, Part mod Part_Stride);
       Content : Pomarine.Models.Row_Content;
    begin
-      Facts.Kind := Semantics.List_Item;
+      Facts.Kind := (if Number > 0 then Semantics.Button else Semantics.List_Item);
       Bounds := (others => 0.0);
       if Row = 0 then
          return;
       end if;
       Pomarine.Models.Describe_Row (Item.Model.all, Row, Content);
+      if Number > 0 then
+         if Number > Pomarine.Models.Max_Actions or else not Content.Actions (Number).Present then
+            return;
+         end if;
+         Semantics.Name_As (Facts, Pomarine.Models.Action_Name (Content, Number));
+         Facts.Actions (Semantics.Click) := True;
+         declare
+            Place : Natural := 0;
+         begin
+            for Each in 1 .. Number loop
+               if Content.Actions (Each).Present then
+                  Place := Place + 1;
+               end if;
+            end loop;
+            Bounds :=
+              (Left   => Cell_Left (Item, Present_Count (Content), Place),
+               Top    => Top_Of_Row (Item, Row),
+               Right  => Cell_Left (Item, Present_Count (Content), Place) + Row_High (Item),
+               Bottom => Top_Of_Row (Item, Row) + Row_High (Item));
+         end;
+         return;
+      end if;
       Semantics.Name_As (Facts, Pomarine.Models.Text_Of (Content));
       Semantics.Help_As (Facts, Pomarine.Models.Detail_Of (Content));
       Facts.Selected := Part = Item.Chosen;
@@ -466,10 +640,18 @@ package body Pomarine.Widgets.Lists is
       Request : Semantics.Request;
       Done    : out Boolean)
    is
-      Row : constant Natural := Row_Of_Id (Item, Part);
+      Number : constant Natural := Part / Part_Stride;
+      Row    : constant Natural := Row_Of_Id (Item, Part mod Part_Stride);
    begin
       Done := Row > 0;
       if not Done then
+         return;
+      end if;
+      if Number > 0 then
+         Done := Semantics."=" (Request.Doing, Semantics.Click);
+         if Done then
+            Notify (Item, Act, Row => Row, Action => Number);
+         end if;
          return;
       end if;
       case Request.Doing is

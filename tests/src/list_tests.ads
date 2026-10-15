@@ -9,5 +9,6 @@ package List_Tests is
    procedure Rows_Come_And_Go;
    procedure Described;
    procedure Drawn;
+   procedure Row_Buttons;
 
 end List_Tests;

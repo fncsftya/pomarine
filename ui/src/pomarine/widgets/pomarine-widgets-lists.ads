@@ -15,10 +15,19 @@ with Pomarine.Semantics;
 --  how many), so a list costs the same of a hundred or a hundred thousand
 --  rows, and no widget is made for a row.
 --
+--  A row may also have up to Max_Actions buttons at its end, each an
+--  icon, drawn faint when the row is Dimmed (see Pomarine.Models.Row_Content).
+--  A click on one says Act, with the Row and which Action, and does not
+--  choose the row. With a row chosen, Space does its first button, and Delete
+--  or Backspace the first that cannot be undone (see Row_Action). Each is a
+--  button of its own to an assistive technology.
+--
 --  It says Choose, with the Row, when a row is chosen by a click or the
---  keys; Double_Click for a double click on a row, and Submit for Return;
---  Selected says which. It is as high as the layout makes it: it does not
---  size itself to its rows.
+--  keys, and Click as well when it was a click (Selected says which row), so
+--  that what a click does need not be done for each arrow key; Double_Click
+--  for a double click on a row, and Submit for Return; Selected says which.
+--  It is as high as the layout makes it: it does not size itself to its
+--  rows.
 package Pomarine.Widgets.Lists is
 
    Default_Row_Height : constant Float := 28.0;
@@ -52,6 +61,11 @@ package Pomarine.Widgets.Lists is
 
    function Offset (Item : List) return Float;
    --  How far the rows have moved up, in points.
+
+   function Button_Part (Row_Id : Positive; Action : Positive) return Positive
+     with Pre => Action <= Pomarine.Models.Max_Actions;
+   --  The number of the part of an assistive technology that is the
+   --  Actionth button of the row with the id Row_Id (see Part_Id).
 
    function First_Shown (Item : List) return Natural;
    function Last_Shown (Item : List) return Natural;
@@ -120,6 +134,7 @@ private
       Chosen    : Natural := 0;
       --  The id of the chosen row; 0 for none.
       Over      : Natural := 0;
+      Over_Action : Natural := 0;
       --  The row under the pointer.
       Has_Focus : Boolean := False;
       Bar       : Scrollbars.Bar;

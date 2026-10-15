@@ -6,6 +6,9 @@ package Listener_Tests is
    --  A button's click, and its tag and index, said after the event that
    --  caused it, and still there to take.
 
+   procedure Grip_Release;
+   --  A grip says it was let go, and then that it was clicked.
+
    procedure Command_Tags;
    --  An enumeration for the tags.
 

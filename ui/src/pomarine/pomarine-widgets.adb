@@ -321,6 +321,9 @@ package body Pomarine.Widgets is
    function Has_Focus (Item : Widget'Class) return Boolean is
      (Item.Owner /= null and then Item.Owner.Nodes.Focused (Item.Slot));
 
+   function Is_Focus_Visible (Item : Widget'Class) return Boolean is
+     (Has_Focus (Item) and then Item.Owner.Keyboard_Focus);
+
    function Density (Item : Widget'Class) return Float is
      (Item.Owner.Density);
 
@@ -508,7 +511,8 @@ package body Pomarine.Widgets is
       Tag    : Integer;
       Index  : Natural;
       Row    : Natural;
-      Across, Down : Float) return Widget_Event
+      Across, Down : Float;
+      Action : Natural) return Widget_Event
    is
       Result : Widget_Event (Kind);
    begin
@@ -517,6 +521,9 @@ package body Pomarine.Widgets is
       case Kind is
          when Choose | Select_Tag =>
             Result.Row := Row;
+         when Act =>
+            Result.Row := Row;
+            Result.Action := Action;
          when Drag | Move | Resize =>
             Result.Across := Across;
             Result.Down := Down;
@@ -531,7 +538,8 @@ package body Pomarine.Widgets is
       Kind   : Event_Kind;
       Row    : Natural := 0;
       Across : Float := 0.0;
-      Down   : Float := 0.0)
+      Down   : Float := 0.0;
+      Action : Natural := 0)
    is
       Home   : constant Tree_Access := Item.Owner;
    begin
@@ -552,7 +560,7 @@ package body Pomarine.Widgets is
          Home.Queue ((Home.Queue_First + Home.Queued - 1) mod Queue_Capacity + 1) :=
            (Source => Id_Of (Item),
             Target => Target,
-            Event  => Made_Event (Kind, Item.Tag, Item.Index, Row, Across, Down));
+            Event  => Made_Event (Kind, Item.Tag, Item.Index, Row, Across, Down, Action));
          Home.Queued := Home.Queued + 1;
       end;
    end Notify;
@@ -1054,6 +1062,10 @@ package body Pomarine.Widgets is
             Item.Nodes.Focused (Was) := False;
             Item.Nodes.Semantics_Dirty (Was) := True;
             Focus_Changed (Item.Nodes.Object (Was).all, False);
+            --  Said only to a handler of its own, or every change would be.
+            if Has_Hook (Item.Nodes.Object (Was).all, Blur) then
+               Notify (Item.Nodes.Object (Was).all, Blur);
+            end if;
          end if;
          if To /= 0 then
             Item.Nodes.Focused (To) := True;
@@ -1066,18 +1078,21 @@ package body Pomarine.Widgets is
    procedure Focus (Item : in out Widget'Class) is
    begin
       Set_Focus (Item.Owner.all, Item.Slot);
+      Deliver (Item.Owner.all);
    end Focus;
 
    procedure Release_Focus (Item : in out Widget'Class) is
    begin
       if Item.Owner.Nodes.Focused (Item.Slot) then
          Set_Focus (Item.Owner.all, 0);
+         Deliver (Item.Owner.all);
       end if;
    end Release_Focus;
 
    procedure Clear_Focus (Item : in out Tree) is
    begin
       Set_Focus (Item, 0);
+      Deliver (Item);
    end Clear_Focus;
 
    function Focus_Of (Item : Tree) return Widget_Access is
@@ -1087,8 +1102,12 @@ package body Pomarine.Widgets is
      (Item.Nodes.Spot (Slot).Visible and then Accepts_Focus (Item.Nodes.Object (Slot).all));
    --  Whether Slot is one the focus may go to.
 
+   function Within (Item : Tree; Slot, Inside : Node_Index) return Boolean;
+   --  Whether Slot is Inside or in it.
+
    procedure Focus_Next (Item : in out Tree; Backwards : Boolean := False) is
-      Walking : Node_Index := Item.Root;
+      Scoped  : constant Boolean := Is_Live (Item, Item.Scope);
+      Walking : Node_Index := (if Scoped then Item.Scope.Slot else Item.Root);
       First   : Node_Index := 0;
       Last    : Node_Index := 0;
       Before  : Node_Index := 0;
@@ -1099,7 +1118,7 @@ package body Pomarine.Widgets is
       if Item.Root = 0 then
          return;
       end if;
-      while Walking /= 0 loop
+      while Walking /= 0 and then (not Scoped or else Within (Item, Walking, Item.Scope.Slot)) loop
          if Walking = Item.Focus then
             Passed := True;
          elsif Is_Taker (Item, Walking) then
@@ -1125,13 +1144,20 @@ package body Pomarine.Widgets is
       Deliver (Item);
    end Focus_Next;
 
+   procedure Set_Focus_Scope (Item : in out Tree; To : in out Widget'Class) is
+   begin
+      Item.Scope := Id_Of (To);
+   end Set_Focus_Scope;
+
+   procedure Clear_Focus_Scope (Item : in out Tree) is
+   begin
+      Item.Scope := No_Node;
+   end Clear_Focus_Scope;
+
    procedure Set_Tab_Navigation (Item : in out Tree; To : Boolean) is
    begin
       Item.Tab_Moves := To;
    end Set_Tab_Navigation;
-
-   function Within (Item : Tree; Slot, Inside : Node_Index) return Boolean;
-   --  Whether Slot is Inside or in it.
 
    function Within (Item : Tree; Slot, Inside : Node_Index) return Boolean is
       Climbing : Node_Index := Slot;
@@ -1244,7 +1270,7 @@ package body Pomarine.Widgets is
          Item.Queue ((Item.Queue_First + Item.Queued - 1) mod Queue_Capacity + 1) :=
            (Source => Id_Of_Slot (Item, Item.Root),
             Target => Item.Hearer,
-            Event  => Made_Event (Click, Tag, 0, 0, 0.0, 0.0));
+            Event  => Made_Event (Click, Tag, 0, 0, 0.0, 0.0, 0));
          Item.Queued := Item.Queued + 1;
          Done := True;
       end if;
@@ -1494,7 +1520,7 @@ package body Pomarine.Widgets is
       Climbing : Node_Index := From;
    begin
       while Climbing /= 0
-        and then not Accepts_Focus (Home.Nodes.Object (Climbing).all)
+        and then not Focus_On_Click (Home.Nodes.Object (Climbing).all)
       loop
          Climbing := Home.Nodes.Parent (Climbing);
       end loop;
@@ -1531,6 +1557,20 @@ package body Pomarine.Widgets is
       end if;
    end Dispatch_Press;
 
+   procedure Set_Input_Source (Item : in out Tree; Keyboard : Boolean);
+   --  The last input was by key, or by pointer: the focus ring is shown
+   --  for the one and not the other.
+
+   procedure Set_Input_Source (Item : in out Tree; Keyboard : Boolean) is
+   begin
+      if Item.Keyboard_Focus /= Keyboard then
+         Item.Keyboard_Focus := Keyboard;
+         if Item.Focus /= 0 then
+            Invalidate (Item.Nodes.Object (Item.Focus).all);
+         end if;
+      end if;
+   end Set_Input_Source;
+
    procedure Dispatch_Keys
      (Item    : in out Tree;
       Event   : SDL3.Events.Event;
@@ -1544,6 +1584,9 @@ package body Pomarine.Widgets is
       Taker   : Node_Index;
       Offered : Node_Index;
    begin
+      if Event.Kind = SDL3.Events.Key_Down then
+         Set_Input_Source (Item, Keyboard => True);
+      end if;
       Bubble (Item, Item.Focus, Event, Taker);
       Handled := Taker /= 0;
       if not Handled and then Event.Kind = SDL3.Events.Key_Down then
@@ -1587,6 +1630,7 @@ package body Pomarine.Widgets is
       Handled := False;
       case Event.Kind is
          when SDL3.Events.Mouse_Down =>
+            Set_Input_Source (Item, Keyboard => False);
             Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
                               Event.Mouse_Y * Item.Density);
             Dispatch_Press (Item, Event, Over, Handled);

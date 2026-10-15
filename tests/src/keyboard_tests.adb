@@ -2,8 +2,10 @@ with Ada.Strings.Fixed;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 with Goldens;
+with Pomarine.Semantics;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Checks;
+with Pomarine.Widgets.Grips;
 with Pomarine.Widgets.Panels;
 with Pomarine.Widgets.Sliders;
 with Pomarine.Widgets.Switches;
@@ -148,5 +150,131 @@ package body Keyboard_Tests is
         ("keyboard-not-focusable", "FALSE",
          Widgets.Accepts_Focus (Widgets.Widget'Class (Item.Skip))'Image);
    end Off_Until_Asked;
+
+   procedure Click_Leaves_Focus is
+      Item    : Fixture;
+      Handled : Boolean;
+   begin
+      Open (Item);
+      Widgets.Focus (Item.Wrap);
+      --  A click on a button (a Tab stop) does not take the focus from the
+      --  field being typed in; the button still says it was clicked.
+      Widgets.Dispatch
+        (Item.Tree, (Kind => Events.Mouse_Move, Mouse_X => 30.0, Mouse_Y => 10.0, others => <>),
+         Handled);
+      Widgets.Dispatch
+        (Item.Tree, (Kind => Events.Mouse_Down, Mouse_X => 30.0, Mouse_Y => 10.0, Button => 1,
+                     others => <>), Handled);
+      Widgets.Dispatch
+        (Item.Tree, (Kind => Events.Mouse_Up, Mouse_X => 30.0, Mouse_Y => 10.0, Button => 1,
+                     others => <>), Handled);
+      declare
+         Clicked : Boolean;
+      begin
+         Widgets.Buttons.Take_Click (Item.Save, Clicked);
+         Goldens.Check_Text
+           ("keyboard-click-keeps-focus", "TRUE wrap", Clicked'Image & " " & Who (Item));
+      end;
+      --  But Tab does reach it.
+      Widgets.Set_Tab_Navigation (Item.Tree, True);
+      Press (Item, Events.Key_Tab, Shift => True);
+      Goldens.Check_Text ("keyboard-tab-reaches-button", "save", Who (Item));
+   end Click_Leaves_Focus;
+
+   procedure Grip_Keys is
+      Tree    : Widgets.Tree;
+      Target  : Renderers.Renderer;
+      Root    : aliased Widgets.Panels.Panel;
+      Card    : aliased Widgets.Grips.Grip;
+      Plain   : aliased Widgets.Grips.Grip;
+      Clicked : Boolean;
+      Handled : Boolean;
+      Done    : Boolean;
+   begin
+      Renderers.Create_Offscreen (Target, 200, 50);
+      Widgets.Set_Root (Tree, Root);
+      Widgets.Add (Root, Plain, Card);
+      Nodes.Set_Flex_Direction (Widgets.Node (Root), Yoga.Row);
+      Nodes.Set_Width (Widgets.Node (Plain), 50.0);
+      Nodes.Set_Width (Widgets.Node (Card), 50.0);
+      Widgets.Layout (Tree, Target);
+      Widgets.Set_Tab_Navigation (Tree, True);
+      Widgets.Grips.Set_Focusable (Card, True);
+      --  A grip that is only to be dragged is not a Tab stop.
+      Goldens.Check_Text
+        ("grip-plain-not-a-stop", "FALSE TRUE",
+         Widgets.Accepts_Focus (Widgets.Widget'Class (Plain))'Image & " "
+         & Widgets.Accepts_Focus (Widgets.Widget'Class (Card))'Image);
+      Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Tab, others => <>), Handled);
+      Goldens.Check_Text
+        ("grip-tab", "TRUE", Widgets.Has_Focus (Card)'Image);
+      Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, others => <>), Handled);
+      Widgets.Grips.Take_Click (Card, Clicked);
+      Goldens.Check_Text ("grip-return-clicks", "TRUE", Clicked'Image);
+      Goldens.Check_Text
+        ("grip-ring", "TRUE", Widgets.Is_Focus_Visible (Card)'Image);
+      --  To an assistive technology it is a button that can be pressed.
+      Widgets.Act (Tree, Widgets.Id_Of (Card), (Doing => Pomarine.Semantics.Click, others => <>), Done);
+      Widgets.Grips.Take_Click (Card, Clicked);
+      Goldens.Check_Text ("grip-pressed", "TRUE TRUE", Done'Image & " " & Clicked'Image);
+   end Grip_Keys;
+
+   procedure Scoped_Tab is
+      Item   : Fixture;
+      Dialog : aliased Widgets.Panels.Panel;
+   begin
+      Open (Item);
+      Widgets.Set_Tab_Navigation (Item.Tree, True);
+      --  A dialog over the rest, with the check and the switch in it.
+      Widgets.Add (Item.Root, Dialog);
+      Widgets.Remove (Item.Wrap);
+      Widgets.Remove (Item.Power);
+      Widgets.Add (Dialog, Item.Wrap, Item.Power);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Widgets.Set_Focus_Scope (Item.Tree, Dialog);
+      Press (Item, Events.Key_Tab);
+      Goldens.Check_Text ("keyboard-scope-first", "wrap", Who (Item));
+      Press (Item, Events.Key_Tab);
+      Goldens.Check_Text ("keyboard-scope-next", "power", Who (Item));
+      Press (Item, Events.Key_Tab);
+      Goldens.Check_Text ("keyboard-scope-wraps", "wrap", Who (Item));
+      Press (Item, Events.Key_Tab, Shift => True);
+      Goldens.Check_Text ("keyboard-scope-back-wraps", "power", Who (Item));
+      --  Focus outside it goes in at the first.
+      Widgets.Focus (Item.Save);
+      Press (Item, Events.Key_Tab);
+      Goldens.Check_Text ("keyboard-scope-from-outside", "wrap", Who (Item));
+      --  Let go of, Tab goes to the rest again.
+      Widgets.Clear_Focus_Scope (Item.Tree);
+      Widgets.Focus (Item.Volume);
+      Press (Item, Events.Key_Tab);
+      --  (The dialog was added last: Volume is followed by its widgets.)
+      Goldens.Check_Text ("keyboard-scope-off", "wrap", Who (Item));
+   end Scoped_Tab;
+
+   procedure Ring_By_Keyboard_Only is
+      Item : Fixture;
+      Handled : Boolean;
+      Pressed : constant SDL3.Events.Event :=
+        (Kind => Events.Mouse_Down, Mouse_X => 10.0, Mouse_Y => 10.0, others => <>);
+   begin
+      Open (Item);
+      --  Focused by a click (the first widget is under 10, 10): no ring.
+      Widgets.Dispatch (Item.Tree, Pressed, Handled);
+      Widgets.Focus (Item.Save);
+      Goldens.Check_Text
+        ("ring-by-pointer", "TRUE FALSE",
+         Widgets.Has_Focus (Item.Save)'Image & " " & Widgets.Is_Focus_Visible (Item.Save)'Image);
+      --  A key makes it show, with no other change to it.
+      Press (Item, Events.Key_Right_Arrow);
+      Goldens.Check_Text
+        ("ring-by-key", "TRUE", Widgets.Is_Focus_Visible (Item.Save)'Image);
+      Goldens.Check_Text
+        ("ring-repaint", "TRUE", Widgets.Needs_Paint (Item.Tree)'Image);
+      --  And a press hides it again.
+      Widgets.Dispatch (Item.Tree, Pressed, Handled);
+      Goldens.Check_Text
+        ("ring-by-pointer-again", "FALSE", Widgets.Is_Focus_Visible (Item.Save)'Image);
+   end Ring_By_Keyboard_Only;
 
 end Keyboard_Tests;

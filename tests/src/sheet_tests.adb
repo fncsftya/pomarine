@@ -472,8 +472,9 @@ package body Sheet_Tests is
       Buttons.Take_Click (Item.Kinds (1), Clicked);
       Check_Flag ("sheet-enabled-click", True, Clicked);
 
-      --  A button that takes the focus is clicked by Return and Space,
-      --  but not by keys while it does not have it.
+      --  A button that can have the focus (by Tab) is clicked by Return
+      --  and Space, but not by keys while it does not have it. Clicking it
+      --  does not give it the focus.
       Send (Tree, Key (Events.Key_Return));
       Buttons.Take_Click (Item.Kinds (2), Clicked);
       Check_Flag ("sheet-key-unfocused", False, Clicked);
@@ -481,6 +482,9 @@ package body Sheet_Tests is
       Click_On (Tree, Item.Kinds (2));
       Buttons.Take_Click (Item.Kinds (2), Clicked);
       Check_Flag ("sheet-focus-click", True, Clicked);
+      Check_Flag ("sheet-focus-not-taken-by-click", False,
+                  Widgets.Has_Focus (Item.Kinds (2)));
+      Widgets.Focus (Item.Kinds (2));
       Check_Flag ("sheet-focus-taken", True,
                   Widgets.Has_Focus (Item.Kinds (2)));
       Send (Tree, Key (Events.Key_Return));

@@ -55,6 +55,11 @@ package Pomarine.Widgets.Grips is
 
    procedure Clear_Hover_Fill (Item : in out Grip);
 
+   procedure Set_Focusable (Item : in out Grip; To : Boolean);
+   --  Let Tab reach it, and Return or Space click it, with a ring round
+   --  it when it has the focus by a key. A click does not give it the
+   --  focus.
+
    procedure Take_Click (Item : in out Grip; Clicked : out Boolean);
    --  Say whether the button has been let go over it, after a press on
    --  it, since this was last called, and forget it.
@@ -94,6 +99,21 @@ package Pomarine.Widgets.Grips is
 
    overriding function Cursor (Item : Grip) return SDL3.Cursors.Kind;
 
+   overriding function Accepts_Focus (Item : Grip) return Boolean;
+
+   overriding function Focus_On_Click (Item : Grip) return Boolean is (False);
+
+   overriding procedure Focus_Changed (Item : in out Grip; Focused : Boolean);
+
+   overriding procedure Describe
+     (Item  : Grip;
+      Facts : in out Semantics.Description);
+
+   overriding procedure Perform
+     (Item    : in out Grip;
+      Request : Semantics.Request;
+      Done    : out Boolean);
+
 private
 
    type Grip is new Widget with record
@@ -110,6 +130,7 @@ private
       Clicked : Boolean := False;
       Doubled : Boolean := False;
       Held    : Boolean := False;
+      Focusable : Boolean := False;
       Last_X, Last_Y : Float := 0.0;
       --  Where the pointer was, in points.
       Across, Down : Float := 0.0;

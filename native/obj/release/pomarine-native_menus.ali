@@ -72,7 +72,7 @@ Z system.assertions%s	s-assert.adb		s-assert.ali
 Z system.soft_links%s	s-soflin.adb		s-soflin.ali
 Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
 
-U pomarine.native_menus%s  pomarine-native_menus.ads  df7d387b EE NE OO PK
+U pomarine.native_menus%s  pomarine-native_menus.ads  a07be9e2 EE NE OO PK
 W pomarine%s		pomarine.ads		pomarine.ali
 W pomarine.widgets%s	pomarine-widgets.adb	pomarine-widgets.ali
 W system%s		system.ads		system.ali
@@ -121,7 +121,7 @@ D pomarine-native_menus.ads  20261015130444 89e6ab0d pomarine.native_menus%s
 D pomarine-native_menus.adb  20261015130025 5a3ce9ed pomarine.native_menus%b
 D pomarine-semantics.ads  20261015125705 b1110656 pomarine.semantics%s
 D pomarine-themes.ads	20261015114304 f41e6398 pomarine.themes%s
-D pomarine-widgets.ads	20261015130932 3f328ec1 pomarine.widgets%s
+D pomarine-widgets.ads	20261015160256 40345f58 pomarine.widgets%s
 D pomarine_ui_config.ads  20261015122345 f8cdcfa9 pomarine_ui_config%s
 D sdl3.ads		20261015101840 f4da8c34 sdl3%s
 D sdl3-cursors.ads	20261015101840 9e8b92ce sdl3.cursors%s
@@ -204,7 +204,7 @@ G c Z b b [add_separator_native pomarine__native_menus 36 14 none]
 G c Z b b [set_state_native pomarine__native_menus 39 14 none]
 G c Z b b [to_bar pomarine__native_menus 70 13 none]
 G c Z b b [chosen pomarine__native_menus 72 14 none]
-G r c none [pump pomarine__native_menus 67 14 none] [perform_command pomarine__widgets 368 14 none]
+G r c none [pump pomarine__native_menus 67 14 none] [perform_command pomarine__widgets 383 14 none]
 G r c none [chosen pomarine__native_menus 72 14 none] [wake sdl3__events 102 14 none]
 X 1 ada.ads
 18K9*Ada 22e8 40|1r6 70r27
@@ -255,12 +255,12 @@ X 39 pomarine-native_menus.ads
 54r53 To{22R9} 40|130b53 133r29
 57U14*Update_States 58=7 59>7 40|136b14 152l8 152t21
 58r7 Item{20R9} 60r32 40|137b7 140r18 140r34
-59p7 Validator{43|348P9} 40|138b7 143r19 143r62
+59p7 Validator{43|363P9} 40|138b7 143r19 143r62
 64V13*Is_Waiting{boolean} 64>25 40|154b13
 64r25 Item{20R9} 40|154r61
 67U14*Pump 67=20 67=44 40|156b14 166l8 166t12
 67r20 Item{20R9} 40|156b20 162r10
-67r44 Tree{43|100R9} 40|156b44 164m35
+67r44 Tree{43|109R9} 40|156b44 164m35
 70U14*Choose 70=22 70>46 40|168b14 171l8 171t14
 70r22 Item{20R9} 40|168b22 170r7
 70i46 Tag{integer} 40|168b46 170r22
@@ -316,21 +316,21 @@ X 40 pomarine-native_menus.adb
 107m7 Modifiers{32|92M9} 110m10 110r23 113m10 113r23 116m10 116r23 119m10
 . 119r23 123r60
 140i11 Tag=140:11{integer} 143r73 146r39
-142e13 State{43|344E9} 147r31 148r31 149r31
+142e13 State{43|359E9} 147r31 148r31 149r31
 157i7 Tag{integer} 162m26 164r41
 158b7 Found{boolean} 162m31 163r24
 159b7 Done{boolean} 164m46
 X 43 pomarine-widgets.ads
 54K18*Widgets 39|2w15 49r54 59r19 67r58 40|9r13 10r13 61r20 138r19 142r30
-. 143r41 147r39 148r40 148r58 149r39 156r58 164r10 43|1080e21
-75i4*No_Tag{integer} 39|49r62 40|61r28
-100R9*Tree<13|50R9> 39|67r66 40|156r66 43|1074e14
-344E9*Command_State 40|9r21 142r38 43|344e66
-344n27*Not_Offered{344E9} 40|147r47
-344n50*Enabled{344E9} 40|143r49 148r48
-344n59*Ticked{344E9} 40|148r66 149r47
-348P9*Command_Validator(344E9) 39|59r27 40|10r21 138r27
-368U14*Perform_Command 40|164s18
+. 143r41 147r39 148r40 148r58 149r39 156r58 164r10 43|1113e21
+77i4*No_Tag{integer} 39|49r62 40|61r28
+109R9*Tree<13|50R9> 39|67r66 40|156r66 43|1107e14
+359E9*Command_State 40|9r21 142r38 43|359e66
+359n27*Not_Offered{359E9} 40|147r47
+359n50*Enabled{359E9} 40|143r49 148r48
+359n59*Ticked{359E9} 40|148r66 149r47
+363P9*Command_Validator(359E9) 39|59r27 40|10r21 138r27
+383U14*Perform_Command 40|164s18
 X 45 sdl3.ads
 2K9*SDL3 40|4r6 78r7 45|13e9
 X 47 sdl3-events.ads

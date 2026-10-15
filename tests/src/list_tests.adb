@@ -3,7 +3,9 @@ with Ada.Strings.Unbounded;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 with Goldens;
+with Pomarine.Icons;
 with Pomarine.Models;
+with Pomarine.Scrollbars;
 with Pomarine.Semantics;
 with Pomarine.Themes;
 with Pomarine.Widgets.Lists;
@@ -234,7 +236,7 @@ package body List_Tests is
    is
       pragma Unreferenced (Id, Bounds);
    begin
-      if Facts.Kind in Semantics.List | Semantics.List_Item then
+      if Facts.Kind in Semantics.List | Semantics.List_Item | Semantics.Button then
          Append (Self.Said, Semantics.Image (Facts.Kind) & " '" & Semantics.To_String (Facts.Name)
                  & "' " & Image (Facts.Position) & "/" & Image (Facts.Set_Size)
                  & (if Facts.Selected then " selected" else "")
@@ -289,5 +291,132 @@ package body List_Tests is
       Images.Read (Picture, Item.Target);
       Goldens.Check ("lists-picture", Picture);
    end Drawn;
+
+   --  Rows with buttons at their ends
+
+   type With_Buttons is limited new Models.List_Model with null record;
+
+   overriding function Count (Self : With_Buttons) return Natural is (4);
+   overriding function Version (Self : With_Buttons) return Natural is (0);
+   overriding function Row_Id (Self : With_Buttons; Row : Positive) return Positive is (Row);
+   overriding procedure Describe_Row
+     (Self : With_Buttons; Row : Positive; Content : out Models.Row_Content);
+
+   overriding procedure Describe_Row
+     (Self : With_Buttons; Row : Positive; Content : out Models.Row_Content)
+   is
+      pragma Unreferenced (Self);
+   begin
+      Content := (others => <>);
+      Models.Set_Text (Content, "Row " & Image (Row));
+      Content.Dimmed := Row = 2;
+      Models.Set_Action (Content, 1, Pomarine.Icons.Check, "Hide");
+      if Row /= 3 then
+         Models.Set_Action (Content, 2, Pomarine.Icons.Close, "Remove", Danger => True);
+      end if;
+   end Describe_Row;
+
+   type Heard_Acts is limited new Widgets.Listener with record
+      Count  : Natural := 0;
+      Row    : Natural := 0;
+      Action : Natural := 0;
+   end record;
+
+   overriding procedure Handle_Event
+     (Self   : in out Heard_Acts;
+      Source : in out Widgets.Widget'Class;
+      Event  : Widgets.Widget_Event)
+   is
+      pragma Unreferenced (Source);
+      use type Widgets.Event_Kind;
+   begin
+      if Event.Kind = Widgets.Act then
+         Self.Count := Self.Count + 1;
+         Self.Row := Event.Row;
+         Self.Action := Event.Action;
+      end if;
+   end Handle_Event;
+
+   procedure Row_Buttons is
+      Tree    : Widgets.Tree;
+      Target  : Renderers.Renderer;
+      Root    : aliased Widgets.Panels.Panel;
+      Shown   : aliased Lists.List;
+      Model   : aliased With_Buttons;
+      Hearer  : aliased Heard_Acts;
+      Heard   : Notes;
+      Handled : Boolean;
+      Done    : Boolean;
+      Right   : constant Float := 200.0 - Pomarine.Scrollbars.Thickness;
+      --  Where the buttons end, and each is a row high (20) square.
+
+      procedure Click_At (X, Y : Float) is
+      begin
+         Widgets.Dispatch
+           (Tree, (Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, others => <>), Handled);
+         Widgets.Dispatch
+           (Tree, (Kind => Events.Mouse_Down, Mouse_X => X, Mouse_Y => Y, Button => 1, Clicks => 1,
+                   others => <>), Handled);
+         Widgets.Dispatch
+           (Tree, (Kind => Events.Mouse_Up, Mouse_X => X, Mouse_Y => Y, Button => 1, others => <>),
+            Handled);
+      end Click_At;
+   begin
+      Renderers.Create_Offscreen (Target, 200, 100);
+      Widgets.Set_Density (Tree, Density);
+      Widgets.Set_Reduced_Motion (Tree, True);
+      Widgets.Set_Listener (Tree, Hearer'Unchecked_Access);
+      Widgets.Set_Root (Tree, Root);
+      Widgets.Add (Root, Shown);
+      Lists.Set_Model (Shown, Model'Unchecked_Access);
+      Lists.Set_Row_Height (Shown, Row_High);
+      Nodes.Set_Flex_Grow (Widgets.Node (Shown), 1.0);
+      Widgets.Layout (Tree, Target);
+
+      --  The second button of the second row (two buttons: the last).
+      Click_At (Right - 10.0, 30.0);
+      Goldens.Check_Text
+        ("lists-button", "1 2 2 0",
+         Image (Hearer.Count) & " " & Image (Hearer.Row) & " " & Image (Hearer.Action) & " "
+         & Image (Lists.Selected (Shown)));
+
+      --  The third row has one button, at the end: the first.
+      Click_At (Right - 10.0, 50.0);
+      Goldens.Check_Text
+        ("lists-button-alone", "2 3 1", Image (Hearer.Count) & " " & Image (Hearer.Row) & " "
+         & Image (Hearer.Action));
+
+      --  Beside the buttons, the row is chosen as always, and no button says.
+      Click_At (50.0, 30.0);
+      Goldens.Check_Text
+        ("lists-beside-buttons", "2 2", Image (Hearer.Count) & " " & Image (Lists.Selected (Shown)));
+
+      --  To an assistive technology: four rows, and seven buttons, each one.
+      Widgets.Describe_Changes (Tree, Heard);
+      Goldens.Check_Text
+        ("lists-button-parts", "TRUE",
+         Boolean'Image (Ada.Strings.Fixed.Count (To_String (Heard.Said), "button 'Hide'") = 4
+                        and then Ada.Strings.Fixed.Count (To_String (Heard.Said), "button 'Remove'") = 3));
+      Widgets.Act (Tree, Widgets.Part_Id (Shown, Lists.Button_Part (2, 1)),
+                   (Doing => Semantics.Click, others => <>), Done);
+      Goldens.Check_Text ("lists-button-pressed", "TRUE 3", Done'Image & " " & Image (Hearer.Count));
+      --  By keys: Space does the first button of the row chosen, and Delete
+      --  the one that cannot be undone, if it has one.
+      Lists.Select_Row (Shown, 2);
+      Widgets.Focus (Shown);
+      Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Space, others => <>), Handled);
+      Goldens.Check_Text
+        ("lists-key-first-button", "4 2 1", Image (Hearer.Count) & " " & Image (Hearer.Row) & " "
+         & Image (Hearer.Action));
+      Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Delete, others => <>), Handled);
+      Goldens.Check_Text
+        ("lists-key-danger-button", "5 2 2", Image (Hearer.Count) & " " & Image (Hearer.Row) & " "
+         & Image (Hearer.Action));
+      Lists.Select_Row (Shown, 3);
+      Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Delete, others => <>), Handled);
+      Goldens.Check_Text
+        ("lists-key-none-to-do", "5 FALSE", Image (Hearer.Count) & " " & Handled'Image);
+      Widgets.Paint (Tree, Target, Pomarine.Themes.Light);
+   end Row_Buttons;
 
 end List_Tests;

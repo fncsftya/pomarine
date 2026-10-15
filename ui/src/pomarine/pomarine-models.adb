@@ -25,6 +25,31 @@ package body Pomarine.Models is
       Cut (Item.Detail, Item.Detail_Length, Text);
    end Set_Detail;
 
+   procedure Set_Action
+     (Item   : in out Row_Content;
+      Number : Positive;
+      Icon   : Pomarine.Icons.Icon;
+      Name   : String;
+      Danger : Boolean := False) is
+   begin
+      Item.Actions (Number) := (Present => True, Icon => Icon, Danger => Danger, others => <>);
+      Cut (Item.Actions (Number).Name, Item.Actions (Number).Name_Length, Name);
+   end Set_Action;
+
+   function Count_Actions (Item : Row_Content) return Natural is
+      Found : Natural := 0;
+   begin
+      for Each of Item.Actions loop
+         if Each.Present then
+            Found := Found + 1;
+         end if;
+      end loop;
+      return Found;
+   end Count_Actions;
+
+   function Action_Name (Item : Row_Content; Number : Positive) return String is
+     (Item.Actions (Number).Name (1 .. Item.Actions (Number).Name_Length));
+
    function Text_Of (Item : Row_Content) return String is
      (Item.Text (1 .. Item.Text_Length));
 

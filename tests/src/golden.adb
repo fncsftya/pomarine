@@ -99,6 +99,7 @@ begin
    Run ("semantics-menu", Semantic_Tests.Menu_Parts'Access);
 
    Run ("commands-handlers", Command_Tests.Own_Handlers'Access);
+   Run ("commands-blur", Command_Tests.Losing_Focus'Access);
    Run ("commands-validated", Command_Tests.Validated'Access);
    Run ("commands-keys", Command_Tests.Keys'Access);
    Run ("commands-responders", Command_Tests.Responders'Access);
@@ -110,6 +111,7 @@ begin
    Run ("lists-rows-change", List_Tests.Rows_Come_And_Go'Access);
    Run ("lists-described", List_Tests.Described'Access);
    Run ("lists-drawn", List_Tests.Drawn'Access);
+   Run ("lists-buttons", List_Tests.Row_Buttons'Access);
 
    Run ("layout-intrinsic", Layout_Tests.Intrinsic_Labels'Access);
    Run ("layout-pruned", Layout_Tests.Only_What_Changed'Access);
@@ -127,6 +129,10 @@ begin
    Run ("keyboard-tab", Keyboard_Tests.Tab_Order'Access);
    Run ("keyboard-operate", Keyboard_Tests.Operating_Widgets'Access);
    Run ("keyboard-off", Keyboard_Tests.Off_Until_Asked'Access);
+   Run ("keyboard-ring", Keyboard_Tests.Ring_By_Keyboard_Only'Access);
+   Run ("keyboard-click", Keyboard_Tests.Click_Leaves_Focus'Access);
+   Run ("keyboard-scope", Keyboard_Tests.Scoped_Tab'Access);
+   Run ("keyboard-grip", Keyboard_Tests.Grip_Keys'Access);
 
    Run ("widgets-layout", Widget_Tests.Layout'Access);
    Run ("widgets-idle", Widget_Tests.Idle'Access);
@@ -142,6 +148,7 @@ begin
    Run ("widgets-window", Widget_Tests.Window_Frame'Access);
 
    Run ("listener-click", Listener_Tests.Click'Access);
+   Run ("listener-grip", Listener_Tests.Grip_Release'Access);
    Run ("listener-commands", Listener_Tests.Command_Tags'Access);
    Run ("listener-own", Listener_Tests.Own_Listener'Access);
    Run ("listener-deferred", Listener_Tests.Deferred'Access);

@@ -56,7 +56,7 @@ package Pomarine.Widgets is
    --  What widgets say
 
    type Event_Kind is
-     (Click,         --  a button, a grip, a select field, a toast's action
+     (Click,         --  a button, a grip, a select field, a toast's action, a list's row
       Double_Click,  --  a grip
       Change,        --  a check, a switch or a slider has a new value
       Submit,        --  Return in a field
@@ -68,9 +68,11 @@ package Pomarine.Widgets is
       Minimize,
       Restore,
       Press,         --  a pin
-      Release,
+      Release,       --  a pin, or a grip, let go (before its Click, if it says one)
       Select_Tag,    --  a canvas's line selected (Row, its Tag; 0 for none)
-      Delete);       --  Backspace or Delete with a line selected on a canvas
+      Delete,        --  Backspace or Delete with a line selected on a canvas
+      Act,           --  a button at the end of a list's row (Row, Action)
+      Blur);         --  the widget has lost the focus (only said if it has a handler)
 
    No_Tag : constant Integer := -1;
 
@@ -80,9 +82,16 @@ package Pomarine.Widgets is
       Index  : Natural := 0;
       --  Which of many like it, as the application said.
       case Kind is
-         when Choose | Select_Tag =>
+         when Choose | Select_Tag | Act =>
             Row : Natural := 0;
-            --  Of a menu's rows, or the tag of a canvas's line.
+            --  Of a menu's or a list's rows, or the tag of a canvas's line.
+            case Kind is
+               when Act =>
+                  Action : Natural := 0;
+                  --  Which of the row's buttons.
+               when others =>
+                  null;
+            end case;
          when Drag | Move | Resize =>
             Across : Float := 0.0;
             Down   : Float := 0.0;
@@ -201,8 +210,13 @@ package Pomarine.Widgets is
    --  press. Default leaves it to the widgets it is in.
 
    function Accepts_Focus (Item : Widget) return Boolean is (False);
-   --  Whether a click on it, or on a widget inside it that does not,
-   --  gives it the focus.
+   --  Whether the focus may be given to it: by Tab, or by a click on it or
+   --  on a widget inside it that does not (see Focus_On_Click).
+
+   function Focus_On_Click (Item : Widget) return Boolean is (Accepts_Focus (Widget'Class (Item)));
+   --  Whether a click on it gives it the focus. A button says it does not,
+   --  though Tab reaches it: to click it is not to leave the field that
+   --  is being typed in.
 
    procedure Focus_Changed (Item : in out Widget; Focused : Boolean) is null;
    --  It has the focus now, or has lost it.
@@ -313,7 +327,8 @@ package Pomarine.Widgets is
       Kind   : Event_Kind;
       Row    : Natural := 0;
       Across : Float := 0.0;
-      Down   : Float := 0.0);
+      Down   : Float := 0.0;
+      Action : Natural := 0);
    --  For a kind of widget to say that it has been clicked, and so on. It
    --  is kept, to be delivered, if the widget is in a tree that has
    --  somewhere to deliver it.
@@ -776,11 +791,25 @@ package Pomarine.Widgets is
    --  round: the first if none has it, or after the last. Backwards, the
    --  one before. Nothing is done if none takes it.
 
+   procedure Set_Focus_Scope (Item : in out Tree; To : in out Widget'Class)
+     with Pre => Is_Attached (To);
+   --  Have Tab go round only the widgets in To (a dialog's), and not the
+   --  rest of the tree, until Clear_Focus_Scope: as for a dialog that is
+   --  over the rest. If the focus is outside it, Tab goes to its first. It
+   --  is let go of if To is removed.
+
+   procedure Clear_Focus_Scope (Item : in out Tree);
+
    procedure Set_Tab_Navigation (Item : in out Tree; To : Boolean);
    --  Have Tab (and Shift-Tab, backwards) move the focus (Focus_Next) when
    --  no widget takes the key. Off to begin with.
 
    function Has_Focus (Item : Widget'Class) return Boolean;
+
+   function Is_Focus_Visible (Item : Widget'Class) return Boolean;
+   --  Whether a focus ring is to be drawn on it: it has the focus, and the
+   --  last thing done was by the keyboard, not the pointer (as when a
+   --  button is clicked, and the person has no need of a ring).
 
    function Focus_Of (Item : Tree) return Widget_Access;
    --  null if none.
@@ -894,7 +923,7 @@ private
    --  hook is run with whatever it was given, which only the package that
    --  made it knows how to use.
 
-   Hook_Capacity : constant := 4;
+   Hook_Capacity : constant := 8;
    --  How many kinds of event one widget has its own handlers for.
 
    type Hook_Runner is access procedure
@@ -1040,6 +1069,10 @@ private
       Root      : Node_Index := 0;
       Title     : Semantics.Text;
       Tab_Moves : Boolean := False;
+      Keyboard_Focus : Boolean := False;
+      Scope : Node_Id := No_Node;
+      --  Tab is only for what is in it, if it is there: see Set_Focus_Scope.
+      --  Whether the last input was a key: see Is_Focus_Visible.
       Clock     : SDL3.Events.Milliseconds := 0;
       --  The time at the last Update.
       Reduce_Motion : Boolean := False;
