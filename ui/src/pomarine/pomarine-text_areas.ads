@@ -55,6 +55,12 @@ package Pomarine.Text_Areas is
 
    function Is_Single_Line (Item : Text_Area) return Boolean;
 
+   procedure Set_Read_Only (Item : in out Text_Area; To : Boolean := True);
+   --  Take no changes to the text, typed, pasted, cut, composed or
+   --  undone: it can still be selected, and copied. Off to begin with.
+
+   function Is_Read_Only (Item : Text_Area) return Boolean;
+
    procedure Set_Lead (Item : in out Text_Area; Points : Float)
      with Pre => Points >= 0.0;
    --  Leave Points at the left of a field for one line, before its text,
@@ -411,6 +417,7 @@ private
       View     : Typeset.Views.View;
       Measure  : Float := 1.0;
       Single   : Boolean := False;
+      Read_Only : Boolean := False;
       Grows    : Boolean := False;
       Returned : Boolean := False;
       Across_Scroll : Float := 0.0;

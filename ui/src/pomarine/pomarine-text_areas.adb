@@ -238,6 +238,14 @@ package body Pomarine.Text_Areas is
    function Is_Single_Line (Item : Text_Area) return Boolean is
      (Item.Single);
 
+   procedure Set_Read_Only (Item : in out Text_Area; To : Boolean := True) is
+   begin
+      Item.Read_Only := To;
+   end Set_Read_Only;
+
+   function Is_Read_Only (Item : Text_Area) return Boolean is
+     (Item.Read_Only);
+
    procedure Set_Lead (Item : in out Text_Area; Points : Float) is
    begin
       Item.Lead := Points;
@@ -461,6 +469,9 @@ package body Pomarine.Text_Areas is
       Undo_As  : Docs.Edit_Kind := Docs.Other;
       Recorded : Boolean := True) is
    begin
+      if Item.Read_Only then
+         return;
+      end if;
       Docs.Replace (Item.Doc.all, From, To, By, Undo_As, Recorded);
       Catch_Up (Item);
       Item.At_Caret := Texts.End_After (From, By);
@@ -565,6 +576,9 @@ package body Pomarine.Text_Areas is
    is
       Clean : String := Without_Returns (Shown);
    begin
+      if Item.Read_Only then
+         return;
+      end if;
       Catch_Up (Item);
       for C of Clean loop
          if C = ASCII.LF then
@@ -1044,7 +1058,7 @@ package body Pomarine.Text_Areas is
       From, To : Position;
    begin
       Finish_Composition (Item);
-      if Docs.Can_Undo (Item.Doc.all)
+      if not Item.Read_Only and then Docs.Can_Undo (Item.Doc.all)
         and then not Docs.In_Step (Item.Doc.all)
       then
          Docs.Undo (Item.Doc.all, From, To);
@@ -1060,7 +1074,7 @@ package body Pomarine.Text_Areas is
       From, To : Position;
    begin
       Finish_Composition (Item);
-      if Docs.Can_Redo (Item.Doc.all)
+      if not Item.Read_Only and then Docs.Can_Redo (Item.Doc.all)
         and then not Docs.In_Step (Item.Doc.all)
       then
          Docs.Redo (Item.Doc.all, From, To);

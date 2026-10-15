@@ -101,6 +101,8 @@ package body SDL3.Windows is
          Title_Hidden);
    end Extend_Into_Title_Bar;
 
+   function Raw_Handle (Item : Window) return System.Address is (Item.Handle);
+
    function Native_Handle (Item : Window) return System.Address is
      (Windows_Cocoa (Item));
 

@@ -44,7 +44,9 @@ package body Pomarine.Native_Menus is
 
       procedure Put (Tag : Integer) is
       begin
-         if Count < Chosen_Capacity then
+         if Tag = Skip then
+            Skip := Widgets.No_Tag;
+         elsif Count < Chosen_Capacity then
             Items ((First + Count - 1) mod Chosen_Capacity + 1) := Tag;
             Count := Count + 1;
          end if;
@@ -63,6 +65,43 @@ package body Pomarine.Native_Menus is
       end Take;
 
       function Waiting return Boolean is (Count > 0);
+
+      procedure Discard (Tag : Integer) is
+         Kept   : Chosen_Array;
+         Left   : Natural := 0;
+         Seen   : Boolean := False;
+      begin
+         for Offset in 0 .. Count - 1 loop
+            declare
+               Each : constant Integer := Items ((First + Offset - 1) mod Chosen_Capacity + 1);
+            begin
+               if Each = Tag and then not Seen then
+                  Seen := True;
+               else
+                  Left := Left + 1;
+                  Kept (Left) := Each;
+               end if;
+            end;
+         end loop;
+         if Seen then
+            Items := Kept;
+            First := 1;
+            Count := Left;
+         else
+            Skip := Tag;
+            Skip_At := 0;
+         end if;
+      end Discard;
+
+      procedure Tick is
+      begin
+         if Skip /= Widgets.No_Tag then
+            Skip_At := Skip_At + 1;
+            if Skip_At > 1 then
+               Skip := Widgets.No_Tag;
+            end if;
+         end if;
+      end Tick;
 
    end Mailbox;
 
@@ -163,7 +202,13 @@ package body Pomarine.Native_Menus is
          exit when not Found;
          Widgets.Perform_Command (Tree, Tag, Done);
       end loop;
+      Item.Mail.Tick;
    end Pump;
+
+   procedure Discard (Item : in out Menu_Bar; Tag : Integer) is
+   begin
+      Item.Mail.Discard (Tag);
+   end Discard;
 
    procedure Choose (Item : in out Menu_Bar; Tag : Integer) is
    begin

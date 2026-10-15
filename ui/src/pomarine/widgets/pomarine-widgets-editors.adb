@@ -230,6 +230,14 @@ package body Pomarine.Widgets.Editors is
       Handled := False;
       if Has_Document (Item) and then Item.Enabled then
          Text_Areas.Handle (Item.Text, Event, Clipboard (Item).all, Handled);
+         --  A field that takes no changes says when it is pressed: for the
+         --  application to offer what it is for (a file's name, to choose
+         --  another).
+         if Handled and then Text_Areas.Is_Read_Only (Item.Text)
+           and then SDL3.Events."=" (Event.Kind, SDL3.Events.Mouse_Down)
+         then
+            Notify (Item, Click);
+         end if;
          if Text_Areas.Return_Pending (Item.Text)
            and then Event.Kind in SDL3.Events.Key_Down
            and then Event.Key in SDL3.Events.Key_Return
