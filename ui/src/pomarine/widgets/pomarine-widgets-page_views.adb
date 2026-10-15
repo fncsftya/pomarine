@@ -207,7 +207,12 @@ package body Pomarine.Widgets.Page_Views is
    --  the document is at the box's.
 
    procedure Scroll_To (Item : in out Page_View; To : Float) is
-      Wanted : constant Float := Float'Min (To, Furthest (Item, Height_Of (Item)));
+      --  Before it is laid out how far it can go is not known: keep To, which
+      --  the first draw clamps.
+      Wanted : constant Float :=
+        (if Height_Of (Item) <= 0.0 or else Width_Of (Item) <= 0.0
+         then Float'Min (To, 1.0)
+         else Float'Min (To, Furthest (Item, Height_Of (Item))));
    begin
       Item.Wanted := 0;
       if Wanted /= Item.Down then

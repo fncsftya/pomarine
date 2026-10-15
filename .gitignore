@@ -5,3 +5,6 @@
 notes.txt
 .lsp/
 .vscode/
+native/lib/
+native/obj/
+native/alire/
