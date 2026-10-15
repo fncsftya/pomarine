@@ -14,6 +14,7 @@ package body Pomarine.Widgets.Buttons is
 
    Icon_Size : constant := 16.0;  --  in points, a side
    Caption_Gap : constant := 7.0;  --  between an icon and its label
+   Icon_Pad : constant := 10.0;  --  in points, from the edge to a leading icon
    Badge_Size : constant := 16.0;  --  in points, a side
    Badge_Gap  : constant := 6.0;   --  between the label and the badge
    Caret_Size : constant := 10.0;  --  in points, a side, of a dropdown's
@@ -332,9 +333,10 @@ package body Pomarine.Widgets.Buttons is
          Wide_Box := Wide_Box - Caret_Room;
       end if;
 
-      --  The icon, if there is one, and the label, in the middle of the
-      --  face: together, icon first, if it is captioned; otherwise the
-      --  label only where the icon cannot be drawn.
+      --  The icon, if there is one, and the label: the icon leading, the
+      --  label centred on the face, if it is captioned; otherwise the
+      --  icon alone in the middle, or the label only where the icon
+      --  cannot be drawn.
       if Item.Swatched then
          declare
             Side : constant Float := 10.0 * Pixels;
@@ -353,11 +355,8 @@ package body Pomarine.Widgets.Buttons is
             Size : constant Positive :=
               Positive (Float'Rounding (Points * Pixels));
             Group_Left : constant Float :=
-              Left
-              + (Wide_Box
-                 - (if Together
-                    then (Points + Caption_Gap) * Pixels + Span + Badge_Room
-                    else Float (Size))) / 2.0;
+              (if Together then Left + Icon_Pad * Pixels
+               else Left + (Wide_Box - Float (Size)) / 2.0);
             Drawn : Boolean;
          begin
             Icons.Draw
@@ -367,7 +366,12 @@ package body Pomarine.Widgets.Buttons is
                Float'Rounding (Top + (High_Box - Float (Size)) / 2.0),
                Size, Drawn);
             Icon_Drawn := Drawn;
-            Text_Left := Group_Left + (Points + Caption_Gap) * Pixels;
+            --  The label is centred on the face, not on what is left
+            --  of it, but never over the icon.
+            Text_Left :=
+              Float'Max
+                (Left + (Wide_Box - Span) / 2.0,
+                 Group_Left + (Points + Caption_Gap) * Pixels);
          end;
       end if;
       if Item.Length > 0 and then (Together or else not Icon_Drawn) then
