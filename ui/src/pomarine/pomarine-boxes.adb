@@ -97,47 +97,37 @@ package body Pomarine.Boxes is
       Fill_Rect (Target, Dim, Left + Width - Thick, Top, Thick, Height);
    end Bevel;
 
-   procedure Raised_Face
-     (Item    : Raised_Look;
+   procedure Draw_Control
+     (Target  : SDL3.Windows.Renderers.Renderer;
+      Colors  : Themes.Theme;
+      Fill    : Themes.Color;
+      Edge_Color : Themes.Color;
+      Edges   : Themes.Bevel_Colors;
       Left, Top, Width, Height : Float;
       Density : Float;
-      Face_Left, Face_Top, Face_Width, Face_Height : out Float)
+      Bevelled : Boolean := True;
+      Sunken  : Boolean := False)
    is
-      Room  : constant Float := Lift (Density);
-      Moved : constant Float :=
-        (if Item.Pressed and then not Item.Flat then Shift (Density)
-         else 0.0);
+      Thick : constant Float := Edge (Density);
    begin
-      Face_Left := Left + Moved;
-      Face_Top := Top + Moved;
-      Face_Width := Float'Max (0.0, Width - Room);
-      Face_Height := Float'Max (0.0, Height - Room);
-   end Raised_Face;
+      Fill_Rect (Target, Fill, Left, Top, Width, Height);
+      Outline (Target, Edge_Color, Left, Top, Width, Height, Thick);
+      if Bevelled and then Colors.Bevelled then
+         Bevel (Target, Edges.Light, Edges.Dark, Left + Thick, Top + Thick,
+                Width - 2.0 * Thick, Height - 2.0 * Thick, Density, Sunken);
+      end if;
+   end Draw_Control;
 
-   procedure Draw_Raised
+   procedure Draw_Flat
      (Target  : SDL3.Windows.Renderers.Renderer;
-      Item    : Raised_Look;
+      Fill    : Themes.Color;
+      Edge_Color : Themes.Color;
       Left, Top, Width, Height : Float;
       Density : Float)
    is
-      Thick : constant Float := Edge (Density);
-      X, Y, Wide, High : Float;
    begin
-      Raised_Face (Item, Left, Top, Width, Height, Density, X, Y, Wide, High);
-      Fill_Rect (Target, Item.Face, X, Y, Wide, High);
-      Outline (Target, Item.Border, X, Y, Wide, High, Thick);
-      if not Item.Flat then
-         if Item.Edges_Given then
-            Bevel (Target, Item.Lit, Item.Shaded, X + Thick, Y + Thick,
-                   Wide - 2.0 * Thick, High - 2.0 * Thick, Density,
-                   Sunken => Item.Pressed);
-         else
-            Bevel (Target, Themes.Highlight (Item.Face),
-                   Themes.Shade (Item.Face), X + Thick, Y + Thick,
-                   Wide - 2.0 * Thick, High - 2.0 * Thick, Density,
-                   Sunken => Item.Pressed);
-         end if;
-      end if;
-   end Draw_Raised;
+      Fill_Rect (Target, Fill, Left, Top, Width, Height);
+      Outline (Target, Edge_Color, Left, Top, Width, Height, Edge (Density));
+   end Draw_Flat;
 
 end Pomarine.Boxes;

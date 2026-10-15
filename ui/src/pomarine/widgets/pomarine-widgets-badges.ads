@@ -1,3 +1,4 @@
+with Pomarine_Ui_Config;
 with SDL3.Windows.Renderers;
 
 --  A small mark to say something of a thing, beside it: a count, white
@@ -6,7 +7,7 @@ with SDL3.Windows.Renderers;
 --  picture was taken). It takes no events.
 package Pomarine.Widgets.Badges is
 
-   Text_Capacity : constant := 48;
+   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Bytes of a tag's text.
 
    type Kind is (Number, Tag);

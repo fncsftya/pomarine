@@ -548,7 +548,7 @@ package body Pomarine.Widgets.Pictures is
                Each : Mark renames Item.Marked (Index);
             begin
                SDL3.Windows.Renderers.Fill_Rect
-                 (Target, Colors.Marker,
+                 (Target, Colors (Themes.Marker),
                   (if Item.Dark then SDL3.Windows.Renderers.Add
                    else SDL3.Windows.Renderers.Multiply),
                   Left + Each.Left * Wide,
@@ -560,7 +560,7 @@ package body Pomarine.Widgets.Pictures is
       if Has_Selection (Item) then
          declare
             Tint : SDL3.Windows.Renderers.Color :=
-              (if Has_Focus (Item) then Themes.Selection (Colors)
+              (if Has_Focus (Item) then Colors (Themes.Selection)
                else Themes.Inactive_Selection (Colors));
             Left : constant Float := Origin_X (Item);
             Top  : constant Float := Origin_Y (Item);

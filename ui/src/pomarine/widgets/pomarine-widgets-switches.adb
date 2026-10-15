@@ -83,6 +83,7 @@ package body Pomarine.Widgets.Switches is
                if Over then
                   Item.On := not Item.On;
                   Item.Changed := True;
+                  Notify (Item, Change);
                end if;
                Handled := True;
                Invalidate (Item);
@@ -116,7 +117,7 @@ package body Pomarine.Widgets.Switches is
       Top    : constant Float :=
         Float'Rounding (Top_Of (Item) + (Height_Of (Item) - High) / 2.0);
       Track  : constant Themes.Color :=
-        (if Item.On then Colors.Primary else Colors.Face);
+        (if Item.On then Colors (Themes.Primary) else Colors (Themes.Face));
       Inner  : constant Float := Float'Rounding (Room * Pixels) + Edge;
       Knob_High : constant Float := High - 2.0 * Inner;
       Knob_Wide : constant Float := Float'Rounding (Wide / 2.0) - Inner;
@@ -129,43 +130,36 @@ package body Pomarine.Widgets.Switches is
          Left, Top, Wide, High);
       Pomarine.Boxes.Outline
         (Target,
-         (if Item.Enabled then Themes.Mix (Track, Colors.Foreground, 0.35)
-          else Themes.Dull (Colors, Colors.Border)),
+         (if Item.Enabled then Themes.Mix (Track, Colors (Themes.Foreground), 0.35)
+          else Themes.Dull (Colors, Colors (Themes.Border))),
          Left, Top, Wide, High, Edge);
-      if Item.Enabled then
+      if Item.Enabled and then Colors.Bevelled then
          Pomarine.Boxes.Bevel
-           (Target, Themes.Highlight (Track), Themes.Shade (Track),
+           (Target, Themes.Highlight (Track), Themes.Shadow_Of (Track),
             Left + Edge, Top + Edge, Wide - 2.0 * Edge, High - 2.0 * Edge,
             Pixels, Sunken => True);
       end if;
       --  The knob, standing up in it, at the end it is turned to.
       declare
          Face : constant Themes.Color :=
-           (if not Item.Enabled then Themes.Dull (Colors, Colors.Face)
-            elsif Is_Hovered (Item) and then not Pressed
-            then Themes.Mix (Colors.Face, Themes.White, 0.22)
-            else Colors.Face);
+           Colors.Face_For
+             (Enabled => Item.Enabled, Hovered => Is_Hovered (Item) and then not Pressed);
          X : constant Float :=
            (if Item.On then Left + Wide - Inner - Knob_Wide else Left + Inner);
       begin
-         Fill_Rect (Target, Face, X, Top + Inner, Knob_Wide, Knob_High);
-         Pomarine.Boxes.Outline
-           (Target,
-            (if Item.Enabled then Colors.Border
-             else Themes.Dull (Colors, Colors.Border)),
-            X, Top + Inner, Knob_Wide, Knob_High, Edge);
-         if Item.Enabled then
-            Pomarine.Boxes.Bevel
-              (Target, Themes.Highlight (Face), Themes.Shade (Face),
-               X + Edge, Top + Inner + Edge, Knob_Wide - 2.0 * Edge,
-               Knob_High - 2.0 * Edge, Pixels, Sunken => Pressed);
-         end if;
+         Pomarine.Boxes.Draw_Control
+           (Target, Colors, Face,
+            (if Item.Enabled then Colors (Themes.Border)
+             else Themes.Dull (Colors, Colors (Themes.Border))),
+            (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
+            X, Top + Inner, Knob_Wide, Knob_High, Pixels,
+            Bevelled => Item.Enabled, Sunken => Pressed);
       end;
       if Item.Length > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw
            (Text_Lines (Item).all, Target,
-            (if Item.Enabled then Colors.Foreground
-             else Themes.Quiet (Colors)),
+            (if Item.Enabled then Colors (Themes.Foreground)
+             else Colors (Themes.Muted)),
             Label (Item), Left + Wide + Gap * Pixels,
             Top_Of (Item) + Height_Of (Item) / 2.0, Pixels);
       end if;

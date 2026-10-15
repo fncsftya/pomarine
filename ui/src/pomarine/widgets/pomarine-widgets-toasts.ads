@@ -1,3 +1,4 @@
+with Pomarine_Ui_Config;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 
@@ -9,7 +10,7 @@ with SDL3.Windows.Renderers;
 --  hides it when it has been shown long enough.
 package Pomarine.Widgets.Toasts is
 
-   Text_Capacity : constant := 48;
+   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    Action_Capacity : constant := 16;
    --  Bytes, of the message and of the button's label.
 

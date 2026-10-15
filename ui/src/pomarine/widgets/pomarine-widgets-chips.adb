@@ -93,6 +93,9 @@ package body Pomarine.Widgets.Chips is
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                Item.Closed := Over;
+               if Over then
+                  Notify (Item, Close);
+               end if;
                Handled := True;
                Invalidate (Item);
             end if;
@@ -120,14 +123,12 @@ package body Pomarine.Widgets.Chips is
       Middle : constant Float := Top_Of (Item) + Height_Of (Item) / 2.0;
       After  : Float := Left_Of (Item) + Pad * Pixels;
       Left, Top, Side : Float;
-      Look   : Pomarine.Boxes.Raised_Look;
-      X, Y, W, H : Float;
    begin
       Fill_Rect
-        (Target, Colors.Page, Left_Of (Item), Top_Of (Item),
+        (Target, Colors (Themes.Page), Left_Of (Item), Top_Of (Item),
          Width_Of (Item), Height_Of (Item));
       Pomarine.Boxes.Outline
-        (Target, Colors.Border, Left_Of (Item), Top_Of (Item),
+        (Target, Colors (Themes.Border), Left_Of (Item), Top_Of (Item),
          Width_Of (Item), Height_Of (Item), Edge);
       if Item.Swatched then
          declare
@@ -142,24 +143,19 @@ package body Pomarine.Widgets.Chips is
       end if;
       if Item.Length > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw
-           (Text_Lines (Item).all, Target, Colors.Foreground, Label (Item),
+           (Text_Lines (Item).all, Target, Colors (Themes.Foreground), Label (Item),
             After, Middle, Pixels);
       end if;
       Cross_Box (Item, Left, Top, Side);
-      Look :=
-        (Face    =>
-           (if Item.Over and then not Item.Down
-            then Themes.Mix (Colors.Face, Themes.White, 0.22)
-            else Colors.Face),
-         Border  => Colors.Border,
-         Edges_Given => False,
-         Lit => (0, 0, 0, 255),
-         Shaded => (0, 0, 0, 255),
-         Drop    => Colors.Drop_Shadow,
-         Pressed => Item.Down and then Item.Over,
-         Flat    => False);
-      Pomarine.Boxes.Draw_Raised (Target, Look, Left, Top, Side, Side, Pixels);
-      Pomarine.Boxes.Raised_Face (Look, Left, Top, Side, Side, Pixels, X, Y, W, H);
+      declare
+         Face : constant Themes.Color :=
+           Colors.Face_For (Hovered => Item.Over and then not Item.Down);
+      begin
+         Pomarine.Boxes.Draw_Control
+           (Target, Colors, Face, Colors (Themes.Border),
+            (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
+            Left, Top, Side, Side, Pixels, Sunken => Item.Down and then Item.Over);
+      end;
       if Icon_Library (Item) /= null then
          declare
             Size  : constant Positive :=
@@ -168,9 +164,9 @@ package body Pomarine.Widgets.Chips is
          begin
             Pomarine.Icons.Draw
               (Icon_Library (Item).all, Target, Pomarine.Icons.Close,
-               Colors.Foreground,
-               Float'Rounding (X + (W - Float (Size)) / 2.0),
-               Float'Rounding (Y + (H - Float (Size)) / 2.0), Size, Drawn);
+               Colors (Themes.Foreground),
+               Float'Rounding (Left + (Side - Float (Size)) / 2.0),
+               Float'Rounding (Top + (Side - Float (Size)) / 2.0), Size, Drawn);
          end;
       end if;
    end Draw;

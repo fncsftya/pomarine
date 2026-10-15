@@ -35,12 +35,26 @@ package Pomarine.Widgets.Frames is
    --  between them), the label of its title, the status line, and the
    --  corner at the right of that.
 
-   type Frame is limited private;
+   type Frame is limited new Listener with private;
 
    type Placements is (Floating, Filling);
    --  Floating: placed by its edges (see Place), casting a shadow, with a
    --  corner to size it by. Filling: filling its parent, as a pane does,
    --  with neither.
+
+   procedure Set_Tag (Item : in out Frame; Tag : Integer; Index : Natural := 0);
+   --  Say what it is for, as Widgets.Set_Tag does, for the events it
+   --  says: Move and Resize (Across, Down), Close, Minimize, Restore,
+   --  Double_Click (of the title), and Submit (Return in the title).
+
+   procedure Set_Listener (Item : in out Frame; To : access Listener'Class);
+   --  Where its events go, rather than to the tree's.
+
+   overriding procedure Handle_Event
+     (Self   : in out Frame;
+      Source : in out Widget'Class;
+      Event  : Widget_Event);
+   --  Its own parts' events, said again as its own.
 
    procedure Build
      (Item           : in out Frame;
@@ -187,7 +201,7 @@ package Pomarine.Widgets.Frames is
 
 private
 
-   type Frame is limited record
+   type Frame is limited new Listener with record
       Pixels    : Float := 1.0;
       Scale     : Float := 1.0;
       Editable  : Boolean := False;

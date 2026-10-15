@@ -18,10 +18,10 @@ package body Pomarine.Widgets.Progress_Bars is
       Colors : Themes.Theme) is
    begin
       SDL3.Windows.Renderers.Fill_Rect
-        (Target, Themes.Mix (Colors.Background, Colors.Foreground, 0.2),
+        (Target, Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.2),
          Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item));
       SDL3.Windows.Renderers.Fill_Rect
-        (Target, Colors.Accent,
+        (Target, Colors (Themes.Accent),
          Left_Of (Item), Top_Of (Item),
          Float'Rounding (Width_Of (Item) * Item.Fraction), Height_Of (Item));
    end Draw;

@@ -1,3 +1,4 @@
+with Pomarine_Ui_Config;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 
@@ -7,7 +8,7 @@ with SDL3.Windows.Renderers;
 --  click on the cross is the application's to take, as a button's.
 package Pomarine.Widgets.Chips is
 
-   Label_Capacity : constant := 48;
+   Label_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Bytes of label.
 
    type Chip is new Widget with private;

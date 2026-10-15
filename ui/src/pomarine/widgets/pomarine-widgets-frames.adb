@@ -56,6 +56,14 @@ package body Pomarine.Widgets.Frames is
    is
       use Yoga.Nodes;
    begin
+      Set_Listener (Item.Title_Bar, Item'Unchecked_Access);
+      Set_Listener (Item.Title_Area, Item'Unchecked_Access);
+      Set_Listener (Item.Corner, Item'Unchecked_Access);
+      Set_Listener (Item.Mini_Area, Item'Unchecked_Access);
+      Set_Listener (Item.Close_Button, Item'Unchecked_Access);
+      Set_Listener (Item.Minimize_Button, Item'Unchecked_Access);
+      Set_Listener (Item.Mini_Close, Item'Unchecked_Access);
+      Set_Listener (Item.Title_Field, Item'Unchecked_Access);
       Item.Pixels := Pixels;
       Item.Scale := 1.0;
       Item.Editable := Editable_Title;
@@ -350,6 +358,55 @@ package body Pomarine.Widgets.Frames is
 
    function Is_Sizing (Item : Frame) return Boolean is
      (Grips.Is_Dragging (Item.Corner));
+
+   procedure Set_Tag (Item : in out Frame; Tag : Integer; Index : Natural := 0) is
+   begin
+      Widgets.Set_Tag (Item.Outline_Panel, Tag, Index);
+   end Set_Tag;
+
+   procedure Set_Listener (Item : in out Frame; To : access Listener'Class) is
+   begin
+      Widgets.Set_Listener (Item.Outline_Panel, To);
+   end Set_Listener;
+
+   overriding procedure Handle_Event
+     (Self   : in out Frame;
+      Source : in out Widget'Class;
+      Event  : Widget_Event)
+   is
+      Part : constant System.Address := Source'Address;
+   begin
+      case Event.Kind is
+         when Drag =>
+            if Part = Self.Title_Bar'Address
+              or else (Self.Editable and then Part = Self.Title_Area'Address)
+            then
+               Notify (Self.Outline_Panel, Move, Across => Event.Across, Down => Event.Down);
+            elsif Part = Self.Corner'Address then
+               Notify (Self.Outline_Panel, Resize, Across => Event.Across, Down => Event.Down);
+            end if;
+         when Click =>
+            if Part = Self.Close_Button'Address
+              or else (Self.Docked and then Part = Self.Mini_Close'Address)
+            then
+               Notify (Self.Outline_Panel, Close);
+            elsif Self.Docked and then Part = Self.Minimize_Button'Address then
+               Notify (Self.Outline_Panel, Minimize);
+            elsif Self.Docked and then Part = Self.Mini_Area'Address then
+               Notify (Self.Outline_Panel, Restore);
+            end if;
+         when Double_Click =>
+            if Self.Editable and then Part = Self.Title_Area'Address then
+               Notify (Self.Outline_Panel, Double_Click);
+            end if;
+         when Submit =>
+            if Part = Self.Title_Field'Address then
+               Notify (Self.Outline_Panel, Submit);
+            end if;
+         when others =>
+            null;
+      end case;
+   end Handle_Event;
 
    procedure Take_Move (Item : in out Frame; Across, Down : out Float) is
       Area_Across, Area_Down : Float := 0.0;

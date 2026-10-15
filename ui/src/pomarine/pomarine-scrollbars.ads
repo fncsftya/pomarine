@@ -8,7 +8,7 @@ with Pomarine.Themes;
 --  give their mouse events to first.
 --
 --  It is a trough with a button at each end, an arrow on each, and a thumb
---  in it that stands up, bevelled, as a button does. It is shown only
+--  in it, flat, as a button is. It is shown only
 --  while the pointer is over the view (Set_Pane), or while it is held. It
 --  is solid, so that drawing it again changes nothing. Pressing on the
 --  thumb holds it, to drag; pressing on the trough beside it moves the

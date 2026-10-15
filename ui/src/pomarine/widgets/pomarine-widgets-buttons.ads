@@ -1,24 +1,25 @@
+with Pomarine_Ui_Config;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 with Pomarine.Icons;
 
 --  A button to click, with a short label.
 --
---  It stands up from what it is on (see Pomarine.Boxes.Draw_Raised): a face,
---  outlined, with a bevel and a small solid shadow; pressed, the bevel
---  turns over, the shadow goes, and the face goes down and to the right.
---  A toggle that is on (Set_Selected) stays pressed in, in the theme's
---  accent. Turned off (Set_Enabled), it is flat and faint, and takes no
---  events.
+--  It is a face, outlined and bevelled (see Pomarine.Boxes.Draw_Control), in the
+--  colours its Kind has in the theme (see Pomarine.Themes.Tone): at rest,
+--  under the pointer, and pressed. A toggle that is on (Set_Selected) stays
+--  in the theme's accent. Turned off (Set_Enabled), it is faint, and takes
+--  no events.
 --
 --  It is pressed by the left button over it, and clicked by that button
---  let go over it; the application takes the click. It does not take the
+--  let go over it, which it says to the tree's listener (see
+--  Pomarine.Widgets.Listener) as a Click, and keeps for Take_Click. It does not take the
 --  focus, unless it is made to (Set_Focusable), so that clicking it does
 --  not take it from what is being typed into; with the focus, it has a
 --  ring in the theme's focus colour, and Return or Space clicks it.
 package Pomarine.Widgets.Buttons is
 
-   Label_Capacity : constant := 32;
+   Label_Capacity : constant := Pomarine_Ui_Config.Button_Label;
    --  Characters of label.
 
    type Button is new Widget with private;

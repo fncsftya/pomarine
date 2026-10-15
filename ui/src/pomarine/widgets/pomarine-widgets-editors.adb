@@ -158,19 +158,24 @@ package body Pomarine.Widgets.Editors is
          declare
             Part  : constant Pixel_Box := Painting_Part (Item);
             Paper : constant Themes.Color :=
-              (if not Item.Enabled then Colors.Tint
+              (if not Item.Enabled then Colors (Themes.Tint)
                elsif Item.Has_Paper then Themes.Resolve (Colors, Item.Paper)
-               else Colors.Page);
+               else Colors (Themes.Page));
             Shown : constant Themes.Theme :=
-              (Colors with delta
-                 Background => Paper,
-                 Foreground =>
-                   (if Item.Enabled then Colors.Foreground
-                    else Themes.Quiet (Colors)),
-                 Border     =>
-                   (if Item.Invalid then Colors.Danger else Colors.Border));
+              Themes.With_Slot
+                (Themes.With_Slot
+                   (Themes.With_Slot
+                      (Themes.With_Slot
+                         (Colors, Themes.Background, Paper),
+                       Themes.Selection,
+                       Themes.Mix (Paper, Colors (Themes.Accent), 0.4)),
+                    Themes.Foreground,
+                    (if Item.Enabled then Colors (Themes.Foreground)
+                     else Colors (Themes.Muted))),
+                 Themes.Border,
+                 (if Item.Invalid then Colors (Themes.Danger) else Colors (Themes.Border)));
             Faint : constant Themes.Color :=
-              Themes.Mix (Colors.Foreground, Paper, 0.55);
+              Themes.Mix (Colors (Themes.Foreground), Paper, 0.55);
             Pixels : constant Float := Density (Item);
          begin
             Text_Areas.Draw
@@ -221,6 +226,12 @@ package body Pomarine.Widgets.Editors is
       Handled := False;
       if Has_Document (Item) and then Item.Enabled then
          Text_Areas.Handle (Item.Text, Event, Clipboard (Item).all, Handled);
+         if Text_Areas.Return_Pending (Item.Text)
+           and then Event.Kind in SDL3.Events.Key_Down
+           and then Event.Key in SDL3.Events.Key_Return
+         then
+            Notify (Item, Submit);
+         end if;
          declare
             Changed : Boolean;
          begin

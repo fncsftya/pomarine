@@ -91,19 +91,19 @@ package body Pomarine.Widgets.Badges is
       Ink    : constant Themes.Color :=
         (case Item.Form is
             when Number => Themes.White,
-            when Tag   => Themes.Quiet (Colors));
+            when Tag   => Colors (Themes.Muted));
    begin
       case Item.Form is
          when Number =>
             Fill_Rect
-              (Target, Colors.Bar, Left_Of (Item), Top, Width_Of (Item),
+              (Target, Colors (Themes.Bar), Left_Of (Item), Top, Width_Of (Item),
                High);
          when Tag =>
             Fill_Rect
-              (Target, Colors.Tint, Left_Of (Item), Top, Width_Of (Item),
+              (Target, Colors (Themes.Tint), Left_Of (Item), Top, Width_Of (Item),
                High);
             Pomarine.Boxes.Outline
-              (Target, Colors.Border, Left_Of (Item), Top, Width_Of (Item),
+              (Target, Colors (Themes.Border), Left_Of (Item), Top, Width_Of (Item),
                High, Pomarine.Boxes.Edge (Pixels));
       end case;
       if Text_Lines (Item) /= null and then Words'Length > 0 then

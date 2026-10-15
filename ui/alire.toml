@@ -24,6 +24,13 @@ texts = { path = "../texts" }
 typeset = { path = "../typeset" }
 yoga = { path = "../yoga" }
 
+[configuration.variables]
+Custom_Colors = { type = "Integer", first = 0, last = 64, default = 16 }
+Label_Capacity = { type = "Integer", first = 8, last = 256, default = 48 }
+Button_Label = { type = "Integer", first = 8, last = 256, default = 32 }
+Icon_Capacity = { type = "Integer", first = 16, last = 1024, default = 64 }
+Menu_Rows = { type = "Integer", first = 4, last = 256, default = 24 }
+
 [build-switches]
 "*".ada_version = "Ada2022"
 "*".compile_checks = "Errors"

@@ -107,6 +107,7 @@ package body Pomarine.Widgets.Checks is
                then
                   Item.Checked := not Item.Checked;
                   Item.Changed := True;
+                  Notify (Item, Change);
                end if;
                Handled := True;
                Invalidate (Item);
@@ -139,26 +140,26 @@ package body Pomarine.Widgets.Checks is
       Top    : constant Float :=
         Float'Rounding (Top_Of (Item) + (Height_Of (Item) - Side) / 2.0);
       Paper  : constant Themes.Color :=
-        (if not Item.Enabled then Colors.Tint
-         elsif Item.Down and then Is_Hovered (Item) then Colors.Background
-         else Colors.Page);
+        (if not Item.Enabled then Colors (Themes.Tint)
+         elsif Item.Down and then Is_Hovered (Item) then Colors (Themes.Background)
+         else Colors (Themes.Page));
       Ink    : constant Themes.Color :=
-        (if Item.Enabled then Colors.Foreground else Themes.Quiet (Colors));
+        (if Item.Enabled then Colors (Themes.Foreground) else Colors (Themes.Muted));
       Ring   : constant Themes.Color :=
-        (if not Item.Enabled then Themes.Dull (Colors, Colors.Border)
-         elsif Is_Hovered (Item) then Colors.Foreground
-         else Themes.Mix (Colors.Border, Colors.Foreground, 0.35));
+        (if not Item.Enabled then Themes.Dull (Colors, Colors (Themes.Border))
+         elsif Is_Hovered (Item) then Colors (Themes.Foreground)
+         else Themes.Mix (Colors (Themes.Border), Colors (Themes.Foreground), 0.35));
       After  : Float := Left + Side + Gap * Pixels;
    begin
       --  The box, sunk: the shade inside its top and left.
       Fill_Rect (Target, Paper, Left, Top, Side, Side);
       Pomarine.Boxes.Outline (Target, Ring, Left, Top, Side, Side, Edge);
-      if Item.Enabled then
+      if Item.Enabled and then Colors.Bevelled then
          Fill_Rect
-           (Target, Themes.Shade (Colors.Background), Left + Edge, Top + Edge,
+           (Target, Themes.Shadow_Of (Colors (Themes.Background)), Left + Edge, Top + Edge,
             Side - 2.0 * Edge, Edge);
          Fill_Rect
-           (Target, Themes.Shade (Colors.Background), Left + Edge, Top + Edge,
+           (Target, Themes.Shadow_Of (Colors (Themes.Background)), Left + Edge, Top + Edge,
             Edge, Side - 2.0 * Edge);
       end if;
       if Item.Checked then

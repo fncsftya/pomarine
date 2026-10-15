@@ -1,11 +1,13 @@
+with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 
 --  A field to choose a value in, from a menu: white, outlined, as a field
 --  to type in, with the value at the left and, at the right, a button
---  that stands up, a caret on it, as a dropdown's. Open (Set_Open), the
---  button is pressed in and the caret is turned up.
+--  that is a flat control, a caret on it, as a dropdown's. Open
+--  (Set_Open), the button has the colour of one pressed and the caret is
+--  turned up.
 --
 --  A click on it is for the application to take, as a button's, and to
 --  show a menu of the values for (see Pomarine.Widgets.Menus); it says the one
@@ -13,7 +15,7 @@ with SDL3.Windows.Renderers;
 --  faint, and takes nothing.
 package Pomarine.Widgets.Selects is
 
-   Value_Capacity : constant := 48;
+   Value_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Bytes of value.
 
    type Select_Field is new Widget with private;

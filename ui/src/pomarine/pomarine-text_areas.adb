@@ -277,6 +277,8 @@ package body Pomarine.Text_Areas is
         + 2.0 * Padding;
    end Content_Height;
 
+   function Return_Pending (Item : Text_Area) return Boolean is (Item.Returned);
+
    procedure Take_Return (Item : in out Text_Area; Pressed : out Boolean) is
    begin
       Pressed := Item.Returned;
@@ -1527,10 +1529,10 @@ package body Pomarine.Text_Areas is
    begin
       Catch_Up (Item);
       Fill_Rect
-        (Target, (if Item.Focused then Colors.Focus else Colors.Border),
+        (Target, (if Item.Focused then Colors (Themes.Focus) else Colors (Themes.Border)),
          Item.Left, Item.Top, Item.Width, Item.Height);
       Fill_Rect
-        (Target, Colors.Background,
+        (Target, Colors (Themes.Background),
          Float (Inner_Left), Float (Inner_Top),
          Float (Integer'Max (0, Inner_Right - Inner_Left)),
          Float (Integer'Max (0, Inner_Bottom - Inner_Top)));
@@ -1551,14 +1553,14 @@ package body Pomarine.Text_Areas is
          Draw_Range
            (Item, Target, Selection_First (Item), Selection_Last (Item),
             First, Last,
-            (if Item.Focused then Themes.Selection (Colors)
+            (if Item.Focused then Colors (Themes.Selection)
              else Themes.Inactive_Selection (Colors)),
             Underlined => False,
             Rows_From => Rows_From, Rows_To => Rows_To);
       end if;
 
       Views.Draw
-        (Item.View, Item.Laid, Item.Doc.all, Target, Colors.Foreground,
+        (Item.View, Item.Laid, Item.Doc.all, Target, Colors (Themes.Foreground),
          Item.Anchor, Item.Offset,
          Left    => Column_Left (Item),
          Top     => Text_Top (Item),
@@ -1575,7 +1577,7 @@ package body Pomarine.Text_Areas is
          --  is text part faded.
          Draw_Range
            (Item, Target, Item.Faint_From, Item.Faint_To, First, Last,
-            (Colors.Background with delta Alpha => Faint_Alpha),
+            (Colors (Themes.Background) with delta Alpha => Faint_Alpha),
             Underlined => False,
             Rows_From => Rows_From, Rows_To => Rows_To);
       end if;
@@ -1583,7 +1585,7 @@ package body Pomarine.Text_Areas is
       if Item.Composing then
          Draw_Range
            (Item, Target, Item.Composed, Composed_End (Item), First, Last,
-            Colors.Foreground, Underlined => True,
+            Colors (Themes.Foreground), Underlined => True,
             Rows_From => Rows_From, Rows_To => Rows_To);
       end if;
 
@@ -1592,7 +1594,7 @@ package body Pomarine.Text_Areas is
             X, Y, Wide, High : Float;
          begin
             Caret_Box (Item, X, Y, Wide, High);
-            Fill_Rect (Target, Colors.Accent, X, Y, Wide, High);
+            Fill_Rect (Target, Colors (Themes.Accent), X, Y, Wide, High);
          end;
       end if;
 

@@ -98,21 +98,16 @@ package body Pomarine.Scrollbars is
          X, Y, W, H : Float;
       begin
          Box (From, Length, X, Y, W, H);
-         Fill_Rect (Target, Colors.Face, X, Y, W, H);
-         Pomarine.Boxes.Outline (Target, Colors.Border, X, Y, W, H, Edge);
-         Pomarine.Boxes.Bevel
-           (Target, Themes.Highlight (Colors.Face), Themes.Shade (Colors.Face),
-            X + Edge, Y + Edge, W - 2.0 * Edge, H - 2.0 * Edge,
-            Within.Density, Sunken => Pressed);
+         Pomarine.Boxes.Draw_Control
+           (Target, Colors, Colors (Themes.Face), Colors (Themes.Border),
+            (Themes.Highlight (Colors (Themes.Face)), Themes.Shadow_Of (Colors (Themes.Face))),
+            X, Y, W, H, Within.Density, Sunken => Pressed);
       end Raised;
 
       procedure Arrow_On (From : Float; Which : Arrow) is
          --  A triangle of rows of pixels, pointing the way it scrolls.
          Rows  : constant Natural :=
            Natural (Float'Rounding (2.5 * Within.Density));
-         Shift : constant Float :=
-           (if Item.Pressing = Which then Pomarine.Boxes.Shift (Within.Density)
-            else 0.0);
          X, Y, W, H : Float;
       begin
          Raised (From, Place.Button, Item.Pressing = Which);
@@ -127,17 +122,15 @@ package body Pomarine.Scrollbars is
             begin
                if Within.Horizontal then
                   Fill_Rect
-                    (Target, Colors.Foreground,
-                     Float'Rounding (X + (W - Float (Rows)) / 2.0) + Step
-                     + Shift,
-                     Float'Rounding (Y + (H - Span) / 2.0) + Shift,
+                    (Target, Colors (Themes.Foreground),
+                     Float'Rounding (X + (W - Float (Rows)) / 2.0) + Step,
+                     Float'Rounding (Y + (H - Span) / 2.0),
                      1.0, Span);
                else
                   Fill_Rect
-                    (Target, Colors.Foreground,
-                     Float'Rounding (X + (W - Span) / 2.0) + Shift,
-                     Float'Rounding (Y + (H - Float (Rows)) / 2.0) + Step
-                     + Shift,
+                    (Target, Colors (Themes.Foreground),
+                     Float'Rounding (X + (W - Span) / 2.0),
+                     Float'Rounding (Y + (H - Float (Rows)) / 2.0) + Step,
                      Span, 1.0);
                end if;
             end;
@@ -151,11 +144,11 @@ package body Pomarine.Scrollbars is
       end if;
       --  The trough, a line along its inner side.
       Box (0.0, Along (Within), X, Y, W, H);
-      Fill_Rect (Target, Colors.Tint, X, Y, W, H);
+      Fill_Rect (Target, Colors (Themes.Tint), X, Y, W, H);
       if Within.Horizontal then
-         Fill_Rect (Target, Colors.Border, X, Y, W, Edge);
+         Fill_Rect (Target, Colors (Themes.Border), X, Y, W, Edge);
       else
-         Fill_Rect (Target, Colors.Border, X, Y, Edge, H);
+         Fill_Rect (Target, Colors (Themes.Border), X, Y, Edge, H);
       end if;
       Arrow_On (0.0, Back);
       Arrow_On (Along (Within) - Place.Button, Ahead);

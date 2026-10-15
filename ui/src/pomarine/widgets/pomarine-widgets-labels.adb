@@ -166,7 +166,7 @@ package body Pomarine.Widgets.Labels is
       High  : constant Float := Float (Debug_Text_Size * Scale);
       Ink   : constant Themes.Color :=
         (if Item.Inked then Themes.Resolve (Colors, Item.Ink)
-         else Colors.Foreground);
+         else Colors (Themes.Foreground));
    begin
       if Item.Length > 0 and then Text_Lines (Item) /= null then
          if Item.Fit_Width /= Width_Of (Item) then

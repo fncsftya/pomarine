@@ -70,6 +70,7 @@ package body Pomarine.Widgets.Pins is
             then
                Item.Held := True;
                Item.Pressed := True;
+               Notify (Item, Press);
                Item.Pointer_At_X := Event.Mouse_X;
                Item.Pointer_At_Y := Event.Mouse_Y;
                Handled := True;
@@ -85,6 +86,7 @@ package body Pomarine.Widgets.Pins is
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Item.Released := True;
+               Notify (Item, Release);
                Item.Pointer_At_X := Event.Mouse_X;
                Item.Pointer_At_Y := Event.Mouse_Y;
                Handled := True;
@@ -110,9 +112,9 @@ package body Pomarine.Widgets.Pins is
                           ((if Aimed then Target_Edge else Edge) * Pixels));
       Ring   : constant Themes.Color :=
         (if Aimed or else Item.Held or else Is_Hovered (Item)
-         then Colors.Accent else Colors.Bar);
+         then Colors (Themes.Accent) else Colors (Themes.Bar));
       Face   : constant Themes.Color :=
-        (if Item.Held then Colors.Accent else (255, 255, 255, 255));
+        (if Item.Held then Colors (Themes.Accent) else (255, 255, 255, 255));
    begin
       --  Square, as every box is.
       Fill_Rect (Target, Ring, Left_Of (Item), Top_Of (Item),

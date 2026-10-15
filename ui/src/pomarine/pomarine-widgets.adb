@@ -140,6 +140,81 @@ package body Pomarine.Widgets is
 
    function Has_Root (Item : Tree) return Boolean is (Item.Root /= null);
 
+   procedure Set_Listener (Item : in out Tree; To : not null access Listener'Class) is
+   begin
+      Item.Hearer := Listener_Access (To);
+   end Set_Listener;
+
+   procedure Set_Listener (Item : in out Widget'Class; To : access Listener'Class) is
+   begin
+      Item.Own := Listener_Access (To);
+   end Set_Listener;
+
+   procedure Set_Tag (Item : in out Widget'Class; Tag : Integer; Index : Natural := 0) is
+   begin
+      Item.Tag := Tag;
+      Item.Index := Index;
+   end Set_Tag;
+
+   function Tag_Of (Item : Widget'Class) return Integer is (Item.Tag);
+
+   function Index_Of (Item : Widget'Class) return Natural is (Item.Index);
+
+   procedure Deliver (Item : in out Tree) is
+   begin
+      if Item.Delivering then
+         return;
+      end if;
+      Item.Delivering := True;
+      while Item.Queued > 0 loop
+         declare
+            Next : constant Queued_Event := Item.Queue (Item.Queue_First);
+         begin
+            Item.Queue_First := Item.Queue_First mod Queue_Capacity + 1;
+            Item.Queued := Item.Queued - 1;
+            Handle_Event (Next.Target.all, Next.Source.all, Next.Event);
+         end;
+      end loop;
+      Item.Delivering := False;
+   exception
+      when others =>
+         Item.Delivering := False;
+         raise;
+   end Deliver;
+
+   procedure Notify
+     (Item   : in out Widget'Class;
+      Kind   : Event_Kind;
+      Row    : Natural := 0;
+      Across : Float := 0.0;
+      Down   : Float := 0.0)
+   is
+      Home   : constant Tree_Access := Item.Owner;
+   begin
+      if Home = null then
+         return;
+      end if;
+      declare
+         Target : constant Listener_Access :=
+           (if Item.Own /= null then Item.Own else Home.Hearer);
+      begin
+         if Target = null then
+            return;
+         end if;
+         if Home.Queued = Queue_Capacity and then not Home.Delivering then
+            Deliver (Home.all);
+         end if;
+         pragma Assert (Home.Queued < Queue_Capacity, "more events than the tree can keep");
+         Home.Queue ((Home.Queue_First + Home.Queued - 1) mod Queue_Capacity + 1) :=
+           (Source => Item'Unchecked_Access,
+            Target => Target,
+            Event  =>
+              (Kind => Kind, Tag => Item.Tag, Index => Item.Index, Row => Row,
+               Across => Across, Down => Down));
+         Home.Queued := Home.Queued + 1;
+      end;
+   end Notify;
+
    procedure Set_Root (Item : in out Tree; Root : in out Widget'Class) is
    begin
       Root.Owner := Item'Unchecked_Access;
@@ -160,6 +235,42 @@ package body Pomarine.Widgets is
       end if;
       Parent.Last := Added;
       Parent.Count := Parent.Count + 1;
+   end Add;
+
+   procedure Add
+     (Parent : in out Widget'Class; First, Second : in out Widget'Class) is
+   begin
+      Add (Parent, First);
+      Add (Parent, Second);
+   end Add;
+
+   procedure Add
+     (Parent : in out Widget'Class; First, Second, Third : in out Widget'Class) is
+   begin
+      Add (Parent, First);
+      Add (Parent, Second);
+      Add (Parent, Third);
+   end Add;
+
+   procedure Add
+     (Parent : in out Widget'Class;
+      First, Second, Third, Fourth : in out Widget'Class) is
+   begin
+      Add (Parent, First);
+      Add (Parent, Second);
+      Add (Parent, Third);
+      Add (Parent, Fourth);
+   end Add;
+
+   procedure Add
+     (Parent : in out Widget'Class;
+      First, Second, Third, Fourth, Fifth : in out Widget'Class) is
+   begin
+      Add (Parent, First);
+      Add (Parent, Second);
+      Add (Parent, Third);
+      Add (Parent, Fourth);
+      Add (Parent, Fifth);
    end Add;
 
    procedure Add_Before
@@ -438,10 +549,10 @@ package body Pomarine.Widgets is
             Renderers.Narrow_Clip
               (Target, Region.Left, Region.Top, Region.Width, Region.Height);
             if Whole then
-               Renderers.Clear (Target, Colors.Background);
+               Renderers.Clear (Target, Colors (Themes.Background));
             else
                Renderers.Fill_Rect
-                 (Target, Colors.Background,
+                 (Target, Colors (Themes.Background),
                   Float (Region.Left), Float (Region.Top),
                   Float (Region.Width), Float (Region.Height));
             end if;
@@ -831,6 +942,7 @@ package body Pomarine.Widgets is
             | SDL3.Events.Theme_Changed | SDL3.Events.Other =>
             null;
       end case;
+      Deliver (Item);
    end Dispatch;
 
    function Wanted_Cursor (Item : Tree) return SDL3.Cursors.Kind is
@@ -858,6 +970,7 @@ package body Pomarine.Widgets is
          end if;
          Updating := Following_Shown (Updating);
       end loop;
+      Deliver (Item);
    end Update;
 
    function Until_Update (Item : Tree) return Integer is

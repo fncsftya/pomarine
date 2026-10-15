@@ -192,6 +192,7 @@ package body Pomarine.Widgets.Menus is
             if Event.Button = 1 then
                if Item.Pressed /= 0 and then Under = Item.Pressed then
                   Item.Chosen := Under;
+                  Notify (Item, Choose, Row => Under);
                end if;
                Handled := Item.Pressed /= 0;
                Item.Pressed := 0;
@@ -225,10 +226,10 @@ package body Pomarine.Widgets.Menus is
         (Filled   => True,
          Fill     => Themes.White,
          Bordered => True,
-         Border   => Colors.Border,
+         Border   => Colors (Themes.Border),
          Dashed   => False,
          Shadowed => True,
-         Shadow   => Colors.Drop_Shadow);
+         Shadow   => Colors (Themes.Drop_Shadow));
       Inner_Left  : constant Float := Left_Of (Item) + Edge;
       Inner_Width : constant Float :=
         Width_Of (Item) - Pomarine.Boxes.Inset (Look, Pixels) - 2.0 * Edge;
@@ -247,12 +248,12 @@ package body Pomarine.Widgets.Menus is
             Middle : constant Float := Top + High / 2.0;
             Ink    : constant Themes.Color :=
               (case Each.Kind is
-                  when Heading | Note => Themes.Quiet (Colors),
+                  when Heading | Note => Colors (Themes.Muted),
                   when others =>
                     (case Each.Shade is
-                        when Plain   => Colors.Foreground,
-                        when Primary => Colors.Primary_Ink,
-                        when Danger  => Colors.Danger_Ink));
+                        when Plain   => Colors (Themes.Foreground),
+                        when Primary => Colors (Themes.Primary_Ink),
+                        when Danger  => Colors (Themes.Danger_Ink)));
             Using  : constant Pomarine.Line_Texts.Style :=
               (case Each.Kind is
                   when Heading => Pomarine.Line_Texts.Caption,
@@ -287,14 +288,14 @@ package body Pomarine.Widgets.Menus is
             if Can_Click (Each.Kind) and then Index = Item.Over then
                Fill_Rect
                  (Target,
-                  (if Index = Item.Pressed then Colors.Face
-                   else Colors.Background),
+                  (if Index = Item.Pressed then Colors (Themes.Face)
+                   else Colors (Themes.Background)),
                   Inner_Left, Top, Inner_Width, High);
             end if;
             case Each.Kind is
                when Separator =>
                   Fill_Rect
-                    (Target, Themes.Mix (Colors.Border, Themes.White, 0.4),
+                    (Target, Themes.Mix (Colors (Themes.Border), Themes.White, 0.4),
                      Inner_Left, Float'Rounding (Middle), Inner_Width, Edge);
                when Check =>
                   declare
@@ -308,7 +309,7 @@ package body Pomarine.Widgets.Menus is
                         Side, Side);
                      Pomarine.Boxes.Outline
                        (Target,
-                        Themes.Mix (Colors.Border, Colors.Foreground, 0.35),
+                        Themes.Mix (Colors (Themes.Border), Colors (Themes.Foreground), 0.35),
                         Float'Rounding (After), Box_Top, Side, Side, Edge);
                      if Each.Checked then
                         Picture
