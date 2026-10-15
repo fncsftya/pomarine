@@ -293,11 +293,12 @@ package body Pomarine.Widgets.Buttons is
          Pomarine.Boxes.Draw_Control
            (Target, Colors, Face, Edge_Color, Edges, Left, Top, Wide_Box, High_Box, Pixels,
             Bevelled => Item.Enabled, Sunken => Pressed or else Item.Selected);
-         if Item.Focusable and then Has_Focus (Item) then
-            Pomarine.Boxes.Outline
-              (Target, Colors (Themes.Focus), Left, Top, Wide_Box, High_Box,
-               Float'Max (1.0, Float'Rounding (Ring_Width * Pixels)));
-         end if;
+      end if;
+      --  The ring of the focus: of a quiet button too, which has no face.
+      if Item.Focusable and then Is_Focus_Visible (Item) then
+         Pomarine.Boxes.Outline
+           (Target, Colors (Themes.Focus), Left, Top, Wide_Box, High_Box,
+            Float'Max (1.0, Float'Rounding (Ring_Width * Pixels)));
       end if;
 
       --  A dropdown's caret, in a square of its own at the right, a groove

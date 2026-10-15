@@ -80,14 +80,15 @@ from too. Give a widget a command with `Commands.Bind (Widget, What, Index)`
 and take it back with `Commands.What (Event)`; `Event.Index` says which of
 many it was.
 
-The same things can be asked for, instead, with a widget's `Take_...`
-(`Buttons.Take_Click` and the like): for gestures that are better looked at
-as they go on than said when they end, as a drag.
+A widget's `Take_...` (`Buttons.Take_Click` and the like) says the same, to be
+asked for rather than told; the handlers below are the way to use, and bonxie
+uses nothing else.
 
 ### Handlers of a widget's own
 
-A widget can instead have a procedure of the application's own for each kind of
-event it says, called with an object of the application's:
+A widget can have a procedure of the application's own for each kind of event
+it says, called with an object of the application's (a widget keeps eight kinds,
+`Hook_Capacity`):
 
 ```ada
 package Mixer_Callbacks is new Pomarine.Widgets.Callbacks (Mixer);
@@ -96,7 +97,12 @@ Mixer_Callbacks.On (Volume, Change, Mixer'Access, Louder'Access);
 
 A widget that has a handler for a kind of event does not say it to the listener
 as well. An event carries only what its kind has to say: a `Row` of a `Choose`,
-an `Across` and a `Down` of a `Drag`.
+an `Across` and a `Down` of a `Drag`, a `Row` and an `Action` of an `Act`.
+Besides the clicks and changes, a handler can have `Press` and `Release` (a pin
+or a grip: the end of a drag, said before its click), `Submit` (Return in a
+field) and `Blur` (the widget lost the focus, said only to a handler of its own).
+A frame says what its parts do with `Frames.Handlers`, and a `Blur` is of its
+title's field.
 
 ### Commands, keys and menus
 
@@ -132,7 +138,13 @@ A `Pomarine.Widgets.Lists.List` reads its rows from a model
 (`Pomarine.Models.List_Model`: how many, a number for each row that lasts, what
 each shows). Only the rows that show are asked for, drawn and described to an
 assistive technology (each as a list item that says which it is of how many),
-so a hundred thousand rows cost what a screenful does.
+so a hundred thousand rows cost what a screenful does. A row can have up to
+three buttons at its end (`Row_Content.Set_Action`: an icon and a name), and be
+`Dimmed`: a click on a button says `Act` with the `Row` and the `Action`
+and does not choose the row; Space does a chosen row's first, and Delete its
+first that cannot be undone. Each is a button of its own to an assistive
+technology (`Lists.Button_Part`). A click on the row says `Click` as well as
+`Choose`, so that what a click does is not done for each arrow key.
 
 ## Accessibility
 
@@ -145,8 +157,13 @@ last time; with `Pomarine.Accessibility`, in the `native/` crate, that sink is
 AccessKit, and nothing is done until VoiceOver (or another) asks. The window's
 own widgets are named and hidden by the application where its own idea of them
 will not do (`Set_Accessible_Name`, `Hide_From_Accessibility`). Checks,
-switches, sliders and buttons can be made to take the focus and be worked from
-the keyboard (`Set_Focusable`), and `Set_Tab_Navigation` has Tab go round them.
+switches, sliders, buttons and grips can be made Tab stops and be worked from
+the keyboard (`Set_Focusable`), and `Set_Tab_Navigation` has Tab go round them
+in the order of the tree. A click on a button, a check or a switch does not
+take the focus from a field being typed in (`Focus_On_Click`). A dialog over the
+rest has Tab go round only itself with `Set_Focus_Scope`, until
+`Clear_Focus_Scope`. A focus ring is drawn only after a key
+(`Is_Focus_Visible`), not for the focus a click gives.
 
 ## Layout
 
@@ -165,7 +182,9 @@ going at once.
 ## Other threads and the system
 
 Work from another thread is `Pomarine.Application.Post`ed and run by the
-window's thread between its events (`Run_Posted`); posting wakes the loop. The
+window's thread between its events (`Run_Posted`); posting wakes the loop. (A
+task that finishes something posts, if only to wake the loop to look: see
+`Vision.Jobs` in bonxie.) The
 `native/` crate reaches what the system gives only to Rust and Objective-C
 (AccessKit, the menu bar, settings) through a small Rust static library built by
 `cargo` the first time; it needs `cargo`.

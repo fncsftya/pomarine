@@ -87,6 +87,9 @@ package Pomarine.Widgets.Checks is
 
    overriding function Accepts_Focus (Item : Check) return Boolean;
 
+   overriding function Focus_On_Click (Item : Check) return Boolean is (False);
+   --  Tab reaches it (if it is focusable), but a click does not move the focus.
+
    overriding procedure Focus_Changed
      (Item : in out Check; Focused : Boolean);
 

@@ -233,7 +233,7 @@ package body Pomarine.Widgets.Sliders is
       Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme) is
    begin
-      if Item.Focusable and then Has_Focus (Item) then
+      if Item.Focusable and then Is_Focus_Visible (Item) then
          Pomarine.Boxes.Outline
            (Target, Colors (Themes.Focus),
             Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),

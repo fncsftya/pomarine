@@ -3,6 +3,8 @@ package body Pomarine.Widgets.Grips is
    use type Themes.Slot;
 
    use type SDL3.Events.Event_Kind;
+   use type SDL3.Events.Key_Code;
+   use type Semantics.Role;
    use all type SDL3.Painters.Painter;
 
    Dot_Size : constant Float := 2.0;
@@ -112,6 +114,53 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Clear_Hover_Fill;
 
+   procedure Set_Focusable (Item : in out Grip; To : Boolean) is
+   begin
+      Item.Focusable := To;
+      if not To and then Is_Attached (Item) and then Has_Focus (Item) then
+         Release_Focus (Item);
+      end if;
+   end Set_Focusable;
+
+   overriding function Accepts_Focus (Item : Grip) return Boolean is (Item.Focusable);
+
+   overriding procedure Focus_Changed (Item : in out Grip; Focused : Boolean) is
+      pragma Unreferenced (Focused);
+   begin
+      if Item.Focusable then
+         Invalidate (Item);
+      end if;
+   end Focus_Changed;
+
+   overriding procedure Describe
+     (Item  : Grip;
+      Facts : in out Semantics.Description) is
+   begin
+      --  What can be tabbed to and pressed is a button to an assistive
+      --  technology; a handle only to be dragged is left a group.
+      if Item.Focusable then
+         if Facts.Kind = Semantics.Unknown then
+            Facts.Kind := Semantics.Button;
+         end if;
+         Facts.Focusable := True;
+         Facts.Actions (Semantics.Click) := True;
+         Facts.Actions (Semantics.Focus) := True;
+      end if;
+   end Describe;
+
+   overriding procedure Perform
+     (Item    : in out Grip;
+      Request : Semantics.Request;
+      Done    : out Boolean) is
+   begin
+      Done := False;
+      if Item.Focusable and then Semantics."=" (Request.Doing, Semantics.Click) then
+         Item.Clicked := True;
+         Notify (Item, Click);
+         Done := True;
+      end if;
+   end Perform;
+
    procedure Take_Click (Item : in out Grip; Clicked : out Boolean) is
    begin
       Clicked := Item.Clicked;
@@ -169,6 +218,15 @@ package body Pomarine.Widgets.Grips is
    begin
       Handled := False;
       case Event.Kind is
+         when SDL3.Events.Key_Down =>
+            --  Only with the focus: keys come to others as shortcuts.
+            if Item.Focusable and then Has_Focus (Item) and then not Event.Command
+              and then (Event.Key = SDL3.Events.Key_Return or else Event.Key = SDL3.Events.Key_Space)
+            then
+               Item.Clicked := True;
+               Notify (Item, Click);
+               Handled := True;
+            end if;
          when SDL3.Events.Mouse_Down =>
             if Event.Button = 1
               and then Contains
@@ -198,6 +256,7 @@ package body Pomarine.Widgets.Grips is
          when SDL3.Events.Mouse_Up =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
+               Notify (Item, Release);
                Item.Clicked :=
                  Contains
                    (Item, Event.Mouse_X * Density (Item),
@@ -244,6 +303,11 @@ package body Pomarine.Widgets.Grips is
                Width_Of (Item) - Off, Height_Of (Item) - Off,
                Pomarine.Boxes.Edge (Density (Item)));
          end;
+      end if;
+      if Item.Focusable and then Is_Focus_Visible (Item) then
+         Pomarine.Boxes.Outline
+           (Target, Themes.Resolve (Colors, Themes.Focus), Left_Of (Item), Top_Of (Item),
+            Width_Of (Item), Height_Of (Item), Float'Max (1.0, Float'Rounding (2.0 * Density (Item))));
       end if;
       if Item.Form = Corner then
          --  Dots a step apart, three along the bottom, two above, one

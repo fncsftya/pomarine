@@ -190,6 +190,26 @@ package body Listener_Tests is
       Goldens.Check_Text ("listener-no-tag", "CLICK tag-1 index0; ", Heard (Item.Ears));
    end Click;
 
+   procedure Grip_Release is
+      Item : Fixture;
+   begin
+      Open (Item);
+      --  A press and let go on a grip: it was let go, and then clicked.
+      Click_On (Item, Item.Grip);
+      Goldens.Check_Text
+        ("listener-grip-release", "RELEASE tag-1 index0; CLICK tag-1 index0; ", Heard (Item.Ears));
+      --  Let go elsewhere, it is let go all the same, and not clicked.
+      Item.Ears.Count := 0;
+      Move_To (Item, Middle_X (Item.Grip), Middle_Y (Item.Grip));
+      Press (Item, Middle_X (Item.Grip), Middle_Y (Item.Grip));
+      Send (Item, (Kind => Events.Mouse_Move, Mouse_X => 290.0, Mouse_Y => 190.0, Left_Held => True,
+                   others => <>));
+      Release (Item, 290.0, 190.0);
+      Goldens.Check_Text
+        ("listener-grip-let-go-elsewhere", "DRAG tag-1 index0; RELEASE tag-1 index0; ",
+         Heard (Item.Ears));
+   end Grip_Release;
+
    procedure Command_Tags is
       type Command is (Save, Open_Settings, Rename_Card);
       package Cmd is new Widgets.Commands (Command);
@@ -263,7 +283,7 @@ package body Listener_Tests is
       Release (Item, Middle_X (Item.Grip) + 5.0, Middle_Y (Item.Grip) + 2.0);
       Goldens.Check_Text
         ("listener-grip",
-         "DOUBLE_CLICK tag2 index9; DRAG tag2 index9; CLICK tag2 index9; ", Heard (Item.Ears));
+         "DOUBLE_CLICK tag2 index9; DRAG tag2 index9; RELEASE tag2 index9; CLICK tag2 index9; ", Heard (Item.Ears));
       Goldens.Check_Text
         ("listener-drag-distance",
          "5.0 2.0", Float'Image (Item.Ears.Seen (2).Across)(2 .. 4) & " "

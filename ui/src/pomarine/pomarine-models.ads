@@ -3,22 +3,59 @@
 --  a model is how a list asks for the few rows it is showing. Nothing is
 --  copied but what is shown, so a list of a hundred thousand rows costs
 --  what a screenful does.
+with Pomarine.Icons;
+
 package Pomarine.Models is
 
    Text_Capacity : constant := 160;
    --  Bytes of a row's text and of its detail; more is cut off.
+
+   Max_Actions : constant := 3;
+   --  How many buttons a row can have at its end.
+
+   Action_Name_Capacity : constant := 24;
+
+   type Row_Action is record
+      Present     : Boolean := False;
+      Icon        : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
+      Name        : String (1 .. Action_Name_Capacity) := [others => ' '];
+      Name_Length : Natural range 0 .. Action_Name_Capacity := 0;
+      Danger      : Boolean := False;
+   end record;
+
+   type Action_Array is array (1 .. Max_Actions) of Row_Action;
 
    type Row_Content is record
       Text          : String (1 .. Text_Capacity) := [others => ' '];
       Text_Length   : Natural range 0 .. Text_Capacity := 0;
       Detail        : String (1 .. Text_Capacity) := [others => ' '];
       Detail_Length : Natural range 0 .. Text_Capacity := 0;
+      Dimmed        : Boolean := False;
+      --  Drawn faint: for what is there but not in use (a hidden item).
+      Actions       : Action_Array;
+      --  Buttons at the row's end, in order: each an icon, and a name that
+      --  an assistive technology says. See Pomarine.Widgets.Lists.
    end record;
    --  What a row of a list shows: its text, and, small and faint at the
    --  other end, its detail (a count, a date).
 
    procedure Set_Text (Item : in out Row_Content; Text : String);
    procedure Set_Detail (Item : in out Row_Content; Text : String);
+   procedure Set_Action
+     (Item   : in out Row_Content;
+      Number : Positive;
+      Icon   : Pomarine.Icons.Icon;
+      Name   : String;
+      Danger : Boolean := False)
+     with Pre => Number <= Max_Actions;
+   --  Give the row an action button: Danger, for one that cannot be undone.
+
+   function Count_Actions (Item : Row_Content) return Natural;
+   --  How many it has.
+
+   function Action_Name (Item : Row_Content; Number : Positive) return String
+     with Pre => Number <= Max_Actions;
+
    function Text_Of (Item : Row_Content) return String;
    function Detail_Of (Item : Row_Content) return String;
 

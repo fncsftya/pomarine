@@ -129,6 +129,27 @@ package body Command_Tests is
                           Mine.Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
    end Own_Handlers;
 
+   procedure Losing_Focus is
+      Item : Fixture;
+      Mine : aliased Counter;
+   begin
+      Open (Item);
+      Widgets.Buttons.Set_Focusable (Item.First, True);
+      Widgets.Checks.Set_Focusable (Item.Box, True);
+      Counter_Callbacks.On (Item.Box, Widgets.Blur, Mine'Access, Clicked'Access);
+      Widgets.Focus (Item.Box);
+      Goldens.Check_Text ("commands-blur-not-yet", "0", Mine.Clicks'Image (2 .. 2));
+      Widgets.Focus (Item.First);
+      Goldens.Check_Text
+        ("commands-blur", "1 BLUR listener 0",
+         Mine.Clicks'Image (2 .. 2) & " " & Mine.Kind'Image & " listener" & Item.Heard.Count'Image);
+      --  A widget without one says nothing of it: nor to the listener.
+      Widgets.Focus (Item.Box);
+      Goldens.Check_Text ("commands-blur-silent", "listener 0", "listener" & Item.Heard.Count'Image);
+      Widgets.Clear_Focus (Item.Tree);
+      Goldens.Check_Text ("commands-blur-cleared", "2", Mine.Clicks'Image (2 .. 2));
+   end Losing_Focus;
+
    Save_Tag  : constant := 1;
    Undo_Tag  : constant := 2;
    Pin_Tag   : constant := 3;

@@ -86,7 +86,7 @@ Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
 Z system.soft_links%s	s-soflin.adb		s-soflin.ali
 Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
 
-U pomarine.accessibility%s  pomarine-accessibility.ads  5adf7427 EE OO PF PK
+U pomarine.accessibility%s  pomarine-accessibility.ads  25d9a5be EE OO PF PK
 W ada%s			ada.ads			ada.ali
 W ada.finalization%s	a-finali.ads		a-finali.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
@@ -144,7 +144,7 @@ D pomarine-icons.ads	20261015120609 704bf59d pomarine.icons%s
 D pomarine-line_texts.ads  20261015125449 41b75229 pomarine.line_texts%s
 D pomarine-semantics.ads  20261015125705 b1110656 pomarine.semantics%s
 D pomarine-themes.ads	20261015114304 f41e6398 pomarine.themes%s
-D pomarine-widgets.ads	20261015130932 3f328ec1 pomarine.widgets%s
+D pomarine-widgets.ads	20261015160256 40345f58 pomarine.widgets%s
 D pomarine_ui_config.ads  20261015122345 f8cdcfa9 pomarine_ui_config%s
 D sdl3.ads		20261015101840 f4da8c34 sdl3%s
 D sdl3-cursors.ads	20261015101840 9e8b92ce sdl3.cursors%s
@@ -248,29 +248,29 @@ G c Z b b [activated pomarine__accessibility 125 14 none]
 G c Z b b [acted pomarine__accessibility 128 14 none]
 G c Z b b [owner_of pomarine__accessibility 141 13 none]
 G r c none [attach pomarine__accessibility 28 14 none] [is_open sdl3__windows 21 13 none]
-G r c none [update pomarine__accessibility 49 14 none] [has_root pomarine__widgets 392 13 none]
+G r c none [update pomarine__accessibility 49 14 none] [has_root pomarine__widgets 407 13 none]
 G r s request [update pomarine__accessibility 49 14 none] [requestIP pomarine__semantics 153 9 none]
-G r c none [update pomarine__accessibility 49 14 none] [act pomarine__widgets 831 14 none]
-G r c none [update pomarine__accessibility 49 14 none] [describe_changes pomarine__widgets 820 14 none]
-G r c none [begin_update pomarine__accessibility 101 25 none] [to_unsigned_64 pomarine__widgets 487 13 none]
+G r c none [update pomarine__accessibility 49 14 none] [act pomarine__widgets 860 14 none]
+G r c none [update pomarine__accessibility 49 14 none] [describe_changes pomarine__widgets 849 14 none]
+G r c none [begin_update pomarine__accessibility 101 25 none] [to_unsigned_64 pomarine__widgets 502 13 none]
 G r c none [describe_node pomarine__accessibility 107 25 none] [to_string pomarine__semantics 91 13 none]
 G r c none [describe_node pomarine__accessibility 107 25 none] [to_string pomarine__semantics 99 13 none]
-G r c none [describe_node pomarine__accessibility 107 25 none] [to_unsigned_64 pomarine__widgets 487 13 none]
+G r c none [describe_node pomarine__accessibility 107 25 none] [to_unsigned_64 pomarine__widgets 502 13 none]
 G r c none [describe_node pomarine__accessibility 107 25 none] [is_named pomarine__semantics 166 13 none]
-G r c none [describe_node pomarine__accessibility 107 25 none] [part_of pomarine__widgets 471 13 none]
-G r s node_id [request_entryIP pomarine__accessibility 65 9 none] [node_idIP pomarine__widgets 881 9 none]
+G r c none [describe_node pomarine__accessibility 107 25 none] [part_of pomarine__widgets 486 13 none]
+G r s node_id [request_entryIP pomarine__accessibility 65 9 none] [node_idIP pomarine__widgets 910 9 none]
 G r s request [request_entryIP pomarine__accessibility 65 9 none] [requestIP pomarine__semantics 153 9 none]
-G r s node_id [Trequest_arrayBIP pomarine__accessibility 70 4 none] [node_idIP pomarine__widgets 881 9 none]
+G r s node_id [Trequest_arrayBIP pomarine__accessibility 70 4 none] [node_idIP pomarine__widgets 910 9 none]
 G r s request [Trequest_arrayBIP pomarine__accessibility 70 4 none] [requestIP pomarine__semantics 153 9 none]
-G r s node_id [mailboxVIP pomarine__accessibility 72 4 none] [node_idIP pomarine__widgets 881 9 none]
+G r s node_id [mailboxVIP pomarine__accessibility 72 4 none] [node_idIP pomarine__widgets 910 9 none]
 G r s request [mailboxVIP pomarine__accessibility 72 4 none] [requestIP pomarine__semantics 153 9 none]
-G r s node_id [adapterIP pomarine__accessibility 88 9 none] [node_idIP pomarine__widgets 881 9 none]
+G r s node_id [adapterIP pomarine__accessibility 88 9 none] [node_idIP pomarine__widgets 910 9 none]
 G r s request [adapterIP pomarine__accessibility 88 9 none] [requestIP pomarine__semantics 153 9 none]
 G r c none [activated pomarine__accessibility 125 14 none] [wake sdl3__events 102 14 none]
 G r s request [acted pomarine__accessibility 128 14 none] [requestIP pomarine__semantics 153 9 none]
 G r c none [acted pomarine__accessibility 128 14 none] [set pomarine__semantics 95 14 none]
-G r c none [acted pomarine__accessibility 128 14 none] [from_unsigned_64 pomarine__widgets 488 13 none]
-G r c none [acted pomarine__accessibility 128 14 none] [part_number_of pomarine__widgets 475 13 none]
+G r c none [acted pomarine__accessibility 128 14 none] [from_unsigned_64 pomarine__widgets 503 13 none]
+G r c none [acted pomarine__accessibility 128 14 none] [part_number_of pomarine__widgets 490 13 none]
 G r c none [acted pomarine__accessibility 128 14 none] [wake sdl3__events 102 14 none]
 X 1 ada.ads
 18K9*Ada 22e8 36|1r6 25r32 88r32 37|1r6 142r31
@@ -304,7 +304,7 @@ X 35 pomarine.ads
 4K9*Pomarine 6e13 36|4r6 5r6 23r9 116r5 37|5r14 388r5
 X 36 pomarine-accessibility.ads
 23K18*Accessibility 35|4k9 36|65E9 116l14 116e27 37|5b23 388l14 388t27
-25R9*Adapter<13|50R9><43|790R9> 13|53P14 36|28p14 28r36 36p13 36r33 38p14
+25R9*Adapter<13|50R9><43|819R9> 13|53P14 36|28p14 28r36 36p13 36r33 38p14
 . 38r36 41p13 41r31 44p13 44r32 49p14 49r36 54p14 54r50 61p13 61r38 88c9
 . 97e14 99P25 99r49 101P25 102r21 107P25 108r25 114P25 114r51 37|13r38 141r60
 . 235r36 244r49 249r33 252r36 260r31 264r32 266r38 268r50 275r36 298r21 310r25
@@ -323,7 +323,7 @@ X 36 pomarine-accessibility.ads
 49U14*Update 49=22 49=45 37|275b14 295l8 295t14
 49r22 Item{25R9} 50r31 37|275b22 282r7 284m10 287r10 291r21 292m42 292r57
 . 293m10
-49r45 Tree{43|100R9} 50r64 37|275b45 289m23 292m36
+49r45 Tree{43|109R9} 50r64 37|275b45 289m23 292m36
 54U14*Window_Focus_Changed 54=36 54>59 37|268b14 271l8 271t28
 54r36 Item{25R9} 55r31 37|268b36 270r29
 54b59 Focused{boolean} 37|268b59 270r46
@@ -331,16 +331,16 @@ X 36 pomarine-accessibility.ads
 61V13*Requests_Dropped{natural} 61>31 37|266b13
 61r31 Item{25R9} 37|266r66
 65R9 Request_Entry 68e14 70r59
-66r7*Node{43|113R9} 37|212r35
+66r7*Node{43|122R9} 37|212r35
 67r7*Request{41|153R9} 37|213r38
 70A9 Request_Array(65R9)<integer> 81r16
 72W19 Mailbox 81E7 86l8 86e15 94r17 37|189b19 231l8 231t15
 73U17 Activated 37|149s28 191b17 194l11 194t20
 74U17 Put 74>22 74>46 37|185s28 196b17 204l11 204t14
-74r22 Node{43|113R9} 37|196b22 201r70
+74r22 Node{43|122R9} 37|196b22 201r70
 74r46 Request{41|153R9} 37|196b46 201r76
 75U17 Take 75<23 75<51 76<23 37|206b17 219l11 219t15 287s20
-75r23 Node{43|113R9} 37|207b10 212m13 217m13
+75r23 Node{43|122R9} 37|207b10 212m13 217m13
 75r51 Request{41|153R9} 37|207b38 213m13
 76b23 Found{boolean} 37|208b10 210m10 211r13
 77U17 Take_Activation 77<34 37|221b17 225l11 225t26 282s17
@@ -359,22 +359,22 @@ X 36 pomarine-accessibility.ads
 95b7 Whole{boolean} 37|284m15 292r62 293m15
 99U25 Finalize<13|54p14> 99=35 37|244b25 247l8 247t16
 99r35 Item{25R9} 37|244b35 246m15
-101U25 Begin_Update<43|796p14> 102=7 103>7 104>7 105>7 37|297b25 307l8 307t20
+101U25 Begin_Update<43|825p14> 102=7 103>7 104>7 105>7 37|297b25 307l8 307t20
 102r7 Self{25R9} 37|298b7 303m7
-103r7 Root{43|113R9} 37|299b7 305r36
-104r7 Focused{43|113R9} 37|300b7 305r67
+103r7 Root{43|122R9} 37|299b7 305r36
+104r7 Focused{43|122R9} 37|300b7 305r67
 105b7 Whole{boolean} 37|301b7 306r16
-107U25 Describe_Node<43|804p14> 108=7 109>7 110>7 111>7 112>7 37|309b25 380l8
+107U25 Describe_Node<43|833p14> 108=7 109>7 110>7 111>7 112>7 37|309b25 380l8
 . 380t21
 108r7 Self{25R9} 37|310b7 379r19
-109r7 Id{43|113R9} 37|311b7 346r50 367r52 372r52
+109r7 Id{43|122R9} 37|311b7 346r50 367r52 372r52
 110r7 Facts{41|111R9} 37|312b7 316r55 317r55 318r55 333r13 334r13 335r13
 . 336r13 337r13 338r13 339r13 340r13 341r13 342r13 343r33 347r37 348r65 350r39
 . 361r36 362r36 363r36 364r36 365r30 367r56 369r50 370r30 372r56 374r50 377r50
 . 378r50
 111r7 Bounds{41|148R9} 37|313b7 351r36 352r36 353r36 354r36
-112a7 Children{43|794A9} 37|314b7 319r43 330r16 331r20 331r67 375r30 376r50
-114U25 End_Update<43|814p14> 114=37 37|382b25 386l8 386t18
+112a7 Children{43|823A9} 37|314b7 319r43 330r16 331r20 331r67 375r30 376r50
+114U25 End_Update<43|843p14> 114=37 37|382b25 386l8 386t18
 114r37 Self{25R9} 37|382b37 384r21 384r34 385m7
 X 37 pomarine-accessibility.adb
 10K12 C=10:33 12r13 20r23 21r23 24r34 31r40 62r22 81r64 91r71 97r15 105r54
@@ -484,7 +484,7 @@ X 37 pomarine-accessibility.adb
 . 184m7 185r66
 174a13 Text{string} 177r46
 236m7 Native{54|67M9} 238r10 240r25
-276r7 Node{43|113R9} 287m26 289r29
+276r7 Node{43|122R9} 287m26 289r29
 277r7 Request{41|153R9} 287m32 289r35
 278b7 Found{boolean} 287m41 288r24
 279b7 Done{boolean} 289m44
@@ -563,21 +563,21 @@ X 43 pomarine-widgets.ads
 54K18*Widgets 36|5w15 26r10 49r59 50r46 66r17 74r29 75r34 89r10 103r14 104r17
 . 109r18 112r18 37|181r30 181r54 183r29 183r53 185r33 196r29 207r21 217r21
 . 275r59 276r17 289r10 292r10 299r14 300r17 305r12 305r43 311r18 314r18 331r43
-. 346r26 366r32 367r35 371r32 372r35 43|1080e21
-100R9*Tree<13|50R9> 36|49r67 37|275r67 43|1074e14
-113R9*Node_Id 36|66r25 74r37 75r42 103r22 104r25 109r26 37|196r37 207r29
-. 276r25 299r22 300r25 311r26 43|888e14
-121r4*No_Node{113R9} 37|217r29
-392V13*Has_Root{boolean} 36|50s54
-471V13*Part_Of{113R9} 37|367s43 372s43
-475V13*Part_Number_Of{natural} 37|181s38 183s37
-487V13*To_Unsigned_64{32|95M9} 37|305s20 305s51 331s51 346s34 366s40 371s40
-488V13*From_Unsigned_64{113R9} 37|181s62 183s61 185s41
-790h9*Semantic_Sink 36|26r18 89r18
-794A9*Node_Id_Array(113R9)<integer> 36|112r26 37|314r26
-820U14*Describe_Changes 37|292s18
-823b7 Whole{boolean} 37|292r48
-831U14*Act 37|289s18
+. 346r26 366r32 367r35 371r32 372r35 43|1113e21
+109R9*Tree<13|50R9> 36|49r67 37|275r67 43|1107e14
+122R9*Node_Id 36|66r25 74r37 75r42 103r22 104r25 109r26 37|196r37 207r29
+. 276r25 299r22 300r25 311r26 43|917e14
+130r4*No_Node{122R9} 37|217r29
+407V13*Has_Root{boolean} 36|50s54
+486V13*Part_Of{122R9} 37|367s43 372s43
+490V13*Part_Number_Of{natural} 37|181s38 183s37
+502V13*To_Unsigned_64{32|95M9} 37|305s20 305s51 331s51 346s34 366s40 371s40
+503V13*From_Unsigned_64{122R9} 37|181s62 183s61 185s41
+819h9*Semantic_Sink 36|26r18 89r18
+823A9*Node_Id_Array(122R9)<integer> 36|112r26 37|314r26
+849U14*Describe_Changes 37|292s18
+852b7 Whole{boolean} 37|292r48
+860U14*Act 37|289s18
 X 45 sdl3.ads
 2K9*SDL3 36|3r6 28r54 29r19 37|3r6 150r7 186r7 235r54 236r43 45|13e9
 X 47 sdl3-events.ads
