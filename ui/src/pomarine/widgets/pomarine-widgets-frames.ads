@@ -105,6 +105,10 @@ package Pomarine.Widgets.Frames is
 
    procedure Set_Tag_Visible (Item : in out Frame; To : Boolean);
 
+   function Pixels_Per_Point (Item : Frame) return Float;
+   --  What the tree's density is now, if it is in one, or what it was
+   --  built with: it changes if the window goes to another display.
+
    procedure Set_Scale (Item : in out Frame; To : Float)
      with Pre => To > 0.0;
    --  Show the title bar and what is in it, and the margin of the title

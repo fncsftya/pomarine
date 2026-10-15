@@ -763,10 +763,32 @@ package body Pomarine.Widgets is
 
    --  What a tree shares
 
+   procedure Rescale (Item : in out Tree; Slot : Node_Index; By : Float);
+   --  Put the sizes of the widget at Slot, and of those below it, in
+   --  another density, as they were made in points of the one before.
+
+   procedure Rescale (Item : in out Tree; Slot : Node_Index; By : Float) is
+      Table : Node_Table renames Item.Nodes.all;
+      Child : Node_Index := Table.First (Slot);
+   begin
+      Yoga.Nodes.Scale_Style (Table.Yoga_Node (Slot), By);
+      Content_Changed (Table.Object (Slot).all);  --  what is measured, again
+      while Child /= 0 loop
+         Rescale (Item, Child, By);
+         Child := Table.Next (Child);
+      end loop;
+   end Rescale;
+
    procedure Set_Density (Item : in out Tree; To : Float) is
+      Was : constant Float := Item.Density;
    begin
       if To /= Item.Density then
          Item.Density := To;
+         --  What was laid out in the density before is in its pixels: put
+         --  it in these.
+         if Item.Root /= 0 and then Was > 0.0 then
+            Rescale (Item, Item.Root, To / Was);
+         end if;
          Item.Replace_All := True;
          Item.Layout_Pending := True;
          Item.Lost := True;

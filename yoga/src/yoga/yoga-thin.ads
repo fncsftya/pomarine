@@ -84,6 +84,25 @@ private package Yoga.Thin is
    procedure Set_Gap (Node : Node_Ref; Which : YG_Gutter; V : C_float)
      with Import, Convention => C, External_Name => "YGNodeStyleSetGap";
 
+   type YG_Value is record
+      Value : C_float;
+      Unit  : int;  --  0 undefined, 1 point, 2 percent, 3 auto
+   end record
+     with Convention => C;
+
+   function Get_Width (Node : Node_Ref) return YG_Value
+     with Import, Convention => C, External_Name => "YGNodeStyleGetWidth";
+   function Get_Height (Node : Node_Ref) return YG_Value
+     with Import, Convention => C, External_Name => "YGNodeStyleGetHeight";
+   function Get_Position (Node : Node_Ref; Side : YG_Edge) return YG_Value
+     with Import, Convention => C, External_Name => "YGNodeStyleGetPosition";
+   function Get_Margin (Node : Node_Ref; Side : YG_Edge) return YG_Value
+     with Import, Convention => C, External_Name => "YGNodeStyleGetMargin";
+   function Get_Padding (Node : Node_Ref; Side : YG_Edge) return YG_Value
+     with Import, Convention => C, External_Name => "YGNodeStyleGetPadding";
+   function Get_Gap (Node : Node_Ref; Which : YG_Gutter) return C_float
+     with Import, Convention => C, External_Name => "YGNodeStyleGetGap";
+
    type YG_Measure_Mode is (Undefined, Exactly, At_Most) with Convention => C;
 
    type YG_Size is record
