@@ -77,6 +77,24 @@ package SDL3.Windows.Renderers is
       X, Y, Width, Height : Float);
    --  The colour's alpha is not used, unless Solid.
 
+   type Point is record
+      X, Y : Float;
+   end record
+     with Convention => C;
+
+   type Point_Array is array (Positive range <>) of Point
+     with Convention => C;
+
+   procedure Fill_Triangles
+     (Item           : Renderer;
+      Value          : Color;
+      Points         : Point_Array;
+      Triangle_Count : Natural)
+     with Pre => Points'Length >= 3 * Triangle_Count;
+   --  Fill Triangle_Count triangles, each three consecutive Points, with
+   --  the colour, blended with what is behind by its alpha. The edges are
+   --  not smoothed.
+
    procedure Draw_Line
      (Item : Renderer;
       Value : Color;

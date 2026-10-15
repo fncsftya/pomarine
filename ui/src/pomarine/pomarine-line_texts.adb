@@ -40,6 +40,114 @@ package body Pomarine.Line_Texts is
       end;
    end Shape;
 
+   function UTF_8 (Code : Interfaces.Unsigned_32) return String;
+   --  The character as UTF-8: a replacement character if it is not one.
+
+   function UTF_8 (Code : Interfaces.Unsigned_32) return String is
+      use type Interfaces.Unsigned_32;
+      use Interfaces;
+      C : constant Unsigned_32 :=
+        (if Code > 16#10FFFF# or else Code in 16#D800# .. 16#DFFF#
+         then 16#FFFD# else Code);
+      function B (Value : Unsigned_32) return Character is
+        (Character'Val (Natural (Value)));
+   begin
+      if C < 16#80# then
+         return [B (C)];
+      elsif C < 16#800# then
+         return [B (16#C0# or Shift_Right (C, 6)), B (16#80# or (C and 16#3F#))];
+      elsif C < 16#10000# then
+         return [B (16#E0# or Shift_Right (C, 12)),
+                 B (16#80# or (Shift_Right (C, 6) and 16#3F#)),
+                 B (16#80# or (C and 16#3F#))];
+      else
+         return [B (16#F0# or Shift_Right (C, 18)),
+                 B (16#80# or (Shift_Right (C, 12) and 16#3F#)),
+                 B (16#80# or (Shift_Right (C, 6) and 16#3F#)),
+                 B (16#80# or (C and 16#3F#))];
+      end if;
+   end UTF_8;
+
+   function Face_Number (Item : in out Drawer; Name : String) return Positive;
+   --  Which of Item.Opened is the font Name, opening it if it is not.
+
+   function Face_Number (Item : in out Drawer; Name : String) return Positive is
+      use Ada.Strings.Unbounded;
+   begin
+      for Each in 1 .. Item.Opens loop
+         if Item.Opened (Each).Name = Name then
+            return Each;
+         end if;
+      end loop;
+      declare
+         Slot : Positive;
+      begin
+         if Item.Opens < Character_Faces then
+            Item.Opens := Item.Opens + 1;
+            Slot := Item.Opens;
+         else
+            Slot := Item.Turn;
+            Item.Turn := (if Slot = Character_Faces then 1 else Slot + 1);
+            --  Its glyphs are known by its number: forget them all.
+            Item.Glyphs.Clear;
+         end if;
+         Item.Opened (Slot).Name := To_Unbounded_String (Name);
+         CoreText.Fonts.Open (Item.Opened (Slot).Font, Name, Face_Size);
+         return Slot;
+      end;
+   end Face_Number;
+
+   procedure Draw_Character
+     (Item     : in out Drawer;
+      Target   : SDL3.Painters.Painter'Class;
+      Value    : SDL3.Windows.Renderers.Color;
+      Face     : String;
+      Code     : Interfaces.Unsigned_32;
+      X        : Float;
+      Baseline : Float;
+      Pixels   : Float;
+      Settled  : Boolean := True)
+   is
+      use Interfaces;
+      use type Glyph_Maps.Cursor;
+      Which : constant Positive := Face_Number (Item, Face);
+      Key   : constant Unsigned_64 :=
+        Shift_Left (Unsigned_64 (Which), 32) or Unsigned_64 (Code);
+      Found : constant Glyph_Maps.Cursor := Item.Glyphs.Find (Key);
+      Glyph : CoreText.Shaping.Glyph;
+   begin
+      if Found /= Glyph_Maps.No_Element then
+         Glyph := Glyph_Maps.Element (Found);
+      else
+         declare
+            Line : CoreText.Shaping.Shaped;
+         begin
+            CoreText.Strings.Set (Item.Source, UTF_8 (Code));
+            CoreText.Shaping.Shape
+              (Item.Reg, Item.Opened (Which).Font, Item.Source, 0,
+               CoreText.Strings.Length (Item.Source), Line);
+            if Line.Glyphs.Is_Empty then
+               return;
+            end if;
+            Glyph := Line.Glyphs.First_Element;
+            Glyph.X := 0.0;
+            Item.Glyphs.Insert (Key, Glyph);
+         end;
+      end if;
+      Typeset.Glyph_Atlas.Draw
+        (Item.Atlas, Item.Reg, Target,
+         Line => CoreText.Shaping.Glyph_Array'[1 => Glyph],
+         X => X, Baseline => Baseline, Scale => 1.0, Size => Pixels,
+         Value => Value, Settled => Settled);
+   end Draw_Character;
+
+   procedure Flush
+     (Item   : in out Drawer;
+      Target : SDL3.Painters.Painter'Class) is
+   begin
+      Typeset.Glyph_Atlas.Flush (Item.Atlas, Target);
+   end Flush;
+
    procedure Begin_Frame (Item : in out Drawer) is
    begin
       Typeset.Glyph_Atlas.Begin_Frame (Item.Atlas);

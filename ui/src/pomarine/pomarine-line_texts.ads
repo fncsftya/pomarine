@@ -1,3 +1,5 @@
+with Ada.Containers.Hashed_Maps;
+with Interfaces;
 with SDL3.Painters;
 with Ada.Strings.Unbounded;
 with CoreText.Fonts;
@@ -86,9 +88,61 @@ package Pomarine.Line_Texts is
    --  Middle pixels, from the top left of the target. It is drawn at
    --  once, so that what is drawn after is over it.
 
+   procedure Draw_Character
+     (Item     : in out Drawer;
+      Target   : SDL3.Painters.Painter'Class;
+      Value    : SDL3.Windows.Renderers.Color;
+      Face     : String;
+      Code     : Interfaces.Unsigned_32;
+      X        : Float;
+      Baseline : Float;
+      Pixels   : Float;
+      Settled  : Boolean := True)
+     with Pre => Pixels > 0.0 and then Face'Length > 0;
+   --  Batch one character of the font named Face (a PostScript or family
+   --  name), its baseline start X pixels from the target's left and
+   --  Baseline from its top, Pixels tall as the font's size. For text
+   --  that is set elsewhere, character by character, as a page of a
+   --  document is. A character the font has not is drawn as another font
+   --  has it, if one does. Flush to have them drawn: they are batched,
+   --  so that anything drawn after them but before the Flush is under
+   --  them. While the size changes, as when zooming, Settled is False.
+
+   procedure Flush
+     (Item   : in out Drawer;
+      Target : SDL3.Painters.Painter'Class);
+   --  Draw the characters batched.
+
 private
 
    type Face_Array is array (Style) of CoreText.Fonts.Font;
+
+   Character_Faces : constant := 64;
+   --  How many fonts of the text of pages are kept open; when they are
+   --  all in use the first is closed for the next.
+
+   Face_Size : constant := 64.0;
+   --  The size they are opened at (glyphs are rasterized at the size
+   --  they are drawn).
+
+   type Open_Face is record
+      Name : Ada.Strings.Unbounded.Unbounded_String;
+      Font : CoreText.Fonts.Font;
+   end record;
+
+   type Open_Face_Array is array (1 .. Character_Faces) of Open_Face;
+
+   use type Interfaces.Unsigned_64;
+
+   function Glyph_Hash (Key : Interfaces.Unsigned_64) return Ada.Containers.Hash_Type
+     is (Ada.Containers.Hash_Type
+           ((Key xor Interfaces.Shift_Right (Key, 32)) and 16#FFFF_FFFF#));
+
+   package Glyph_Maps is new Ada.Containers.Hashed_Maps
+     (Interfaces.Unsigned_64, CoreText.Shaping.Glyph, Glyph_Hash,
+      Interfaces."=", CoreText.Shaping."=");
+   --  Which glyph is a character in a face, keyed by the face's number
+   --  (shifted up by 32 bits) and the character.
 
    Cache_Size : constant := 64;
    --  How many lines are kept shaped: more than a screen has.
@@ -110,6 +164,11 @@ private
       Cache  : Cache_Array;
       Next   : Positive range 1 .. Cache_Size := 1;
       --  The line to replace when one is not there.
+      Opened : Open_Face_Array;
+      Opens  : Natural range 0 .. Character_Faces := 0;
+      Turn   : Positive range 1 .. Character_Faces := 1;
+      --  The face to close when none is free.
+      Glyphs : Glyph_Maps.Map;
    end record;
 
 end Pomarine.Line_Texts;
