@@ -1,7 +1,0 @@
-dependency:pomarine_ui=0.1.0-dev=a97a7a6fa313cff592bba358e80d1bc347149493c74e80ab950ed7a906203fb8
-dependency:sdl3=0.1.0-dev=98602f513de4a73bc0417964c3fa98e3f7d4ca6bb0fa6715c48677c3f307418d
-external:LIBRARY_TYPE=default
-external:POMARINE_NATIVE_LIBRARY_TYPE=default
-profile:pomarine_native=RELEASE
-switches:pomarine_native=-O3,-fdata-sections,-ffunction-sections,-gnat2022,-gnatVa,-gnatW8,-gnata,-gnatn,-gnato,-gnatw.X,-gnatwa,-gnatwe,-gnaty-d,-gnaty3,-gnatyA,-gnatyB,-gnatyI,-gnatyO,-gnatyS,-gnatya,-gnatyb,-gnatyc,-gnatye,-gnatyf,-gnatyh,-gnatyi,-gnatyk,-gnatyl,-gnatym,-gnatyn,-gnatyp,-gnatyr,-gnatyt,-gnatyu,-gnatyx
-version:gnat_native=16.1.0
