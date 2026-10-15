@@ -67,7 +67,7 @@ package body Text_Area_Tests is
    procedure Check (Item : in out Fixture; Name : String) is
       Drawn : Images.Image;
    begin
-      Renderers.Clear (Item.Target, Colors.Background);
+      Renderers.Clear (Item.Target, Colors (Pomarine.Themes.Background));
       Text_Areas.Draw (Item.Area, Item.Target, Colors);
       Images.Read (Drawn, Item.Target);
       Goldens.Check (Name, Drawn);
@@ -621,7 +621,7 @@ package body Text_Area_Tests is
         ("textarea-two-views-moved", " 4",
          Text_Areas.Caret (Broad).Paragraph'Image);
 
-      Renderers.Clear (Target, Colors.Background);
+      Renderers.Clear (Target, Colors (Pomarine.Themes.Background));
       Text_Areas.Draw (Narrow, Target, Colors);
       Text_Areas.Draw (Broad, Target, Colors);
       Images.Read (Drawn, Target);

@@ -1,3 +1,4 @@
+with Pomarine_Ui_Config;
 with Ada.Strings.Unbounded;
 with SDL3.Windows.Renderers.Textures;
 with SDL3.Windows.Renderers;
@@ -17,7 +18,7 @@ with SDL3.Windows.Renderers;
 --  to that renderer.
 package Pomarine.Icons is
 
-   Capacity : constant := 64;
+   Capacity : constant := Pomarine_Ui_Config.Icon_Capacity;
    --  Icons of one library, those of the widgets and the application's.
 
    type Icon is range 1 .. Capacity;

@@ -56,6 +56,7 @@ package body Pomarine.Widgets.Sliders is
       if To /= Item.Fraction then
          Item.Fraction := To;
          Item.Moved := True;
+         Notify (Item, Change);
          Invalidate (Item);
       end if;
    end Move_To;
@@ -118,29 +119,26 @@ package body Pomarine.Widgets.Sliders is
       Knob   : constant Float :=
         Float'Rounding (Left + Item.Fraction * Travel (Item));
       Groove : constant Themes.Color :=
-        Themes.Mix (Colors.Background, Colors.Foreground, 0.12);
+        Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.12);
       Groove_Top : constant Float :=
         Top_Of (Item) + Float'Rounding ((High - Thick) / 2.0);
    begin
       --  The groove, the light falling into it from the top left.
       Fill_Rect (Target, Groove, Left, Groove_Top, Width_Of (Item), Thick);
-      Pomarine.Boxes.Bevel
-        (Target, Themes.Highlight (Groove), Themes.Shade (Groove), Left,
-         Groove_Top, Width_Of (Item), Thick, Pixels, Sunken => True);
-      Pomarine.Boxes.Draw_Raised
-        (Target,
-         (Face    =>
-            (if Is_Hovered (Item) and then not Item.Held
-             then Themes.Mix (Colors.Face, Themes.White, 0.22)
-             else Colors.Face),
-          Border  => Colors.Border,
-          Edges_Given => False,
-          Lit => (0, 0, 0, 255),
-          Shaded => (0, 0, 0, 255),
-          Drop    => Colors.Drop_Shadow,
-          Pressed => Item.Held,
-          Flat    => False),
-         Knob, Top_Of (Item), Wide, High, Pixels);
+      if Colors.Bevelled then
+         Pomarine.Boxes.Bevel
+           (Target, Themes.Highlight (Groove), Themes.Shadow_Of (Groove), Left,
+            Groove_Top, Width_Of (Item), Thick, Pixels, Sunken => True);
+      end if;
+      declare
+         Face : constant Themes.Color :=
+           Colors.Face_For (Hovered => Is_Hovered (Item) and then not Item.Held);
+      begin
+         Pomarine.Boxes.Draw_Control
+           (Target, Colors, Face, Colors (Themes.Border),
+            (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
+            Knob, Top_Of (Item), Wide, High, Pixels, Sunken => Item.Held);
+      end;
    end Draw;
 
 end Pomarine.Widgets.Sliders;

@@ -33,7 +33,7 @@ package body Pomarine.Widgets.Tooltips is
       Pixels : constant Float := Density (Item);
    begin
       Fill_Rect
-        (Target, Colors.Bar, Left_Of (Item), Top_Of (Item), Width_Of (Item),
+        (Target, Colors (Themes.Bar), Left_Of (Item), Top_Of (Item), Width_Of (Item),
          Height_Of (Item));
       if Item.Length > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw

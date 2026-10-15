@@ -113,6 +113,9 @@ package body Pomarine.Widgets.Toasts is
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                Item.Clicked := Over;
+               if Over then
+                  Notify (Item, Click);
+               end if;
                Handled := True;
                Invalidate (Item);
             end if;
@@ -144,45 +147,35 @@ package body Pomarine.Widgets.Toasts is
          (Filled   => True,
           Fill     => Themes.White,
           Bordered => True,
-          Border   => Colors.Border,
+          Border   => Colors (Themes.Border),
           Dashed   => False,
           Shadowed => True,
-          Shadow   => Colors.Drop_Shadow),
+          Shadow   => Colors (Themes.Drop_Shadow)),
          Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),
          Pixels);
       Fill_Rect
-        (Target, Colors.Primary, Left_Of (Item), Top_Of (Item),
+        (Target, Colors (Themes.Primary), Left_Of (Item), Top_Of (Item),
          Float'Rounding (Bar_Width * Pixels), Face_Height (Item));
       if Item.Length > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw
-           (Text_Lines (Item).all, Target, Colors.Foreground, Message (Item),
+           (Text_Lines (Item).all, Target, Colors (Themes.Foreground), Message (Item),
             Left_Of (Item) + (Bar_Width + Pad) * Pixels, Middle, Pixels);
       end if;
       Button_Box (Item, Left, Top, Wide, High);
       if Wide > 0.0 then
          declare
-            Look : constant Pomarine.Boxes.Raised_Look :=
-              (Face    =>
-                 (if Item.Over and then not Item.Down
-                  then Themes.Mix (Colors.Face, Themes.White, 0.22)
-                  else Colors.Face),
-               Border  => Colors.Border,
-               Edges_Given => False,
-               Lit => (0, 0, 0, 255),
-               Shaded => (0, 0, 0, 255),
-               Drop    => Colors.Drop_Shadow,
-               Pressed => Item.Down and then Item.Over,
-               Flat    => False);
-            X, Y, W, H : Float;
+            Face : constant Themes.Color :=
+              Colors.Face_For (Hovered => Item.Over and then not Item.Down);
          begin
-            Pomarine.Boxes.Draw_Raised (Target, Look, Left, Top, Wide, High, Pixels);
-            Pomarine.Boxes.Raised_Face
-              (Look, Left, Top, Wide, High, Pixels, X, Y, W, H);
-            Pomarine.Line_Texts.Draw
-              (Text_Lines (Item).all, Target, Colors.Foreground,
-               Action (Item), X + Button_Pad * Pixels, Y + H / 2.0, Pixels,
-               Pomarine.Line_Texts.Strong);
+            Pomarine.Boxes.Draw_Control
+              (Target, Colors, Face, Colors (Themes.Border),
+               (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
+               Left, Top, Wide, High, Pixels, Sunken => Item.Down and then Item.Over);
          end;
+         Pomarine.Line_Texts.Draw
+           (Text_Lines (Item).all, Target, Colors (Themes.Foreground),
+            Action (Item), Left + Button_Pad * Pixels, Top + High / 2.0, Pixels,
+            Pomarine.Line_Texts.Strong);
       end if;
    end Draw;
 

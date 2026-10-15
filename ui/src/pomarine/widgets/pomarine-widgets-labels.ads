@@ -1,3 +1,4 @@
+with Pomarine_Ui_Config;
 with SDL3.Windows.Renderers;
 with Pomarine.Icons;
 
@@ -5,7 +6,7 @@ with Pomarine.Icons;
 --  height. It takes no events.
 package Pomarine.Widgets.Labels is
 
-   Text_Capacity : constant := 48;
+   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Characters.
 
    type Label is new Widget with private;

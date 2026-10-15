@@ -1,17 +1,18 @@
+with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 
---  A switch, on or off, with a label after it: a track sunk into what it
---  is on, grey when off, in the theme's primary colour when on, and a knob
---  that stands up in it, at the left when off and the right when on.
+--  A switch, on or off, with a label after it: a track, grey when off, in
+--  the theme's primary colour when on, and a knob in it, at the left when
+--  off and the right when on.
 --
 --  A click on it turns it over, a change for the application to take, as
 --  it takes a button's click. Turned off (Set_Enabled), it is faint and
 --  takes nothing.
 package Pomarine.Widgets.Switches is
 
-   Label_Capacity : constant := 48;
+   Label_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Bytes of label.
 
    type Switch is new Widget with private;

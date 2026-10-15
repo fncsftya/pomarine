@@ -31,8 +31,9 @@ with Yoga.Nodes;
 --  a layout. Setting something to what it was damages nothing, so a
 --  frame with no damage needs no drawing. Data flows down, from the
 --  application's models to widgets' setters, and what widgets have to say
---  comes back as plain values, taken with a procedure (as a Button's
---  Take_Click) -- there are no callbacks.
+--  comes back as events: to a Listener the application gives the tree (or
+--  a widget), or as plain values, taken with a procedure (as a Button's
+--  Take_Click), as the application likes. See Event_Kind.
 --
 --  A loop looks like this:
 --
@@ -45,6 +46,40 @@ with Yoga.Nodes;
 --     wait no longer than Until_Update (Tree)
 package Pomarine.Widgets is
 
+   --  What widgets say
+
+   type Event_Kind is
+     (Click,         --  a button, a grip, a select field, a toast's action
+      Double_Click,  --  a grip
+      Change,        --  a check, a switch or a slider has a new value
+      Submit,        --  Return in a field
+      Choose,        --  a row of a menu (Row)
+      Drag,          --  a grip moved (Across, Down), in points
+      Move,          --  a frame to be moved (Across, Down), in points
+      Resize,        --  a frame to be sized (Across, Down), in points
+      Close,         --  a frame, a chip
+      Minimize,
+      Restore,
+      Press,         --  a pin
+      Release,
+      Select_Tag,    --  a canvas's line selected (Row, its Tag; 0 for none)
+      Delete);       --  Backspace or Delete with a line selected on a canvas
+
+   No_Tag : constant Integer := -1;
+
+   type Widget_Event is record
+      Kind   : Event_Kind := Click;
+      Tag    : Integer := No_Tag;
+      --  What the application said the widget is for (see Set_Tag).
+      Index  : Natural := 0;
+      --  Which of many like it, as the application said.
+      Row    : Natural := 0;
+      Across : Float := 0.0;
+      Down   : Float := 0.0;
+   end record;
+
+   type Widget_Event_Array is array (Positive range <>) of Widget_Event;
+
    type Tree is tagged limited private;
    --  The widgets of one window, and what they share: the density of its
    --  pixels, the clipboard, which has the focus, what is damaged.
@@ -55,6 +90,21 @@ package Pomarine.Widgets is
    --  below.
 
    type Widget_Access is access all Widget'Class;
+
+   type Listener is limited interface;
+   --  What the application gives a tree to hear its widgets by. Events are
+   --  not delivered as they happen, but after the event or the time that
+   --  caused them has been given to every widget (see Dispatch, Update),
+   --  so that what is done about one may change the tree: show, hide,
+   --  add, or remove widgets, the one it came from too.
+
+   procedure Handle_Event
+     (Self   : in out Listener;
+      Source : in out Widget'Class;
+      Event  : Widget_Event) is abstract;
+   --  Source said Event.
+
+   type Listener_Access is access all Listener'Class;
 
    type Pixel_Box is record
       Left, Top, Width, Height : Integer := 0;
@@ -128,6 +178,41 @@ package Pomarine.Widgets is
    procedure Hover_Changed (Item : in out Widget; Hovered : Boolean) is null;
    --  The pointer has come over it or something in it, or left.
 
+   --  Hearing: events go to the widget's own listener if it has one, and
+   --  otherwise to the tree's; to none, if neither has. A widget's polled
+   --  values (as Take_Click) are kept whichever.
+
+   procedure Set_Listener (Item : in out Tree; To : not null access Listener'Class);
+   --  Say where the events of the tree's widgets go. It must be there as
+   --  long as the tree is used.
+
+   procedure Set_Listener (Item : in out Widget'Class; To : access Listener'Class);
+   --  Where this widget's events go, rather than to the tree's; null for
+   --  the tree's again.
+
+   procedure Set_Tag (Item : in out Widget'Class; Tag : Integer; Index : Natural := 0);
+   --  Say what the widget is for, and which of many it is: as it comes
+   --  back in each event it says. Tag is the application's own number, as
+   --  of a kind of command (see Pomarine.Widgets.Commands).
+
+   function Tag_Of (Item : Widget'Class) return Integer;
+   function Index_Of (Item : Widget'Class) return Natural;
+
+   procedure Notify
+     (Item   : in out Widget'Class;
+      Kind   : Event_Kind;
+      Row    : Natural := 0;
+      Across : Float := 0.0;
+      Down   : Float := 0.0);
+   --  For a kind of widget to say that it has been clicked, and so on. It
+   --  is kept, to be delivered, if the widget is in a tree that has
+   --  somewhere to deliver it.
+
+   procedure Deliver (Item : in out Tree);
+   --  Give the listeners the events kept, as Dispatch and Update do when
+   --  they have done. Events that come in as this is done are given in
+   --  the same go.
+
    --  Building
 
    procedure Set_Root (Item : in out Tree; Root : in out Widget'Class)
@@ -142,6 +227,48 @@ package Pomarine.Widgets is
                   and then Child_Count (Child) = 0,
           Post => Is_Attached (Child) and then Parent_Of (Child) /= null;
    --  Put Child after Parent's other children, and so above them.
+
+   procedure Add
+     (Parent : in out Widget'Class; First, Second : in out Widget'Class)
+     with Pre  => Is_Attached (Parent)
+                  and then not Is_Attached (First) and then Child_Count (First) = 0
+                  and then not Is_Attached (Second) and then Child_Count (Second) = 0,
+          Post => Is_Attached (First) and then Is_Attached (Second);
+
+   procedure Add
+     (Parent : in out Widget'Class; First, Second, Third : in out Widget'Class)
+     with Pre  => Is_Attached (Parent)
+                  and then not Is_Attached (First) and then Child_Count (First) = 0
+                  and then not Is_Attached (Second) and then Child_Count (Second) = 0
+                  and then not Is_Attached (Third) and then Child_Count (Third) = 0,
+          Post => Is_Attached (First) and then Is_Attached (Second)
+                  and then Is_Attached (Third);
+
+   procedure Add
+     (Parent : in out Widget'Class;
+      First, Second, Third, Fourth : in out Widget'Class)
+     with Pre  => Is_Attached (Parent)
+                  and then not Is_Attached (First) and then Child_Count (First) = 0
+                  and then not Is_Attached (Second) and then Child_Count (Second) = 0
+                  and then not Is_Attached (Third) and then Child_Count (Third) = 0
+                  and then not Is_Attached (Fourth) and then Child_Count (Fourth) = 0,
+          Post => Is_Attached (First) and then Is_Attached (Second)
+                  and then Is_Attached (Third) and then Is_Attached (Fourth);
+
+   procedure Add
+     (Parent : in out Widget'Class;
+      First, Second, Third, Fourth, Fifth : in out Widget'Class)
+     with Pre  => Is_Attached (Parent)
+                  and then not Is_Attached (First) and then Child_Count (First) = 0
+                  and then not Is_Attached (Second) and then Child_Count (Second) = 0
+                  and then not Is_Attached (Third) and then Child_Count (Third) = 0
+                  and then not Is_Attached (Fourth) and then Child_Count (Fourth) = 0
+                  and then not Is_Attached (Fifth) and then Child_Count (Fifth) = 0,
+          Post => Is_Attached (First) and then Is_Attached (Second)
+                  and then Is_Attached (Third) and then Is_Attached (Fourth)
+                  and then Is_Attached (Fifth);
+   --  Put each after the others in order, as Add does one: for a parent
+   --  built in a line, as Add (Side, Logo, New_Button, Room, Settings).
 
    procedure Add_Before
      (Parent : in out Widget'Class;
@@ -307,7 +434,7 @@ package Pomarine.Widgets is
       Retained : Boolean := False)
      with Pre => Has_Root (Item);
    --  Lay out, and draw the widgets that are in the damage over
-   --  Colors.Background, then say there is none. It does not present
+   --  Colors (Themes.Background), then say there is none. It does not present
    --  Target.
    --
    --  Retained says Target still has what was last drawn on it, so that
@@ -419,12 +546,31 @@ private
       Hovered : Boolean := False;
       Focused : Boolean := False;
       Visible : Boolean := True;
+      Tag     : Integer := No_Tag;
+      Index   : Natural := 0;
+      Own     : Listener_Access;
       Paint_Box : Pixel_Box;
       --  Of its box, what is being drawn.
    end record;
 
+   Queue_Capacity : constant := 32;
+
+   type Queued_Event is record
+      Source : Widget_Access;
+      Target : Listener_Access;
+      Event  : Widget_Event;
+   end record;
+
+   type Event_Queue is array (1 .. Queue_Capacity) of Queued_Event;
+
    type Tree is tagged limited record
       Yoga_Tree : Yoga.Nodes.Tree;
+      Hearer    : Listener_Access;
+      Queue     : Event_Queue;
+      Queued    : Natural := 0;
+      --  How many are kept, from Queue_First, round.
+      Queue_First : Positive := 1;
+      Delivering  : Boolean := False;
       Root      : Widget_Access;
       Density   : Float := 1.0;
       Settled   : Boolean := True;

@@ -87,6 +87,10 @@ package Pomarine.Text_Areas is
    --  How tall it needs to be to show all its text at the width it was
    --  last placed at, in points: every paragraph is laid out.
 
+   function Return_Pending (Item : Text_Area) return Boolean;
+   --  Whether Return has been pressed in it, as one line, and not yet
+   --  taken: Take_Return takes it.
+
    procedure Take_Return (Item : in out Text_Area; Pressed : out Boolean);
    --  Say whether Return has been pressed in it, if it is for one line,
    --  since this was last called, and forget it.

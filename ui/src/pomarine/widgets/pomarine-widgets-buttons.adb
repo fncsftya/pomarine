@@ -188,6 +188,7 @@ package body Pomarine.Widgets.Buttons is
               and then not Event.Command
             then
                Item.Clicked := True;
+               Notify (Item, Click);
                Handled := True;
             end if;
          when SDL3.Events.Mouse_Down =>
@@ -200,6 +201,9 @@ package body Pomarine.Widgets.Buttons is
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                Item.Clicked := Over;
+               if Over then
+                  Notify (Item, Click);
+               end if;
                Handled := True;
                Invalidate (Item);
             end if;
@@ -239,63 +243,24 @@ package body Pomarine.Widgets.Buttons is
       Hovered : constant Boolean := Item.Enabled and then Is_Hovered (Item);
       Toggled : constant Boolean := Item.Selected and then not Item.Dropdown;
       --  Pressed in, in the accent; an open dropdown is in its own face.
-      --  A plain face, not toggled, has the theme's own tones for its
-      --  states; the others are made from their base.
-      Plain : constant Boolean :=
-        Item.Style in Normal | Quiet and then not Toggled;
-      Base  : constant Themes.Color :=
+      Tone  : constant Themes.Tone :=
         (case Item.Style is
-            when Primary => Colors.Primary,
-            when Danger  => Colors.Danger,
-            when Normal | Quiet =>
-              (if Toggled then Colors.Accent else Colors.Face));
+            when Primary => Themes.Primary_Tone,
+            when Danger  => Themes.Danger_Tone,
+            when Quiet   => Themes.Quiet_Tone,
+            when Normal  =>
+              (if Toggled then Themes.Selected_Tone else Themes.Normal_Tone));
       Face  : constant Themes.Color :=
-        (if not Item.Enabled then Themes.Dull (Colors, Base)
-         elsif Pressed then
-           (if Plain then Colors.Face_Pressed
-            else Themes.Mix (Base, Colors.Foreground, 0.12))
-         elsif not Hovered then Base
-         elsif Plain then Colors.Face_Hover
-         elsif Item.Style in Primary | Danger
-         then Themes.Mix (Base, White, 0.12)
-         else Themes.Mix (Base, White, 0.22));
-      --  At rest, the bevel is the theme's own; a face that is pressed or
-      --  under the pointer has its bevel made from the face it shows.
-      Resting : constant Boolean := not Pressed and then not Hovered;
-      Lit    : constant Themes.Color :=
-        (if Resting and then Plain then Colors.Face_Light
-         elsif Resting and then Item.Style = Primary then Colors.Primary_Light
-         elsif Resting and then Item.Style = Danger then Colors.Danger_Light
-         else Themes.Highlight (Face));
-      Shaded : constant Themes.Color :=
-        (if Resting and then Plain then Colors.Face_Shade
-         elsif Resting and then Item.Style = Primary then Colors.Primary_Shade
-         elsif Resting and then Item.Style = Danger then Colors.Danger_Shade
-         else Themes.Shade (Face));
+        Colors.Face_For
+          (Tone, Enabled => Item.Enabled, Hovered => Hovered, Held => Pressed);
+      Edges : constant Themes.Bevel_Colors :=
+        Colors.Bevel_For (Tone, Hovered => Hovered, Held => Pressed);
       Ink   : constant Themes.Color :=
-        (case Item.Style is
-            when Primary | Danger =>
-              (if Item.Enabled then White else Themes.Mix (White, Face, 0.3)),
-            when Quiet =>
-              (if Hovered or else Item.Selected then White
-               else Themes.Mix (Colors.Face, White, 0.35)),
-            when Normal =>
-              (if Item.Enabled then
-                 (if Toggled then Colors.On_Accent else Colors.Foreground)
-               else Themes.Mix (Colors.Foreground, Face, 0.6)));
-      Border : constant Themes.Color :=
-        (if Item.Style = Normal and then not Toggled then Colors.Face_Edge
-         else Themes.Mix (Base, Colors.Foreground, 0.3));
-      Look  : constant Pomarine.Boxes.Raised_Look :=
-        (Face    => Face,
-         Edges_Given => True,
-         Lit     => Lit,
-         Shaded  => Shaded,
-         Border  =>
-           (if Item.Enabled then Border else Themes.Dull (Colors, Border)),
-         Drop    => Colors.Drop_Shadow,
-         Pressed => Pressed or else Item.Selected,
-         Flat    => not Item.Enabled);
+        Colors.Ink_For
+          (Tone, Enabled => Item.Enabled,
+           Hovered => Hovered or else (Item.Style = Quiet and then Item.Selected));
+      Edge_Color : constant Themes.Color :=
+        Colors.Edge_For (Tone, Enabled => Item.Enabled);
       Left, Top, Wide_Box, High_Box : Float;
       --  The face, which what is on it goes with.
       Caret_Room : Float := 0.0;
@@ -315,27 +280,17 @@ package body Pomarine.Widgets.Buttons is
       Badge_Room : constant Float :=
         (if Badged then (Badge_Gap + Badge_Size) * Pixels else 0.0);
    begin
-      if Item.Style = Quiet then
-         --  No face: what is on it goes down and right as it is pressed.
-         declare
-            Moved : constant Float :=
-              (if Pressed then Pomarine.Boxes.Shift (Pixels) else 0.0);
-         begin
-            Left := Left_Of (Item) + Moved;
-            Top := Top_Of (Item) + Moved;
-            Wide_Box := Width_Of (Item);
-            High_Box := Height_Of (Item);
-         end;
-      else
-         Pomarine.Boxes.Draw_Raised
-           (Target, Look, Left_Of (Item), Top_Of (Item), Width_Of (Item),
-            Height_Of (Item), Pixels);
-         Pomarine.Boxes.Raised_Face
-           (Look, Left_Of (Item), Top_Of (Item), Width_Of (Item),
-            Height_Of (Item), Pixels, Left, Top, Wide_Box, High_Box);
+      Left := Left_Of (Item);
+      Top := Top_Of (Item);
+      Wide_Box := Width_Of (Item);
+      High_Box := Height_Of (Item);
+      if Item.Style /= Quiet then
+         Pomarine.Boxes.Draw_Control
+           (Target, Colors, Face, Edge_Color, Edges, Left, Top, Wide_Box, High_Box, Pixels,
+            Bevelled => Item.Enabled, Sunken => Pressed or else Item.Selected);
          if Item.Focusable and then Has_Focus (Item) then
             Pomarine.Boxes.Outline
-              (Target, Colors.Focus, Left, Top, Wide_Box, High_Box,
+              (Target, Colors (Themes.Focus), Left, Top, Wide_Box, High_Box,
                Float'Max (1.0, Float'Rounding (Ring_Width * Pixels)));
          end if;
       end if;
@@ -351,7 +306,7 @@ package body Pomarine.Widgets.Buttons is
             Drawn : Boolean;
          begin
             Fill_Rect
-              (Target, Themes.Shade (Face), Line, Top + 2.0 * Edge, Edge,
+              (Target, Themes.Shadow_Of (Face), Line, Top + 2.0 * Edge, Edge,
                High_Box - 4.0 * Edge);
             Fill_Rect
               (Target, Themes.Highlight (Face), Line + Edge, Top + 2.0 * Edge,
@@ -437,8 +392,8 @@ package body Pomarine.Widgets.Buttons is
             begin
                Fill_Rect
                  (Target,
-                  (if Item.Enabled then Colors.Bar
-                   else Themes.Dull (Colors, Colors.Bar)),
+                  (if Item.Enabled then Colors (Themes.Bar)
+                   else Themes.Dull (Colors, Colors (Themes.Bar))),
                   Left_Edge, Top_Edge, Side, Side);
                Pomarine.Line_Texts.Draw
                  (Text_Lines (Item).all, Target, White, Count,

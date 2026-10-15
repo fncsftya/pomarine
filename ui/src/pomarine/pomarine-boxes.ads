@@ -43,12 +43,6 @@ package Pomarine.Boxes is
      (Float'Rounding (Themes.Shadow_Offset * Density));
    --  Of a shadow, in whole pixels.
 
-   function Lift (Density : Float) return Float is (0.0 * Density);
-   function Shift (Density : Float) return Float is (0.0 * Density);
-   --  In whole pixels: the shadow of a control that stands up, and how
-   --  far it goes when pressed in. Neither: it has no shadow, and the
-   --  bevel alone turns over.
-
    function Inset (Item : Look; Density : Float) return Float is
      (if Item.Shadowed then Offset (Density) else 0.0);
    --  What the shadow takes of the box at its right and its foot.
@@ -85,36 +79,31 @@ package Pomarine.Boxes is
    --  other way round if it is Sunken, as pressed in. Flat colours, never
    --  a gradient.
 
-   type Raised_Look is record
-      Face    : Themes.Color := (0, 0, 0, 255);
-      Edges_Given : Boolean := False;
-      --  Whether Lit and Shaded are the bevel's edges; if not, they are
-      --  made from Face.
-      Lit     : Themes.Color := (0, 0, 0, 255);  --  the bevel's light edge
-      Shaded  : Themes.Color := (0, 0, 0, 255);  --  its dark edge
-      Border  : Themes.Color := (0, 0, 0, 255);
-      Drop    : Themes.Color := (0, 0, 0, 255);
-      Pressed : Boolean := False;
-      Flat    : Boolean := False;
-   end record;
-   --  A control that stands up, as a button: a face, outlined, bevelled,
-   --  and no shadow; pressed, the bevel turns over;
-   --  Flat, as of one that is turned off, it has no bevel.
-
-   procedure Draw_Raised
+   procedure Draw_Control
      (Target  : SDL3.Windows.Renderers.Renderer;
-      Item    : Raised_Look;
+      Colors  : Themes.Theme;
+      Fill    : Themes.Color;
+      Edge_Color : Themes.Color;
+      Edges   : Themes.Bevel_Colors;
+      Left, Top, Width, Height : Float;
+      Density : Float;
+      Bevelled : Boolean := True;
+      Sunken  : Boolean := False)
+     with Pre => Density > 0.0;
+   --  A control's face: filled, and outlined a point wide just inside the
+   --  box, and, if the theme has a bevel (and Bevelled), with Edges just
+   --  inside the outline, turned over if Sunken, as of one held down.
+   --  Pressed, hovered or turned off is a matter of the colours given.
+
+   procedure Draw_Flat
+     (Target  : SDL3.Windows.Renderers.Renderer;
+      Fill    : Themes.Color;
+      Edge_Color : Themes.Color;
       Left, Top, Width, Height : Float;
       Density : Float)
      with Pre => Density > 0.0;
-   --  In the box, pressed or not.
-
-   procedure Raised_Face
-     (Item    : Raised_Look;
-      Left, Top, Width, Height : Float;
-      Density : Float;
-      Face_Left, Face_Top, Face_Width, Face_Height : out Float);
-   --  Where the face of a control so drawn is, in the box: what is on it
-   --  goes with it when it is pressed.
+   --  A control's face, flat: filled, and outlined a point wide just
+   --  inside the box. Pressed, hovered or turned off is a matter of the
+   --  colours it is given (see Pomarine.Themes.Tone_Color).
 
 end Pomarine.Boxes;

@@ -65,7 +65,7 @@ procedure Text_Area_Bench is
 
       procedure Draw is
       begin
-         Renderers.Clear (Target, Colors.Background);
+         Renderers.Clear (Target, Colors (Pomarine.Themes.Background));
          Text_Areas.Draw (Area, Target, Colors);
       end Draw;
 
@@ -338,7 +338,7 @@ begin
          for K in 1 .. 2_000 loop
             Text_Areas.Handle
               (Area, Events.Text_Event ("x"), Board, Handled);
-            Renderers.Clear (Target, Colors.Background);
+            Renderers.Clear (Target, Colors (Pomarine.Themes.Background));
             Text_Areas.Draw (Area, Target, Colors);
          end loop;
       end;

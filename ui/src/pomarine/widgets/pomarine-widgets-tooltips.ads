@@ -1,3 +1,4 @@
+with Pomarine_Ui_Config;
 with SDL3.Windows.Renderers;
 
 --  A tooltip: a short name for what is under the pointer, white on the
@@ -7,7 +8,7 @@ with SDL3.Windows.Renderers;
 --  no events.
 package Pomarine.Widgets.Tooltips is
 
-   Text_Capacity : constant := 48;
+   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Bytes.
 
    type Tooltip is new Widget with private;

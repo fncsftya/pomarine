@@ -1,9 +1,10 @@
+with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 
 --  A box to tick, or one of a set to choose among (a radio): a small white
---  square, sunk into what it is on, with a label after it, and a square of
+--  square, outlined, with a label after it, and a square of
 --  a colour between them if it is given one. A ticked box has a tick in
 --  it; a chosen radio, a dark square. There are no round corners, so a
 --  radio is square too.
@@ -15,7 +16,7 @@ with SDL3.Windows.Renderers;
 --  of radios. Turned off (Set_Enabled), it is faint and takes nothing.
 package Pomarine.Widgets.Checks is
 
-   Label_Capacity : constant := 48;
+   Label_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Bytes of label.
 
    type Kind is (Box, Radio);

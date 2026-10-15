@@ -86,6 +86,9 @@ package body Pomarine.Widgets.Selects is
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                Item.Clicked := Over;
+               if Over then
+                  Notify (Item, Click);
+               end if;
                Handled := True;
                Invalidate (Item);
             end if;
@@ -118,7 +121,7 @@ package body Pomarine.Widgets.Selects is
       Wide   : constant Float := Width_Of (Item);
       High   : constant Float := Height_Of (Item);
       Ink    : constant Themes.Color :=
-        (if Item.Enabled then Colors.Foreground else Themes.Quiet (Colors));
+        (if Item.Enabled then Colors (Themes.Foreground) else Colors (Themes.Muted));
       Around : constant Float := Edge + Float'Rounding (Inner * Pixels);
       Side   : constant Float := Float'Max (0.0, High - 2.0 * Around);
       --  The button, square, with its shadow, inside the outline.
@@ -126,33 +129,26 @@ package body Pomarine.Widgets.Selects is
       Pressed : constant Boolean :=
         Item.Enabled
         and then (Item.Open or else (Item.Down and then Is_Hovered (Item)));
-      Look : constant Pomarine.Boxes.Raised_Look :=
-        (Face    =>
-           (if not Item.Enabled then Themes.Dull (Colors, Colors.Face)
-            elsif Is_Hovered (Item) and then not Pressed
-            then Themes.Mix (Colors.Face, Themes.White, 0.22)
-            else Colors.Face),
-         Border  =>
-           (if Item.Enabled then Colors.Border
-            else Themes.Dull (Colors, Colors.Border)),
-         Edges_Given => False,
-         Lit => (0, 0, 0, 255),
-         Shaded => (0, 0, 0, 255),
-         Drop    => Colors.Drop_Shadow,
-         Pressed => Pressed,
-         Flat    => not Item.Enabled);
-      X, Y, W, H : Float;
    begin
       Fill_Rect
-        (Target, (if Item.Enabled then Themes.White else Colors.Tint),
+        (Target, (if Item.Enabled then Themes.White else Colors (Themes.Tint)),
          Left, Top, Wide, High);
       Pomarine.Boxes.Outline
-        (Target, (if Item.Open then Colors.Focus else Colors.Border),
+        (Target, (if Item.Open then Colors (Themes.Focus) else Colors (Themes.Border)),
          Left, Top, Wide, High, Edge);
-      Pomarine.Boxes.Draw_Raised (Target, Look, Button_Left, Top + Around, Side,
-                            Side, Pixels);
-      Pomarine.Boxes.Raised_Face
-        (Look, Button_Left, Top + Around, Side, Side, Pixels, X, Y, W, H);
+      declare
+         Face : constant Themes.Color :=
+           Colors.Face_For
+             (Enabled => Item.Enabled, Hovered => Is_Hovered (Item) and then not Pressed);
+      begin
+         Pomarine.Boxes.Draw_Control
+           (Target, Colors, Face,
+            (if Item.Enabled then Colors (Themes.Border)
+             else Themes.Dull (Colors, Colors (Themes.Border))),
+            (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
+            Button_Left, Top + Around, Side, Side, Pixels,
+            Bevelled => Item.Enabled, Sunken => Pressed);
+      end;
       if Icon_Library (Item) /= null then
          declare
             Size  : constant Positive :=
@@ -164,8 +160,8 @@ package body Pomarine.Widgets.Selects is
                (if Item.Open then Pomarine.Icons.Chevron_Up
                 else Pomarine.Icons.Chevron_Down),
                Ink,
-               Float'Rounding (X + (W - Float (Size)) / 2.0),
-               Float'Rounding (Y + (H - Float (Size)) / 2.0),
+               Float'Rounding (Button_Left + (Side - Float (Size)) / 2.0),
+               Float'Rounding (Top + Around + (Side - Float (Size)) / 2.0),
                Size, Drawn);
          end;
       end if;

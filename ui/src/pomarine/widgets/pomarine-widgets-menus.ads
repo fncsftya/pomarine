@@ -1,3 +1,4 @@
+with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
@@ -20,8 +21,8 @@ with Pomarine.Icons;
 --  is there, and hides it.
 package Pomarine.Widgets.Menus is
 
-   Row_Capacity  : constant := 24;
-   Text_Capacity : constant := 48;
+   Row_Capacity  : constant := Pomarine_Ui_Config.Menu_Rows;
+   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
    --  Rows, and bytes of the text of each.
 
    type Row_Kind is (Heading, Action, Check, Separator, Note);

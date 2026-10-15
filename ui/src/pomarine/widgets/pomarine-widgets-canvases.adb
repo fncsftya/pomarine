@@ -370,8 +370,8 @@ package body Pomarine.Widgets.Canvases is
    is
       Pixels  : constant Float := Density (Item);
       Part    : constant Pixel_Box := Painting_Part (Item);
-      Surface : constant Themes.Color := Colors.Background;
-      Ink     : constant Themes.Color := Colors.Border;
+      Surface : constant Themes.Color := Colors (Themes.Background);
+      Ink     : constant Themes.Color := Colors (Themes.Border);
       Side    : constant Float :=
         Float'Max (1.0, Float'Rounding (Dot * Pixels));
       Step    : Float := Grid;
@@ -422,8 +422,8 @@ package body Pomarine.Widgets.Canvases is
             if Each.Tag /= 0 and then Each.Tag = Item.Chosen then
                Draw_Line
                  (Target,
-                  (Colors.Accent.Red, Colors.Accent.Green,
-                   Colors.Accent.Blue, Halo_Alpha),
+                  (Colors (Themes.Accent).Red, Colors (Themes.Accent).Green,
+                   Colors (Themes.Accent).Blue, Halo_Alpha),
                   From_X, From_Y, To_X, To_Y, Halo_Width * Pixels);
             end if;
             Stroke (Target, Each, Colors, From_X, From_Y, To_X, To_Y, Pixels);
@@ -442,8 +442,8 @@ package body Pomarine.Widgets.Canvases is
          begin
             Draw_Line
               (Target,
-               (Colors.Foreground.Red, Colors.Foreground.Green,
-                Colors.Foreground.Blue, Ghost_Alpha),
+               (Colors (Themes.Foreground).Red, Colors (Themes.Foreground).Green,
+                Colors (Themes.Foreground).Blue, Ghost_Alpha),
                Here.From_X, Here.From_Y, Here.To_X, Here.To_Y,
                Float'Max (1.0, Link_Width * Density (Item)));
          end;
@@ -497,6 +497,7 @@ package body Pomarine.Widgets.Canvases is
                   if Tag /= Item.Chosen then
                      Set_Selected (Item, Tag);
                      Item.Chosen_Changed := True;
+                     Notify (Item, Select_Tag, Row => Tag);
                   end if;
                   Handled := Tag /= 0;
                end;
@@ -533,12 +534,14 @@ package body Pomarine.Widgets.Canvases is
                         or else Event.Key = SDL3.Events.Key_Delete)
             then
                Item.Delete_Asked := True;
+               Notify (Item, Delete);
                Handled := True;
             elsif not Event.Command and then Item.Chosen /= 0
               and then Event.Key = SDL3.Events.Key_Escape
             then
                Set_Selected (Item, 0);
                Item.Chosen_Changed := True;
+               Notify (Item, Select_Tag, Row => 0);
                Handled := True;
             elsif Event.Command then
                Handled := True;

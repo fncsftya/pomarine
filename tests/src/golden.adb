@@ -4,6 +4,7 @@ with Ada.Text_IO;
 with Document_Tests;
 with Field_Tests;
 with Goldens;
+with Listener_Tests;
 with Picture_Tests;
 with Sheet_Tests;
 with Text_Area_Tests;
@@ -89,6 +90,13 @@ begin
    Run ("widgets-hiding", Widget_Tests.Hiding'Access);
    Run ("widgets-removing", Widget_Tests.Removing'Access);
    Run ("widgets-window", Widget_Tests.Window_Frame'Access);
+
+   Run ("listener-click", Listener_Tests.Click'Access);
+   Run ("listener-commands", Listener_Tests.Command_Tags'Access);
+   Run ("listener-own", Listener_Tests.Own_Listener'Access);
+   Run ("listener-deferred", Listener_Tests.Deferred'Access);
+   Run ("listener-controls", Listener_Tests.Controls'Access);
+   Run ("layouts-helpers", Listener_Tests.Layout_Helpers'Access);
 
    Run ("sheet-board", Sheet_Tests.Board'Access);
    Run ("sheet-states", Sheet_Tests.States'Access);

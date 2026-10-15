@@ -177,6 +177,9 @@ package body Pomarine.Widgets.Grips is
             then
                Item.Held := True;
                Item.Doubled := Item.Doubled or else Event.Clicks >= 2;
+               if Event.Clicks >= 2 then
+                  Notify (Item, Double_Click);
+               end if;
                Item.Last_X := Event.Mouse_X;
                Item.Last_Y := Event.Mouse_Y;
                Handled := True;
@@ -185,6 +188,9 @@ package body Pomarine.Widgets.Grips is
             if Item.Held then
                Item.Across := Item.Across + Event.Mouse_X - Item.Last_X;
                Item.Down := Item.Down + Event.Mouse_Y - Item.Last_Y;
+               Notify
+                 (Item, Drag, Across => Event.Mouse_X - Item.Last_X,
+                  Down => Event.Mouse_Y - Item.Last_Y);
                Item.Last_X := Event.Mouse_X;
                Item.Last_Y := Event.Mouse_Y;
                Handled := True;
@@ -196,6 +202,9 @@ package body Pomarine.Widgets.Grips is
                  Contains
                    (Item, Event.Mouse_X * Density (Item),
                     Event.Mouse_Y * Density (Item));
+               if Item.Clicked then
+                  Notify (Item, Click);
+               end if;
                Handled := True;
             end if;
          when others =>
@@ -210,7 +219,7 @@ package body Pomarine.Widgets.Grips is
    is
       Side : constant Float := Float'Rounding (Dot_Size * Density (Item));
       Ink  : constant Themes.Color :=
-        Themes.Mix (Colors.Background, Colors.Foreground, 0.55);
+        Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.55);
       Edge : constant Float := Left_Of (Item) + Width_Of (Item) - 2.0 * Side;
       Base : constant Float := Top_Of (Item) + Height_Of (Item) - 2.0 * Side;
       Look : Pomarine.Boxes.Look := Item.Look;

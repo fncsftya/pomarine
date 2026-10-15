@@ -7,7 +7,7 @@ licenses = "GPL-3.0-only"
 website = ""
 tags = []
 
-executables = ["bench", "text_area_bench", "widget_bench", "item_bench"]
+executables = ["bench", "text_area_bench", "widget_bench", "ui_bench"]
 
 [available.'case(os)']
 macos = true
