@@ -70,6 +70,10 @@ package SDL3.Windows is
    --  dragged. Off, the content has the whole top of the window, and the
    --  program moves the window itself with Set_Position. Nothing elsewhere.
 
+   function Raw_Handle (Item : Window) return System.Address
+     with Pre => Is_Open (Item);
+   --  The SDL window, for SDL's own interfaces (see SDL3.Dialogs).
+
    function Native_Handle (Item : Window) return System.Address
      with Pre => Is_Open (Item);
    --  On macOS, the window's NSWindow, for the system's own interfaces to

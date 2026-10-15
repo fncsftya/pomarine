@@ -86,7 +86,7 @@ Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
 Z system.soft_links%s	s-soflin.adb		s-soflin.ali
 Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
 
-U pomarine.accessibility%s  pomarine-accessibility.ads  25d9a5be EE OO PF PK
+U pomarine.accessibility%s  pomarine-accessibility.ads  82ad294d EE OO PF PK
 W ada%s			ada.ads			ada.ali
 W ada.finalization%s	a-finali.ads		a-finali.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
@@ -152,7 +152,7 @@ D sdl3-events.ads	20261015130932 bba06f89 sdl3.events%s
 D sdl3-painters.ads	20261015120609 4433428e sdl3.painters%s
 D sdl3-pictures.ads	20261015101840 37e92f70 sdl3.pictures%s
 D sdl3-thin.ads		20261015122921 ba5ff48f sdl3.thin%s
-D sdl3-windows.ads	20261015122825 9345ea6e sdl3.windows%s
+D sdl3-windows.ads	20261015171149 3431669d sdl3.windows%s
 D sdl3-windows-renderers.ads  20261015120609 ecd218f0 sdl3.windows.renderers%s
 D sdl3-windows-renderers-textures.ads  20261015101840 ba7c6adb sdl3.windows.renderers.textures%s
 D system.ads		20260610194523 8a611ac3 system%s
@@ -586,10 +586,10 @@ X 47 sdl3-events.ads
 X 48 sdl3-painters.ads
 26h9*Painter
 X 51 sdl3-windows.ads
-4K14*Windows 36|3w11 28r59 29r24 37|235r59 236r48 51|94e17
-6R9*Window<13|50R9> 36|28r67 37|235r67 51|90e14
+4K14*Windows 36|3w11 28r59 29r24 37|235r59 236r48 51|98e17
+6R9*Window<13|50R9> 36|28r67 37|235r67 51|94e14
 21V13*Is_Open{boolean} 36|29s32
-73V13*Native_Handle{54|67M9} 37|236s56
+77V13*Native_Handle{54|67M9} 37|236s56
 X 54 system.ads
 37K9*System 36|2w6 90r17 90r35 92r17 92r35 37|7r13 25r23 27r23 29r23 36r23
 . 55r56 59r22 63r22 72r19 75r19 75r42 78r37 81r41 85r16 86r16 87r16 91r45

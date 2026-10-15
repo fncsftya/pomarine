@@ -70,6 +70,13 @@ package Pomarine.Native_Menus is
    procedure Choose (Item : in out Menu_Bar; Tag : Integer);
    --  As if the item that says Tag had been chosen: for a test.
 
+   procedure Discard (Item : in out Menu_Bar; Tag : Integer);
+   --  The command Tag was done already, by the key it is chosen with
+   --  reaching a widget: a key equivalent is both the menu's, which says
+   --  Tag, and a key event, which the widget took. Drop the choice of Tag
+   --  that is waiting, or, if it has not come yet, the next one (so that
+   --  Pump does not do it twice), if it comes as soon as the next Pump.
+
 private
 
    type Menu is record
@@ -85,10 +92,16 @@ private
       procedure Put (Tag : Integer);
       procedure Take (Tag : out Integer; Found : out Boolean);
       function Waiting return Boolean;
+      procedure Discard (Tag : Integer);
+      procedure Tick;
+      --  Discard drops a waiting Tag, else the next one Put, until the
+      --  second Tick after it.
    private
-      Items : Chosen_Array;
-      First : Positive := 1;
-      Count : Natural := 0;
+      Items   : Chosen_Array;
+      First   : Positive := 1;
+      Count   : Natural := 0;
+      Skip    : Integer := Widgets.No_Tag;
+      Skip_At : Natural := 0;
    end Mailbox;
 
    type Menu_Bar is limited record

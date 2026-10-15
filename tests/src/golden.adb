@@ -78,6 +78,7 @@ begin
    Run ("textarea-two-views", Text_Area_Tests.Two_Views'Access);
    Run ("textarea-long-paragraph", Text_Area_Tests.Long_Paragraph'Access);
    Run ("textarea-caret-box", Text_Area_Tests.Caret_Box_Kept'Access);
+   Run ("textarea-read-only", Text_Area_Tests.Read_Only'Access);
 
    Run ("field-typing", Field_Tests.Typing'Access);
    Run ("field-return", Field_Tests.Returning'Access);

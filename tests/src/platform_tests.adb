@@ -113,6 +113,31 @@ package body Platform_Tests is
       Widgets.Deliver (Tree);
       Goldens.Check_Text ("menus-performed", "2 35", Image (Heard.Count) & " " & Heard.Tags (1 .. 2));
       Goldens.Check_Text ("menus-done", "FALSE", Pomarine.Native_Menus.Is_Waiting (Bar)'Image);
+
+      --  A key that a widget took is also the menu item's key equivalent:
+      --  what the system says was chosen is dropped, whichever came first.
+      Heard.Count := 0;
+      Pomarine.Native_Menus.Choose (Bar, 3);
+      Pomarine.Native_Menus.Choose (Bar, 5);
+      Pomarine.Native_Menus.Discard (Bar, 3);
+      Pomarine.Native_Menus.Pump (Bar, Tree);
+      Pomarine.Native_Menus.Discard (Bar, 4);
+      Pomarine.Native_Menus.Choose (Bar, 4);
+      Pomarine.Native_Menus.Choose (Bar, 4);
+      Pomarine.Native_Menus.Pump (Bar, Tree);
+      Widgets.Deliver (Tree);
+      Goldens.Check_Text
+        ("menus-discarded", "2 54", Image (Heard.Count) & " " & Heard.Tags (1 .. 2));
+
+      --  Only the next Pump or the one after it: not a choice for ever.
+      Heard.Count := 0;
+      Pomarine.Native_Menus.Discard (Bar, 6);
+      Pomarine.Native_Menus.Pump (Bar, Tree);
+      Pomarine.Native_Menus.Pump (Bar, Tree);
+      Pomarine.Native_Menus.Choose (Bar, 6);
+      Pomarine.Native_Menus.Pump (Bar, Tree);
+      Widgets.Deliver (Tree);
+      Goldens.Check_Text ("menus-discard-expired", "1", Image (Heard.Count));
    end Menu_Choices;
 
    procedure System_Settings is

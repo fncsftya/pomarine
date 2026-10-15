@@ -665,6 +665,28 @@ package body Text_Area_Tests is
    --  Where the caret is drawn is kept while nothing it depends on
    --  changes, and is as if worked out afresh after anything does.
 
+   --  A read-only text area can be selected and copied, and nothing else.
+
+   procedure Read_Only is
+      Item : Fixture;
+   begin
+      Open (Item, "Skuas winter at sea");
+      Text_Areas.Set_Read_Only (Item.Area);
+      Type_In (Item, "typed ");
+      Press (Item, Events.Key_Backspace);
+      Press (Item, Events.Key_V, Command => True);
+      Press (Item, Events.Key_X, Command => True);
+      Press (Item, Events.Key_Z, Command => True);
+      Goldens.Check_Text ("read-only-unchanged", "Skuas winter at sea", Docs.Whole (Item.Doc));
+      Press (Item, Events.Key_A, Command => True);
+      Press (Item, Events.Key_C, Command => True);
+      Goldens.Check_Text
+        ("read-only-copied", "Skuas winter at sea", Pomarine.Clipboards.Text (Item.Board));
+      Text_Areas.Set_Read_Only (Item.Area, False);
+      Type_In (Item, "typed ");
+      Goldens.Check_Text ("read-only-off", "typed ", Docs.Whole (Item.Doc) (1 .. 6));
+   end Read_Only;
+
    procedure Caret_Box_Kept is
       A, B : Fixture;
 
