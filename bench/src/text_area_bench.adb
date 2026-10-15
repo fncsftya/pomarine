@@ -8,9 +8,9 @@ with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Typeset.Samples;
-with UI.Clipboards;
-with UI.Text_Areas;
-with UI.Themes;
+with Pomarine.Clipboards;
+with Pomarine.Text_Areas;
+with Pomarine.Themes;
 
 --  Measures editing in a text area, as the app does it, on documents of
 --  several sizes: text_area_bench [paragraphs ...]. Each edit is timed by
@@ -19,13 +19,13 @@ with UI.Themes;
 procedure Text_Area_Bench is
    package Events renames SDL3.Events;
    package Renderers renames SDL3.Windows.Renderers;
-   package Text_Areas renames UI.Text_Areas;
+   package Text_Areas renames Pomarine.Text_Areas;
    package Docs renames Texts.Documents;
 
    use Ada.Real_Time;
    use Ada.Text_IO;
 
-   Colors : constant UI.Themes.Theme := UI.Themes.Light;
+   Colors : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
 
    procedure Report (What : String; Millis : Float) is
       Shown : String (1 .. 10);
@@ -48,7 +48,7 @@ procedure Text_Area_Bench is
       Paragraphs : Positive := 1;
       Doc   : aliased Docs.Document;
       Area  : Text_Areas.Text_Area;  --  after Target and Doc
-      Board : UI.Clipboards.Memory_Clipboard;
+      Board : Pomarine.Clipboards.Memory_Clipboard;
       Width, Height : Natural;
       Density : constant Float := SDL3.Windows.Pixel_Density (Win);
 
@@ -326,7 +326,7 @@ begin
          Doc_Text : constant String := One_Long (1_000_000);
          Doc   : aliased Docs.Document;
          Area  : Text_Areas.Text_Area;
-         Board : UI.Clipboards.Memory_Clipboard;
+         Board : Pomarine.Clipboards.Memory_Clipboard;
          Handled : Boolean;
       begin
          Docs.Load (Doc, Doc_Text);

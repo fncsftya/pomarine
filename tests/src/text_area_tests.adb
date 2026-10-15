@@ -4,19 +4,19 @@ with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Goldens;
 with Typeset.Samples;
-with UI.Clipboards;
-with UI.Text_Areas;
-with UI.Themes;
+with Pomarine.Clipboards;
+with Pomarine.Text_Areas;
+with Pomarine.Themes;
 
 package body Text_Area_Tests is
 
    package Events renames SDL3.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
-   package Text_Areas renames UI.Text_Areas;
+   package Text_Areas renames Pomarine.Text_Areas;
    package Docs renames Texts.Documents;
 
-   Colors : constant UI.Themes.Theme := UI.Themes.Light;
+   Colors : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
 
    Sample : constant String := Typeset.Samples.Document (200);
 
@@ -35,7 +35,7 @@ package body Text_Area_Tests is
       Target : Renderers.Renderer;
       Doc    : aliased Docs.Document;
       Area   : Text_Areas.Text_Area;  --  after Target and Doc
-      Board  : UI.Clipboards.Memory_Clipboard;
+      Board  : Pomarine.Clipboards.Memory_Clipboard;
    end record;
 
    procedure Open
@@ -575,7 +575,7 @@ package body Text_Area_Tests is
       Doc     : aliased Docs.Document;
       Narrow  : Text_Areas.Text_Area;  --  after Target and Doc
       Broad   : Text_Areas.Text_Area;
-      Board   : UI.Clipboards.Memory_Clipboard;
+      Board   : Pomarine.Clipboards.Memory_Clipboard;
       Drawn   : Images.Image;
       Handled : Boolean;
    begin

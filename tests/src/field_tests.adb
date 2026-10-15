@@ -2,10 +2,10 @@ with SDL3.Events;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Goldens;
-with UI.Clipboards;
-with UI.Themes;
-with UI.Widgets.Panels;
-with UI.Widgets.Text_Fields;
+with Pomarine.Clipboards;
+with Pomarine.Themes;
+with Pomarine.Widgets.Panels;
+with Pomarine.Widgets.Text_Fields;
 with Yoga.Nodes;
 
 package body Field_Tests is
@@ -13,11 +13,11 @@ package body Field_Tests is
    package Events renames SDL3.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
-   package Widgets renames UI.Widgets;
+   package Widgets renames Pomarine.Widgets;
    package Docs renames Texts.Documents;
    package Nodes renames Yoga.Nodes;
 
-   Colors : constant UI.Themes.Theme := UI.Themes.Light;
+   Colors : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
 
    --  A field in a window, drawn in software:
    --
@@ -37,9 +37,9 @@ package body Field_Tests is
       Tree   : Widgets.Tree;
       Target : Renderers.Renderer;
       Doc    : aliased Docs.Document;
-      Board  : UI.Clipboards.Memory_Clipboard;
-      Root   : aliased UI.Widgets.Panels.Panel;
-      Field  : aliased UI.Widgets.Text_Fields.Text_Field;
+      Board  : Pomarine.Clipboards.Memory_Clipboard;
+      Root   : aliased Pomarine.Widgets.Panels.Panel;
+      Field  : aliased Pomarine.Widgets.Text_Fields.Text_Field;
       --  after Target and Doc
    end record;
 
@@ -55,8 +55,8 @@ package body Field_Tests is
 
       Widgets.Set_Root (Item.Tree, Item.Root);
       Widgets.Add (Item.Root, Item.Field);
-      UI.Widgets.Text_Fields.Configure (Item.Field, "Georgia", Size => 16.0);
-      UI.Widgets.Text_Fields.Attach (Item.Field, Item.Doc'Unchecked_Access);
+      Pomarine.Widgets.Text_Fields.Configure (Item.Field, "Georgia", Size => 16.0);
+      Pomarine.Widgets.Text_Fields.Attach (Item.Field, Item.Doc'Unchecked_Access);
       Widgets.Focus (Item.Field);
 
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Root), Yoga.Column);
@@ -121,7 +121,7 @@ package body Field_Tests is
    function Returned (Item : in out Fixture) return Boolean is
       Result : Boolean;
    begin
-      UI.Widgets.Text_Fields.Take_Return (Item.Field, Result);
+      Pomarine.Widgets.Text_Fields.Take_Return (Item.Field, Result);
       return Result;
    end Returned;
 

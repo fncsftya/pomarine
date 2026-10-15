@@ -4,14 +4,14 @@ with SDL3.Events;
 with SDL3.Windows.Renderers;
 with SDL3.Windows;
 with SDL3;
-with UI.Text_Areas;
+with Pomarine.Text_Areas;
 with Texts.Documents;
 with Goldens;
-with UI.Clipboards;
-with UI.Themes;
-with UI.Widgets.Buttons;
-with UI.Widgets.Editors;
-with UI.Widgets.Panels;
+with Pomarine.Clipboards;
+with Pomarine.Themes;
+with Pomarine.Widgets.Buttons;
+with Pomarine.Widgets.Editors;
+with Pomarine.Widgets.Panels;
 with Yoga.Nodes;
 
 package body Widget_Tests is
@@ -19,14 +19,14 @@ package body Widget_Tests is
    package Events renames SDL3.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
-   package Widgets renames UI.Widgets;
-   package Panels renames UI.Widgets.Panels;
+   package Widgets renames Pomarine.Widgets;
+   package Panels renames Pomarine.Widgets.Panels;
    package Docs renames Texts.Documents;
    package Nodes renames Yoga.Nodes;
 
    use type Widgets.Widget_Access;
 
-   Colors : constant UI.Themes.Theme := UI.Themes.Light;
+   Colors : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
 
    --  A window of a bar of three buttons above a text area, drawn in
    --  software:
@@ -43,13 +43,13 @@ package body Widget_Tests is
       Tree   : Widgets.Tree;
       Target : Renderers.Renderer;
       Doc    : aliased Docs.Document;
-      Board  : UI.Clipboards.Memory_Clipboard;
+      Board  : Pomarine.Clipboards.Memory_Clipboard;
       Root   : aliased Panels.Panel;
       Bar    : aliased Panels.Panel;
-      First  : aliased UI.Widgets.Buttons.Button;
-      Second : aliased UI.Widgets.Buttons.Button;
-      Third  : aliased UI.Widgets.Buttons.Button;
-      Page   : aliased UI.Widgets.Editors.Editor;
+      First  : aliased Pomarine.Widgets.Buttons.Button;
+      Second : aliased Pomarine.Widgets.Buttons.Button;
+      Third  : aliased Pomarine.Widgets.Buttons.Button;
+      Page   : aliased Pomarine.Widgets.Editors.Editor;
       --  after Target and Doc
    end record;
 
@@ -71,13 +71,13 @@ package body Widget_Tests is
       Widgets.Add (Item.Root, Item.Page);
 
       Panels.Set_Fill_Color (Item.Bar, (52, 54, 66, 255));
-      UI.Widgets.Buttons.Set_Label (Item.First, "One");
-      UI.Widgets.Buttons.Set_Label (Item.Second, "Two");
-      UI.Widgets.Buttons.Set_Label (Item.Third, "Three");
-      UI.Widgets.Editors.Configure
+      Pomarine.Widgets.Buttons.Set_Label (Item.First, "One");
+      Pomarine.Widgets.Buttons.Set_Label (Item.Second, "Two");
+      Pomarine.Widgets.Buttons.Set_Label (Item.Third, "Three");
+      Pomarine.Widgets.Editors.Configure
         (Item.Page, "Georgia", Size => 18.0, Measure => 640.0,
          Spacing => 8.0);
-      UI.Widgets.Editors.Attach (Item.Page, Item.Doc'Unchecked_Access);
+      Pomarine.Widgets.Editors.Attach (Item.Page, Item.Doc'Unchecked_Access);
       Widgets.Focus (Item.Page);
 
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Root), Yoga.Column);
@@ -158,9 +158,9 @@ package body Widget_Tests is
       Result : Boolean;
    begin
       case Which is
-         when 1 => UI.Widgets.Buttons.Take_Click (Item.First, Result);
-         when 2 => UI.Widgets.Buttons.Take_Click (Item.Second, Result);
-         when others => UI.Widgets.Buttons.Take_Click (Item.Third, Result);
+         when 1 => Pomarine.Widgets.Buttons.Take_Click (Item.First, Result);
+         when 2 => Pomarine.Widgets.Buttons.Take_Click (Item.Second, Result);
+         when others => Pomarine.Widgets.Buttons.Take_Click (Item.Third, Result);
       end case;
       return Result;
    end Clicked;
@@ -269,20 +269,20 @@ package body Widget_Tests is
       --  Pressing it, and letting go over it, is a click.
       Send (Item, Press (First_At, Bar_Y), Taken => True);
       Check_Flag ("widgets-buttons-pressed", True,
-                  UI.Widgets.Buttons.Is_Pressed (Item.First));
+                  Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
       Check_Painted (Item, "widgets-buttons-pressed");
       Send (Item, Release (First_At, Bar_Y), Taken => True);
       Check_Flag ("widgets-buttons-clicked", True, Clicked (Item, 1));
       Check_Flag ("widgets-buttons-clicked-once", False, Clicked (Item, 1));
       Check_Flag ("widgets-buttons-let-go", False,
-                  UI.Widgets.Buttons.Is_Pressed (Item.First));
+                  Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
 
       --  Pressing it and letting go elsewhere is not. The button still
       --  has the pointer's release, though it is over another.
       Send (Item, Press (First_At, Bar_Y), Taken => True);
       Send (Item, Move (Second_At, Bar_Y, Held => True), Taken => False);
       Check_Flag ("widgets-buttons-dragged-off", False,
-                  UI.Widgets.Buttons.Is_Pressed (Item.First));
+                  Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
       Check_Flag ("widgets-buttons-dragged-onto", True,
                   Widgets.Is_Hovered (Item.Second));
       Check_Painted (Item, "widgets-buttons-dragged-off", Golden => False);
@@ -297,11 +297,11 @@ package body Widget_Tests is
       Send (Item, Release (Gap_At, Bar_Y), Taken => False);
 
       --  The label is changed with the usual care.
-      UI.Widgets.Buttons.Set_Label (Item.Third, "Three");
+      Pomarine.Widgets.Buttons.Set_Label (Item.Third, "Three");
       Check_Flag ("widgets-buttons-same-label", False,
                   Widgets.Needs_Paint (Item.Tree) and then False);
       Paint (Item);
-      UI.Widgets.Buttons.Set_Label (Item.Third, "3");
+      Pomarine.Widgets.Buttons.Set_Label (Item.Third, "3");
       Goldens.Check_Text
         ("widgets-buttons-label-damage", "344,8 160x48",
          Text_Of (Widgets.Damage (Item.Tree)));
@@ -319,7 +319,7 @@ package body Widget_Tests is
       Send (Item, Release (First_At, Bar_Y), Taken => True);
       Check_Flag ("widgets-focus-kept", True, Widgets.Has_Focus (Item.Page));
       Check_Flag ("widgets-focus-kept-in-editor", True,
-                  UI.Widgets.Editors.Is_Focused (Item.Page));
+                  Pomarine.Widgets.Editors.Is_Focused (Item.Page));
 
       --  Typing goes to the text area.
       Send (Item, Events.Text_Event ("!"), Taken => True);
@@ -332,7 +332,7 @@ package body Widget_Tests is
       Send (Item, Release (Gap_At, Bar_Y), Taken => False);
       Check_Flag ("widgets-focus-lost", False, Widgets.Has_Focus (Item.Page));
       Check_Flag ("widgets-focus-lost-in-editor", False,
-                  UI.Widgets.Editors.Is_Focused (Item.Page));
+                  Pomarine.Widgets.Editors.Is_Focused (Item.Page));
       Check_Flag ("widgets-focus-none", True,
                   Widgets.Focus_Of (Item.Tree) = null);
       Send (Item, Events.Text_Event ("?"), Taken => False);
@@ -462,7 +462,7 @@ package body Widget_Tests is
       Widgets.Set_Settled (Item.Tree, False);
       Check_Painted (Item, "widgets-retained-unsettled", Golden => False);
       Widgets.Set_Settled (Item.Tree, True);
-      UI.Widgets.Editors.Set_Zoom (Item.Page, 2.0);
+      Pomarine.Widgets.Editors.Set_Zoom (Item.Page, 2.0);
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Painted (Item, "widgets-retained-zoomed", Golden => True);
    end Retained;
@@ -527,7 +527,7 @@ package body Widget_Tests is
       Before, After : Natural;
 
       function Drawn return Natural is
-        (UI.Text_Areas.Lines_Drawn (UI.Widgets.Editors.Area (Item.Page).all));
+        (Pomarine.Text_Areas.Lines_Drawn (Pomarine.Widgets.Editors.Area (Item.Page).all));
    begin
       Open (Item, Text);
       Paint (Item);
@@ -686,7 +686,7 @@ package body Widget_Tests is
       Check_Flag ("widgets-removing-no-focus", True,
                   Widgets.Focus_Of (Item.Tree) = null);
       Check_Flag ("widgets-removing-unfocused", False,
-                  UI.Widgets.Editors.Is_Focused (Item.Page));
+                  Pomarine.Widgets.Editors.Is_Focused (Item.Page));
       Check_Painted (Item, "widgets-removing-page", Golden => False);
 
       --  A whole branch goes, and is not in the tree: nor are its parts.

@@ -15,19 +15,18 @@ macos = true
 
 [[depends-on]]
 pomarine = "*"
+pomarine_goldens = "*"
 pomarine_ui = "*"
 texts = "*"
 
 [[pins]]
 pomarine = { path = ".." }
+pomarine_goldens = { path = "../goldens" }
 pomarine_ui = { path = "../ui" }
 coretext = { path = "../coretext" }
 sdl3 = { path = "../sdl3" }
-speech = { path = "../speech" }
 texts = { path = "../texts" }
 typeset = { path = "../typeset" }
-vision = { path = "../vision" }
-webshot = { path = "../webshot" }
 yoga = { path = "../yoga" }
 
 [build-switches]

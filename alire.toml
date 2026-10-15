@@ -13,7 +13,6 @@ coretext = "*"
 sdl3 = "*"
 texts = "*"
 typeset = "*"
-vision = "*"
 yoga = "*"
 
 [[pins]]
@@ -22,7 +21,6 @@ coretext = { path = "coretext" }
 sdl3 = { path = "sdl3" }
 texts = { path = "texts" }
 typeset = { path = "typeset" }
-vision = { path = "vision" }
 yoga = { path = "yoga" }
 
 [build-switches]

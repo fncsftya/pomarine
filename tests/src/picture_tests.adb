@@ -2,12 +2,11 @@ with SDL3.Events;
 with SDL3.Pictures.Jobs;
 with SDL3.Windows.Renderers;
 with Goldens;
-with UI.Clipboards;
-with UI.Themes;
-with UI.Widgets.Panels;
-with UI.Widgets.Pictures;
-with Vision.Layout;
-with Vision;
+with Pomarine.Clipboards;
+with Pomarine.Themes;
+with Pomarine.Words;
+with Pomarine.Widgets.Panels;
+with Pomarine.Widgets.Pictures;
 with Yoga.Nodes;
 
 package body Picture_Tests is
@@ -15,11 +14,11 @@ package body Picture_Tests is
    package Events renames SDL3.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
-   package Widgets renames UI.Widgets;
-   package Pictures renames UI.Widgets.Pictures;
+   package Widgets renames Pomarine.Widgets;
+   package Pictures renames Pomarine.Widgets.Pictures;
    package Nodes renames Yoga.Nodes;
 
-   Colors  : constant UI.Themes.Theme := UI.Themes.Light;
+   Colors  : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
    Density : constant Float := 2.0;
    Width   : constant := 360;
    Height  : constant := 200;
@@ -32,7 +31,7 @@ package body Picture_Tests is
    Text_Of_Words : constant String :=
      "alphabetagammadeltaepsilonzeta";
 
-   Found : aliased Vision.Result;
+   Found : aliased Pomarine.Words.Result;
 
    procedure Word
      (Index : Positive; First, Last, Line : Positive;
@@ -59,8 +58,8 @@ package body Picture_Tests is
    type Fixture is limited record
       Tree    : Widgets.Tree;
       Target  : Renderers.Renderer;
-      Board   : UI.Clipboards.Memory_Clipboard;
-      Root    : aliased UI.Widgets.Panels.Panel;
+      Board   : Pomarine.Clipboards.Memory_Clipboard;
+      Root    : aliased Pomarine.Widgets.Panels.Panel;
       Picture : aliased Pictures.Picture;
    end record;
 
@@ -181,7 +180,7 @@ package body Picture_Tests is
       --  Copied.
       Send (Item, Chord (Events.Key_C), Taken => True);
       Goldens.Check_Text
-        ("picture-copied", "delta epsilon", UI.Clipboards.Text (Item.Board));
+        ("picture-copied", "delta epsilon", Pomarine.Clipboards.Text (Item.Board));
 
       --  All, then none: a click that is on no word clears it.
       Send (Item, Chord (Events.Key_A), Taken => True);
@@ -234,83 +233,5 @@ package body Picture_Tests is
       Send (Item, Release (At_X (Item, 2), At_Y (Item, 2)), Taken => False);
       Check_Selected ("picture-scrolled-word", "beta", Item);
    end Following_The_Picture;
-
-   --  A page of two columns, with a line under both, as Vision finds it:
-   --  a line at a time, down the page, the left of each before the right.
-
-   procedure Columns is
-      Page : Vision.Result;
-      Used : Natural := 0;
-
-      procedure Add (Text : String; Line : Positive; Left, Top : Float) is
-      begin
-         Page.Count := Page.Count + 1;
-         Page.Text (Used + 1 .. Used + Text'Length) := Text;
-         Page.Words (Page.Count) :=
-           (Line => Line, First => Used + 1, Last => Used + Text'Length,
-            Left => Left, Top => Top, Width => 0.1, Height => 0.01);
-         Used := Used + Text'Length;
-         Page.Length := Used;
-      end Add;
-
-      function Reading return String is
-         Result : String (1 .. 200);
-         Last   : Natural := 0;
-      begin
-         for Index in 1 .. Page.Count loop
-            declare
-               Text : constant String :=
-                 Vision.Image (Page.Words (Index), Page);
-               Mark : constant String :=
-                 (if Index = 1 then ""
-                  elsif Page.Words (Index).Line = Page.Words (Index - 1).Line
-                  then " " else "/");
-            begin
-               Result (Last + 1 .. Last + Mark'Length + Text'Length) :=
-                 Mark & Text;
-               Last := Last + Mark'Length + Text'Length;
-            end;
-         end loop;
-         return Result (1 .. Last);
-      end Reading;
-   begin
-      --  Down the page, left then right, as a plain sort would have them.
-      Add ("L1", 1, 0.05, 0.10);
-      Add ("R1", 2, 0.55, 0.10);
-      Add ("L2", 3, 0.05, 0.13);
-      Add ("R2", 4, 0.55, 0.13);
-      Add ("L3", 5, 0.05, 0.16);
-      Add ("R3", 6, 0.55, 0.16);
-      --  Across the page: no gutter in it.
-      Add ("foot", 7, 0.05, 0.50);
-      Add ("ends", 7, 0.16, 0.50);
-      Add ("here", 7, 0.27, 0.50);
-      Add ("past", 7, 0.38, 0.50);
-      Add ("it", 7, 0.49, 0.50);
-      Add ("far", 7, 0.60, 0.50);
-      Vision.Layout.Reading_Order (Page, Aspect => 2.0);
-      Goldens.Check_Text
-        ("columns-read", "L1/L2/L3/R1/R2/R3/foot ends here past it far",
-         Reading);
-
-      --  A line Vision made of both columns is cut at the gutter.
-      Page.Count := 0;
-      Used := 0;
-      Add ("L1", 1, 0.05, 0.10);
-      Add ("R1", 1, 0.55, 0.10);
-      Add ("L2", 2, 0.05, 0.13);
-      Add ("R2", 2, 0.55, 0.13);
-      Vision.Layout.Reading_Order (Page, Aspect => 2.0);
-      Goldens.Check_Text ("columns-split", "L1/L2/R1/R2", Reading);
-
-      --  One column is read down.
-      Page.Count := 0;
-      Used := 0;
-      Add ("b", 2, 0.05, 0.20);
-      Add ("a", 1, 0.05, 0.10);
-      Add ("c", 3, 0.05, 0.30);
-      Vision.Layout.Reading_Order (Page, Aspect => 2.0);
-      Goldens.Check_Text ("columns-one", "a/b/c", Reading);
-   end Columns;
 
 end Picture_Tests;

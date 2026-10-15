@@ -5,6 +5,5 @@ package Picture_Tests is
 
    procedure Selecting;
    procedure Following_The_Picture;
-   procedure Columns;
 
 end Picture_Tests;

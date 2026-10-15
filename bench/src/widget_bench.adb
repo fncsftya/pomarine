@@ -8,11 +8,11 @@ with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Typeset.Samples;
-with UI.Clipboards;
-with UI.Themes;
-with UI.Widgets.Buttons;
-with UI.Widgets.Editors;
-with UI.Widgets.Panels;
+with Pomarine.Clipboards;
+with Pomarine.Themes;
+with Pomarine.Widgets.Buttons;
+with Pomarine.Widgets.Editors;
+with Pomarine.Widgets.Panels;
 with Yoga.Nodes;
 
 --  Measures what a frame costs through the widget tree, in a hidden window
@@ -23,7 +23,7 @@ with Yoga.Nodes;
 procedure Widget_Bench is
    package Events renames SDL3.Events;
    package Renderers renames SDL3.Windows.Renderers;
-   package Widgets renames UI.Widgets;
+   package Widgets renames Pomarine.Widgets;
    package Docs renames Texts.Documents;
    package Nodes renames Yoga.Nodes;
 
@@ -31,7 +31,7 @@ procedure Widget_Bench is
    use type SDL3.Events.Milliseconds;
    use Ada.Text_IO;
 
-   Colors  : constant UI.Themes.Theme := UI.Themes.Light;
+   Colors  : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
    Density : constant Float := 2.0;
    Frames  : constant Positive :=
      (if Ada.Command_Line.Argument_Count > 1
@@ -64,7 +64,7 @@ procedure Widget_Bench is
       Button : aliased Widgets.Buttons.Button;
       Text_Box : aliased Widgets.Editors.Editor;
       Doc    : aliased Docs.Document;
-      Board  : UI.Clipboards.Memory_Clipboard;
+      Board  : Pomarine.Clipboards.Memory_Clipboard;
       Handled : Boolean;
       Start   : Time;
       Now     : SDL3.Events.Milliseconds := 0;
@@ -95,7 +95,7 @@ procedure Widget_Bench is
       Widgets.Add (Root, Bar);
       Widgets.Add (Bar, Button);
       Widgets.Add (Root, Text_Box);
-      Widgets.Panels.Set_Fill (Bar, (52, 54, 66, 255));
+      Widgets.Panels.Set_Fill_Color (Bar, (52, 54, 66, 255));
       Widgets.Buttons.Set_Label (Button, "Save");
       Widgets.Editors.Configure (Text_Box, "Georgia", 18.0, 640.0, 8.0);
       Widgets.Editors.Attach (Text_Box, Doc'Unchecked_Access);

@@ -1,32 +1,24 @@
 ## Golden image tests
 
-`tests/` draws the viewer offscreen, with SDL's software renderer, in
-various setups (window sizes, densities, scrolling, zooming, resizing, other
-scripts and emoji, editing, saving), and the `UI.Text_Areas` component by
-itself (`textarea-*`: typing, caret movement, clicks and drags, selection,
-the clipboard, undo, input methods, blinking, scrolling), and compares each
-picture with `tests/golden/<name>.png`. Tests also check text, as edited
-or saved, with `Goldens.Check_Text`, and documents and layouts without
-drawing (`document-*`, `layout-*`), and the items of a canvas (`items-*`:
-added, typed in, dragged, sized, minimised, closed, listed and kept in the
-database, by clicks and drags at points of the window), and sources
-(`sources-*`: a link's picture taken from a page written to
-`/tmp/pomarine-source-page`, so the tests need WebKit but not a network
-beyond one name that does not exist; `sources-words` reads the text of a
-page's picture with Vision, in the background, and checks the words are
-selected and kept in the database, without a golden, as WebKit's text
-differs between releases), the writing view (`write-*`: documents on pages, dragged into another
-order and kept, typed on a page and seen on the canvas, a source opened
-and pinned, its highlights shared with the canvas's window, which like
-`sources-pages` needs WebKit), and highlighting a picture (the tools in the status line, erasing, marks kept, put away
-by the cursor or a click outside), and selecting words over a picture
-(`pictures-*`, with made-up words: dragging, double and triple clicks,
-copying, zooming and scrolling, and reading a page of columns in order),
-and the widgets as the design's sheet shows them (`sheet-*`: every kind on
-one board, pressed, focused and hovered states, and what each does with
-clicks and keys). The `picture-*` tests read `golden/textarea-typing.png`
-as their picture: when that changes, run `UPDATE_GOLDEN=1 bin/golden
-picture` again after updating the rest.
+`tests/` draws the library's widgets offscreen, with SDL's software
+renderer, and compares each picture with `tests/golden/<name>.png`:
+the `Pomarine.Text_Areas` component by itself (`textarea-*`: typing, caret
+movement, clicks and drags, selection, the clipboard, undo, input methods,
+blinking, scrolling), single-line fields (`field-*`), the widget tree
+(`widgets-*`: layout, damage, focus, hiding, removing), the widgets as the
+design's sheet shows them (`sheet-*`: every kind on one board, pressed,
+focused and hovered states, and what each does with clicks and keys), and
+selecting words over a picture (`pictures-*`, with made-up `Pomarine.Words`:
+dragging, double and triple clicks, copying, zooming and scrolling). Tests
+also check text with `Goldens.Check_Text`, and documents and layouts
+without drawing (`document-*`, `layout-*`).
+
+The library has no icons of its own: the tests draw plain shapes from
+`tests/icons`, given to the widgets by `Test_Icons`. The `pictures-*`
+tests read `golden/textarea-typing.png` as their picture: when that
+changes, run `UPDATE_GOLDEN=1 bin/golden pictures` again after updating
+the rest.
+
 The software renderer gives the same pixels every run, so no pixel may
 differ.
 
