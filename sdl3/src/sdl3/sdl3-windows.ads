@@ -49,6 +49,14 @@ package SDL3.Windows is
    Title_Bar_Height : constant := 28.0;
    --  In points: what the content should leave clear at the top.
 
+   procedure Set_Title_Bar_Height (Item : Window; Height, Left : Float)
+     with Pre => Is_Open (Item) and then Height > 0.0 and then Left >= 0.0;
+   --  On macOS, after Extend_Into_Title_Bar, centre the close, minimise and
+   --  zoom buttons on a bar of the content that is Height points tall, to
+   --  line up with what is drawn in it, the first Left points from the
+   --  window's left edge. The system puts them back as it lays the window
+   --  out, so call this again after that. Nothing elsewhere.
+
    procedure Set_Size (Item : Window; Width, Height : Positive)
      with Pre => Is_Open (Item);
    --  Ask for the window to be Width x Height points, and wait for it,

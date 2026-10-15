@@ -359,6 +359,38 @@ private package SDL3.Thin is
       Value  : Interfaces.Unsigned_64)
      with Import, Convention => C, External_Name => "objc_msgSend";
 
+   function Send_Address
+     (Target : System.Address; Sel : System.Address;
+      Value  : Interfaces.Unsigned_64) return System.Address
+     with Import, Convention => C, External_Name => "objc_msgSend";
+
+   function Send_Object
+     (Target : System.Address; Sel : System.Address) return System.Address
+     with Import, Convention => C, External_Name => "objc_msgSend";
+
+   type Frame is record  --  an NSRect: x, y, width, height
+      X, Y, W, H : Interfaces.C.double;
+   end record
+     with Convention => C;
+
+   function Send_Frame
+     (Target : System.Address; Sel : System.Address) return Frame
+     with Import, Convention => C, External_Name => "objc_msgSend";
+   --  (Apple silicon returns the four doubles in registers; Intel would
+   --  want objc_msgSend_stret.)
+
+   --  (An NSRect is passed in four floating point registers, as four
+   --  doubles are.)
+   procedure Send_Rect
+     (Target : System.Address; Sel : System.Address;
+      X, Y, W, H : Interfaces.C.double)
+     with Import, Convention => C, External_Name => "objc_msgSend";
+
+   procedure Send_Point
+     (Target : System.Address; Sel : System.Address;
+      X, Y   : Interfaces.C.double)
+     with Import, Convention => C, External_Name => "objc_msgSend";
+
    function Get_Window_Pixel_Density (Win : Window) return Interfaces.C.C_float
      with Import, Convention => C,
           External_Name => "SDL_GetWindowPixelDensity";
