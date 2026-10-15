@@ -1,8 +1,8 @@
+with Pomarine.Page_Builds;
 with Pomarine.Pages;
 with Pomarine.Scrollbars;
 with Pomarine.Semantics;
 with Pomarine.Widgets.Pictures;
-with Pomarine.Words;
 with SDL3.Cursors;
 with SDL3.Events;
 with SDL3.Painters;
@@ -70,11 +70,15 @@ package Pomarine.Widgets.Page_Views is
    procedure Set_Document
      (Item   : in out Page_View;
       Sizes  : Pomarine.Pages.Size_Array_Access;
-      Source : Pomarine.Pages.Source_Access)
+      Source : Pomarine.Pages.Source_Access;
+      Guess  : Boolean := False)
      with Pre => Sizes /= null and then Source /= null;
    --  Show the document, of Sizes'Length pages, those Source makes. Both
    --  must be there as long as it is shown. The first page is shown. The
-   --  marks and selection are cleared.
+   --  marks and selection are cleared. If Guess, Sizes are only a guess:
+   --  Source is asked, in the background, how big the pages are, and they
+   --  are changed (in Sizes, which is not to be used until it is
+   --  cleared) when it has said.
 
    procedure Clear_Document (Item : in out Page_View)
      with Post => not Has_Document (Item);
@@ -199,7 +203,7 @@ package Pomarine.Widgets.Page_Views is
 
 private
 
-   type Result_Access is access Pomarine.Words.Result;
+   subtype Result_Access is Pomarine.Page_Builds.Result_Access;
 
    type Float_Array is array (Positive range <>) of Float;
 
@@ -211,6 +215,9 @@ private
    type Slot is limited record
       Index   : Natural := 0;
       --  Which page, 0 if none.
+      Job     : Natural := 0;
+      --  The ticket (see Pomarine.Page_Builds) of the page being made in
+      --  the background, 0 if none; its Content is null until it is.
       Content : Pomarine.Pages.Page_Access;
       --  Null if it could not be made.
       Found   : Result_Access;
@@ -229,6 +236,9 @@ private
       --  one more than there are pages.
       Cached  : Slot_Array;
       Clock   : Natural := 0;
+      Measuring : Natural := 0;
+      --  The ticket (see Pomarine.Page_Builds) of the sizes of the pages
+      --  being asked for in the background, 0 if none.
       Pending : Boolean := False;
       --  Pages in view are still to be made.
       Down    : Float := 0.0;

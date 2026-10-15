@@ -147,6 +147,15 @@ package Pomarine.Pages is
    --  Make the page Index of the document, and the words of its text. A
    --  page that cannot be made is not Ok, and Content is null.
 
+   procedure Measure
+     (Item  : in out Source;
+      Count : Positive;
+      Sizes : out Size_Array_Access;
+      Ok    : out Boolean) is abstract;
+   --  How big each of the first Count pages is: Sizes'Length = Count when
+   --  Ok, else null. It may take a while (it opens the document), so is
+   --  asked for in the background (see Pomarine.Page_Builds).
+
    type Source_Access is access all Source'Class;
 
 end Pomarine.Pages;

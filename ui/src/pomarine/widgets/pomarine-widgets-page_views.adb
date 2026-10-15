@@ -1,6 +1,7 @@
 with Ada.Unchecked_Deallocation;
 with Pomarine.Line_Texts;
 with Pomarine.Themes;
+with Pomarine.Words;
 with SDL3.Windows.Renderers;
 
 package body Pomarine.Widgets.Page_Views is
@@ -14,6 +15,7 @@ package body Pomarine.Widgets.Page_Views is
    use type SDL3.Events.Event_Kind;
    use type SDL3.Events.Key_Code;
    use type Pomarine.Pages.Page_Access;
+   use type Pomarine.Page_Builds.Result_Access;
 
    procedure Free is new Ada.Unchecked_Deallocation (Pomarine.Words.Result, Result_Access);
    procedure Free is new Ada.Unchecked_Deallocation (Float_Array, Float_Array_Access);
@@ -104,6 +106,10 @@ package body Pomarine.Widgets.Page_Views is
 
    procedure Release_Slot (Each : in out Slot) is
    begin
+      if Each.Job /= 0 then
+         Pomarine.Page_Builds.Cancel (Each.Job);
+         Each.Job := 0;
+      end if;
       Pomarine.Pages.Free (Each.Content);
       for Shown of Each.Images loop
          Tex.Release (Shown);
@@ -138,8 +144,22 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Clear_Marks;
 
+   procedure Fill_Ratios (Item : in out Page_View) is
+      Sizes : Pomarine.Pages.Size_Array renames Item.Sizes.all;
+   begin
+      Item.Ratios (1) := 0.0;
+      for Index in Sizes'Range loop
+         Item.Ratios (Index + 1) :=
+           Item.Ratios (Index) + Sizes (Index).Height / Float'Max (1.0, Sizes (Index).Width);
+      end loop;
+   end Fill_Ratios;
+
    procedure Clear_Document (Item : in out Page_View) is
    begin
+      if Item.Measuring /= 0 then
+         Pomarine.Page_Builds.Cancel (Item.Measuring);
+         Item.Measuring := 0;
+      end if;
       Unload (Item);
       for Each of Item.Cached loop
          Free (Each.Found);
@@ -159,17 +179,18 @@ package body Pomarine.Widgets.Page_Views is
    procedure Set_Document
      (Item   : in out Page_View;
       Sizes  : Pomarine.Pages.Size_Array_Access;
-      Source : Pomarine.Pages.Source_Access) is
+      Source : Pomarine.Pages.Source_Access;
+      Guess  : Boolean := False) is
    begin
       Clear_Document (Item);
       Item.Sizes := Sizes;
       Item.Source := Source;
       Item.Ratios := new Float_Array (1 .. Sizes'Length + 1);
-      Item.Ratios (1) := 0.0;
-      for Index in Sizes'Range loop
-         Item.Ratios (Index + 1) :=
-           Item.Ratios (Index) + Sizes (Index).Height / Float'Max (1.0, Sizes (Index).Width);
-      end loop;
+      Fill_Ratios (Item);
+      if Guess then
+         Pomarine.Page_Builds.Request_Sizes (Source, Sizes'Length, Item.Measuring);
+         Item.Pending := True;
+      end if;
       if Is_Attached (Item) then
          Invalidate (Item);
       end if;
@@ -575,24 +596,71 @@ package body Pomarine.Widgets.Page_Views is
       Which : Positive)
    is
       Each : Slot renames Item.Cached (Which);
-      Ok   : Boolean := False;
    begin
       Release_Slot (Each);
-      if Each.Found = null then
-         Each.Found := new Pomarine.Words.Result;
-      end if;
       Each.Index := Index;
-      begin
-         Item.Source.Build (Index, Each.Content, Each.Found.all, Ok);
-      exception
-         when others =>
-            Ok := False;
-      end;
-      if not Ok then
-         Pomarine.Pages.Free (Each.Content);
-         Each.Found.Count := 0;
-      end if;
+      Pomarine.Page_Builds.Request (Item.Source, Index, Each.Job);
+   exception
+      when Program_Error =>
+         --  Too many being made: it is asked for again at the next draw.
+         Release_Slot (Each);
    end Make_Page;
+   --  Ask for the page to be made in the background; it is shown when it is.
+
+   procedure Collect_Page (Item : in out Page_View; Which : Positive) is
+      Each : Slot renames Item.Cached (Which);
+   begin
+      case Pomarine.Page_Builds.State (Each.Job) is
+         when Pomarine.Page_Builds.Working =>
+            Item.Pending := True;
+         when Pomarine.Page_Builds.Done =>
+            Free (Each.Found);
+            Pomarine.Page_Builds.Take (Each.Job, Each.Content, Each.Found);
+            Each.Job := 0;
+         when Pomarine.Page_Builds.Failed =>
+            Pomarine.Page_Builds.Cancel (Each.Job);
+            Each.Job := 0;
+            if Each.Found = null then
+               Each.Found := new Pomarine.Words.Result;
+            end if;
+            Each.Found.Count := 0;
+      end case;
+   end Collect_Page;
+   --  Take the page if it has been made. A page that could not be made is
+   --  left with no Content, as it is shown.
+
+   procedure Collect_Sizes (Item : in out Page_View) is
+      Fresh : Pomarine.Pages.Size_Array_Access;
+   begin
+      case Pomarine.Page_Builds.State (Item.Measuring) is
+         when Pomarine.Page_Builds.Working =>
+            Item.Pending := True;
+         when Pomarine.Page_Builds.Failed =>
+            --  The guess stays.
+            Pomarine.Page_Builds.Cancel (Item.Measuring);
+            Item.Measuring := 0;
+         when Pomarine.Page_Builds.Done =>
+            Pomarine.Page_Builds.Take_Sizes (Item.Measuring, Fresh);
+            Item.Measuring := 0;
+            if Fresh'Length = Item.Sizes'Length then
+               declare
+                  --  What is at the top of the view stays there.
+                  First  : constant Positive := Page_At (Item, Top_Of (Item));
+                  Inside : constant Float :=
+                    (Top_Of (Item) - Page_Top (Item, First)) / Float'Max (1.0, Wide_Of (Item));
+               begin
+                  Item.Sizes.all := Fresh.all;
+                  Fill_Ratios (Item);
+                  if Total_Of (Item) > 0.0 then
+                     Item.Down :=
+                       Float'Min (1.0, (Offset (Item, First) + Inside * Wide_Of (Item)) / Total_Of (Item));
+                  end if;
+               end;
+            end if;
+            Pomarine.Pages.Free (Fresh);
+      end case;
+   end Collect_Sizes;
+   --  Take the sizes of the pages, if they have come.
 
    function Free_Slot
      (Item : Page_View; First_In_View, Last_In_View : Positive) return Natural
@@ -790,7 +858,6 @@ package body Pomarine.Widgets.Page_Views is
       Wide  : constant Float := Wide_Of (Item);
       Left  : constant Float := Origin_X (Item);
       View_B : constant Float := Top_Of (Item) + Height_Of (Item);
-      Built : Boolean := False;
       First, Last : Natural := 0;
    begin
       SDL3.Painters.Fill_Rect
@@ -806,6 +873,9 @@ package body Pomarine.Widgets.Page_Views is
       Item.Across := Float'Min (Item.Across, 1.0);
       Item.Clock := Item.Clock + 1;
       Item.Pending := False;
+      if Item.Measuring /= 0 then
+         Collect_Sizes (Item);
+      end if;
 
       --  The pages in view.
       First := Page_At (Item, Top_Of (Item));
@@ -824,16 +894,19 @@ package body Pomarine.Widgets.Page_Views is
             --  The page's paper, which is what shows until it is made.
             SDL3.Painters.Fill_Rect (Target, Themes.White, Left, Top, Wide, High);
             if Which = 0 and then Index - First < Cache_Size then
-               if Built then
-                  Item.Pending := True;
-               else
-                  Which := Free_Slot (Item, First, Last);
-                  if Which /= 0 then
-                     Make_Page (Item, Index, Which);
-                     Built := True;
-                     Item.Pending := Last > Index;
+               Which := Free_Slot (Item, First, Last);
+               if Which /= 0 then
+                  Make_Page (Item, Index, Which);
+                  if Item.Cached (Which).Index /= Index then
+                     Which := 0;
                   end if;
                end if;
+               if Which = 0 then
+                  Item.Pending := True;
+               end if;
+            end if;
+            if Which /= 0 and then Item.Cached (Which).Job /= 0 then
+               Collect_Page (Item, Which);
             end if;
             if Which /= 0 then
                Item.Cached (Which).Stamp := Item.Clock;
