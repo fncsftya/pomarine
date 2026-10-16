@@ -58,6 +58,14 @@ package Pomarine.Widgets.Menus is
    procedure Set_Checked (Item : in out Menu; Row : Positive; To : Boolean)
      with Pre => Row <= Row_Count (Item);
 
+   procedure Set_Enabled (Item : in out Menu; Row : Positive; To : Boolean)
+     with Pre => Row <= Row_Count (Item);
+   --  Turn off an action or a box, to be shown faint and not taken when
+   --  clicked, or on again; they are on to begin with.
+
+   function Is_Enabled (Item : Menu; Row : Positive) return Boolean
+     with Pre => Row <= Row_Count (Item);
+
    function Kind_Of (Item : Menu; Row : Positive) return Row_Kind
      with Pre => Row <= Row_Count (Item);
 
@@ -68,7 +76,24 @@ package Pomarine.Widgets.Menus is
      with Pre => Row <= Row_Count (Item);
 
    function Height_For (Item : Menu) return Float;
-   --  In points: of its rows, its padding and outline, and its shadow.
+   --  In points: of its rows, its padding and outline, and its shadow;
+   --  what it would be if it were not held to a Max_Height.
+
+   procedure Set_Max_Height (Item : in out Menu; Points : Float)
+     with Pre => Points >= 0.0;
+   --  Hold the menu to no more than Points of height (0.0 for no limit):
+   --  if its rows are more, it is as tall as that, and they are scrolled
+   --  by the wheel, with a thin bar at its right.
+
+   function Shown_Height (Item : Menu) return Float;
+   --  In points: Height_For, or the Max_Height if that is less.
+
+   procedure Reveal (Item : in out Menu; Row : Positive)
+     with Pre => Row <= Row_Count (Item);
+   --  Scroll to have the row in view, if it is not.
+
+   function Is_Scrollable (Item : Menu) return Boolean;
+   --  Whether there are more rows than it shows.
 
    function Hovered_Row (Item : Menu) return Natural;
    --  The row that can be clicked under the pointer; 0 if none.
@@ -118,6 +143,7 @@ private
       Length   : Natural range 0 .. Text_Capacity := 0;
       Shade    : Tone := Plain;
       Checked  : Boolean := False;
+      Enabled  : Boolean := True;
       Iconed   : Boolean := False;
       Which    : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
       Swatched : Boolean := False;
@@ -133,6 +159,10 @@ private
       --  The row that can be clicked under the pointer.
       Pressed : Natural range 0 .. Row_Capacity := 0;
       Chosen  : Natural range 0 .. Row_Capacity := 0;
+      Max_High : Float := 0.0;
+      --  The most height, in points; 0.0 for none.
+      Scrolled : Float := 0.0;
+      --  How far the rows are scrolled up, in pixels.
    end record;
 
 end Pomarine.Widgets.Menus;

@@ -58,12 +58,12 @@ package Pomarine.Themes is
    --  How a control looks in each state.
 
    type Tone is
-     (Normal_Tone, Primary_Tone, Danger_Tone, Selected_Tone, Quiet_Tone);
+     (Normal_Tone, Primary_Tone, Danger_Tone, Selected_Tone, Quiet_Tone, AI_Tone);
    --  A tone is what a control is for. Normal has the theme's face, for most
    --  things; Primary is in the primary colour, for the main action; Danger
    --  in the danger colour, for what cannot be undone; Selected in the
    --  accent, for what is on or chosen; Quiet has no face, only its ink,
-   --  for a dark bar.
+   --  for a dark bar; AI is purple, for what is done by a language model.
 
    type Shade is
      (Fill,       --  of the face at rest
@@ -126,6 +126,9 @@ package Pomarine.Themes is
       Primary_Shade : Color;
       Danger_Light  : Color;  --  the bevel of what cannot be undone
       Danger_Shade  : Color;
+      AI            : Color;  --  what a language model does, purple
+      AI_Light      : Color;  --  its bevel
+      AI_Shade      : Color;
    end record;
    --  What makes a look. A light palette lightens a face under the pointer
    --  and darkens it pressed; a dark one the other way.
@@ -272,7 +275,10 @@ private
       Primary_Light => Highlight ((16#27#, 16#72#, 16#2D#, 255)),
       Primary_Shade => Shadow_Of ((16#27#, 16#72#, 16#2D#, 255)),
       Danger_Light  => Highlight ((16#C6#, 16#28#, 16#28#, 255)),
-      Danger_Shade  => Shadow_Of ((16#C6#, 16#28#, 16#28#, 255)));
+      Danger_Shade  => Shadow_Of ((16#C6#, 16#28#, 16#28#, 255)),
+      AI            => (16#6B#, 16#3F#, 16#B8#, 255),
+      AI_Light      => Highlight ((16#6B#, 16#3F#, 16#B8#, 255)),
+      AI_Shade      => Shadow_Of ((16#6B#, 16#3F#, 16#B8#, 255)));
 
    Dark_Palette : constant Palette :=
      (Dark        => True,
@@ -302,6 +308,9 @@ private
       Primary_Light => (16#62#, 16#B5#, 16#6B#, 255),
       Primary_Shade => (16#17#, 16#48#, 16#1C#, 255),
       Danger_Light  => (16#EE#, 16#8A#, 16#8A#, 255),
-      Danger_Shade  => (16#8E#, 16#1B#, 16#1B#, 255));
+      Danger_Shade  => (16#8E#, 16#1B#, 16#1B#, 255),
+      AI            => (16#8A#, 16#5C#, 16#E0#, 255),
+      AI_Light      => (16#B0#, 16#8C#, 16#F2#, 255),
+      AI_Shade      => (16#4E#, 16#2C#, 16#8A#, 255));
 
 end Pomarine.Themes;

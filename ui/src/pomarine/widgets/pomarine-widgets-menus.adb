@@ -34,7 +34,7 @@ package body Pomarine.Widgets.Menus is
    begin
       if Is_Attached (Item) then
          Yoga.Nodes.Set_Height
-           (Node (Item), Float'Rounding (Height_For (Item) * Density (Item)));
+           (Node (Item), Float'Rounding (Shown_Height (Item) * Density (Item)));
          Request_Layout (Item);
          Invalidate (Item);
       end if;
@@ -43,6 +43,7 @@ package body Pomarine.Widgets.Menus is
    procedure Clear (Item : in out Menu) is
    begin
       Item.Used := 0;
+      Item.Scrolled := 0.0;
       Item.Over := 0;
       Item.Pressed := 0;
       Item.Chosen := 0;
@@ -110,6 +111,20 @@ package body Pomarine.Widgets.Menus is
    function Text_Of (Item : Menu; Row : Positive) return String is
      (Item.Rows (Row).Text (1 .. Item.Rows (Row).Length));
 
+   procedure Set_Enabled (Item : in out Menu; Row : Positive; To : Boolean) is
+   begin
+      if Item.Rows (Row).Enabled /= To then
+         Item.Rows (Row).Enabled := To;
+         if not To and then Item.Over = Row then
+            Item.Over := 0;
+         end if;
+         Invalidate (Item);
+      end if;
+   end Set_Enabled;
+
+   function Is_Enabled (Item : Menu; Row : Positive) return Boolean is
+     (Item.Rows (Row).Enabled);
+
    function Is_Checked (Item : Menu; Row : Positive) return Boolean is
      (Item.Rows (Row).Checked);
 
@@ -123,6 +138,58 @@ package body Pomarine.Widgets.Menus is
       return Total;
    end Height_For;
 
+   function Shown_Height (Item : Menu) return Float is
+     (if Item.Max_High > 0.0 then Float'Min (Height_For (Item), Item.Max_High)
+      else Height_For (Item));
+
+   Chrome : constant Float := 2.0 * Pad + 2.0 + Themes.Shadow_Offset;
+   --  Of the height that is not rows.
+
+   function Rows_Height (Item : Menu) return Float is
+      Total : Float := 0.0;
+   begin
+      for Index in 1 .. Item.Used loop
+         Total := Total + Row_Height (Item.Rows (Index).Kind);
+      end loop;
+      return Total;
+   end Rows_Height;
+
+   function Max_Scroll (Item : Menu) return Float is
+     (Float'Max (0.0, (Rows_Height (Item) - (Shown_Height (Item) - Chrome)) * Density (Item)));
+   --  In pixels.
+
+   function Is_Scrollable (Item : Menu) return Boolean is (Max_Scroll (Item) > 0.0);
+
+   procedure Set_Max_Height (Item : in out Menu; Points : Float) is
+   begin
+      if Points /= Item.Max_High then
+         Item.Max_High := Points;
+         Item.Scrolled := Float'Min (Item.Scrolled, Max_Scroll (Item));
+         Fit (Item);
+      end if;
+   end Set_Max_Height;
+
+   procedure Reveal (Item : in out Menu; Row : Positive) is
+      Pixels : constant Float := Density (Item);
+      Above  : Float := 0.0;
+   begin
+      for Index in 1 .. Row - 1 loop
+         Above := Above + Float'Rounding (Row_Height (Item.Rows (Index).Kind) * Pixels);
+      end loop;
+      declare
+         High    : constant Float := Float'Rounding (Row_Height (Item.Rows (Row).Kind) * Pixels);
+         Visible : constant Float := (Shown_Height (Item) - Chrome) * Pixels;
+      begin
+         if Above < Item.Scrolled then
+            Item.Scrolled := Above;
+         elsif Above + High > Item.Scrolled + Visible then
+            Item.Scrolled := Above + High - Visible;
+         end if;
+         Item.Scrolled := Float'Max (0.0, Float'Min (Item.Scrolled, Max_Scroll (Item)));
+         Invalidate (Item);
+      end;
+   end Reveal;
+
    function Hovered_Row (Item : Menu) return Natural is (Item.Over);
 
    procedure Take_Choice (Item : in out Menu; Chosen : out Natural) is
@@ -133,8 +200,15 @@ package body Pomarine.Widgets.Menus is
 
    function First_Top (Item : Menu) return Float is
      (Top_Of (Item) + Pomarine.Boxes.Edge (Density (Item))
+      + Float'Rounding (Pad * Density (Item)) - Item.Scrolled);
+   --  Of the first row, in pixels, as scrolled.
+
+   function Rows_Top (Item : Menu) return Float is
+     (Top_Of (Item) + Pomarine.Boxes.Edge (Density (Item))
       + Float'Rounding (Pad * Density (Item)));
-   --  Of the first row, in pixels.
+   function Rows_Bottom (Item : Menu) return Float is
+     (Rows_Top (Item) + Float'Rounding ((Shown_Height (Item) - Chrome) * Density (Item)));
+   --  Where the rows show: the box less its padding, in pixels.
 
    function Row_At (Item : Menu; X, Y : Float) return Natural;
    --  The row that can be clicked at pixel X, Y; 0 if none.
@@ -145,7 +219,7 @@ package body Pomarine.Widgets.Menus is
       Right  : constant Float :=
         Left_Of (Item) + Width_Of (Item) - Pomarine.Boxes.Offset (Pixels);
    begin
-      if X < Left_Of (Item) or else X >= Right then
+      if X < Left_Of (Item) or else X >= Right or else Y < Rows_Top (Item) or else Y >= Rows_Bottom (Item) then
          return 0;
       end if;
       for Index in 1 .. Item.Used loop
@@ -154,8 +228,8 @@ package body Pomarine.Widgets.Menus is
               Float'Rounding (Row_Height (Item.Rows (Index).Kind) * Pixels);
          begin
             if Y >= Top and then Y < Top + High then
-               return (if Can_Click (Item.Rows (Index).Kind) then Index
-                       else 0);
+               return (if Can_Click (Item.Rows (Index).Kind) and then Item.Rows (Index).Enabled
+                       then Index else 0);
             end if;
             Top := Top + High;
          end;
@@ -200,6 +274,22 @@ package body Pomarine.Widgets.Menus is
                Item.Pressed := 0;
                Invalidate (Item);
             end if;
+         when SDL3.Events.Mouse_Wheel =>
+            if Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item)) then
+               declare
+                  To : constant Float :=
+                    Float'Max (0.0, Float'Min (Max_Scroll (Item),
+                                               Item.Scrolled - Event.Wheel_Y * 24.0 * Density (Item)));
+               begin
+                  if To /= Item.Scrolled then
+                     Item.Scrolled := To;
+                     Item.Over := Row_At (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item));
+                     Invalidate (Item);
+                  end if;
+               end;
+               --  Taken, so the canvas under it is not scrolled.
+               Handled := True;
+            end if;
          when others =>
             null;
       end case;
@@ -238,10 +328,42 @@ package body Pomarine.Widgets.Menus is
       Top    : Float := First_Top (Item);
       Any_Icon : constant Boolean :=
         (for some Index in 1 .. Item.Used => Item.Rows (Index).Iconed);
+      Saved    : SDL3.Painters.Clip;
+      Reserve  : constant Float := (if Is_Scrollable (Item) then 8.0 * Pixels else 0.0);
+      --  Of the width, for the bar that shows how far it is scrolled.
+
+      Ellipsis : constant String :=
+        [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A6#)];
+
+      function Fitted (Value : String; Room : Float; Using : Pomarine.Line_Texts.Style) return String;
+      --  Value, or as much of its start as fits Room pixels with an
+      --  ellipsis after it, cut where a character begins.
+
+      function Fitted (Value : String; Room : Float; Using : Pomarine.Line_Texts.Style) return String is
+         Last : Natural := Value'Length;
+      begin
+         if Room <= 0.0 or else Pomarine.Line_Texts.Width (Text_Lines (Item).all, Value, Pixels, Using) <= Room then
+            return Value;
+         end if;
+         while Last > 0 loop
+            Last := Last - 1;
+            while Last > 0 and then Character'Pos (Value (Value'First + Last)) in 16#80# .. 16#BF# loop
+               Last := Last - 1;
+            end loop;
+            exit when Pomarine.Line_Texts.Width
+                        (Text_Lines (Item).all, Value (Value'First .. Value'First + Last - 1) & Ellipsis,
+                         Pixels, Using) <= Room;
+         end loop;
+         return Value (Value'First .. Value'First + Last - 1) & Ellipsis;
+      end Fitted;
    begin
       Pomarine.Boxes.Draw
         (Target, Look, Left_Of (Item), Top_Of (Item), Width_Of (Item),
          Height_Of (Item), Pixels);
+      Saved := Current_Clip (Target);
+      Narrow_Clip
+        (Target, Integer (Float'Floor (Inner_Left)), Integer (Float'Floor (Rows_Top (Item))),
+         Integer (Float'Ceiling (Inner_Width)), Integer (Float'Ceiling (Rows_Bottom (Item) - Rows_Top (Item))));
       for Index in 1 .. Item.Used loop
          declare
             Each   : Line renames Item.Rows (Index);
@@ -252,10 +374,11 @@ package body Pomarine.Widgets.Menus is
               (case Each.Kind is
                   when Heading | Note => Colors (Themes.Muted),
                   when others =>
-                    (case Each.Shade is
-                        when Plain   => Colors (Themes.Foreground),
-                        when Primary => Colors (Themes.Primary_Ink),
-                        when Danger  => Colors (Themes.Danger_Ink)));
+                    (if not Each.Enabled then Colors (Themes.Muted) else
+                     (case Each.Shade is
+                         when Plain   => Colors (Themes.Foreground),
+                         when Primary => Colors (Themes.Primary_Ink),
+                         when Danger  => Colors (Themes.Danger_Ink))));
             Using  : constant Pomarine.Line_Texts.Style :=
               (case Each.Kind is
                   when Heading => Pomarine.Line_Texts.Caption,
@@ -333,18 +456,38 @@ package body Pomarine.Widgets.Menus is
                   null;
             end case;
             if Each.Swatched and then Each.Kind /= Separator then
-               Square (Swatch_Size, Themes.Resolve (Colors, Each.Swatch));
+               Square
+                 (Swatch_Size,
+                  (if Each.Enabled then Themes.Resolve (Colors, Each.Swatch)
+                   else Themes.Mix (Themes.Resolve (Colors, Each.Swatch), Colors (Themes.Page), 0.6)));
                After := After + (Swatch_Size + Gap) * Pixels;
             end if;
             if Each.Length > 0 and then Text_Lines (Item) /= null then
                Pomarine.Line_Texts.Draw
                  (Text_Lines (Item).all, Target, Ink,
-                  Each.Text (1 .. Each.Length), After, Middle, Pixels,
-                  Using);
+                  Fitted (Each.Text (1 .. Each.Length),
+                          Inner_Left + Inner_Width - Reserve - Inset * Pixels - After, Using),
+                  After, Middle, Pixels, Using);
             end if;
             Top := Top + High;
          end;
       end loop;
+      Restore_Clip (Target, Saved);
+      if Reserve > 0.0 then
+         declare
+            Track  : constant Float := Rows_Bottom (Item) - Rows_Top (Item);
+            Whole  : constant Float := Rows_Height (Item) * Pixels;
+            Thumb  : constant Float := Float'Max (12.0 * Pixels, Track * Track / Whole);
+            Space  : constant Float := Max_Scroll (Item);
+            Along  : constant Float := (if Space > 0.0 then Item.Scrolled / Space else 0.0);
+         begin
+            Fill_Rect
+              (Target, Themes.Mix (Colors (Themes.Border), Colors (Themes.Foreground), 0.35),
+               Float'Rounding (Inner_Left + Inner_Width - 5.0 * Pixels),
+               Float'Rounding (Rows_Top (Item) + Along * (Track - Thumb)),
+               Float'Rounding (3.0 * Pixels), Float'Rounding (Thumb));
+         end;
+      end if;
    end Draw;
 
    overriding procedure Describe
@@ -401,7 +544,7 @@ package body Pomarine.Widgets.Menus is
       Done    : out Boolean) is
    begin
       Done := Request.Doing = Semantics.Click and then Part <= Item.Used
-        and then Can_Click (Item.Rows (Part).Kind);
+        and then Can_Click (Item.Rows (Part).Kind) and then Item.Rows (Part).Enabled;
       if Done then
          Item.Chosen := Part;
          Notify (Item, Choose, Row => Part);

@@ -94,6 +94,10 @@ package body Pomarine.Themes is
       Result.Tones (Danger_Tone, Lit)    := From.Danger_Light;
       Result.Tones (Danger_Tone, Shaded) := From.Danger_Shade;
       Result.Tones (Danger_Tone, Off_Ink) := Mix (White, Dulled (From.Danger), 0.3);
+      Set_Made (AI_Tone, From.AI, White, 0.12);
+      Result.Tones (AI_Tone, Lit)    := From.AI_Light;
+      Result.Tones (AI_Tone, Shaded) := From.AI_Shade;
+      Result.Tones (AI_Tone, Off_Ink) := Mix (White, Dulled (From.AI), 0.3);
       Set_Made (Selected_Tone, From.Accent, On_Accent_Ink, 0.22);
       Result.Tones (Selected_Tone, Off_Ink) := Mix (From.Foreground, Dulled (From.Accent), 0.6);
 
