@@ -120,6 +120,22 @@ package body Pomarine.Widgets.Buttons is
 
    function Is_Dropdown (Item : Button) return Boolean is (Item.Dropdown);
 
+   procedure Set_Split (Item : in out Button; To : Boolean) is
+   begin
+      if To /= Item.Split then
+         Item.Split := To;
+         Item.Over_Caret := False;
+         Item.Down_Caret := False;
+         if Is_Attached (Item) then
+            Invalidate (Item);
+         end if;
+      end if;
+   end Set_Split;
+
+   function Is_Split (Item : Button) return Boolean is (Item.Split);
+
+   function Caret_Clicked (Item : Button) return Boolean is (Item.Last_Caret);
+
    procedure Set_Enabled (Item : in out Button; To : Boolean) is
    begin
       if To /= Item.Enabled then
@@ -180,10 +196,20 @@ package body Pomarine.Widgets.Buttons is
       Over : constant Boolean :=
         Contains (Item, Event.Mouse_X * Density (Item),
                   Event.Mouse_Y * Density (Item));
+      On_Caret : constant Boolean :=
+        Item.Split and then Item.Dropdown and then Over
+        and then Event.Mouse_X * Density (Item) >= Left_Of (Item) + Width_Of (Item)
+                                                     - Float'Rounding (Height_Of (Item));
    begin
       Handled := False;
       if not Item.Enabled then
          return;
+      end if;
+      if Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down
+        and then On_Caret /= Item.Over_Caret
+      then
+         Item.Over_Caret := On_Caret;
+         Invalidate (Item);
       end if;
       case Event.Kind is
          when SDL3.Events.Key_Down =>
@@ -194,12 +220,14 @@ package body Pomarine.Widgets.Buttons is
               and then not Event.Command
             then
                Item.Clicked := True;
+               Item.Last_Caret := False;
                Notify (Item, Click);
                Handled := True;
             end if;
          when SDL3.Events.Mouse_Down =>
             if Event.Button = 1 and then Over then
                Item.Down := True;
+               Item.Down_Caret := On_Caret;
                Handled := True;
                Invalidate (Item);
             end if;
@@ -208,6 +236,7 @@ package body Pomarine.Widgets.Buttons is
                Item.Down := False;
                Item.Clicked := Over;
                if Over then
+                  Item.Last_Caret := Item.Down_Caret and then On_Caret;
                   Notify (Item, Click);
                end if;
                Handled := True;
@@ -221,8 +250,10 @@ package body Pomarine.Widgets.Buttons is
    overriding procedure Hover_Changed
      (Item : in out Button; Hovered : Boolean)
    is
-      pragma Unreferenced (Hovered);
    begin
+      if not Hovered then
+         Item.Over_Caret := False;
+      end if;
       Invalidate (Item);
    end Hover_Changed;
 
@@ -245,8 +276,14 @@ package body Pomarine.Widgets.Buttons is
    is
       Pixels  : constant Float := Density (Item);
       Edge    : constant Float := Pomarine.Boxes.Edge (Pixels);
-      Pressed : constant Boolean := Item.Enabled and then Is_Pressed (Item);
-      Hovered : constant Boolean := Item.Enabled and then Is_Hovered (Item);
+      Apart   : constant Boolean := Item.Split and then Item.Dropdown and then Item.Style /= Quiet;
+      --  The caret is a button of its own: it and the rest are each pressed or hovered.
+      Pressed_All : constant Boolean := Item.Enabled and then Is_Pressed (Item);
+      Hovered_All : constant Boolean := Item.Enabled and then Is_Hovered (Item);
+      Pressed : constant Boolean := Pressed_All and then not (Apart and then Item.Down_Caret);
+      Hovered : constant Boolean := Hovered_All and then not (Apart and then Item.Over_Caret);
+      Caret_Pressed : constant Boolean := Apart and then Pressed_All and then Item.Down_Caret;
+      Caret_Hovered : constant Boolean := Apart and then Hovered_All and then Item.Over_Caret;
       Toggled : constant Boolean := Item.Selected and then not Item.Dropdown;
       --  Pressed in, in the accent; an open dropdown is in its own face.
       Tone  : constant Themes.Tone :=
@@ -268,6 +305,13 @@ package body Pomarine.Widgets.Buttons is
            Hovered => Hovered or else (Item.Style = Quiet and then Item.Selected));
       Edge_Color : constant Themes.Color :=
         Colors.Edge_For (Tone, Enabled => Item.Enabled);
+      Caret_Face : constant Themes.Color :=
+        Colors.Face_For
+          (Tone, Enabled => Item.Enabled, Hovered => Caret_Hovered, Held => Caret_Pressed);
+      Caret_Edges : constant Themes.Bevel_Colors :=
+        Colors.Bevel_For (Tone, Hovered => Caret_Hovered, Held => Caret_Pressed);
+      Caret_Ink : constant Themes.Color :=
+        Colors.Ink_For (Tone, Enabled => Item.Enabled, Hovered => Caret_Hovered);
       Left, Top, Wide_Box, High_Box : Float;
       --  The face, which what is on it goes with.
       Caret_Room : Float := 0.0;
@@ -291,7 +335,19 @@ package body Pomarine.Widgets.Buttons is
       Top := Top_Of (Item);
       Wide_Box := Width_Of (Item);
       High_Box := Height_Of (Item);
-      if Item.Style /= Quiet then
+      if Apart then
+         declare
+            Room : constant Float := Float'Rounding (High_Box);
+         begin
+            Pomarine.Boxes.Draw_Control
+              (Target, Colors, Face, Edge_Color, Edges, Left, Top, Wide_Box - Room, High_Box, Pixels,
+               Bevelled => Item.Enabled, Sunken => Pressed);
+            Pomarine.Boxes.Draw_Control
+              (Target, Colors, Caret_Face, Edge_Color, Caret_Edges, Left + Wide_Box - Room, Top, Room,
+               High_Box, Pixels,
+               Bevelled => Item.Enabled, Sunken => Caret_Pressed or else Item.Selected);
+         end;
+      elsif Item.Style /= Quiet then
          Pomarine.Boxes.Draw_Control
            (Target, Colors, Face, Edge_Color, Edges, Left, Top, Wide_Box, High_Box, Pixels,
             Bevelled => Item.Enabled, Sunken => Pressed or else Item.Selected);
@@ -313,18 +369,20 @@ package body Pomarine.Widgets.Buttons is
               Positive (Float'Rounding (Caret_Size * Pixels));
             Drawn : Boolean;
          begin
-            Fill_Rect
-              (Target, Themes.Shadow_Of (Face), Line, Top + 2.0 * Edge, Edge,
-               High_Box - 4.0 * Edge);
-            Fill_Rect
-              (Target, Themes.Highlight (Face), Line + Edge, Top + 2.0 * Edge,
-               Edge, High_Box - 4.0 * Edge);
+            if not Apart then
+               Fill_Rect
+                 (Target, Themes.Shadow_Of (Face), Line, Top + 2.0 * Edge, Edge,
+                  High_Box - 4.0 * Edge);
+               Fill_Rect
+                 (Target, Themes.Highlight (Face), Line + Edge, Top + 2.0 * Edge,
+                  Edge, High_Box - 4.0 * Edge);
+            end if;
             if Icon_Library (Item) /= null then
                Icons.Draw
                  (Icon_Library (Item).all, Target,
                   (if Item.Selected then Pomarine.Icons.Chevron_Up
                    else Pomarine.Icons.Chevron_Down),
-                  Ink,
+                  (if Apart then Caret_Ink else Ink),
                   Float'Rounding
                     (Line + Edge + (Caret_Room - Edge - Float (Size)) / 2.0),
                   Float'Rounding (Top + (High_Box - Float (Size)) / 2.0),
@@ -478,6 +536,7 @@ package body Pomarine.Widgets.Buttons is
       Done := False;
       if Request.Doing = Semantics.Click and then Item.Enabled then
          Item.Clicked := True;
+         Item.Last_Caret := False;
          Notify (Item, Click);
          Invalidate (Item);
          Done := True;
