@@ -427,14 +427,6 @@ private package SDL3.Thin is
      (X, Y : access Interfaces.C.C_float) return Interfaces.Unsigned_32
      with Import, Convention => C, External_Name => "SDL_GetGlobalMouseState";
 
-   type Cursor is new System.Address;
-
-   function Create_System_Cursor (Id : Interfaces.C.int) return Cursor
-     with Import, Convention => C, External_Name => "SDL_CreateSystemCursor";
-
-   function Set_Cursor (Item : Cursor) return Interfaces.C.C_bool
-     with Import, Convention => C, External_Name => "SDL_SetCursor";
-
    function Render_Read_Pixels
      (R : Renderer; Area : System.Address) return System.Address
      with Import, Convention => C, External_Name => "SDL_RenderReadPixels";
@@ -493,6 +485,30 @@ private package SDL3.Thin is
      (Item : Surface_Access; File : Interfaces.C.Strings.chars_ptr)
       return Interfaces.C.C_bool
      with Import, Convention => C, External_Name => "SDL_SavePNG";
+
+   function IO_From_Const_Mem
+     (Memory : System.Address; Size : Interfaces.C.size_t)
+      return System.Address
+     with Import, Convention => C, External_Name => "SDL_IOFromConstMem";
+   --  An SDL_IOStream reading Size bytes at Memory, or null.
+
+   function Add_Alternate_Image
+     (Item, Image : Surface_Access) return Interfaces.C.C_bool
+     with Import, Convention => C,
+          External_Name => "SDL_AddSurfaceAlternateImage";
+   --  Image is what Item is shown as on a display of a finer density.
+
+   type Cursor is new System.Address;
+
+   function Create_System_Cursor (Id : Interfaces.C.int) return Cursor
+     with Import, Convention => C, External_Name => "SDL_CreateSystemCursor";
+
+   function Create_Color_Cursor
+     (Image : Surface_Access; Hot_X, Hot_Y : Interfaces.C.int) return Cursor
+     with Import, Convention => C, External_Name => "SDL_CreateColorCursor";
+
+   function Set_Cursor (Item : Cursor) return Interfaces.C.C_bool
+     with Import, Convention => C, External_Name => "SDL_SetCursor";
 
    function Create_Software_Renderer (Target : Surface_Access) return Renderer
      with Import, Convention => C,

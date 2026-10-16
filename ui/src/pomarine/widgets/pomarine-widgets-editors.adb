@@ -311,6 +311,9 @@ package body Pomarine.Widgets.Editors is
    overriding function Accepts_Focus (Item : Editor) return Boolean is
      (Has_Document (Item) and then Item.Enabled);
 
+   overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind is
+     (if Item.Enabled then SDL3.Cursors.Text else SDL3.Cursors.Default);
+
    overriding procedure Hover_Changed
      (Item : in out Editor; Hovered : Boolean) is
    begin

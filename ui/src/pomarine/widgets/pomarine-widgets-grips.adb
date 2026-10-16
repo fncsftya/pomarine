@@ -324,6 +324,7 @@ package body Pomarine.Widgets.Grips is
    end Draw;
 
    overriding function Cursor (Item : Grip) return SDL3.Cursors.Kind is
-     (Item.Wanted);
+     (if Item.Held and then Item.Wanted in SDL3.Cursors.Grab
+      then SDL3.Cursors.Grabbing else Item.Wanted);
 
 end Pomarine.Widgets.Grips;
