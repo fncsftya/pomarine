@@ -152,6 +152,14 @@ package body Pomarine.Widgets.Editors is
       Invalidate (Item);
    end Set_Paper;
 
+   procedure Set_Borderless (Item : in out Editor; To : Boolean) is
+   begin
+      if To /= Item.Borderless then
+         Item.Borderless := To;
+         Invalidate (Item);
+      end if;
+   end Set_Borderless;
+
    overriding procedure Draw
      (Item   : in out Editor;
       Target : SDL3.Painters.Painter'Class;
@@ -177,7 +185,9 @@ package body Pomarine.Widgets.Editors is
                     (if Item.Enabled then Colors (Themes.Foreground)
                      else Colors (Themes.Muted))),
                  Themes.Border,
-                 (if Item.Invalid then Colors (Themes.Danger) else Colors (Themes.Border)));
+                 (if Item.Invalid then Colors (Themes.Danger)
+                  elsif Item.Borderless then Paper
+                  else Colors (Themes.Border)));
             Faint : constant Themes.Color :=
               Themes.Mix (Colors (Themes.Foreground), Paper, 0.55);
             Pixels : constant Float := Density (Item);

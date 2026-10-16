@@ -56,6 +56,10 @@ package Pomarine.Widgets.Editors is
    procedure Set_Paper (Item : in out Editor; To : Themes.Slot);
    --  Draw on To, not white.
 
+   procedure Set_Borderless (Item : in out Editor; To : Boolean);
+   --  Draw no outline of its own at rest, as when it is in a box that has
+   --  one (the focus's outline is still drawn).
+
    function Zoom (Item : Editor) return Float;
 
    procedure Set_Invalid (Item : in out Editor; To : Boolean);
@@ -159,6 +163,7 @@ private
       Has_Paper : Boolean := False;
       Paper     : Themes.Slot := Themes.Page;
       Invalid   : Boolean := False;
+      Borderless : Boolean := False;
       Enabled   : Boolean := True;
       Hint      : String (1 .. Hint_Capacity) := [others => ' '];
       Hint_Length : Natural range 0 .. Hint_Capacity := 0;
