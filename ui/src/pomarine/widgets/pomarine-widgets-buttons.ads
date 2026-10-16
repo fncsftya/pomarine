@@ -74,6 +74,17 @@ package Pomarine.Widgets.Buttons is
 
    function Is_Dropdown (Item : Button) return Boolean;
 
+   procedure Set_Split (Item : in out Button; To : Boolean);
+   --  Of a dropdown, make its caret a button of its own: the two parts are
+   --  under the pointer, pressed and clicked each on its own. Both say
+   --  Click; Caret_Clicked tells which it was.
+
+   function Is_Split (Item : Button) return Boolean;
+
+   function Caret_Clicked (Item : Button) return Boolean;
+   --  Whether the last click, by the pointer, was on the caret of a split
+   --  dropdown, not the rest of it.
+
    procedure Set_Enabled (Item : in out Button; To : Boolean);
    --  Turn it on, or off: off, it is flat and faint, cannot be pressed
    --  or clicked, and does not take the focus. It is on to begin with.
@@ -144,6 +155,10 @@ private
       Down    : Boolean := False;  --  pressed, and not yet let go
       Clicked : Boolean := False;
       By_Command : Boolean := False;  --  selected as a command in force
+      Split      : Boolean := False;  --  the caret of a dropdown is a button of its own
+      Over_Caret : Boolean := False;  --  the pointer is over it
+      Down_Caret : Boolean := False;  --  the press was on it
+      Last_Caret : Boolean := False;  --  the last click was on it
    end record;
 
 end Pomarine.Widgets.Buttons;
