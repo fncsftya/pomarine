@@ -1,5 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
+with SDL3.Cursors;
 with SDL3.Events;
 with Texts.Documents;
 with Pomarine.Icons;
@@ -119,6 +120,9 @@ package Pomarine.Widgets.Editors is
    overriding function Until_Update (Item : Editor) return Integer;
 
    overriding function Accepts_Focus (Item : Editor) return Boolean;
+
+   overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind;
+   --  The I-beam, while it can be edited.
 
    overriding procedure Focus_Changed
      (Item : in out Editor; Focused : Boolean);
