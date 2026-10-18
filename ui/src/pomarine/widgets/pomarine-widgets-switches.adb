@@ -132,6 +132,51 @@ package body Pomarine.Widgets.Switches is
       Knob_High : constant Float := High - 2.0 * Inner;
       Knob_Wide : constant Float := Float'Rounding (Wide / 2.0) - Inner;
       Pressed : constant Boolean := Item.Down and then Is_Hovered (Item);
+
+      procedure Draw_Label is
+         Text : constant String := Label (Item);
+         Available_Width : constant Float := Float'Max (1.0, Width_Of (Item) - Wide - Gap * Pixels);
+         Line_Ends : array (Text'Range) of Positive;
+         Count : Natural := 0;
+         First : Positive := Text'First;
+         Stop  : Positive;
+         Line_High : constant Float := Pomarine.Line_Texts.Height (Text_Lines (Item).all, Pixels);
+      begin
+         --  Long labels wrap within their allocated row. Short labels
+         --  retain the existing single-line appearance.
+         while First <= Text'Last loop
+            Stop := Text'Last + 1;
+            if Pomarine.Line_Texts.Width
+              (Text_Lines (Item).all, Text (First .. Text'Last), Pixels) > Available_Width
+            then
+               Stop := First;
+               for Last in First .. Text'Last loop
+                  if Text (Last) = ' ' then
+                     exit when Stop > First and then
+                       Pomarine.Line_Texts.Width
+                         (Text_Lines (Item).all, Text (First .. Last - 1), Pixels) > Available_Width;
+                     Stop := Last;
+                  end if;
+               end loop;
+               if Stop = First then
+                  Stop := Text'Last + 1;
+               end if;
+            end if;
+            Count := Count + 1;
+            Line_Ends (Count) := Stop;
+            First := Stop + 1;
+         end loop;
+         First := Text'First;
+         for Number in 1 .. Count loop
+            Pomarine.Line_Texts.Draw
+              (Text_Lines (Item).all, Target,
+               (if Item.Enabled then Colors (Themes.Foreground) else Colors (Themes.Muted)),
+               Text (First .. Line_Ends (Number) - 1), Left + Wide + Gap * Pixels,
+               Top_Of (Item) + Height_Of (Item) / 2.0 + (Float (Number) - Float (Count + 1) / 2.0) * Line_High,
+               Pixels);
+            First := Line_Ends (Number) + 1;
+         end loop;
+      end Draw_Label;
    begin
       --  The track, sunk.
       Fill_Rect
@@ -166,12 +211,7 @@ package body Pomarine.Widgets.Switches is
             Bevelled => Item.Enabled, Sunken => Pressed);
       end;
       if Item.Length > 0 and then Text_Lines (Item) /= null then
-         Pomarine.Line_Texts.Draw
-           (Text_Lines (Item).all, Target,
-            (if Item.Enabled then Colors (Themes.Foreground)
-             else Colors (Themes.Muted)),
-            Label (Item), Left + Wide + Gap * Pixels,
-            Top_Of (Item) + Height_Of (Item) / 2.0, Pixels);
+         Draw_Label;
       end if;
    end Draw;
 

@@ -58,7 +58,7 @@ package Pomarine.Themes is
    --  How a control looks in each state.
 
    type Tone is
-     (Normal_Tone, Primary_Tone, Danger_Tone, Selected_Tone, Quiet_Tone, AI_Tone);
+     (Normal_Tone, Primary_Tone, Danger_Tone, Selected_Tone, Quiet_Tone, AI_Tone, Warning_Tone);
    --  A tone is what a control is for. Normal has the theme's face, for most
    --  things; Primary is in the primary colour, for the main action; Danger
    --  in the danger colour, for what cannot be undone; Selected in the

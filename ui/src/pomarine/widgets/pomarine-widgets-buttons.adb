@@ -292,6 +292,7 @@ package body Pomarine.Widgets.Buttons is
             when Danger  => Themes.Danger_Tone,
             when Quiet   => Themes.Quiet_Tone,
             when AI      => Themes.AI_Tone,
+            when Warning => Themes.Warning_Tone,
             when Normal  =>
               (if Toggled then Themes.Selected_Tone else Themes.Normal_Tone));
       Face  : constant Themes.Color :=

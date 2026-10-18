@@ -25,7 +25,8 @@ package Pomarine.Widgets.Buttons is
 
    type Button is new Widget with private;
 
-   type Kind is (Normal, Primary, Danger, Quiet, AI);
+   type Kind is (Normal, Primary, Danger, Quiet, AI, Warning);
+   --  Warning uses amber for something that needs attention.
    --  Normal has the theme's face, grey, for most things; Primary is in
    --  the theme's primary colour, green, for the main action; Danger in
    --  its danger colour, red, for what cannot be undone. Quiet has no

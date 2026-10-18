@@ -49,6 +49,10 @@ package Pomarine.Widgets.Editors is
 
    function Has_Document (Item : Editor) return Boolean;
 
+   function Document (Item : Editor) return not null access constant Texts.Documents.Document
+     with Pre => Has_Document (Item);
+   --  Read the attached document without exposing the mutable text area.
+
    procedure Set_Zoom (Item : in out Editor; To : Float)
      with Pre => To > 0.0;
    --  Make the text Zoom times its size.
@@ -99,6 +103,7 @@ package Pomarine.Widgets.Editors is
 
    function Area (Item : in out Editor)
       return not null access Pomarine.Text_Areas.Text_Area;
+   function Highlight_Count (Item : Editor) return Natural;
    --  The text area, to move the caret and so on. Whatever it does that
    --  changes how it looks, it does not say: say with Invalidate.
 

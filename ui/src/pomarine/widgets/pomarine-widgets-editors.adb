@@ -1,6 +1,12 @@
 with Texts;
 package body Pomarine.Widgets.Editors is
 
+   function Document (Item : Editor) return not null access constant Texts.Documents.Document is
+     (Text_Areas.Document (Item.Text));
+
+   function Highlight_Count (Item : Editor) return Natural is
+     (Text_Areas.Highlight_Count (Item.Text));
+
    use type Semantics.Role;
 
    package Docs renames Texts.Documents;

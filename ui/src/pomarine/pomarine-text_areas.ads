@@ -189,6 +189,18 @@ package Pomarine.Text_Areas is
 
    procedure Clear_Faint (Item : in out Text_Area);
 
+   Max_Highlights : constant := 512;
+   procedure Clear_Highlights (Item : in out Text_Area);
+   function Highlight_Count (Item : Text_Area) return Natural;
+   procedure Add_Highlight
+     (Item : in out Text_Area; From, To : Position; Fill, Ink : Themes.Color)
+     with Pre => Is_Attached (Item) and then Is_Position (Item, From)
+                 and then Is_Position (Item, To) and then From < To
+                 and then Highlight_Count (Item) < Max_Highlights;
+   --  Background and underline decorations, independent of selection.
+   --  They expire on any document edit or attachment and follow wrapping,
+   --  scrolling and zoom. The owner invalidates its widget after adding.
+
    type Motion is
      (Previous_Character, Next_Character, Previous_Word, Next_Word,
       Previous_Line, Next_Line, Line_Start, Line_End,
@@ -238,6 +250,13 @@ package Pomarine.Text_Areas is
      with Pre => Is_Attached (Item);
    --  Type Typed, in UTF-8, in place of the selection. A line feed in it
    --  breaks the paragraph. Typing in a row is undone together.
+
+   procedure Replace_Range (Item : in out Text_Area; From, To : Position; By : String)
+     with Pre => Is_Attached (Item) and then not Is_Read_Only (Item) and then not Is_Composing (Item)
+                 and then Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From)
+                 and then (for all C of By => C /= ASCII.CR);
+   --  Apply an external correction, move the caret after it, and keep it
+   --  as its own undo step. The caller invalidates the owning widget.
 
    type Deletion is (Character, Word, Line_Part);
 
@@ -407,6 +426,12 @@ private
 
    use type SDL3.Events.Milliseconds;
 
+   type Highlight is record
+      From, To : Position;
+      Fill, Ink : Themes.Color;
+   end record;
+   type Highlight_Array is array (1 .. Max_Highlights) of Highlight;
+
    type Text_Area is limited record
       Doc      : Document_Access;
       Serial   : Natural := 0;  --  of Doc, when attached
@@ -449,6 +474,10 @@ private
       Faint_From    : Position;
       Faint_To      : Position;
       Faint_Version : Texts.Documents.Version := 0;
+      Highlights : Highlight_Array;
+      Highlight_Total : Natural range 0 .. Max_Highlights := 0;
+      Highlight_Version : Texts.Documents.Version := 0;
+      Highlight_Serial : Natural := 0;
       --  The text from Faint_From to Faint_To is drawn faintly, if the
       --  document is still as of Faint_Version.
 

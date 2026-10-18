@@ -298,6 +298,7 @@ package body Pomarine.Text_Areas is
    is
    begin
       Item.Doc := Doc;
+      Clear_Highlights (Item);
       Item.Serial := 0;  --  start again
       Item.Caret_Kept := False;
       Catch_Up (Item);
@@ -974,6 +975,14 @@ package body Pomarine.Text_Areas is
             Fitted (Item, Typed), Docs.Typing);
    end Insert;
 
+   procedure Replace_Range (Item : in out Text_Area; From, To : Position; By : String) is
+   begin
+      Catch_Up (Item);
+      Docs.Seal (Item.Doc.all);
+      Edit (Item, From, To, By, Docs.Other);
+      Docs.Seal (Item.Doc.all);
+   end Replace_Range;
+
    function Deletion_Motion (By : Deletion; Forward : Boolean) return Motion
    is (case By is
           when Character =>
@@ -1249,6 +1258,25 @@ package body Pomarine.Text_Areas is
       Item.Faint_On := False;
    end Clear_Faint;
 
+   procedure Clear_Highlights (Item : in out Text_Area) is
+   begin
+      Item.Highlight_Total := 0;
+   end Clear_Highlights;
+
+   function Highlight_Count (Item : Text_Area) return Natural is
+     (if Item.Doc /= null and then Item.Highlight_Serial = Docs.Serial (Item.Doc.all)
+        and then Item.Highlight_Version = Docs.Current (Item.Doc.all)
+      then Item.Highlight_Total else 0);
+
+   procedure Add_Highlight
+     (Item : in out Text_Area; From, To : Position; Fill, Ink : Themes.Color) is
+   begin
+      Item.Highlight_Total := Highlight_Count (Item) + 1;
+      Item.Highlights (Item.Highlight_Total) := (From, To, Fill, Ink);
+      Item.Highlight_Version := Docs.Current (Item.Doc.all);
+      Item.Highlight_Serial := Docs.Serial (Item.Doc.all);
+   end Add_Highlight;
+
    procedure Set_Hovered (Item : in out Text_Area; Hovered : Boolean) is
    begin
       Scrollbars.Set_Pane (Item.Bar, Hovered);
@@ -1361,7 +1389,8 @@ package body Pomarine.Text_Areas is
       First, Last : Positive;
       Value       : SDL3.Windows.Renderers.Color;
       Underlined  : Boolean;
-      Rows_From, Rows_To : Float);
+      Rows_From, Rows_To : Float;
+      Marking : Boolean := False);
    --  Mark the text from From to To, in paragraphs First to Last, which
    --  are laid out: fill behind it, or underline it. Lines wholly outside
    --  the rows of the target Rows_From to Rows_To are left.
@@ -1373,7 +1402,8 @@ package body Pomarine.Text_Areas is
       First, Last : Positive;
       Value       : SDL3.Windows.Renderers.Color;
       Underlined  : Boolean;
-      Rows_From, Rows_To : Float)
+      Rows_From, Rows_To : Float;
+      Marking : Boolean := False)
    is
       High  : constant Float := Layouts.Line_Height (Item.Laid);
       Shown : constant Float := View_Top (Item);
@@ -1427,7 +1457,7 @@ package body Pomarine.Text_Areas is
                         X_A : constant Float := Layouts.Caret_Offset
                           (Item.Laid, Item.Doc.all, Para, Number, A);
                         X_B : constant Float :=
-                          (if Runs_On and then not Underlined
+                          (if Runs_On and then not Underlined and then not Marking
                            then Float'Max (Right, X_A)
                            else Layouts.Caret_Offset
                                   (Item.Laid, Item.Doc.all, Para, Number,
@@ -1439,15 +1469,16 @@ package body Pomarine.Text_Areas is
                         if Underlined then
                            SDL3.Painters.Fill_Rect
                              (Target, Value, Left,
-                              Y + Layouts.Ascent (Item.Laid) * Scale (Item)
-                              + Underline_Gap * Item.Density,
-                              Wide, Underline * Item.Density);
+                              (if Marking then Y + High * Scale (Item) - 2.0 * Item.Density
+                               else Y + Layouts.Ascent (Item.Laid) * Scale (Item)
+                                    + Underline_Gap * Item.Density),
+                              Wide, (if Marking then 2.0 else Underline) * Item.Density);
                         else
                            declare
                               --  Down over the space after the paragraph
                               --  too, if it runs on to the next.
                               Bottom : constant Float :=
-                                (if Runs_On and then Number = Lines
+                                (if Runs_On and then not Marking and then Number = Lines
                                    and then Layouts.Is_Complete
                                               (Item.Laid, Para)
                                  then Text_Top (Item)
@@ -1564,6 +1595,19 @@ package body Pomarine.Text_Areas is
       Layouts.Visible
         (Item.Laid, Item.Doc.all, Item.Anchor, Item.Offset, Extent (Item),
          First, Last);
+
+      for Index in 1 .. Highlight_Count (Item) loop
+         declare
+            Decoration : Highlight renames Item.Highlights (Index);
+         begin
+            Draw_Range
+              (Item, Target, Decoration.From, Decoration.To, First, Last, Decoration.Fill, False,
+               Rows_From, Rows_To, Marking => True);
+            Draw_Range
+              (Item, Target, Decoration.From, Decoration.To, First, Last, Decoration.Ink, True,
+               Rows_From, Rows_To, Marking => True);
+         end;
+      end loop;
 
       if Has_Selection (Item) then
          Draw_Range
