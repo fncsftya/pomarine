@@ -889,6 +889,55 @@ package body Pomarine.Text_Areas is
       end;
    end Is_Over_Selection;
 
+   function Is_Over_Range
+     (Item : in out Text_Area; From, To : Position; X, Y : Float) return Boolean
+   is
+      High : constant Float := Layouts.Line_Height (Item.Laid);
+   begin
+      if not Contains (Item, X, Y) then
+         return False;
+      end if;
+      Catch_Up (Item);
+      declare
+         Depth : constant Float := View_Top (Item) + (Y - Text_Top (Item)) / Scale (Item);
+         Para : constant Positive := Layouts.Paragraph_At (Item.Laid, Depth);
+         Within : constant Float := (Depth - Layouts.Top (Item.Laid, Para)) / High;
+      begin
+         if Para not in From.Paragraph .. To.Paragraph or else Within < 0.0
+           or else Within >= Float (Most_Lines)
+         then
+            return False;
+         end if;
+         declare
+            Number : constant Positive := Natural (Float'Floor (Within)) + 1;
+         begin
+            Layouts.Lay_Out (Item.Laid, Item.Doc.all, Para, Number);
+            if Number > Layouts.Line_Count (Item.Laid, Para) then
+               return False;
+            end if;
+            declare
+               Line : constant CoreText.Wrapping.Span := Layouts.Line (Item.Laid, Para, Number);
+               First : constant Natural := Natural'Max
+                 (Line.First, (if Para = From.Paragraph then Units (Item, From) else 0));
+               Last : constant Natural := Natural'Min
+                 (Line.Stop, (if Para = To.Paragraph then Units (Item, To) else Line.Stop));
+            begin
+               if First >= Last then
+                  return False;
+               end if;
+               declare
+                  Left : constant Float := Column_Left (Item) + Scale (Item)
+                    * Layouts.Caret_Offset (Item.Laid, Item.Doc.all, Para, Number, First);
+                  Right : constant Float := Column_Left (Item) + Scale (Item)
+                    * Layouts.Caret_Offset (Item.Laid, Item.Doc.all, Para, Number, Last);
+               begin
+                  return X >= Float'Min (Left, Right) and then X < Float'Max (Left, Right);
+               end;
+            end;
+         end;
+      end;
+   end Is_Over_Range;
+
    procedure Click
      (Item   : in out Text_Area;
       X, Y   : Float;

@@ -165,6 +165,14 @@ package Pomarine.Text_Areas is
    --  Whether pixel X, Y is nearest a place in the selection, which there
    --  must be.
 
+   function Is_Over_Range
+     (Item : in out Text_Area; From, To : Position; X, Y : Float) return Boolean
+     with Pre => Is_Attached (Item) and then Is_Position (Item, From)
+                 and then Is_Position (Item, To) and then From < To;
+   --  Whether pixel X, Y is over text in this half-open range. Uses the
+   --  same line geometry as decorations, including wrapping and zoom;
+   --  empty space past a line or between paragraphs is excluded.
+
    function Selected_Text (Item : Text_Area) return String
      with Pre => Is_Attached (Item);
    --  A line to each paragraph.

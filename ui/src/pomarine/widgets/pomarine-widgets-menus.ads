@@ -23,7 +23,8 @@ with Pomarine.Icons;
 package Pomarine.Widgets.Menus is
 
    Row_Capacity  : constant := Pomarine_Ui_Config.Menu_Rows;
-   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
+   Text_Capacity : constant := 256;
+   --  Room for complete replacement text; drawing ellipsizes long rows.
    --  Rows, and bytes of the text of each.
 
    type Row_Kind is (Heading, Action, Check, Separator, Note);
