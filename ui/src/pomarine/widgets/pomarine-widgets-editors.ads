@@ -5,6 +5,7 @@ with SDL3.Events;
 with Texts.Documents;
 with Pomarine.Icons;
 with Pomarine.Text_Areas;
+private with Pomarine.Widgets.Buttons;
 
 --  A text area (see Pomarine.Text_Areas) as a widget: it is placed by the
 --  layout, takes the focus when clicked, and is drawn, updated and given
@@ -18,11 +19,17 @@ with Pomarine.Text_Areas;
 --  and taking nothing), show a hint while it is empty, and an icon before
 --  a single line.
 --
+--  A text area for more than one line, that can be edited, has a toolbar
+--  of buttons (Bold, Italic, Underline, Strikethrough) while it has the
+--  focus: they fade in over the top of it, and its text moves down to
+--  make room, scrolling if it must, but the editor does not change size.
+--  Clicking one does not take the focus from the text.
+--
 --  Declare it after the renderer it is drawn to, and after the document
 --  it shows.
 package Pomarine.Widgets.Editors is
 
-   type Editor is new Widget with private;
+   type Editor is new Widget and Listener with private;
 
    procedure Configure
      (Item    : in out Editor;
@@ -157,13 +164,25 @@ package Pomarine.Widgets.Editors is
    overriding procedure Command_State_Changed
      (Item : in out Editor; State : Command_State);
 
+   overriding procedure Handle_Event
+     (Self   : in out Editor;
+      Source : in out Widget'Class;
+      Event  : Widget_Event);
+   --  A click on a button of the toolbar.
+
    overriding procedure Handle_Command
      (Item : in out Editor; Tag : Integer; Done : out Boolean);
 
 private
 
-   type Editor is new Widget with record
+   type Format_Buttons is array (Texts.Documents.Format) of Pomarine.Widgets.Buttons.Button;
+
+   type Editor is new Widget and Listener with record
       Text    : aliased Pomarine.Text_Areas.Text_Area;
+      Toolbar : Format_Buttons;
+      --  Added to the tree when first wanted; shown while the text area
+      --  has a toolbar.
+      Toolbar_Shown : Boolean := False;
       Zoomed  : Float := 1.0;
       Has_Paper : Boolean := False;
       Paper     : Themes.Slot := Themes.Page;

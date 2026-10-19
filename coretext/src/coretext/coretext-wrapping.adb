@@ -13,30 +13,19 @@ package body CoreText.Wrapping is
    --  view when it was chosen.
 
    function Typesetter
-     (Using : Fonts.Font; Text : Thin.Ref; From, Stop, Length : Natural)
+     (Using : Fonts.Font; Text : Strings.Text; From, Stop : Natural)
       return Thin.Ref;
    --  A typesetter over the UTF-16 range [From, Stop) of Text, which is
    --  Length units long. Release it.
 
    function Typesetter
-     (Using : Fonts.Font; Text : Thin.Ref; From, Stop, Length : Natural)
+     (Using : Fonts.Font; Text : Strings.Text; From, Stop : Natural)
       return Thin.Ref
    is
-      Sub  : Thin.Ref := Thin.Null_Ref;
-      Whole : constant Boolean := From = 0 and then Stop = Length;
       Attr : Thin.Ref;
       Result : Thin.Ref;
    begin
-      if not Whole then
-         Sub := Thin.CF_String_Create_With_Substring
-           (Thin.Null_Ref, Text,
-            (Location => Interfaces.C.long (From),
-             Length   => Interfaces.C.long (Stop - From)));
-      end if;
-      Attr := Thin.CF_Attributed_String_Create
-        (Thin.Null_Ref, (if Whole then Text else Sub),
-         Fonts.Attributes (Using));
-      Core.Release (Sub);
+      Attr := Strings.Attributed (Text, Using, From, Stop);
       if Attr = Thin.Null_Ref then
          raise Error with "CFAttributedStringCreate failed";
       end if;
@@ -59,7 +48,7 @@ package body CoreText.Wrapping is
 
    procedure Window_Lines
      (Using  : Fonts.Font;
-      Text   : Thin.Ref;
+      Text   : Strings.Text;
       From, Stop, Length : Natural;
       Width  : Float;
       Result : in out Span_Vectors.Vector);
@@ -69,12 +58,12 @@ package body CoreText.Wrapping is
 
    procedure Window_Lines
      (Using  : Fonts.Font;
-      Text   : Thin.Ref;
+      Text   : Strings.Text;
       From, Stop, Length : Natural;
       Width  : Float;
       Result : in out Span_Vectors.Vector)
    is
-      Setter : Thin.Ref := Typesetter (Using, Text, From, Stop, Length);
+      Setter : Thin.Ref := Typesetter (Using, Text, From, Stop);
       Start  : Natural := From;
    begin
       while Start < Stop loop
@@ -94,7 +83,7 @@ package body CoreText.Wrapping is
       with function Stops (Item : Span) return Boolean;
    procedure Lines_From
      (Using    : Fonts.Font;
-      Text     : Thin.Ref;
+      Text     : Strings.Text;
       From, Length : Natural;
       Width    : Float;
       First_Size : Positive;
@@ -108,7 +97,7 @@ package body CoreText.Wrapping is
 
    procedure Lines_From
      (Using    : Fonts.Font;
-      Text     : Thin.Ref;
+      Text     : Strings.Text;
       From, Length : Natural;
       Width    : Float;
       First_Size : Positive;
@@ -167,7 +156,7 @@ package body CoreText.Wrapping is
          Result.Append (Span'(First => 0, Stop => 0));
       else
          All_Lines
-           (Using, Strings.Handle (Text), 0, Length, Width, Window,
+           (Using, Text, 0, Length, Width, Window,
             Result, Stopped, Where);
       end if;
       return Result;
@@ -211,7 +200,7 @@ package body CoreText.Wrapping is
                  and then not Enough (Lines.Last_Element))
       then
          More_Lines
-           (Using, Strings.Handle (Text),
+           (Using, Text,
             (if Lines.Is_Empty then 0 else Lines.Last_Element.Stop),
             Length, Width, Window, Lines, Stopped, Where);
       end if;
@@ -294,7 +283,7 @@ package body CoreText.Wrapping is
 
          --  Breaks usually resume within a few lines, so start small.
          Fresh_Lines
-           (Using, Strings.Handle (Text), Old (Restart).First, Length,
+           (Using, Text, Old (Restart).First, Length,
             Width, Window / 4, Result, Stopped, Where);
 
          if Stopped then

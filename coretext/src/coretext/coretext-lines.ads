@@ -2,6 +2,7 @@ with Ada.Finalization;
 with Interfaces;
 with System;
 with CoreText.Fonts;
+with CoreText.Strings;
 
 package CoreText.Lines is
 
@@ -12,6 +13,9 @@ package CoreText.Lines is
    procedure Make (Item : in out Line; Using : Fonts.Font; Text : String)
      with Pre => Fonts.Is_Open (Using);
    --  Set Text in Using, replacing Item's text. Text may be "".
+
+   procedure Make (Item : in out Line; Using : Fonts.Font; Text : Strings.Text; First, Stop : Natural)
+     with Pre => Strings.Is_Set (Text) and then First <= Stop and then Stop <= Strings.Length (Text);
 
    function Length (Item : Line) return Natural;
    --  The line's text length in UTF-16 units.

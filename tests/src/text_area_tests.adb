@@ -138,6 +138,70 @@ package body Text_Area_Tests is
 
    --  The tests
 
+   procedure Rich_Text is
+      F : Fixture;
+      Before : Float;
+      X, Y, W, H, Plain_Y : Float;
+   begin
+      Open (F, "Bold, italic, underline and strike. " & Sample (1 .. 200), Focus => False);
+      Text_Areas.Set_Toolbar (F.Area);
+      Text_Areas.Select_Range (F.Area, (1, 1), (1, 5));
+      Text_Areas.Toggle_Format (F.Area, Docs.Bold);
+      Text_Areas.Select_Range (F.Area, (1, 7), (1, 13));
+      Text_Areas.Toggle_Format (F.Area, Docs.Italic);
+      Text_Areas.Select_Range (F.Area, (1, 15), (1, 24));
+      Text_Areas.Toggle_Format (F.Area, Docs.Underline);
+      Text_Areas.Select_Range (F.Area, (1, 29), (1, 35));
+      Text_Areas.Toggle_Format (F.Area, Docs.Strikethrough);
+
+      --  Unfocused, there is no room for a toolbar.
+      pragma Assert (not Text_Areas.Has_Toolbar (F.Area));
+      Before := Text_Areas.Content_Height (F.Area);
+      Text_Areas.Caret_Box (F.Area, X, Plain_Y, W, H);
+      Check (F, "textarea-rich-unfocused");
+
+      --  Focused, the text is moved down, and the height is not changed.
+      Text_Areas.Set_Focus (F.Area, True);
+      pragma Assert (Text_Areas.Has_Toolbar (F.Area));
+      pragma Assert (Text_Areas.Content_Height (F.Area) = Before);
+      Text_Areas.Caret_Box (F.Area, X, Y, W, H);
+      pragma Assert (Y - Plain_Y = (Text_Areas.Toolbar_Points - 12.0) * Density);
+      Check (F, "textarea-rich-focused");
+
+      --  And back again.
+      Text_Areas.Set_Focus (F.Area, False);
+      Text_Areas.Caret_Box (F.Area, X, Y, W, H);
+      pragma Assert (Y = Plain_Y);
+      Text_Areas.Set_Focus (F.Area, True);
+
+      --  The keyboard shortcut acts on the same selection.
+      Press (F, Events.Key_U, Command => True);
+      pragma Assert (Docs.Has_Format (F.Doc, (1, 29), (1, 35), Docs.Underline));
+      Press (F, Events.Key_U, Command => True);
+      pragma Assert (not Docs.Has_Format (F.Doc, (1, 29), (1, 35), Docs.Underline));
+
+      --  A press in the toolbar's place, between its buttons, leaves the
+      --  selection alone.
+      Send (F, (Kind => Events.Mouse_Down, Button => 1, Clicks => 1,
+                Mouse_X => 300.0, Mouse_Y => Float (Margin) + 8.0, others => <>));
+      Send (F, (Kind => Events.Mouse_Up, Button => 1, Mouse_X => 300.0,
+                Mouse_Y => Float (Margin) + 8.0, others => <>),
+            Taken => False);
+      pragma Assert (Text_Areas.Selected_Text (F.Area) = "strike");
+
+      --  Formatting with the selection kept, then typing in a chosen style.
+      Text_Areas.Toggle_Format (F.Area, Docs.Bold);
+      pragma Assert (Docs.Has_Format (F.Doc, (1, 29), (1, 35), Docs.Bold));
+      Text_Areas.Move (F.Area, Text_Areas.Text_End);
+      Text_Areas.Toggle_Format (F.Area, Docs.Italic);
+      Text_Areas.Insert (F.Area, "typed");
+      Text_Areas.Insert (F.Area, " more");
+      pragma Assert (Text_Areas.Format_Active (F.Area, Docs.Italic));
+      Text_Areas.Undo (F.Area);
+      pragma Assert (Docs.Whole (F.Doc) = "Bold, italic, underline and strike. " & Sample (1 .. 200));
+      Goldens.Check_Text ("textarea-rich-text", "ok", "ok");
+   end Rich_Text;
+
    procedure Empty is
       Item : Fixture;
    begin

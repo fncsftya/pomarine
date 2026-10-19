@@ -360,7 +360,10 @@ package body Typeset.Layouts is
             Done : constant Docs.Change := Docs.Change_After (Doc, Item.Seen);
          begin
             Item.Seen := Item.Seen + 1;
-            if not Done.Kind_Only then
+            if Done.Formats_Only then
+               Start_Again (Item, Doc);
+               return;
+            elsif not Done.Kind_Only then
                Apply (Item, Doc, Done, Item.Seen = Docs.Current (Doc),
                       Structural, Touched);
             end if;
@@ -421,6 +424,39 @@ package body Typeset.Layouts is
       if not CoreText.Strings.Is_Set (P.Held) then
          CoreText.Strings.Set (P.Held, Docs.Text (Doc, Para));
       end if;
+      CoreText.Strings.Clear_Styles (P.Held);
+      declare
+         A : Positive := 1;
+         Last : constant Positive := Docs.Byte_Length (Doc, Para) + 1;
+      begin
+         while A < Last loop
+            declare
+               B : Positive := Last;
+            begin
+               for I in 1 .. Docs.Run_Count (Doc) loop
+                  declare
+                     R : constant Docs.Format_Run := Docs.Run (Doc, I);
+                  begin
+                     if R.From.Paragraph = Para and then R.From.Index > A then
+                        B := Positive'Min (B, R.From.Index);
+                     end if;
+                     if R.To.Paragraph = Para and then R.To.Index > A then
+                        B := Positive'Min (B, R.To.Index);
+                     end if;
+                  end;
+               end loop;
+               if Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Bold)
+                 or else Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Italic)
+               then
+                  CoreText.Strings.Add_Style
+                    (P.Held, Docs.Units_Before (Doc, Para, A), Docs.Units_Before (Doc, Para, B),
+                     Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Bold),
+                     Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Italic));
+               end if;
+               A := B;
+            end;
+         end loop;
+      end;
       pragma Assert
         (CoreText.Strings.Length (P.Held) = Item.Lengths (Para));
    end Hold;
@@ -702,12 +738,9 @@ package body Typeset.Layouts is
    is
       Bounds : constant CoreText.Wrapping.Span := Line (Item, Para, Number);
    begin
+      Hold (Item, Doc, Para);
       CoreText.Lines.Make
-        (Result, Item.Font,
-         Docs.Slice
-           (Doc, Para,
-            Docs.Index_Of (Doc, Para, Bounds.First),
-            Docs.Index_Of (Doc, Para, Bounds.Stop)));
+        (Result, Item.Font, Item.Paragraphs (Para).Held, Bounds.First, Bounds.Stop);
       pragma Assert
         (CoreText.Lines.Length (Result) = Bounds.Stop - Bounds.First);
    end Set_Line;

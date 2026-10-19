@@ -10,6 +10,7 @@ package Widget_Tests is
    procedure Retained;
    procedure Resized;
    procedure Tree_Walk;
+   procedure Toolbar;
    procedure Caret_Only;
    procedure Hiding;
    procedure Removing;

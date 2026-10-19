@@ -39,6 +39,8 @@ procedure Golden is
       end if;
    end Run;
 begin
+   Run ("document-rich-text", Document_Tests.Rich_Text'Access);
+   Run ("textarea-rich-text", Text_Area_Tests.Rich_Text'Access);
    Run ("document-loading", Document_Tests.Loading'Access);
    Run ("document-bom", Document_Tests.Byte_Order_Marks'Access);
    Run ("document-ill-formed", Document_Tests.Ill_Formed'Access);
@@ -145,6 +147,7 @@ begin
    Run ("widgets-retained", Widget_Tests.Retained'Access);
    Run ("widgets-resized", Widget_Tests.Resized'Access);
    Run ("widgets-walk", Widget_Tests.Tree_Walk'Access);
+   Run ("widgets-toolbar", Widget_Tests.Toolbar'Access);
    Run ("widgets-caret", Widget_Tests.Caret_Only'Access);
    Run ("widgets-hiding", Widget_Tests.Hiding'Access);
    Run ("widgets-removing", Widget_Tests.Removing'Access);

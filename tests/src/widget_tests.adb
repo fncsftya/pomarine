@@ -53,7 +53,10 @@ package body Widget_Tests is
       --  after Target and Doc
    end record;
 
-   procedure Open (Item : in out Fixture; Content : String := "Great skua") is
+   procedure Open
+     (Item    : in out Fixture;
+      Content : String := "Great skua";
+      Settled : Boolean := True) is
    begin
       Renderers.Create_Offscreen
         (Item.Target,
@@ -94,6 +97,10 @@ package body Widget_Tests is
                         8.0 * Density);
 
       Widgets.Layout (Item.Tree, Item.Target);
+      --  The focused text area's toolbar has faded in: time passes.
+      if Settled then
+         Widgets.Update (Item.Tree, 200);
+      end if;
    end Open;
 
    --  Where, in points, the middle of each button is, and of the text.
@@ -519,6 +526,60 @@ package body Widget_Tests is
                   Widgets.Hit (Item.Tree, 800.0, 20.0) = null);
    end Tree_Walk;
 
+   procedure Toolbar is
+      Item : Fixture;
+      Page : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Focused_Height : Float;
+
+      function Visible_Buttons return Natural is
+         Count : Natural := 0;
+      begin
+         for Each in 1 .. Widgets.Child_Count (Item.Page) loop
+            if Widgets.Is_Visible (Widgets.Child_At (Item.Page, Each).all) then
+               Count := Count + 1;
+            end if;
+         end loop;
+         return Count;
+      end Visible_Buttons;
+   begin
+      Open (Item, "Great skua" & ASCII.LF & "Bonxie", Settled => False);
+      Check_Flag ("widgets-toolbar-buttons", True, Widgets.Child_Count (Item.Page) = 4);
+      Check_Flag ("widgets-toolbar-shown", True, Visible_Buttons = 4);
+      Focused_Height := Widgets.Height_Of (Item.Page);
+
+      --  It fades in: not to be seen at first, then there.
+      Check_Painted (Item, "widgets-toolbar-start");
+      Widgets.Update (Item.Tree, 75);
+      Check_Painted (Item, "widgets-toolbar-half");
+      Widgets.Update (Item.Tree, 200);
+      Check_Painted (Item, "widgets-toolbar");
+
+      --  Without the focus there is none, and the layout does not move.
+      Widgets.Release_Focus (Item.Page);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-toolbar-gone", True, Visible_Buttons = 0);
+      Check_Flag ("widgets-toolbar-same-height", True, Widgets.Height_Of (Item.Page) = Focused_Height);
+      Check_Painted (Item, "widgets-toolbar-unfocused");
+
+      --  A button formats the selection, and the text keeps the focus.
+      Widgets.Focus (Item.Page);
+      Widgets.Update (Item.Tree, 400);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 6));
+      declare
+         Bold : constant Widgets.Widget_Access := Widgets.Child_At (Item.Page, 1);
+         X : constant Float := (Widgets.Left_Of (Bold.all) + Widgets.Width_Of (Bold.all) / 2.0) / Density;
+         Y : constant Float := (Widgets.Top_Of (Bold.all) + Widgets.Height_Of (Bold.all) / 2.0) / Density;
+      begin
+         Send (Item, Press (X, Y), Taken => True);
+         Send (Item, Release (X, Y), Taken => True);
+      end;
+      Check_Flag ("widgets-toolbar-bold", True, Docs.Has_Format (Item.Doc, (1, 1), (1, 6), Docs.Bold));
+      Check_Flag ("widgets-toolbar-focused", True, Pomarine.Widgets.Editors.Is_Focused (Item.Page));
+      Check_Flag ("widgets-toolbar-selection", True, Pomarine.Text_Areas.Selected_Text (Page.all) = "Great");
+      Check_Painted (Item, "widgets-toolbar-bold");
+   end Toolbar;
+
    procedure Caret_Only is
       Item : Fixture;
       Text : constant String :=
@@ -530,6 +591,9 @@ package body Widget_Tests is
         (Pomarine.Text_Areas.Lines_Drawn (Pomarine.Widgets.Editors.Area (Item.Page).all));
    begin
       Open (Item, Text);
+      --  All five paragraphs fit below the toolbar.
+      Pomarine.Widgets.Editors.Configure
+        (Item.Page, "Georgia", Size => 14.0, Measure => 640.0, Spacing => 4.0);
       Paint (Item);
       Before := Drawn;
       Check_Flag ("widgets-caret-all-lines", True, Before >= 5);

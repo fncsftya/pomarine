@@ -114,6 +114,23 @@ package Pomarine.Text_Areas is
    function Document (Item : Text_Area) return Document_Access
      with Pre => Is_Attached (Item);
 
+   procedure Toggle_Format (Item : in out Text_Area; Style : Texts.Documents.Format)
+     with Pre => Is_Attached (Item);
+   function Format_Active (Item : Text_Area; Style : Texts.Documents.Format) return Boolean
+     with Pre => Is_Attached (Item);
+
+   Toolbar_Points : constant Float := 32.0;
+
+   procedure Set_Toolbar (Item : in out Text_Area; To : Boolean := True);
+   --  Leave room for a toolbar of formatting buttons, which its owner
+   --  draws in the top Toolbar_Points of it, while it is focused, if it
+   --  is for editing more than one line. Off to begin with.
+
+   function Has_Toolbar (Item : Text_Area) return Boolean;
+   --  Whether it has that room now. The text is then moved down and
+   --  scrolls in what is left, but the text area does not change size:
+   --  its owner's layout does not move.
+
    --  Where it is
 
    procedure Place
@@ -449,6 +466,9 @@ private
       Laid     : Typeset.Layouts.Layout;
       View     : Typeset.Views.View;
       Measure  : Float := 1.0;
+      Toolbar  : Boolean := False;
+      Pending_Formats : Texts.Documents.Format_Set := Texts.Documents.No_Formats;
+      Explicit_Formats : Boolean := False;
       Single   : Boolean := False;
       Read_Only : Boolean := False;
       Grows    : Boolean := False;

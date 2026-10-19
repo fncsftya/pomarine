@@ -55,6 +55,37 @@ package Texts.Documents is
    function Kind (Item : Document; Para : Positive) return Paragraph_Kind
      with Pre => Para <= Count (Item);
 
+   type Format is (Bold, Underline, Italic, Strikethrough);
+   type Format_Set is array (Format) of Boolean;
+   No_Formats : constant Format_Set := [others => False];
+
+   type Format_Run is record
+      From, To : Position;
+      Style : Format;
+   end record;
+
+   function Run_Count (Item : Document) return Natural;
+   function Run (Item : Document; Index : Positive) return Format_Run
+     with Pre => Index <= Run_Count (Item);
+   function Has_Format (Item : Document; From, To : Position; Style : Format) return Boolean
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   procedure Set_Format (Item : in out Document; From, To : Position; Style : Format; Enabled : Boolean)
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To,
+          Post => Has_Format (Item, From, To, Style) = Enabled;
+
+   --  What is kept of a document, as markup: <version>1</version>, then a
+   --  <p> for each paragraph, its text with & < > as &amp; &lt; &gt;, and
+   --  <b>, <i>, <u> and <s> round the runs of bold, italic, underlined and
+   --  struck-through text. Text without a <version> is plain, a paragraph
+   --  to each line: Upgraded makes the markup of it, and Load_Stored loads
+   --  it so. Markup that is not well formed, or of a version not known, is
+   --  rejected with Constraint_Error, and the document left as it was.
+   function Stored (Item : Document) return String;
+   function Upgraded (Content : String) return String;
+   function Plain_Stored (Content : String) return String;
+   --  The text of Content alone, a line to each paragraph.
+   procedure Load_Stored (Item : in out Document; Content : String);
+
    --  Positions
 
    function Is_Boundary
@@ -108,7 +139,9 @@ package Texts.Documents is
       From, To : Position;
       By       : String;
       Undo_As  : Edit_Kind := Other;
-      Recorded : Boolean := True)
+      Recorded : Boolean := True;
+      Explicit_Formats : Boolean := False;
+      Formats : Format_Set := No_Formats)
      with Pre  => Is_Position (Item, From) and then Is_Position (Item, To)
                   and then not (To < From)
                   and then (for all C of By => C /= ASCII.CR),
@@ -202,6 +235,8 @@ package Texts.Documents is
       Old_Length : Natural := 0;  --  of From's paragraph, in units
       Kind_Only  : Boolean := False;
       --  Only From's paragraph's kind changed.
+      Formats_Only : Boolean := False;
+      --  Formatting changed; character positions remain unchanged.
    end record;
    --  Positions in UTF-8 bytes, and the same in UTF-16 units, for
    --  layout.
@@ -256,7 +291,12 @@ private
 
    package Named_Vectors is new Ada.Containers.Vectors (Positive, Named);
 
+   package Format_Vectors is new Ada.Containers.Vectors (Positive, Format_Run);
+
    type Edit is record
+      Formats_Only : Boolean := False;
+      Format_End : Position;
+      Old_Formats, New_Formats : Format_Vectors.Vector;
       From      : Position;
       Removed   : Ada.Strings.Unbounded.Unbounded_String;
       Inserted  : Ada.Strings.Unbounded.Unbounded_String;
@@ -283,6 +323,7 @@ private
    package Change_Vectors is new Ada.Containers.Vectors (Positive, Change);
 
    type Document is new Ada.Finalization.Limited_Controlled with record
+      Formats : Format_Vectors.Vector;
       Paragraphs : Paragraph_Vectors.Vector;
       Next_Id    : Paragraph_Id := 1;
 

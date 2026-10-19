@@ -130,6 +130,15 @@ private package CoreText.Thin is
       Value_Callbacks : System.Address) return Ref
      with Import, Convention => C, External_Name => "CFDictionaryCreate";
 
+   function CF_Attributed_String_Create_Mutable_Copy (Allocator : Ref; Capacity : Interfaces.C.long; Source : Ref)
+      return Ref with Import, Convention => C, External_Name => "CFAttributedStringCreateMutableCopy";
+   procedure CF_Attributed_String_Set_Attribute (Item : Ref; Bounds : CF_Range; Name, Value : Ref)
+     with Import, Convention => C, External_Name => "CFAttributedStringSetAttribute";
+   function CT_Font_Create_Copy_With_Symbolic_Traits
+     (Font : Ref; Size : Interfaces.C.double; Matrix : System.Address;
+      Value, Mask : Interfaces.Unsigned_32) return Ref
+     with Import, Convention => C, External_Name => "CTFontCreateCopyWithSymbolicTraits";
+
    function CF_Attributed_String_Create
      (Allocator : Ref; Text : Ref; Attributes : Ref) return Ref
      with Import, Convention => C,

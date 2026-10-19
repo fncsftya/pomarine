@@ -552,6 +552,16 @@ package Pomarine.Widgets is
    --  tree, with its place in the order, and keeps its state and its
    --  style.
 
+   procedure Set_Fade
+     (Item   : in out Widget'Class;
+      Amount : Float;
+      Toward : Themes.Slot := Themes.Page)
+     with Pre => Is_Attached (Item) and then Amount in 0.0 .. 1.0;
+   --  Draw it, and what is in it, Amount of the way back from the colour
+   --  Toward is in the theme: 1.0, as it is to begin with, is as the theme
+   --  has it, 0.0 is not to be seen. For a widget that appears over what
+   --  is Toward-coloured, as by Animate.
+
    procedure Set_Measured (Item : in out Widget'Class; To : Boolean := True);
    --  Have the layout ask the widget how big it is (Measure) where its style
    --  does not say. Off to begin with, so that a widget is as the style
@@ -994,6 +1004,8 @@ private
    type Index_Array is array (Slots) of Node_Index;
    type Count_Array is array (Slots) of Natural;
    type Flag_Array is array (Slots) of Boolean;
+   type Level_Array is array (Slots) of Float;
+   type Toward_Array is array (Slots) of Themes.Slot;
 
    type Spot is record
       Left, Top, Wide, High : Float;
@@ -1019,6 +1031,9 @@ private
       Paint_Box  : Box_Array;
       --  Of its box, what is being drawn.
       Hovered, Focused : Flag_Array;
+      Fade       : Level_Array := [others => 1.0];
+      Fade_Toward : Toward_Array := [others => Themes.Page];
+      --  How far a node is drawn back to a colour: see Set_Fade.
       Known      : Flag_Array;
       --  Whether an assistive technology has been told of it.
       Kids       : Node_Id_Array (Slots);

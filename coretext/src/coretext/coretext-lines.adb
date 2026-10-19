@@ -33,6 +33,19 @@ package body CoreText.Lines is
       Item.Units := UTF16_Length (Text);
    end Make;
 
+   procedure Make (Item : in out Line; Using : Fonts.Font; Text : Strings.Text; First, Stop : Natural) is
+      Attr : Thin.Ref := Strings.Attributed (Text, Using, First, Stop);
+      Handle : constant Thin.Ref := Thin.CT_Line_Create (Attr);
+   begin
+      Core.Release (Attr);
+      if Handle = Thin.Null_Ref then
+         raise Error with "Could not create styled line";
+      end if;
+      Core.Release (Item.Handle);
+      Item.Handle := Handle;
+      Item.Units := Stop - First;
+   end Make;
+
    overriding procedure Finalize (Item : in out Line) is
    begin
       Core.Release (Item.Handle);

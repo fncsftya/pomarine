@@ -8,10 +8,63 @@ package body CoreText.Strings is
    use type Interfaces.C.long;
    use type Interfaces.C.unsigned_long;
 
+   procedure Clear_Styles (Item : in out Text) is
+   begin
+      Item.Styles.Clear;
+   end Clear_Styles;
+
+   procedure Add_Style (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean) is
+   begin
+      Item.Styles.Append (Style_Run'(First, Stop, Bold, Italic));
+   end Add_Style;
+
+   function Attributed (Item : Text; Using : Fonts.Font; First, Stop : Natural) return System.Address is
+      Sub : Thin.Ref := Thin.CF_String_Create_With_Substring
+        (Thin.Null_Ref, Item.Ref, (Interfaces.C.long (First), Interfaces.C.long (Stop - First)));
+      Plain : Thin.Ref := Thin.CF_Attributed_String_Create (Thin.Null_Ref, Sub, Fonts.Attributes (Using));
+      Result : Thin.Ref;
+      Font : constant Thin.Ref := Thin.CF_Dictionary_Get_Value (Fonts.Attributes (Using), Thin.Font_Attribute_Name);
+      use type Interfaces.Unsigned_32;
+   begin
+      Core.Release (Sub);
+      if Plain = Thin.Null_Ref then
+         raise Error with "Could not create attributed text";
+      end if;
+      if Item.Styles.Is_Empty then
+         return Plain;
+      end if;
+      Result := Thin.CF_Attributed_String_Create_Mutable_Copy (Thin.Null_Ref, 0, Plain);
+      Core.Release (Plain);
+      if Result = Thin.Null_Ref then
+         raise Error with "Could not create attributed text";
+      end if;
+      for R of Item.Styles loop
+         if R.First < Stop and then First < R.Stop then
+            declare
+               Traits : constant Interfaces.Unsigned_32 :=
+                 (if R.Bold then 2 else 0) or (if R.Italic then 1 else 0);
+               Face : Thin.Ref := Thin.CT_Font_Create_Copy_With_Symbolic_Traits
+                 (Font, 0.0, System.Null_Address, Traits, 3);
+               A : constant Natural := Natural'Max (First, R.First);
+               B : constant Natural := Natural'Min (Stop, R.Stop);
+            begin
+               if Face /= Thin.Null_Ref then
+                  Thin.CF_Attributed_String_Set_Attribute
+                    (Result, (Interfaces.C.long (A - First), Interfaces.C.long (B - A)),
+                     Thin.Font_Attribute_Name, Face);
+                  Core.Release (Face);
+               end if;
+            end;
+         end if;
+      end loop;
+      return Result;
+   end Attributed;
+
    procedure Set (Item : in out Text; Value : String) is
       Made : constant Thin.Ref := Core.Create_String (Value);
    begin
       Clear (Item);
+      Item.Styles.Clear;
       Item.Ref := Made;
       Item.Units := Natural (Thin.CF_String_Get_Length (Made));
    end Set;

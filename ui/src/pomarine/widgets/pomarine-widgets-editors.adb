@@ -1,4 +1,5 @@
 with Texts;
+with Yoga.Nodes;
 package body Pomarine.Widgets.Editors is
 
    function Document (Item : Editor) return not null access constant Texts.Documents.Document is
@@ -26,6 +27,7 @@ package body Pomarine.Widgets.Editors is
       Spacing : Float := 0.0) is
    begin
       Text_Areas.Configure (Item.Text, Family, Size, Measure, Spacing);
+      Text_Areas.Set_Toolbar (Item.Text);
    end Configure;
 
    function Is_Configured (Item : Editor) return Boolean is
@@ -136,6 +138,116 @@ package body Pomarine.Widgets.Editors is
    function Area (Item : in out Editor)
       return not null access Pomarine.Text_Areas.Text_Area is
      (Item.Text'Unchecked_Access);
+
+   Toolbar_Left  : constant Float := 8.0;
+   Toolbar_Top   : constant Float := 4.0;
+   Button_Wide   : constant Float := 28.0;
+   Button_High   : constant Float := 24.0;
+   Button_Gap    : constant Float := 4.0;
+   Fade_Milliseconds : constant := 150;
+   --  In points, and how long the toolbar takes to appear.
+
+   Toolbar_Order : constant array (0 .. 3) of Docs.Format :=
+     [Docs.Bold, Docs.Italic, Docs.Underline, Docs.Strikethrough];
+
+   function Toolbar_Wanted (Item : Editor) return Boolean is
+     (Has_Document (Item) and then Is_Attached (Item) and then Item.Enabled
+      and then Text_Areas.Has_Toolbar (Item.Text));
+
+   function Paper_Of (Item : Editor) return Themes.Slot is
+     (if Item.Has_Paper then Item.Paper else Themes.Page);
+
+   procedure Build_Toolbar (Item : in out Editor) is
+      Pixels : constant Float := Density (Item);
+   begin
+      for Place in Toolbar_Order'Range loop
+         declare
+            Style : constant Docs.Format := Toolbar_Order (Place);
+            Part  : Buttons.Button renames Item.Toolbar (Style);
+         begin
+            if not Is_Attached (Part) then
+               Buttons.Set_Label
+                 (Part, (case Style is
+                            when Docs.Bold => "B", when Docs.Italic => "I",
+                            when Docs.Underline => "U", when Docs.Strikethrough => "S"));
+               Set_Accessible_Name
+                 (Part, (case Style is
+                            when Docs.Bold => "Bold", when Docs.Italic => "Italic",
+                            when Docs.Underline => "Underline",
+                            when Docs.Strikethrough => "Strikethrough"));
+               Set_Tag (Part, Docs.Format'Pos (Style));
+               Set_Listener (Part, Item'Unchecked_Access);
+               Add (Item, Part);
+               Set_Visible (Part, False);
+            end if;
+            Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
+            Yoga.Nodes.Set_Position
+              (Node (Part), Yoga.Left,
+               (Toolbar_Left + Float (Place) * (Button_Wide + Button_Gap)) * Pixels);
+            Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, Toolbar_Top * Pixels);
+            Yoga.Nodes.Set_Width (Node (Part), Button_Wide * Pixels);
+            Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
+         end;
+      end loop;
+      Request_Layout (Item);
+   end Build_Toolbar;
+
+   procedure Refresh_Toolbar (Item : in out Editor) is
+   begin
+      if Item.Toolbar_Shown then
+         for Style in Docs.Format loop
+            Buttons.Set_Selected (Item.Toolbar (Style), Text_Areas.Format_Active (Item.Text, Style));
+         end loop;
+      end if;
+   end Refresh_Toolbar;
+
+   procedure Fade_Step (Item : in out Widget'Class; Value : Float) is
+      Self : Editor renames Editor (Item);
+   begin
+      for Part of Self.Toolbar loop
+         Set_Fade (Part, Value, Paper_Of (Self));
+      end loop;
+   end Fade_Step;
+
+   procedure Update_Toolbar (Item : in out Editor) is
+      Wanted : constant Boolean := Toolbar_Wanted (Item);
+   begin
+      if Wanted and then not Item.Toolbar_Shown then
+         Build_Toolbar (Item);
+         Item.Toolbar_Shown := True;
+         for Part of Item.Toolbar loop
+            Set_Fade (Part, 0.0, Paper_Of (Item));
+            Set_Visible (Part, True);
+         end loop;
+         Refresh_Toolbar (Item);
+         Animate (Item, 0.0, 1.0, Fade_Milliseconds, Ease_Out, Fade_Step'Access);
+      elsif not Wanted and then Item.Toolbar_Shown then
+         Item.Toolbar_Shown := False;
+         if Is_Attached (Item) then
+            Stop_Animations (Item);
+            for Part of Item.Toolbar loop
+               Set_Visible (Part, False);
+            end loop;
+         end if;
+      end if;
+   end Update_Toolbar;
+
+   overriding procedure Handle_Event
+     (Self   : in out Editor;
+      Source : in out Widget'Class;
+      Event  : Widget_Event) is
+   begin
+      case Event.Kind is
+         when Click =>
+            if Has_Document (Self) then
+               Text_Areas.Toggle_Format (Self.Text, Docs.Format'Val (Tag_Of (Source)));
+               Refresh_Toolbar (Self);
+               Invalidate (Self);
+            end if;
+         when others =>
+            null;
+      end case;
+   end Handle_Event;
 
    overriding procedure Placed
      (Item : in out Editor; Left, Top, Width, Height : Float) is
@@ -272,6 +384,8 @@ package body Pomarine.Widgets.Editors is
          if Has_Focus (Item) and then not Is_Focused (Item) then
             Release_Focus (Item);
          end if;
+         Update_Toolbar (Item);
+         Refresh_Toolbar (Item);
       end if;
    end Handle;
 
@@ -284,6 +398,8 @@ package body Pomarine.Widgets.Editors is
          return;
       end if;
       Text_Areas.Tick (Item.Text, Now, Blinked);
+      Update_Toolbar (Item);
+      Refresh_Toolbar (Item);
       if Blinked then
          --  Only the caret changes.
          declare
@@ -344,6 +460,7 @@ package body Pomarine.Widgets.Editors is
    begin
       if Has_Document (Item) then
          Text_Areas.Set_Focus (Item.Text, Focused);
+         Update_Toolbar (Item);
          Invalidate (Item);
       end if;
    end Focus_Changed;

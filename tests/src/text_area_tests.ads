@@ -3,6 +3,7 @@
 package Text_Area_Tests is
 
    procedure Empty;
+   procedure Rich_Text;
    procedure Focused;
    procedure Typing;
    procedure Joining;

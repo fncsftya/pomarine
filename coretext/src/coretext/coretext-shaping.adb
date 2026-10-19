@@ -95,8 +95,6 @@ package body CoreText.Shaping is
       First, Stop : Natural;
       Result : out Shaped)
    is
-      Length : constant Natural := Strings.Length (Text);
-      Sub    : Thin.Ref := Thin.Null_Ref;
       Attr   : Thin.Ref;
       Line   : Thin.Ref;
       Ascent, Descent : aliased Interfaces.C.double;
@@ -107,17 +105,7 @@ package body CoreText.Shaping is
          return;
       end if;
 
-      if First /= 0 or else Stop /= Length then
-         Sub := Thin.CF_String_Create_With_Substring
-           (Thin.Null_Ref, Strings.Handle (Text),
-            (Location => Interfaces.C.long (First),
-             Length   => Interfaces.C.long (Stop - First)));
-      end if;
-      Attr := Thin.CF_Attributed_String_Create
-        (Thin.Null_Ref,
-         (if Sub = Thin.Null_Ref then Strings.Handle (Text) else Sub),
-         Fonts.Attributes (Using));
-      Core.Release (Sub);
+      Attr := Strings.Attributed (Text, Using, First, Stop);
       if Attr = Thin.Null_Ref then
          raise Error with "CFAttributedStringCreate failed";
       end if;

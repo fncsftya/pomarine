@@ -49,13 +49,25 @@ package body Pomarine.Text_Areas is
       else 0.0);
    --  After a single line, in pixels: see Set_Trail.
 
+   function Has_Toolbar (Item : Text_Area) return Boolean is
+     (Item.Toolbar and then Item.Focused and then not Item.Single and then not Item.Read_Only);
+
+   function Toolbar_Room (Item : Text_Area) return Float is
+     (if Has_Toolbar (Item) then Toolbar_Points * Item.Density else 0.0);
+   --  In pixels: the toolbar is in the top of the text area, in the place
+   --  of the padding, so that the text moves down by the difference.
+
+   function Top_Room (Item : Text_Area) return Float is
+     (Float'Max (Inset (Item), Toolbar_Room (Item)));
+   --  From the top of the text area to its text, in pixels.
+
    function Text_Top (Item : Text_Area) return Float is
      (if Item.Single
       then Item.Top + Float'Max
              (Inset (Item),
               (Item.Height - Layouts.Line_Height (Item.Laid) * Scale (Item))
               / 2.0)
-      else Item.Top + Inset (Item));
+      else Item.Top + Top_Room (Item));
    --  A line for one line is in the middle of its height.
 
    function Text_Width (Item : Text_Area) return Float is
@@ -65,7 +77,7 @@ package body Pomarine.Text_Areas is
          - Trail_Room (Item)));
 
    function Text_Height (Item : Text_Area) return Float is
-     (Float'Max (0.0, Item.Height - 2.0 * Inset (Item)));
+     (Float'Max (0.0, Item.Height - Inset (Item) - Top_Room (Item)));
 
    function Column (Item : Text_Area) return Float is
      (if Item.Single then Item.Measure
@@ -157,7 +169,7 @@ package body Pomarine.Text_Areas is
                Item.At_Caret := Docs.Map (Done, Item.At_Caret);
                Item.At_Mark := Docs.Map (Done, Item.At_Mark);
                if Item.Composing
-                 and then not Done.Kind_Only
+                 and then not Done.Kind_Only and then not Done.Formats_Only
                  and then Done.From < Composed_End (Item)
                  and then Item.Composed < Done.To
                then
@@ -265,6 +277,11 @@ package body Pomarine.Text_Areas is
    function Line_Middle (Item : Text_Area) return Float is
      (Text_Top (Item) + Layouts.Line_Height (Item.Laid) * Scale (Item) / 2.0);
 
+   procedure Set_Toolbar (Item : in out Text_Area; To : Boolean := True) is
+   begin
+      Item.Toolbar := To;
+   end Set_Toolbar;
+
    procedure Set_Grows (Item : in out Text_Area; To : Boolean := True) is
    begin
       Item.Grows := To;
@@ -298,6 +315,7 @@ package body Pomarine.Text_Areas is
    is
    begin
       Item.Doc := Doc;
+      Item.Explicit_Formats := False;
       Clear_Highlights (Item);
       Item.Serial := 0;  --  start again
       Item.Caret_Kept := False;
@@ -385,7 +403,7 @@ package body Pomarine.Text_Areas is
    procedure Scroll (Item : in out Text_Area; By : Float) is
    begin
       Catch_Up (Item);
-      if Item.Grows then
+      if Item.Grows and then not Has_Toolbar (Item) then
          return;  --  its owner scrolls
       end if;
       Layouts.Scroll (Item.Laid, Item.Anchor, Item.Offset, By, Extent (Item));
@@ -396,7 +414,7 @@ package body Pomarine.Text_Areas is
    procedure Scroll_To (Item : in out Text_Area; Top : Float) is
    begin
       Catch_Up (Item);
-      if Item.Grows then
+      if Item.Grows and then not Has_Toolbar (Item) then
          return;
       end if;
       Item.Anchor := 1;
@@ -473,7 +491,8 @@ package body Pomarine.Text_Areas is
       if Item.Read_Only then
          return;
       end if;
-      Docs.Replace (Item.Doc.all, From, To, By, Undo_As, Recorded);
+      Docs.Replace (Item.Doc.all, From, To, By, Undo_As, Recorded,
+                    Explicit_Formats => Item.Explicit_Formats, Formats => Item.Pending_Formats);
       Catch_Up (Item);
       Item.At_Caret := Texts.End_After (From, By);
       Item.At_Mark := Item.At_Caret;
@@ -629,16 +648,25 @@ package body Pomarine.Text_Areas is
       if not Focused then
          Finish_Composition (Item);
          Item.Dragging := False;
+         if Item.Grows then
+            Item.Anchor := 1;  --  what the toolbar moved down is put back
+            Item.Offset := 0.0;
+         end if;
       elsif not Item.Focused then
          Restart_Blink (Item);
       end if;
       Item.Focused := Focused;
+      if Has_Toolbar (Item) and then Item.Doc /= null and then Item.Width > 0.0 then
+         Catch_Up (Item);
+         Reveal (Item);  --  the toolbar may have covered the caret
+      end if;
    end Set_Focus;
 
    --  Moving
 
    procedure Select_Range (Item : in out Text_Area; From, To : Position) is
    begin
+      Item.Explicit_Formats := False;
       Finish_Composition (Item);
       Item.At_Mark := From;
       Item.At_Caret := To;
@@ -819,6 +847,7 @@ package body Pomarine.Text_Areas is
       By     : Motion;
       Extend : Boolean := False) is
    begin
+      Item.Explicit_Formats := False;
       Finish_Composition (Item);
       Docs.Seal (Item.Doc.all);
       if By not in Previous_Line | Next_Line then
@@ -946,6 +975,7 @@ package body Pomarine.Text_Areas is
    is
       Point : Position;
    begin
+      Item.Explicit_Formats := False;
       Finish_Composition (Item);
       Docs.Seal (Item.Doc.all);
       Point := Point_At (Item, X, Y);
@@ -1016,6 +1046,44 @@ package body Pomarine.Text_Areas is
       end if;
       return Result;
    end Fitted;
+
+   function Format_Active (Item : Text_Area; Style : Docs.Format) return Boolean is
+      From : Position := Selection_First (Item);
+   begin
+      if Item.Explicit_Formats and then not Has_Selection (Item) then
+         return Item.Pending_Formats (Style);
+      end if;
+      if not Has_Selection (Item) and then From.Index > 1 then
+         From.Index := From.Index - 1;
+         while not Docs.Is_Boundary (Item.Doc.all, From.Paragraph, From.Index) loop
+            From.Index := From.Index - 1;
+         end loop;
+      end if;
+      return Docs.Has_Format (Item.Doc.all, From, Selection_Last (Item), Style);
+   end Format_Active;
+
+   procedure Toggle_Format (Item : in out Text_Area; Style : Docs.Format) is
+   begin
+      if Item.Single or else Item.Read_Only then
+         return;
+      end if;
+      Finish_Composition (Item);
+      if Has_Selection (Item) then
+         Docs.Set_Format (Item.Doc.all, Selection_First (Item), Selection_Last (Item), Style,
+                          not Format_Active (Item, Style));
+         Catch_Up (Item);
+         Reveal (Item);
+      else
+         if not Item.Explicit_Formats then
+            for F in Docs.Format loop
+               Item.Pending_Formats (F) := Format_Active (Item, F);
+            end loop;
+         end if;
+         Item.Pending_Formats (Style) := not Item.Pending_Formats (Style);
+         Item.Explicit_Formats := True;
+         Docs.Seal (Item.Doc.all);
+      end if;
+   end Toggle_Format;
 
    procedure Insert (Item : in out Text_Area; Typed : String) is
    begin
@@ -1191,6 +1259,13 @@ package body Pomarine.Text_Areas is
       Handled := True;
       if not Item.Focused then
          null;
+      elsif Command and then not Item.Single and then not Item.Read_Only
+        and then (Key = Events.Key_B or else Key = Events.Key_I or else Key = Events.Key_U
+                  or else (Shift and then Key = Events.Key_S))
+      then
+         Toggle_Format (Item, (if Key = Events.Key_B then Docs.Bold elsif Key = Events.Key_I then Docs.Italic
+                              elsif Key = Events.Key_U then Docs.Underline else Docs.Strikethrough));
+         return;
       elsif Command and then Key = Events.Key_A then
          Select_All (Item);
          return;
@@ -1381,8 +1456,12 @@ package body Pomarine.Text_Areas is
       case Event.Kind is
          when Events.Mouse_Down =>
             if Event.Button = 1 and then Contains (Item, X, Y) then
-               Click (Item, X, Y, Natural'Max (1, Event.Clicks),
-                      Extend => Event.Shift);
+               if Y < Item.Top + Toolbar_Room (Item) then
+                  null;  --  the toolbar's, whose buttons take their own clicks
+               else
+                  Item.Explicit_Formats := False;
+                  Click (Item, X, Y, Natural'Max (1, Event.Clicks), Extend => Event.Shift);
+               end if;
                Handled := True;
             end if;
          when Events.Mouse_Move =>
@@ -1439,7 +1518,7 @@ package body Pomarine.Text_Areas is
       Value       : SDL3.Windows.Renderers.Color;
       Underlined  : Boolean;
       Rows_From, Rows_To : Float;
-      Marking : Boolean := False);
+      Marking : Boolean := False; Strike : Boolean := False);
    --  Mark the text from From to To, in paragraphs First to Last, which
    --  are laid out: fill behind it, or underline it. Lines wholly outside
    --  the rows of the target Rows_From to Rows_To are left.
@@ -1452,7 +1531,7 @@ package body Pomarine.Text_Areas is
       Value       : SDL3.Windows.Renderers.Color;
       Underlined  : Boolean;
       Rows_From, Rows_To : Float;
-      Marking : Boolean := False)
+      Marking : Boolean := False; Strike : Boolean := False)
    is
       High  : constant Float := Layouts.Line_Height (Item.Laid);
       Shown : constant Float := View_Top (Item);
@@ -1518,7 +1597,8 @@ package body Pomarine.Text_Areas is
                         if Underlined then
                            SDL3.Painters.Fill_Rect
                              (Target, Value, Left,
-                              (if Marking then Y + High * Scale (Item) - 2.0 * Item.Density
+                              (if Strike then Y + Layouts.Ascent (Item.Laid) * 0.6 * Scale (Item)
+                               elsif Marking then Y + High * Scale (Item) - 2.0 * Item.Density
                                else Y + Layouts.Ascent (Item.Laid) * Scale (Item)
                                     + Underline_Gap * Item.Density),
                               Wide, (if Marking then 2.0 else Underline) * Item.Density);
@@ -1634,11 +1714,15 @@ package body Pomarine.Text_Areas is
          Float (Integer'Max (0, Inner_Bottom - Inner_Top)));
 
       --  Lines part in view run into the padding, but not the outline,
-      --  nor what is before a single line.
-      Narrow_Clip
-        (Target, Inner_Left + Lead, Inner_Top,
-         Integer'Max (0, Inner_Right - Inner_Left - Lead - Trail),
-         Integer'Max (0, Inner_Bottom - Inner_Top));
+      --  nor what is before a single line, nor the toolbar.
+      declare
+         Clip_Top : constant Integer := Integer'Max (Inner_Top, Integer (Item.Top + Toolbar_Room (Item)));
+      begin
+         Narrow_Clip
+           (Target, Inner_Left + Lead, Clip_Top,
+            Integer'Max (0, Inner_Right - Inner_Left - Lead - Trail),
+            Integer'Max (0, Inner_Bottom - Clip_Top));
+      end;
 
       --  What is shown, laid out, as the view will draw it.
       Layouts.Visible
@@ -1678,6 +1762,18 @@ package body Pomarine.Text_Areas is
          Scale   => Scale (Item),
          Settled => Settled,
          Rows_From => Rows_From, Rows_To => Rows_To);
+
+      for I in 1 .. Docs.Run_Count (Item.Doc.all) loop
+         declare
+            R : constant Docs.Format_Run := Docs.Run (Item.Doc.all, I);
+            use type Docs.Format;
+         begin
+            if R.Style = Docs.Underline or else R.Style = Docs.Strikethrough then
+               Draw_Range (Item, Target, R.From, R.To, First, Last, Colors (Themes.Foreground), True,
+                           Rows_From, Rows_To, Strike => R.Style = Docs.Strikethrough);
+            end if;
+         end;
+      end loop;
 
       if Item.Faint_On
         and then Item.Faint_Version = Docs.Current (Item.Doc.all)

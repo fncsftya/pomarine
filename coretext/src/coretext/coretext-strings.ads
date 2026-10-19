@@ -1,4 +1,6 @@
 with Ada.Finalization;
+with CoreText.Fonts;
+private with Ada.Containers.Vectors;
 with System;
 
 package CoreText.Strings is
@@ -70,13 +72,27 @@ package CoreText.Strings is
    --  The UTF-16 range [First, Stop) of the word Unit is in, or that ends
    --  at Unit; First = Stop = Unit if there is none.
 
+   procedure Clear_Styles (Item : in out Text);
+   procedure Add_Style (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean)
+     with Pre => First < Stop and then Stop <= Length (Item);
+   function Attributed (Item : Text; Using : Fonts.Font; First, Stop : Natural) return System.Address
+     with Pre => Is_Set (Item) and then First <= Stop and then Stop <= Length (Item);
+   --  Owned CFAttributedStringRef; caller releases it.
+
    function Handle (Item : Text) return System.Address
      with Pre => Is_Set (Item);
    --  The CFStringRef, for CoreText's own packages.
 
 private
 
+   type Style_Run is record
+      First, Stop : Natural;
+      Bold, Italic : Boolean;
+   end record;
+   package Style_Vectors is new Ada.Containers.Vectors (Positive, Style_Run);
+
    type Text is new Ada.Finalization.Limited_Controlled with record
+      Styles : Style_Vectors.Vector;
       Ref   : System.Address := System.Null_Address;
       Units : Natural := 0;
       Mutable : Boolean := False;  --  Ref is a CFMutableString

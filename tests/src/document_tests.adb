@@ -39,6 +39,119 @@ package body Document_Tests is
         (Name, Expected'Image, Positive'(Docs.Count (Doc))'Image);
    end Check_Count;
 
+   procedure Rich_Text is
+      Doc, Loaded : Docs.Document;
+      A, B : Texts.Position;
+   begin
+      Docs.Load (Doc, "Hello " & UTF_8 ("é🙂") & LF & "world");
+      for F in Docs.Format loop
+         Docs.Set_Format (Doc, (1, 1), (2, 4), F, True);
+      end loop;
+      Docs.Load_Stored (Loaded, Docs.Stored (Doc));
+      pragma Assert (Docs.Whole (Loaded) = Docs.Whole (Doc));
+      pragma Assert (Docs.State (Loaded) = 0);
+      pragma Assert (not Docs.Can_Undo (Loaded));
+      for F in Docs.Format loop
+         pragma Assert (Docs.Has_Format (Loaded, (1, 1), (2, 4), F));
+      end loop;
+      Docs.Set_Format (Doc, (1, 2), (1, 5), Docs.Bold, False);
+      pragma Assert (not Docs.Has_Format (Doc, (1, 2), (1, 5), Docs.Bold));
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 2), Docs.Bold));
+      pragma Assert (Docs.Has_Format (Doc, (1, 5), (2, 4), Docs.Bold));
+      Docs.Undo (Doc, A, B);
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (2, 4), Docs.Bold));
+      Docs.Redo (Doc, A, B);
+      pragma Assert (not Docs.Has_Format (Doc, (1, 2), (1, 5), Docs.Bold));
+      Docs.Load (Doc, "hello world");
+      Docs.Set_Format (Doc, (1, 1), (1, 6), Docs.Bold, True);
+      Docs.Replace (Doc, (1, 6), (1, 6), "!", Docs.Typing);
+      Docs.Replace (Doc, (1, 7), (1, 7), "?", Docs.Typing);
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 8), Docs.Bold));
+      pragma Assert (Docs.Run_Count (Doc) = 1);
+      Docs.Undo (Doc, A, B);
+      pragma Assert (Docs.Whole (Doc) = "hello world");
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 6), Docs.Bold));
+      Docs.Redo (Doc, A, B);
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 8), Docs.Bold));
+      Docs.Replace (Doc, (1, 1), (1, 8), "new" & LF & "text");
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (2, 5), Docs.Bold));
+      Docs.Undo (Doc, A, B);
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 8), Docs.Bold));
+      Docs.Load (Doc, "ab");
+      Docs.Set_Format (Doc, (1, 1), (1, 2), Docs.Bold, True);
+      Docs.Set_Format (Doc, (1, 2), (1, 3), Docs.Italic, True);
+      Docs.Replace (Doc, (1, 1), (1, 1), "x");
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 3), Docs.Bold));
+      Docs.Replace (Doc, (1, 3), (1, 3), "y");
+      pragma Assert (Docs.Has_Format (Doc, (1, 3), (1, 4), Docs.Bold));
+      pragma Assert (not Docs.Has_Format (Doc, (1, 3), (1, 4), Docs.Italic));
+      Docs.Replace (Doc, (1, 4), (1, 5), "z");
+      pragma Assert (Docs.Has_Format (Doc, (1, 4), (1, 5), Docs.Italic));
+      pragma Assert (not Docs.Has_Format (Doc, (1, 4), (1, 5), Docs.Bold));
+      --  What is kept is markup, with a version.
+      Docs.Load (Doc, "a & b" & LF & "<c>" & LF);
+      Docs.Set_Format (Doc, (1, 1), (2, 3), Docs.Bold, True);
+      Docs.Set_Format (Doc, (1, 3), (1, 4), Docs.Italic, True);
+      Goldens.Check_Text
+        ("document-stored-markup",
+         "<version>1</version><p><b>a <i>&amp;</i> b</b></p><p><b>&lt;c</b>&gt;</p><p></p>",
+         Docs.Stored (Doc));
+      Docs.Load_Stored (Loaded, Docs.Stored (Doc));
+      Goldens.Check_Text ("document-stored-reloaded", Docs.Stored (Doc), Docs.Stored (Loaded));
+      pragma Assert (Docs.Whole (Loaded) = Docs.Whole (Doc));
+      pragma Assert (Docs.Has_Format (Loaded, (1, 1), (2, 3), Docs.Bold));
+      Docs.Load (Doc, "");
+      Goldens.Check_Text ("document-stored-empty", "<version>1</version><p></p>", Docs.Stored (Doc));
+
+      --  Without a version, it is plain text, a paragraph to each line.
+      Goldens.Check_Text
+        ("document-upgraded", "<version>1</version><p>one &lt;two&gt;</p><p></p><p>three</p>",
+         Docs.Upgraded ("one <two>" & ASCII.CR & LF & LF & "three"));
+      Goldens.Check_Text
+        ("document-upgraded-empty", "<version>1</version><p></p>", Docs.Upgraded (""));
+      Goldens.Check_Text
+        ("document-upgraded-kept", "<version>1</version><p>x</p>", Docs.Upgraded ("<version>1</version><p>x</p>"));
+      Docs.Load_Stored (Loaded, "legacy plain text" & LF & "more");
+      pragma Assert (Docs.Count (Loaded) = 2 and then Docs.Run_Count (Loaded) = 0);
+      pragma Assert (Docs.Whole (Loaded) = "legacy plain text" & LF & "more");
+      Goldens.Check_Text
+        ("document-plain-stored", "a" & LF & "b", Docs.Plain_Stored ("<version>1</version><p>a</p><p>b</p>"));
+      Goldens.Check_Text
+        ("document-plain-stored-legacy", "a" & LF & "b", Docs.Plain_Stored ("a" & LF & "b"));
+
+      --  Markup that is not well formed is rejected, and nothing changes.
+      declare
+         Bad : constant array (1 .. 12) of Ada.Strings.Unbounded.Unbounded_String :=
+           [Ada.Strings.Unbounded.To_Unbounded_String ("<version>99</version><p>x</p>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p>x"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version>x"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p><b>x</p></b>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p><b>x</i></p>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p><b>x</b></b></p>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p><em>x</em></p>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p>&nbsp;</p>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p>a</p><b>x</b>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><version>1</version>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p>a" & LF & "b</p>"),
+            Ada.Strings.Unbounded.To_Unbounded_String ("<version>1</version><p>a</p")];
+      begin
+         Docs.Load_Stored (Loaded, "kept");
+         for Each of Bad loop
+            declare
+               Rejected : Boolean := False;
+            begin
+               begin
+                  Docs.Load_Stored (Loaded, Ada.Strings.Unbounded.To_String (Each));
+               exception
+                  when Constraint_Error => Rejected := True;
+               end;
+               pragma Assert (Rejected and then Docs.Whole (Loaded) = "kept");
+            end;
+         end loop;
+      end;
+      Goldens.Check_Text ("document-rich-text", "ok", "ok");
+   end Rich_Text;
+
    procedure Loading is
       Doc : Docs.Document;
    begin

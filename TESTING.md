@@ -61,3 +61,32 @@ The software renderer samples geometry without smoothing, so these tests
 do not see how the GPU smooths scaled glyphs. CoreText may also rasterize
 slightly differently on another macOS release; if so, regenerate the
 goldens there or pass a tolerance to `Goldens.Check`.
+
+## Rich text
+
+`document-rich-text` checks style boundaries, merging, multi-paragraph replacement,
+undo/redo, the stored markup and its round trip, the conversion of text with no
+`<version>`, and rejection of malformed markup or an unknown version without
+changing the document. `textarea-rich-text` checks the rendered styles, the
+toolbar's room (none unfocused; the text moved down, and the same height, when
+focused), shortcuts, typing with a chosen style, and undo. `widgets-toolbar`
+checks the editor's buttons: faded in over the top (`widgets-toolbar-start`,
+`-half`, and settled), gone and the layout unmoved without the focus, and a click
+on one formatting the selection without taking the focus from the text.
+
+An editor with a toolbar (`Pomarine.Widgets.Editors`) shows four `Buttons`, in the
+UI font, only while it is focused: the text area (`Set_Toolbar`) leaves the top
+32 points for them and moves its text down, scrolling in what is left, but is never
+resized. Single-line fields and read-only views have none. Shortcuts are Command-B,
+Command-I, Command-U, and Command-Shift-S. Clipboard text is plain.
+
+`Texts.Documents.Whole` remains plain UTF-8 for search, grammar checking, and
+word counts. `Stored` writes version 1 as markup: `<version>1</version>`, then a
+`<p>` for each paragraph, in which `<b>`, `<i>`, `<u>` and `<s>` mark bold, italic,
+underlined and struck-through runs, and `&`, `<`, `>` are `&amp;`, `&lt;`, `&gt;`.
+A run is cut at paragraph boundaries when stored, and a run to the end of one
+paragraph and another from the start of the next are joined when loaded.
+`Load_Stored` takes text with no `<version>` as plain, a paragraph to each line
+(`Upgraded` makes its markup), and rejects an unknown version or markup that is not
+well formed. Loading resets history; formatting edits participate in document
+state, change tracking, and undo just like text edits.
