@@ -20,6 +20,7 @@ package body SDL3.Cursors is
          when Resize  => 5,   --  SDL_SYSTEM_CURSOR_NWSE_RESIZE
          when Crosshair => 3,   --  SDL_SYSTEM_CURSOR_CROSSHAIR
          when Resize_Across => 7,  --  SDL_SYSTEM_CURSOR_EW_RESIZE
+         when Resize_Up_Down => 8,  --  SDL_SYSTEM_CURSOR_NS_RESIZE
          when Text    => 1,   --  SDL_SYSTEM_CURSOR_TEXT
          when Grab | Grabbing => 11);  --  the hand, where there is no picture
 

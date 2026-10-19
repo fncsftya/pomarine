@@ -1,1 +1,0 @@
-/Users/mar/Documents/code/ada/bonxie/pomarine/native/rust/target/release/libpomarine_native.a: /Users/mar/Documents/code/ada/bonxie/pomarine/native/rust/src/lib.rs /Users/mar/Documents/code/ada/bonxie/pomarine/native/rust/src/menu.rs
