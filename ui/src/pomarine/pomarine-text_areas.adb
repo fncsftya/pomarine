@@ -1480,11 +1480,15 @@ package body Pomarine.Text_Areas is
             if not Item.Grows and then not Event.Command
               and then Contains (Item, X, Y)
             then
-               Scroll
-                 (Item,
-                  -Event.Wheel_Y * Lines_Per_Notch
-                   * Layouts.Line_Height (Item.Laid));
-               Handled := True;
+               declare
+                  Before : constant Float := View_Top (Item);
+               begin
+                  Scroll
+                    (Item,
+                     -Event.Wheel_Y * Lines_Per_Notch
+                      * Layouts.Line_Height (Item.Laid));
+                  Handled := View_Top (Item) /= Before;
+               end;
             end if;
          when Events.Text_Input =>
             if Item.Focused then
