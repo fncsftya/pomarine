@@ -21,7 +21,7 @@ package body Pomarine.Text_Areas is
    Line_Padding  : constant Float := 6.0;  --  of a field for one line
    --  From the outside of the outline to the text.
    Caret_Width   : constant Float := 1.5;
-   Underline     : constant Float := 1.5;
+   Underline     : constant Float := 1.0;
    Underline_Gap : constant Float := 2.0;  --  below the baseline
 
    Lines_Per_Notch : constant Float := 3.0;
@@ -1600,13 +1600,19 @@ package body Pomarine.Text_Areas is
                         Wide : constant Float := (X_B - X_A) * Scale (Item);
                      begin
                         if Underlined then
-                           SDL3.Painters.Fill_Rect
-                             (Target, Value, Left,
-                              (if Strike then Y + Layouts.Ascent (Item.Laid) * 0.6 * Scale (Item)
-                               elsif Marking then Y + High * Scale (Item) - 2.0 * Item.Density
-                               else Y + Layouts.Ascent (Item.Laid) * Scale (Item)
-                                    + Underline_Gap * Item.Density),
-                              Wide, (if Marking then 2.0 else Underline) * Item.Density);
+                           declare
+                              Top : constant Float := Float'Rounding
+                                (if Strike then Y + Layouts.Ascent (Item.Laid) * 0.6 * Scale (Item)
+                                 elsif Marking then Y + High * Scale (Item) - 2.0 * Item.Density
+                                 else Y + Layouts.Ascent (Item.Laid) * Scale (Item)
+                                      + Underline_Gap * Item.Density);
+                              Stroke_Width : constant Float := Float'Max
+                                (1.0, Float'Rounding
+                                   ((if Marking then 2.0 else Underline) * Item.Density));
+                           begin
+                              SDL3.Painters.Fill_Rect
+                                (Target, Value, Left, Top, Wide, Stroke_Width);
+                           end;
                         else
                            declare
                               --  Down over the space after the paragraph

@@ -1,3 +1,4 @@
+with System;
 with Texts;
 with Yoga.Nodes;
 package body Pomarine.Widgets.Editors is
@@ -9,6 +10,8 @@ package body Pomarine.Widgets.Editors is
      (Text_Areas.Highlight_Count (Item.Text));
 
    use type Semantics.Role;
+   use type SDL3.Events.Event_Kind;
+   use type SDL3.Events.Key_Code;
 
    package Docs renames Texts.Documents;
 
@@ -18,6 +21,7 @@ package body Pomarine.Widgets.Editors is
 
    use type Docs.Version;
    use type Texts.Position;
+   use type System.Address;
 
    procedure Update_Toolbar (Item : in out Editor);
    --  Show the toolbar's buttons if it is to have them, and hide them if not.
@@ -174,7 +178,7 @@ package body Pomarine.Widgets.Editors is
                             when Docs.Bold => "Bold", when Docs.Italic => "Italic",
                             when Docs.Underline => "Underline",
                             when Docs.Strikethrough => "Strikethrough"));
-               Set_Tag (Part, Docs.Format'Pos (Style));
+               Buttons.Set_Enabled (Part, True);
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
             end if;
@@ -249,9 +253,14 @@ package body Pomarine.Widgets.Editors is
       case Event.Kind is
          when Click =>
             if Has_Document (Self) then
-               Text_Areas.Toggle_Format (Self.Text, Docs.Format'Val (Tag_Of (Source)));
-               Refresh_Toolbar (Self);
-               Invalidate (Self);
+               for Style in Docs.Format loop
+                  if Source'Address = Self.Toolbar (Style)'Address then
+                     Text_Areas.Toggle_Format (Self.Text, Style);
+                     Refresh_Toolbar (Self);
+                     Invalidate (Self);
+                     exit;
+                  end if;
+               end loop;
             end if;
          when others =>
             null;
@@ -366,7 +375,28 @@ package body Pomarine.Widgets.Editors is
    begin
       Handled := False;
       if Has_Document (Item) and then Item.Enabled then
-         Text_Areas.Handle (Item.Text, Event, Clipboard (Item).all, Handled);
+         if Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down
+           | SDL3.Events.Mouse_Up | SDL3.Events.Mouse_Wheel
+         then
+            Item.Pointer_In_Text :=
+              not Item.Toolbar_Shown
+              or else Event.Mouse_Y * Density (Item)
+                      >= Top_Of (Item) + Text_Areas.Toolbar_Points * Density (Item);
+         end if;
+         if Item.Toolbar_On and then Has_Focus (Item)
+           and then Event.Kind = SDL3.Events.Key_Down
+           and then Event.Command and then not Event.Option and then not Event.Shift
+           and then Event.Key in SDL3.Events.Key_B | SDL3.Events.Key_U | SDL3.Events.Key_I
+         then
+            Text_Areas.Toggle_Format
+              (Item.Text,
+               (if Event.Key = SDL3.Events.Key_B then Docs.Bold
+                elsif Event.Key = SDL3.Events.Key_U then Docs.Underline
+                else Docs.Italic));
+            Handled := True;
+         else
+            Text_Areas.Handle (Item.Text, Event, Clipboard (Item).all, Handled);
+         end if;
          --  A field that takes no changes says when it is pressed: for the
          --  application to offer what it is for (a file's name, to choose
          --  another).
@@ -453,7 +483,8 @@ package body Pomarine.Widgets.Editors is
      (Has_Document (Item) and then Item.Enabled);
 
    overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind is
-     (if Item.Enabled then SDL3.Cursors.Text else SDL3.Cursors.Default);
+     (if Item.Enabled and then (not Item.Toolbar_Shown or else Item.Pointer_In_Text)
+      then SDL3.Cursors.Text else SDL3.Cursors.Default);
 
    overriding procedure Hover_Changed
      (Item : in out Editor; Hovered : Boolean) is

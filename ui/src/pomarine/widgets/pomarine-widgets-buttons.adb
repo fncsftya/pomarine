@@ -257,6 +257,9 @@ package body Pomarine.Widgets.Buttons is
       Invalidate (Item);
    end Hover_Changed;
 
+   overriding function Cursor (Item : Button) return SDL3.Cursors.Kind is
+     (if Item.Enabled then SDL3.Cursors.Pointer else SDL3.Cursors.Default);
+
    function Label_Span (Item : Button; Wide : Float) return Float;
    --  Of the label, in pixels, as it is drawn: in the one style every
    --  button's label has, whatever else is on the button.

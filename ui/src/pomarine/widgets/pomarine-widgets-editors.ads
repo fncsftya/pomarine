@@ -193,6 +193,7 @@ private
       --  Added to the tree when first wanted; shown while the text area
       --  has a toolbar.
       Toolbar_Shown : Boolean := False;
+      Pointer_In_Text : Boolean := True;
       Toolbar_On    : Boolean := False;
       Zoomed  : Float := 1.0;
       Has_Paper : Boolean := False;

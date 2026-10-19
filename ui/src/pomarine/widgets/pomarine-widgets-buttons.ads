@@ -1,5 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
+with SDL3.Cursors;
 with Pomarine_Ui_Config;
 with SDL3.Events;
 with Pomarine.Icons;
@@ -116,6 +117,8 @@ package Pomarine.Widgets.Buttons is
 
    overriding procedure Hover_Changed
      (Item : in out Button; Hovered : Boolean);
+
+   overriding function Cursor (Item : Button) return SDL3.Cursors.Kind;
 
    overriding function Accepts_Focus (Item : Button) return Boolean;
 
