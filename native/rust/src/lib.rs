@@ -11,6 +11,8 @@
 
 #[cfg(target_os = "macos")]
 mod menu;
+#[cfg(target_os = "macos")]
+mod image;
 
 use accesskit::{
     Action, ActionData, ActionHandler, ActionRequest, ActivationHandler, Invalid, Live, Node,
