@@ -19,6 +19,9 @@ package body Pomarine.Widgets.Editors is
    use type Docs.Version;
    use type Texts.Position;
 
+   procedure Update_Toolbar (Item : in out Editor);
+   --  Show the toolbar's buttons if it is to have them, and hide them if not.
+
    procedure Configure
      (Item    : in out Editor;
       Family  : String;
@@ -27,7 +30,6 @@ package body Pomarine.Widgets.Editors is
       Spacing : Float := 0.0) is
    begin
       Text_Areas.Configure (Item.Text, Family, Size, Measure, Spacing);
-      Text_Areas.Set_Toolbar (Item.Text);
    end Configure;
 
    function Is_Configured (Item : Editor) return Boolean is
@@ -44,6 +46,7 @@ package body Pomarine.Widgets.Editors is
      (Item : in out Editor; Doc : not null Texts.Documents.Document_Access) is
    begin
       Text_Areas.Attach (Item.Text, Doc);
+      Update_Toolbar (Item);
       if Is_Attached (Item) then
          Invalidate (Item);
       end if;
@@ -144,8 +147,7 @@ package body Pomarine.Widgets.Editors is
    Button_Wide   : constant Float := 28.0;
    Button_High   : constant Float := 24.0;
    Button_Gap    : constant Float := 4.0;
-   Fade_Milliseconds : constant := 150;
-   --  In points, and how long the toolbar takes to appear.
+   --  In points, in the toolbar's band at the top of the text area.
 
    Toolbar_Order : constant array (0 .. 3) of Docs.Format :=
      [Docs.Bold, Docs.Italic, Docs.Underline, Docs.Strikethrough];
@@ -153,9 +155,6 @@ package body Pomarine.Widgets.Editors is
    function Toolbar_Wanted (Item : Editor) return Boolean is
      (Has_Document (Item) and then Is_Attached (Item) and then Item.Enabled
       and then Text_Areas.Has_Toolbar (Item.Text));
-
-   function Paper_Of (Item : Editor) return Themes.Slot is
-     (if Item.Has_Paper then Item.Paper else Themes.Page);
 
    procedure Build_Toolbar (Item : in out Editor) is
       Pixels : constant Float := Density (Item);
@@ -178,7 +177,6 @@ package body Pomarine.Widgets.Editors is
                Set_Tag (Part, Docs.Format'Pos (Style));
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
-               Set_Visible (Part, False);
             end if;
             Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
             Yoga.Nodes.Set_Position
@@ -201,36 +199,47 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Refresh_Toolbar;
 
-   procedure Fade_Step (Item : in out Widget'Class; Value : Float) is
-      Self : Editor renames Editor (Item);
-   begin
-      for Part of Self.Toolbar loop
-         Set_Fade (Part, Value, Paper_Of (Self));
-      end loop;
-   end Fade_Step;
-
    procedure Update_Toolbar (Item : in out Editor) is
-      Wanted : constant Boolean := Toolbar_Wanted (Item);
+      Wanted : constant Boolean := Item.Toolbar_On and then Toolbar_Wanted (Item);
    begin
       if Wanted and then not Item.Toolbar_Shown then
          Build_Toolbar (Item);
          Item.Toolbar_Shown := True;
          for Part of Item.Toolbar loop
-            Set_Fade (Part, 0.0, Paper_Of (Item));
             Set_Visible (Part, True);
          end loop;
          Refresh_Toolbar (Item);
-         Animate (Item, 0.0, 1.0, Fade_Milliseconds, Ease_Out, Fade_Step'Access);
       elsif not Wanted and then Item.Toolbar_Shown then
          Item.Toolbar_Shown := False;
          if Is_Attached (Item) then
-            Stop_Animations (Item);
             for Part of Item.Toolbar loop
                Set_Visible (Part, False);
             end loop;
          end if;
       end if;
    end Update_Toolbar;
+
+   procedure Set_Toolbar (Item : in out Editor; To : Boolean := True) is
+   begin
+      Item.Toolbar_On := To;
+      Text_Areas.Set_Toolbar (Item.Text, To);
+      Update_Toolbar (Item);
+      if Is_Attached (Item) then
+         Request_Layout (Item);
+         Invalidate (Item);
+      end if;
+   end Set_Toolbar;
+
+   function Has_Toolbar (Item : Editor) return Boolean is (Item.Toolbar_On);
+
+   procedure Set_Indent (Item : in out Editor; Points : Float) is
+   begin
+      Text_Areas.Set_Indent (Item.Text, Points);
+      if Is_Attached (Item) then
+         Request_Layout (Item);
+         Invalidate (Item);
+      end if;
+   end Set_Indent;
 
    overriding procedure Handle_Event
      (Self   : in out Editor;

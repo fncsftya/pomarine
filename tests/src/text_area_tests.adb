@@ -144,7 +144,6 @@ package body Text_Area_Tests is
       X, Y, W, H, Plain_Y : Float;
    begin
       Open (F, "Bold, italic, underline and strike. " & Sample (1 .. 200), Focus => False);
-      Text_Areas.Set_Toolbar (F.Area);
       Text_Areas.Select_Range (F.Area, (1, 1), (1, 5));
       Text_Areas.Toggle_Format (F.Area, Docs.Bold);
       Text_Areas.Select_Range (F.Area, (1, 7), (1, 13));
@@ -154,25 +153,24 @@ package body Text_Area_Tests is
       Text_Areas.Select_Range (F.Area, (1, 29), (1, 35));
       Text_Areas.Toggle_Format (F.Area, Docs.Strikethrough);
 
-      --  Unfocused, there is no room for a toolbar.
+      --  With no toolbar, there is no room for one.
       pragma Assert (not Text_Areas.Has_Toolbar (F.Area));
       Before := Text_Areas.Content_Height (F.Area);
       Text_Areas.Caret_Box (F.Area, X, Plain_Y, W, H);
-      Check (F, "textarea-rich-unfocused");
+      Check (F, "textarea-rich-plain");
 
-      --  Focused, the text is moved down, and the height is not changed.
-      Text_Areas.Set_Focus (F.Area, True);
+      --  With one, the text is below its band, focused or not.
+      Text_Areas.Set_Toolbar (F.Area);
       pragma Assert (Text_Areas.Has_Toolbar (F.Area));
-      pragma Assert (Text_Areas.Content_Height (F.Area) = Before);
+      pragma Assert (Text_Areas.Content_Height (F.Area) = Before + Text_Areas.Toolbar_Points);
       Text_Areas.Caret_Box (F.Area, X, Y, W, H);
-      pragma Assert (Y - Plain_Y = (Text_Areas.Toolbar_Points - 12.0) * Density);
-      Check (F, "textarea-rich-focused");
-
-      --  And back again.
-      Text_Areas.Set_Focus (F.Area, False);
-      Text_Areas.Caret_Box (F.Area, X, Y, W, H);
-      pragma Assert (Y = Plain_Y);
+      pragma Assert (Y - Plain_Y = Text_Areas.Toolbar_Points * Density);
+      Check (F, "textarea-rich-unfocused");
       Text_Areas.Set_Focus (F.Area, True);
+      Text_Areas.Caret_Box (F.Area, X, Y, W, H);
+      pragma Assert (Y - Plain_Y = Text_Areas.Toolbar_Points * Density);
+      pragma Assert (Text_Areas.Content_Height (F.Area) = Before + Text_Areas.Toolbar_Points);
+      Check (F, "textarea-rich-focused");
 
       --  The keyboard shortcut acts on the same selection.
       Press (F, Events.Key_U, Command => True);

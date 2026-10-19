@@ -124,20 +124,6 @@ package body Pomarine.Themes is
       end return;
    end With_Slot;
 
-   function Faded (Item : Theme; Amount : Float; Toward : Color) return Theme is
-   begin
-      return Result : Theme := Item do
-         for Each in Slot loop
-            Result.Slots (Each) := Mix (Toward, Item.Slots (Each), Amount);
-         end loop;
-         for Each in Tone loop
-            for Which in Shade loop
-               Result.Tones (Each, Which) := Mix (Toward, Item.Tones (Each, Which), Amount);
-            end loop;
-         end loop;
-      end return;
-   end Faded;
-
    procedure Set_Custom (Item : in out Theme; Offset : Natural; To : Color) is
    begin
       Item.Slots (Custom (Offset)) := To;

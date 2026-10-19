@@ -121,15 +121,21 @@ package Pomarine.Text_Areas is
 
    Toolbar_Points : constant Float := 32.0;
 
+   procedure Set_Indent (Item : in out Text_Area; Points : Float)
+     with Pre => Points >= 0.0;
+   --  Leave Points more at each side of the text of more than one line,
+   --  as of a page, whose toolbar's band, and outline, are the full width.
+   --  None to begin with.
+
    procedure Set_Toolbar (Item : in out Text_Area; To : Boolean := True);
    --  Leave room for a toolbar of formatting buttons, which its owner
-   --  draws in the top Toolbar_Points of it, while it is focused, if it
-   --  is for editing more than one line. Off to begin with.
+   --  puts in the top Toolbar_Points of it, above the text, which is
+   --  drawn on a band of its own: if it is for editing more than one
+   --  line. Off to begin with.
 
    function Has_Toolbar (Item : Text_Area) return Boolean;
-   --  Whether it has that room now. The text is then moved down and
-   --  scrolls in what is left, but the text area does not change size:
-   --  its owner's layout does not move.
+   --  Whether it has that room: the owner's layout does not move when it
+   --  is focused, nor does the text.
 
    --  Where it is
 
@@ -467,6 +473,7 @@ private
       View     : Typeset.Views.View;
       Measure  : Float := 1.0;
       Toolbar  : Boolean := False;
+      Indent   : Float := 0.0;
       Pending_Formats : Texts.Documents.Format_Set := Texts.Documents.No_Formats;
       Explicit_Formats : Boolean := False;
       Single   : Boolean := False;

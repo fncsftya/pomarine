@@ -596,8 +596,6 @@ package body Pomarine.Widgets is
       Table.Hovered (Slot) := False;
       Table.Focused (Slot) := False;
       Table.Spot (Slot).Visible := True;
-      Table.Fade (Slot) := 1.0;
-      Table.Fade_Toward (Slot) := Themes.Page;
       Table.Known (Slot) := False;
       Home.Told_States (Slot) := Enabled;
       Table.Layout_Dirty (Slot) := True;
@@ -1003,24 +1001,18 @@ package body Pomarine.Widgets is
          Outer  : constant Renderers.Clip := SDL3.Painters.Current_Clip (Target);
          Child  : Node_Index := Table.First (Painting);
          Drawer : constant Widget_Access := Table.Object (Painting);
-         Shown  : constant Themes.Theme :=
-           (if Table.Fade (Painting) < 1.0
-            then Themes.Faded
-                   (Colors, Table.Fade (Painting),
-                    Themes.Resolve (Colors, Table.Fade_Toward (Painting)))
-            else Colors);
       begin
          SDL3.Painters.Narrow_Clip
            (Target, Box.Left, Box.Top, Box.Width, Box.Height);
          Table.Paint_Box (Painting) := Box;
-         Draw (Drawer.all, Target, Shown);
+         Draw (Drawer.all, Target, Colors);
          Table.Paint_Dirty (Painting) := False;
          while Child /= 0 loop
-            Paint_Widget (Home, Child, Target, Shown, Box);
+            Paint_Widget (Home, Child, Target, Colors, Box);
             Child := Table.Next (Child);
          end loop;
          Table.Paint_Box (Painting) := Box;
-         Draw_Over (Drawer.all, Target, Shown);
+         Draw_Over (Drawer.all, Target, Colors);
          SDL3.Painters.Restore_Clip (Target, Outer);
       end;
    end Paint_Widget;
@@ -1343,20 +1335,6 @@ package body Pomarine.Widgets is
          Item.Capture := 0;
       end if;
    end Let_Go;
-
-   procedure Set_Fade
-     (Item   : in out Widget'Class;
-      Amount : Float;
-      Toward : Themes.Slot := Themes.Page)
-   is
-      Table : Node_Table renames Item.Owner.Nodes.all;
-   begin
-      if Amount /= Table.Fade (Item.Slot) or else Themes."/=" (Toward, Table.Fade_Toward (Item.Slot)) then
-         Table.Fade (Item.Slot) := Amount;
-         Table.Fade_Toward (Item.Slot) := Toward;
-         Invalidate (Item);
-      end if;
-   end Set_Fade;
 
    procedure Set_Visible (Item : in out Widget'Class; To : Boolean) is
       Table : Node_Table renames Item.Owner.Nodes.all;

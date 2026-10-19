@@ -19,11 +19,11 @@ private with Pomarine.Widgets.Buttons;
 --  and taking nothing), show a hint while it is empty, and an icon before
 --  a single line.
 --
---  A text area for more than one line, that can be edited, has a toolbar
---  of buttons (Bold, Italic, Underline, Strikethrough) while it has the
---  focus: they fade in over the top of it, and its text moves down to
---  make room, scrolling if it must, but the editor does not change size.
---  Clicking one does not take the focus from the text.
+--  A text area for more than one line, that can be edited, may have a
+--  toolbar (Set_Toolbar) of buttons (Bold, Italic, Underline,
+--  Strikethrough) in a band at the top of it, set apart from the text,
+--  which is below. Clicking one does not take the focus from the text.
+--  It has none to begin with.
 --
 --  Declare it after the renderer it is drawn to, and after the document
 --  it shows.
@@ -59,6 +59,16 @@ package Pomarine.Widgets.Editors is
    function Document (Item : Editor) return not null access constant Texts.Documents.Document
      with Pre => Has_Document (Item);
    --  Read the attached document without exposing the mutable text area.
+
+   procedure Set_Toolbar (Item : in out Editor; To : Boolean := True);
+   --  Give it the toolbar (or not), when it is for more than one line
+   --  and not read only; Content_Height of its text area allows for it.
+
+   function Has_Toolbar (Item : Editor) return Boolean;
+
+   procedure Set_Indent (Item : in out Editor; Points : Float)
+     with Pre => Points >= 0.0;
+   --  As Pomarine.Text_Areas.Set_Indent.
 
    procedure Set_Zoom (Item : in out Editor; To : Float)
      with Pre => To > 0.0;
@@ -183,6 +193,7 @@ private
       --  Added to the tree when first wanted; shown while the text area
       --  has a toolbar.
       Toolbar_Shown : Boolean := False;
+      Toolbar_On    : Boolean := False;
       Zoomed  : Float := 1.0;
       Has_Paper : Boolean := False;
       Paper     : Themes.Slot := Themes.Page;

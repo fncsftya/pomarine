@@ -55,8 +55,7 @@ package body Widget_Tests is
 
    procedure Open
      (Item    : in out Fixture;
-      Content : String := "Great skua";
-      Settled : Boolean := True) is
+      Content : String := "Great skua") is
    begin
       Renderers.Create_Offscreen
         (Item.Target,
@@ -97,10 +96,6 @@ package body Widget_Tests is
                         8.0 * Density);
 
       Widgets.Layout (Item.Tree, Item.Target);
-      --  The focused text area's toolbar has faded in: time passes.
-      if Settled then
-         Widgets.Update (Item.Tree, 200);
-      end if;
    end Open;
 
    --  Where, in points, the middle of each button is, and of the text.
@@ -529,7 +524,7 @@ package body Widget_Tests is
    procedure Toolbar is
       Item : Fixture;
       Page : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
-      Focused_Height : Float;
+      Height_Before, Content_Before : Float;
 
       function Visible_Buttons return Natural is
          Count : Natural := 0;
@@ -542,29 +537,28 @@ package body Widget_Tests is
          return Count;
       end Visible_Buttons;
    begin
-      Open (Item, "Great skua" & ASCII.LF & "Bonxie", Settled => False);
-      Check_Flag ("widgets-toolbar-buttons", True, Widgets.Child_Count (Item.Page) = 4);
-      Check_Flag ("widgets-toolbar-shown", True, Visible_Buttons = 4);
-      Focused_Height := Widgets.Height_Of (Item.Page);
+      Open (Item, "Great skua" & ASCII.LF & "Bonxie");
+      Check_Flag ("widgets-toolbar-none", True, Widgets.Child_Count (Item.Page) = 0);
+      Height_Before := Widgets.Height_Of (Item.Page);
+      Content_Before := Pomarine.Text_Areas.Content_Height (Page.all);
 
-      --  It fades in: not to be seen at first, then there.
-      Check_Painted (Item, "widgets-toolbar-start");
-      Widgets.Update (Item.Tree, 75);
-      Check_Painted (Item, "widgets-toolbar-half");
-      Widgets.Update (Item.Tree, 200);
+      --  Given one, there it is, whether or not it has the focus, below
+      --  which the text is, and the layout does not move.
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-toolbar-buttons", True, Visible_Buttons = 4);
+      Check_Flag ("widgets-toolbar-same-height", True, Widgets.Height_Of (Item.Page) = Height_Before);
+      Check_Flag ("widgets-toolbar-room", True,
+                  Pomarine.Text_Areas.Content_Height (Page.all)
+                  = Content_Before + Pomarine.Text_Areas.Toolbar_Points);
       Check_Painted (Item, "widgets-toolbar");
-
-      --  Without the focus there is none, and the layout does not move.
       Widgets.Release_Focus (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
-      Check_Flag ("widgets-toolbar-gone", True, Visible_Buttons = 0);
-      Check_Flag ("widgets-toolbar-same-height", True, Widgets.Height_Of (Item.Page) = Focused_Height);
+      Check_Flag ("widgets-toolbar-unfocused", True, Visible_Buttons = 4);
       Check_Painted (Item, "widgets-toolbar-unfocused");
 
       --  A button formats the selection, and the text keeps the focus.
       Widgets.Focus (Item.Page);
-      Widgets.Update (Item.Tree, 400);
-      Widgets.Layout (Item.Tree, Item.Target);
       Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 6));
       declare
          Bold : constant Widgets.Widget_Access := Widgets.Child_At (Item.Page, 1);
@@ -578,6 +572,11 @@ package body Widget_Tests is
       Check_Flag ("widgets-toolbar-focused", True, Pomarine.Widgets.Editors.Is_Focused (Item.Page));
       Check_Flag ("widgets-toolbar-selection", True, Pomarine.Text_Areas.Selected_Text (Page.all) = "Great");
       Check_Painted (Item, "widgets-toolbar-bold");
+
+      --  Taken away, they go.
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page, False);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-toolbar-removed", True, Visible_Buttons = 0);
    end Toolbar;
 
    procedure Caret_Only is
@@ -591,9 +590,6 @@ package body Widget_Tests is
         (Pomarine.Text_Areas.Lines_Drawn (Pomarine.Widgets.Editors.Area (Item.Page).all));
    begin
       Open (Item, Text);
-      --  All five paragraphs fit below the toolbar.
-      Pomarine.Widgets.Editors.Configure
-        (Item.Page, "Georgia", Size => 14.0, Measure => 640.0, Spacing => 4.0);
       Paint (Item);
       Before := Drawn;
       Check_Flag ("widgets-caret-all-lines", True, Before >= 5);

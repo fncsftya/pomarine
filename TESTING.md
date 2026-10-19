@@ -67,17 +67,18 @@ goldens there or pass a tolerance to `Goldens.Check`.
 `document-rich-text` checks style boundaries, merging, multi-paragraph replacement,
 undo/redo, the stored markup and its round trip, the conversion of text with no
 `<version>`, and rejection of malformed markup or an unknown version without
-changing the document. `textarea-rich-text` checks the rendered styles, the
-toolbar's room (none unfocused; the text moved down, and the same height, when
-focused), shortcuts, typing with a chosen style, and undo. `widgets-toolbar`
-checks the editor's buttons: faded in over the top (`widgets-toolbar-start`,
-`-half`, and settled), gone and the layout unmoved without the focus, and a click
-on one formatting the selection without taking the focus from the text.
+changing the document. `textarea-rich-text` checks the room for a toolbar (none
+by default; with one, the text is below its band whether focused or not, and
+`Content_Height` allows for it), shortcuts, typing with a chosen style, and undo.
+`widgets-toolbar` checks the editor's buttons: there as soon as the editor is
+given a toolbar, with or without the focus, the layout unmoved, a click formatting
+the selection without taking the focus from the text, and gone when taken away.
 
-An editor with a toolbar (`Pomarine.Widgets.Editors`) shows four `Buttons`, in the
-UI font, only while it is focused: the text area (`Set_Toolbar`) leaves the top
-32 points for them and moves its text down, scrolling in what is left, but is never
-resized. Single-line fields and read-only views have none. Shortcuts are Command-B,
+Only editors that ask for it (`Pomarine.Widgets.Editors.Set_Toolbar`) have a
+toolbar: four `Buttons`, in the UI font, in a tinted band at the top of the text
+area, set apart from the text by a line. The text area (`Set_Toolbar`) leaves the
+top 32 points for them, above its padding, and its scroll bar starts below.
+Single-line fields and read-only views have none. Shortcuts are Command-B,
 Command-I, Command-U, and Command-Shift-S. Clipboard text is plain.
 
 `Texts.Documents.Whole` remains plain UTF-8 for search, grammar checking, and

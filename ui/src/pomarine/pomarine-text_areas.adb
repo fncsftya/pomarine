@@ -50,15 +50,15 @@ package body Pomarine.Text_Areas is
    --  After a single line, in pixels: see Set_Trail.
 
    function Has_Toolbar (Item : Text_Area) return Boolean is
-     (Item.Toolbar and then Item.Focused and then not Item.Single and then not Item.Read_Only);
+     (Item.Toolbar and then not Item.Single and then not Item.Read_Only);
 
    function Toolbar_Room (Item : Text_Area) return Float is
      (if Has_Toolbar (Item) then Toolbar_Points * Item.Density else 0.0);
-   --  In pixels: the toolbar is in the top of the text area, in the place
-   --  of the padding, so that the text moves down by the difference.
+   --  In pixels: the toolbar is in the top of the text area, above the
+   --  padding, and the text is below it.
 
    function Top_Room (Item : Text_Area) return Float is
-     (Float'Max (Inset (Item), Toolbar_Room (Item)));
+     (Toolbar_Room (Item) + Inset (Item));
    --  From the top of the text area to its text, in pixels.
 
    function Text_Top (Item : Text_Area) return Float is
@@ -70,10 +70,14 @@ package body Pomarine.Text_Areas is
       else Item.Top + Top_Room (Item));
    --  A line for one line is in the middle of its height.
 
+   function Side (Item : Text_Area) return Float is
+     (Inset (Item) + (if Item.Single then 0.0 else Item.Indent * Item.Density));
+   --  From the side of the text area to its text, in pixels.
+
    function Text_Width (Item : Text_Area) return Float is
      (Float'Max
         (0.0,
-         Item.Width - 2.0 * Inset (Item) - Lead_Room (Item)
+         Item.Width - 2.0 * Side (Item) - Lead_Room (Item)
          - Trail_Room (Item)));
 
    function Text_Height (Item : Text_Area) return Float is
@@ -88,7 +92,7 @@ package body Pomarine.Text_Areas is
    function Column_Left (Item : Text_Area) return Float is
      (if Item.Single
       then Item.Left + Inset (Item) + Lead_Room (Item) - Item.Across_Scroll
-      else Item.Left + Inset (Item)
+      else Item.Left + Side (Item)
       + Float'Max
           (0.0, (Text_Width (Item) - Column (Item) * Scale (Item)) / 2.0));
    --  Where its lines start, in pixels.
@@ -282,6 +286,11 @@ package body Pomarine.Text_Areas is
       Item.Toolbar := To;
    end Set_Toolbar;
 
+   procedure Set_Indent (Item : in out Text_Area; Points : Float) is
+   begin
+      Item.Indent := Points;
+   end Set_Indent;
+
    procedure Set_Grows (Item : in out Text_Area; To : Boolean := True) is
    begin
       Item.Grows := To;
@@ -300,7 +309,7 @@ package body Pomarine.Text_Areas is
          end if;
       end loop;
       return Layouts.Total_Height (Item.Laid) * Item.Zoom
-        + 2.0 * Padding;
+        + 2.0 * Padding + (if Has_Toolbar (Item) then Toolbar_Points else 0.0);
    end Content_Height;
 
    function Return_Pending (Item : Text_Area) return Boolean is (Item.Returned);
@@ -403,7 +412,7 @@ package body Pomarine.Text_Areas is
    procedure Scroll (Item : in out Text_Area; By : Float) is
    begin
       Catch_Up (Item);
-      if Item.Grows and then not Has_Toolbar (Item) then
+      if Item.Grows then
          return;  --  its owner scrolls
       end if;
       Layouts.Scroll (Item.Laid, Item.Anchor, Item.Offset, By, Extent (Item));
@@ -414,7 +423,7 @@ package body Pomarine.Text_Areas is
    procedure Scroll_To (Item : in out Text_Area; Top : Float) is
    begin
       Catch_Up (Item);
-      if Item.Grows and then not Has_Toolbar (Item) then
+      if Item.Grows then
          return;
       end if;
       Item.Anchor := 1;
@@ -648,18 +657,10 @@ package body Pomarine.Text_Areas is
       if not Focused then
          Finish_Composition (Item);
          Item.Dragging := False;
-         if Item.Grows then
-            Item.Anchor := 1;  --  what the toolbar moved down is put back
-            Item.Offset := 0.0;
-         end if;
       elsif not Item.Focused then
          Restart_Blink (Item);
       end if;
       Item.Focused := Focused;
-      if Has_Toolbar (Item) and then Item.Doc /= null and then Item.Width > 0.0 then
-         Catch_Up (Item);
-         Reveal (Item);  --  the toolbar may have covered the caret
-      end if;
    end Set_Focus;
 
    --  Moving
@@ -1355,13 +1356,13 @@ package body Pomarine.Text_Areas is
    begin
       return
         (Left    => Float (Integer (Item.Left + Edge)),
-         Top     => Float (Integer (Item.Top + Edge)),
+         Top     => Float (Integer (Item.Top + Edge + Toolbar_Room (Item))),
          Width   => Float'Max
                       (0.0, Float (Integer (Item.Left + Item.Width - Edge))
                             - Float (Integer (Item.Left + Edge))),
          Height  => Float'Max
                       (0.0, Float (Integer (Item.Top + Item.Height - Edge))
-                            - Float (Integer (Item.Top + Edge))),
+                            - Float (Integer (Item.Top + Edge + Toolbar_Room (Item)))),
          Density => Item.Density,
          Start   => View_Top (Item),
          Shown   => Extent (Item),
@@ -1712,6 +1713,22 @@ package body Pomarine.Text_Areas is
          Float (Inner_Left), Float (Inner_Top),
          Float (Integer'Max (0, Inner_Right - Inner_Left)),
          Float (Integer'Max (0, Inner_Bottom - Inner_Top)));
+      if Has_Toolbar (Item) then
+         --  The toolbar's band, set apart from the text under it by its
+         --  tint and a line.
+         declare
+            Band : constant Float := Float'Min (Toolbar_Room (Item), Float (Inner_Bottom - Inner_Top));
+         begin
+            Fill_Rect
+              (Target, Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.07),
+               Float (Inner_Left), Float (Inner_Top),
+               Float (Integer'Max (0, Inner_Right - Inner_Left)), Band);
+            Fill_Rect
+              (Target, Colors (Themes.Border),
+               Float (Inner_Left), Float (Inner_Top) + Band - Item.Density,
+               Float (Integer'Max (0, Inner_Right - Inner_Left)), Item.Density);
+         end;
+      end if;
 
       --  Lines part in view run into the padding, but not the outline,
       --  nor what is before a single line, nor the toolbar.

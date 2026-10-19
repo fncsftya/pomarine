@@ -146,12 +146,6 @@ package Pomarine.Themes is
    --  Item, but with Which the colour To: for a widget that draws what is
    --  inside it in other colours (as a field, on its paper).
 
-   function Faded (Item : Theme; Amount : Float; Toward : Color) return Theme
-     with Pre => Amount in 0.0 .. 1.0;
-   --  Item with each colour Amount of the way back from Toward: 1.0 is
-   --  Item, 0.0 is all Toward. For what is drawn on Toward, to show it
-   --  there only a little.
-
    procedure Set_Custom (Item : in out Theme; Offset : Natural; To : Color)
      with Pre => Offset < Custom_Capacity;
    --  Give the application's slot Custom (Offset) the colour To in Item. A
