@@ -78,8 +78,7 @@ package body Pomarine.Widgets.Frames is
       Add (Parent, Item.Outline_Panel);
       Add (Item.Outline_Panel, Item.Title_Bar);
       if Editable_Title then
-         Add (Item.Title_Bar, Item.Title_Area);
-         Add (Item.Title_Area, Item.Tag);
+         Add (Item.Title_Bar, Item.Tag, Item.Title_Area);
          Add (Item.Title_Area, Item.Title_Label);
          Add (Item.Title_Bar, Item.Title_Field);
          Add (Item.Title_Bar, Item.Spacer);
@@ -139,22 +138,23 @@ package body Pomarine.Widgets.Frames is
       Set_Flex_Shrink (Node (Item.Tag), 0.0);
       Labels.Set_Style (Item.Title_Label, Line_Texts.Strong);
       Labels.Set_Ink (Item.Title_Label, Themes.Bar_Ink);
-      Set_Flex_Grow (Node (Item.Title_Label), 1.0);
-      Set_Width (Node (Item.Title_Label), 0.0);
       if Editable_Title then
+         Labels.Set_Intrinsic (Item.Title_Label);
          Text_Fields.Configure
            (Item.Title_Field, Line_Texts.Interface_Font, Title_Size);
          Set_Flex_Grow (Node (Item.Title_Field), 1.0);
          Set_Width (Node (Item.Title_Field), 0.0);
          --  The title is text, in the field's place, until it is to be
          --  edited.
-         Grips.Set_Hover_Outline (Item.Title_Area, Themes.Background);
-         Set_Flex_Grow (Node (Item.Title_Area), 1.0);
-         Set_Width (Node (Item.Title_Area), 0.0);
+         Grips.Set_Hover_Outline (Item.Title_Area, Themes.Rule);
+         Set_Flex_Shrink (Node (Item.Title_Area), 0.0);
          Set_Flex_Direction (Node (Item.Title_Area), Yoga.Row);
          Set_Align_Items (Node (Item.Title_Area), Yoga.Center);
          --  Nothing: the bar is held there.
          Set_Width (Node (Item.Spacer), 0.0);
+      else
+         Set_Flex_Grow (Node (Item.Title_Label), 1.0);
+         Set_Width (Node (Item.Title_Label), 0.0);
       end if;
       if Item.Docked then
          Buttons.Set_Label (Item.Minimize_Button, "Min");
@@ -279,14 +279,15 @@ package body Pomarine.Widgets.Frames is
       Size (Item.Tag, Tag_Size, Tag_Size, Pixels);
       Set_Margin
         (Node (Item.Tag), Yoga.Right,
-         (if Item.Editable then Tag_Gap else Tag_Gap - Button_Gap) * Pixels);
+         (Tag_Gap - Button_Gap) * Pixels);
       Labels.Set_Scale (Item.Title_Label, To);
       if Item.Editable then
          Set_Height (Node (Item.Title_Field), Title_Height * Pixels);
          Set_Height (Node (Item.Title_Area), Title_Height * Pixels);
          Set_Margin (Node (Item.Title_Field), Yoga.Right, Drag_Room * Pixels);
          Set_Margin (Node (Item.Title_Area), Yoga.Right, Drag_Room * Pixels);
-         Set_Padding (Node (Item.Title_Area), Yoga.Left, Bar_Pad * Pixels);
+         Set_Flex_Grow (Node (Item.Spacer), 1.0);
+         Set_Width (Node (Item.Spacer), 0.0);
       end if;
       if Item.Docked then
          Size (Item.Minimize_Button, Button_Size, Button_Size, Pixels);
