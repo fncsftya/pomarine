@@ -3,7 +3,7 @@ description = "Pomarine on macOS: accessibility, the menu bar, settings"
 version = "0.1.0-dev"
 
 authors = ["Matt Rawcliffe"]
-licenses = "GPL-3.0-only"
+licenses = "MIT"
 website = ""
 tags = []
 
