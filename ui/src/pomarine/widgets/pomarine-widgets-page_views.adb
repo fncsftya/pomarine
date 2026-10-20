@@ -892,7 +892,7 @@ package body Pomarine.Widgets.Page_Views is
             Scale : constant Float := Wide / Item.Sizes (Index).Width;
          begin
             --  The page's paper, which is what shows until it is made.
-            SDL3.Painters.Fill_Rect (Target, Themes.White, Left, Top, Wide, High);
+            SDL3.Painters.Fill_Rect (Target, Themes.Paper, Left, Top, Wide, High);
             if Which = 0 and then Index - First < Cache_Size then
                Which := Free_Slot (Item, First, Last);
                if Which /= 0 then

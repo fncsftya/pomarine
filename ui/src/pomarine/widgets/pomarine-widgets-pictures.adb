@@ -499,7 +499,7 @@ package body Pomarine.Widgets.Pictures is
       Wide : constant Float := Box * Item.Zoomed;
    begin
       SDL3.Painters.Fill_Rect
-        (Target, Themes.White,
+        (Target, Themes.Paper,
          Left_Of (Item), Top_Of (Item), Box, Height_Of (Item));
       if Item.Length = 0 or else Item.Failed then
          return;

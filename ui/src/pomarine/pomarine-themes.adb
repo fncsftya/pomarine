@@ -8,7 +8,7 @@ package body Pomarine.Themes is
          Tones => [others => [others => Black]],
          Bevelled => True);
 
-      On_Accent_Ink      : constant Color := (16#11#, 16#11#, 16#11#, 255);
+      On_Accent_Ink      : constant Color := (16#1E#, 16#27#, 16#23#, 255);
 
       function Dulled (Base : Color) return Color is
         (Mix (Base, From.Background, 0.55));
@@ -59,7 +59,7 @@ package body Pomarine.Themes is
       Result.Slots (Background)  := From.Background;
       Result.Slots (Foreground)  := From.Foreground;
       Result.Slots (Muted)       :=
-        Mix (From.Foreground, From.Background, (if From.Dark then 0.30 else 0.45));
+        Mix (From.Foreground, From.Background, (if From.Dark then 0.30 else 0.27));
       Result.Slots (Hint)        := Mix (From.Foreground, From.Background, 0.35);
       Result.Slots (Page)        := From.Page;
       Result.Slots (Face)        := From.Face;
@@ -73,8 +73,8 @@ package body Pomarine.Themes is
       Result.Slots (Primary_Ink) := From.Primary_Ink;
       Result.Slots (Danger_Ink)  := From.Danger_Ink;
       Result.Slots (Bar)         := From.Bar;
-      Result.Slots (Bar_Ink)     := White;
-      Result.Slots (Rule)        := Mix (From.Bar, White, 0.3);
+      Result.Slots (Bar_Ink)     := Soft_White;
+      Result.Slots (Rule)        := Mix (From.Bar, Soft_White, 0.3);
       Result.Slots (Tint)        := From.Tint;
       Result.Slots (Hover_Row)   := Mix (From.Face, White, 0.3);
       Result.Slots (Marker)      := From.Marker;
@@ -86,15 +86,15 @@ package body Pomarine.Themes is
       Set_Role
         (Normal_Tone, From.Face, From.Face_Hover, From.Face_Pressed, From.Edge,
          From.Foreground, From.Face_Light, From.Face_Shade);
-      Set_Made (Primary_Tone, From.Primary, White, 0.12);
+      Set_Made (Primary_Tone, From.Primary, Soft_White, 0.12);
       Result.Tones (Primary_Tone, Lit)    := From.Primary_Light;
       Result.Tones (Primary_Tone, Shaded) := From.Primary_Shade;
       Result.Tones (Primary_Tone, Off_Ink) := Mix (White, Dulled (From.Primary), 0.3);
-      Set_Made (Danger_Tone, From.Danger, White, 0.12);
+      Set_Made (Danger_Tone, From.Danger, Soft_White, 0.12);
       Result.Tones (Danger_Tone, Lit)    := From.Danger_Light;
       Result.Tones (Danger_Tone, Shaded) := From.Danger_Shade;
       Result.Tones (Danger_Tone, Off_Ink) := Mix (White, Dulled (From.Danger), 0.3);
-      Set_Made (AI_Tone, From.AI, White, 0.12);
+      Set_Made (AI_Tone, From.AI, Soft_White, 0.12);
       Set_Made (Warning_Tone, (16#D4#, 16#85#, 16#0F#, 255), Black, 0.12);
       Result.Tones (AI_Tone, Lit)    := From.AI_Light;
       Result.Tones (AI_Tone, Shaded) := From.AI_Shade;
@@ -106,7 +106,7 @@ package body Pomarine.Themes is
       Set_Role
         (Quiet_Tone, From.Face, From.Face_Hover, From.Face_Pressed, From.Face,
          Mix (From.Face, White, 0.35), From.Face_Light, From.Face_Shade);
-      Result.Tones (Quiet_Tone, Ink_Hover) := White;
+      Result.Tones (Quiet_Tone, Ink_Hover) := Soft_White;
       Result.Tones (Quiet_Tone, Off_Ink)   := Result.Tones (Quiet_Tone, Ink);
       return Result;
    end Make;

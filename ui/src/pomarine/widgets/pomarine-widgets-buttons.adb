@@ -19,7 +19,7 @@ package body Pomarine.Widgets.Buttons is
    Badge_Gap  : constant := 6.0;   --  between the label and the badge
    Caret_Size : constant := 10.0;  --  in points, a side, of a dropdown's
    Ring_Width : constant := 2.0;   --  in points, of the ring of the focus
-   White : constant Themes.Color := Themes.White;
+   White : constant Themes.Color := Themes.Soft_White;
    --  For an icon on a button of a colour of its own.
 
    procedure Set_Label (Item : in out Button; Text : String) is

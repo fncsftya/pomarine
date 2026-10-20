@@ -203,6 +203,10 @@ package Pomarine.Themes is
    --  The ink on it.
 
    White : constant Color := (255, 255, 255, 255);
+   Paper : constant Color := (16#FC#, 16#FC#, 16#FA#, 255);
+   --  Of a page, a window, a field: white, softened.
+   Soft_White : constant Color := (16#F6#, 16#F8#, 16#F6#, 255);
+   --  Of the light text on a dark bar or a coloured button.
 
    Shadow_Offset : constant Float := 3.0;
    --  In points, down and to the right, of a shadow.
@@ -242,40 +246,45 @@ package Pomarine.Themes is
 
 private
 
-   Light_Foreground : constant Color := (16#11#, 16#11#, 16#11#, 255);
-   Light_Background : constant Color := (16#C6#, 16#CF#, 16#CB#, 255);
+   Light_Foreground : constant Color := (16#1E#, 16#27#, 16#23#, 255);
+   Light_Background : constant Color := (16#D5#, 16#DB#, 16#D7#, 255);
    Light_Face       : constant Color := (16#A9#, 16#B1#, 16#AD#, 255);
-   Light_Border     : constant Color := (16#8A#, 16#92#, 16#8E#, 255);
+   Light_Border     : constant Color := (16#A9#, 16#B2#, 16#AD#, 255);
+   Light_Edge       : constant Color := (16#8B#, 16#96#, 16#90#, 255);
+   Light_Green      : constant Color := (16#3D#, 16#7A#, 16#4C#, 255);
+   Light_Red        : constant Color := (16#B4#, 16#48#, 16#3F#, 255);
+   Dark_Green       : constant Color := (16#3A#, 16#78#, 16#46#, 255);
+   Dark_Red         : constant Color := (16#C2#, 16#47#, 16#3F#, 255);
 
    Light_Palette : constant Palette :=
      (Dark        => False,
       Bevelled    => True,
       Background  => Light_Background,
       Foreground  => Light_Foreground,
-      Page        => White,
+      Page        => Paper,
       Face        => Light_Face,
-      Edge        => Light_Border,
+      Edge        => Light_Edge,
       Border      => Light_Border,
-      Shadow      => (16#AE#, 16#B6#, 16#B2#, 255),
-      Focus       => (16#25#, 16#63#, 16#D4#, 255),
-      Accent      => (16#E5#, 16#A1#, 16#5F#, 255),
-      Primary     => (16#27#, 16#72#, 16#2D#, 255),
-      Danger      => (16#C6#, 16#28#, 16#28#, 255),
-      Primary_Ink => (16#27#, 16#72#, 16#2D#, 255),
-      Danger_Ink  => (16#C6#, 16#28#, 16#28#, 255),
-      Bar         => (16#4F#, 16#5B#, 16#56#, 255),
-      Tint        => (16#D6#, 16#DC#, 16#D9#, 255),
-      Marker      => (16#FF#, 16#D4#, 16#28#, 255),
-      Scrim       => (16#11#, 16#11#, 16#11#, 128),
+      Shadow      => (16#BC#, 16#C5#, 16#C0#, 255),
+      Focus       => (16#45#, 16#70#, 16#B8#, 255),
+      Accent      => (16#DD#, 16#B2#, 16#7C#, 255),
+      Primary     => Light_Green,
+      Danger      => Light_Red,
+      Primary_Ink => Light_Green,
+      Danger_Ink  => Light_Red,
+      Bar         => (16#5C#, 16#6A#, 16#64#, 255),
+      Tint        => (16#E4#, 16#E8#, 16#E5#, 255),
+      Marker      => (16#F0#, 16#D0#, 16#60#, 255),
+      Scrim       => (16#1E#, 16#27#, 16#23#, 128),
       Drop_Shadow => Mix (Light_Border, Light_Foreground, 0.4),
       Face_Hover  => Mix (Light_Face, White, 0.22),
       Face_Pressed => Mix (Light_Face, Light_Foreground, 0.12),
-      Face_Light  => Highlight (Light_Face),
-      Face_Shade  => Shadow_Of (Light_Face),
-      Primary_Light => Highlight ((16#27#, 16#72#, 16#2D#, 255)),
-      Primary_Shade => Shadow_Of ((16#27#, 16#72#, 16#2D#, 255)),
-      Danger_Light  => Highlight ((16#C6#, 16#28#, 16#28#, 255)),
-      Danger_Shade  => Shadow_Of ((16#C6#, 16#28#, 16#28#, 255)),
+      Face_Light  => (16#EA#, 16#EE#, 16#EC#, 255),
+      Face_Shade  => (16#9E#, 16#A9#, 16#A3#, 255),
+      Primary_Light => Highlight (Light_Green),
+      Primary_Shade => Shadow_Of (Light_Green),
+      Danger_Light  => Highlight (Light_Red),
+      Danger_Shade  => Shadow_Of (Light_Red),
       AI            => (16#6B#, 16#3F#, 16#B8#, 255),
       AI_Light      => Highlight ((16#6B#, 16#3F#, 16#B8#, 255)),
       AI_Shade      => Shadow_Of ((16#6B#, 16#3F#, 16#B8#, 255)));
@@ -284,31 +293,31 @@ private
      (Dark        => True,
       Bevelled    => True,
       Background  => (16#1C#, 16#22#, 16#20#, 255),
-      Foreground  => (16#E6#, 16#EC#, 16#E8#, 255),
+      Foreground  => (16#E3#, 16#E9#, 16#E5#, 255),
       Page        => (16#32#, 16#3B#, 16#37#, 255),
       Face        => (16#4A#, 16#55#, 16#50#, 255),
       Edge        => (16#15#, 16#1A#, 16#18#, 255),
       Border      => (16#4A#, 16#55#, 16#50#, 255),
       Shadow      => (16#0D#, 16#11#, 16#10#, 255),
       Focus       => (16#7D#, 16#A6#, 16#FF#, 255),
-      Accent      => (16#E5#, 16#A1#, 16#5F#, 255),
-      Primary     => (16#2B#, 16#7F#, 16#33#, 255),
-      Danger      => (16#D2#, 16#3A#, 16#3A#, 255),
-      Primary_Ink => (16#6F#, 16#CB#, 16#78#, 255),
-      Danger_Ink  => (16#FF#, 16#8A#, 16#80#, 255),
+      Accent      => (16#DD#, 16#B2#, 16#7C#, 255),
+      Primary     => Dark_Green,
+      Danger      => Dark_Red,
+      Primary_Ink => (16#7F#, 16#C4#, 16#8A#, 255),
+      Danger_Ink  => (16#F0#, 16#98#, 16#8E#, 255),
       Bar         => (16#12#, 16#16#, 16#14#, 255),
       Tint        => (16#2B#, 16#33#, 16#30#, 255),
-      Marker      => (16#F2#, 16#CB#, 16#2E#, 255),
+      Marker      => (16#E6#, 16#C8#, 16#5A#, 255),
       Scrim       => (16#0D#, 16#11#, 16#10#, 160),
       Drop_Shadow => (16#0D#, 16#11#, 16#10#, 255),
       Face_Hover  => (16#54#, 16#60#, 16#59#, 255),
       Face_Pressed => (16#3E#, 16#48#, 16#43#, 255),
       Face_Light  => (16#6A#, 16#77#, 16#71#, 255),
       Face_Shade  => (16#2D#, 16#35#, 16#32#, 255),
-      Primary_Light => (16#62#, 16#B5#, 16#6B#, 255),
-      Primary_Shade => (16#17#, 16#48#, 16#1C#, 255),
-      Danger_Light  => (16#EE#, 16#8A#, 16#8A#, 255),
-      Danger_Shade  => (16#8E#, 16#1B#, 16#1B#, 255),
+      Primary_Light => (16#66#, 16#AE#, 16#74#, 255),
+      Primary_Shade => (16#1B#, 16#44#, 16#25#, 255),
+      Danger_Light  => (16#E0#, 16#8A#, 16#82#, 255),
+      Danger_Shade  => (16#7C#, 16#25#, 16#20#, 255),
       AI            => (16#8A#, 16#5C#, 16#E0#, 255),
       AI_Light      => (16#B0#, 16#8C#, 16#F2#, 255),
       AI_Shade      => (16#4E#, 16#2C#, 16#8A#, 255));

@@ -91,7 +91,7 @@ package body Pomarine.Widgets.Badges is
         Float'Rounding (Top_Of (Item) + (Height_Of (Item) - High) / 2.0);
       Ink    : constant Themes.Color :=
         (case Item.Form is
-            when Number => Themes.White,
+            when Number => Themes.Soft_White,
             when Tag   => Colors (Themes.Muted));
    begin
       case Item.Form is

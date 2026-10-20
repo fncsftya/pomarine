@@ -39,7 +39,7 @@ package body Pomarine.Widgets.Tooltips is
          Height_Of (Item));
       if Item.Length > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw
-           (Text_Lines (Item).all, Target, Themes.White, Text (Item),
+           (Text_Lines (Item).all, Target, Themes.Soft_White, Text (Item),
             Left_Of (Item)
             + (Width_Of (Item)
                - Pomarine.Line_Texts.Width
