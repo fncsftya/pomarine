@@ -43,6 +43,7 @@ package body Pomarine.Widgets.Menus is
    procedure Clear (Item : in out Menu) is
    begin
       Item.Used := 0;
+      Item.Rows.Clear;
       Item.Scrolled := 0.0;
       Item.Over := 0;
       Item.Pressed := 0;
@@ -65,7 +66,7 @@ package body Pomarine.Widgets.Menus is
       Made.Shade := Shade;
       Made.Checked := Checked;
       Item.Used := Item.Used + 1;
-      Item.Rows (Item.Used) := Made;
+      Item.Rows.Append (Made);
       Fit (Item);
    end Add;
 

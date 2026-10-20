@@ -1,3 +1,4 @@
+with Ada.Containers.Vectors;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
@@ -56,8 +57,6 @@ package Pomarine.Widgets.Canvases is
    --  The points from the left or top of the box of a canvas unit; the
    --  opposite of To_Canvas_X and To_Canvas_Y.
 
-   Max_Lines : constant := 128;
-
    type Dashes is (Solid, Dotted, Dashed);
 
    type Line is record
@@ -73,8 +72,7 @@ package Pomarine.Widgets.Canvases is
 
    type Line_Array is array (Positive range <>) of Line;
 
-   procedure Set_Lines (Item : in out Canvas; Lines : Line_Array)
-     with Pre => Lines'Length <= Max_Lines;
+   procedure Set_Lines (Item : in out Canvas; Lines : Line_Array);
    --  Draw these lines, joining things on the canvas, over the canvas but
    --  under what is on it, in place of any before. Setting what it has
    --  already damages nothing; a line that has moved damages the box
@@ -132,6 +130,8 @@ package Pomarine.Widgets.Canvases is
 
 private
 
+   package Line_Vectors is new Ada.Containers.Vectors (Positive, Line);
+
    type Canvas is new Widget with record
       Scale   : Float := 1.0;
       Across  : Float := 0.0;
@@ -142,8 +142,7 @@ private
       Panning : Boolean := False;
       Last_X, Last_Y : Float := 0.0;
       --  Where the pointer was, in points, while it pans.
-      Line_Count : Natural range 0 .. Max_Lines := 0;
-      Lines      : Line_Array (1 .. Max_Lines);
+      Lines      : Line_Vectors.Vector;
       Chosen     : Natural := 0;
       Chosen_Changed : Boolean := False;
       Delete_Asked   : Boolean := False;

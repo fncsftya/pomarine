@@ -1,14 +1,10 @@
+with Ada.Finalization;
+
 --  Words found in a picture, and where each is in it: what Picture
 --  widgets show as selectable text. Whatever finds them (Vision, on
 --  macOS) fills a Result, and the widget is told of it.
 
 package Pomarine.Words is
-
-   Max_Words : constant := 4_096;
-   --  Of one picture: more are left out (Result.Truncated).
-
-   Text_Capacity : constant := 48_000;
-   --  Bytes of all the words together.
 
    type Word is record
       Line   : Natural := 0;
@@ -23,20 +19,33 @@ package Pomarine.Words is
    end record
      with Convention => C;
 
-   type Word_Array is array (1 .. Max_Words) of Word
+   type Word_Array is array (Positive range <>) of Word
      with Convention => C;
 
-   type Result is record
+   type Word_Array_Access is access Word_Array;
+   type Text_Access is access String;
+
+   type Result is new Ada.Finalization.Controlled with record
       Count     : Natural := 0;
       --  Words (1 .. Count), in reading order.
       Length    : Natural := 0;
       --  Text (1 .. Length) is what is used.
       Truncated : Boolean := False;
-      Words     : Word_Array;
-      Text      : String (1 .. Text_Capacity) := [others => ' '];
-   end record
-     with Dynamic_Predicate =>
-       Result.Count <= Max_Words and then Result.Length <= Text_Capacity;
+      --  Whether the finder left words out (it was asked for no more).
+      Words     : Word_Array_Access;
+      Text      : Text_Access;
+      --  With room for at least Count words and Length bytes: see Reserve.
+   end record;
+   --  As many words as the picture has: the room grows to hold them.
+
+   procedure Reserve (Item : in out Result; Words_Wanted : Natural; Bytes : Natural)
+     with Post => Item.Words /= null and then Item.Text /= null
+                  and then Item.Words'Length >= Words_Wanted and then Item.Text'Length >= Bytes;
+   --  Have room for this many words and bytes, and keep those there are.
+
+   procedure Clear (Item : in out Result)
+     with Post => Item.Count = 0 and then Item.Length = 0 and then not Item.Truncated;
+   --  Hold no words; the room is kept.
 
    type Result_Access is access constant Result;
 
@@ -44,5 +53,8 @@ package Pomarine.Words is
      is (In_Result.Text (Of_Word.First .. Of_Word.Last))
      with Pre => Of_Word.Last in Of_Word.First - 1 .. In_Result.Length;
    --  The word's text.
+
+   overriding procedure Adjust (Item : in out Result);
+   overriding procedure Finalize (Item : in out Result);
 
 end Pomarine.Words;

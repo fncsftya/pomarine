@@ -48,8 +48,6 @@ package Pomarine.Widgets.Pictures is
    --  What a drag does: select words, or highlight; and what a click does
    --  on a mark, with the eraser: remove it.
 
-   Max_Marks : constant := Pomarine.Marks.Max_Marks;
-
    Mark_Height : constant Float := 0.024;
    --  How tall a mark is, as a fraction of the picture's width.
 
@@ -88,8 +86,7 @@ package Pomarine.Widgets.Pictures is
    procedure Set_Marks
      (Item : in out Picture; To : Mark_Array;
       Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
-     with Pre  => To'Length <= Max_Marks,
-          Post => Mark_Count (Item) = To'Length;
+     with Post => Mark_Count (Item) = To'Length;
    --  Show these, in place of those made. Past must belong to To; omit it
    --  to start with no history (as when loading a source).
 
@@ -233,8 +230,8 @@ private
       --  selection is the words from Anchor to Head, either way round.
       Held    : Boolean := False;
       Chosen  : Tools := Pointer;
-      Marked  : Mark_Array (1 .. Max_Marks + 1);
-      Marks   : Natural range 0 .. Max_Marks := 0;
+      Marked  : Pomarine.Marks.Mark_Store;
+      Marks   : Natural := 0;
       Version : Natural := 0;
       Past : Pomarine.Marks.History;
       Down_Bar   : Scrollbars.Bar;

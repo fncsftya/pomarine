@@ -11,7 +11,6 @@ with Pomarine.Icons;
 with Pomarine.Line_Texts;
 with Pomarine.Semantics;
 with Pomarine.Themes;
-with Pomarine_Ui_Config;
 with Yoga.Nodes;
 
 --  A tree of widgets: the parts of a window, each in a box that Yoga's
@@ -130,8 +129,11 @@ package Pomarine.Widgets is
 
    No_Node : constant Node_Id;
 
-   Node_Capacity : constant := Pomarine_Ui_Config.Node_Capacity;
-   --  How many widgets a tree holds, in all.
+   Node_Capacity : constant := 2 ** 21 - 1;
+   --  The most widgets a tree can hold, in all: what a widget's number
+   --  (Node_Id) keeps of its place. The table of nodes is made for all of
+   --  them at once, but only the part that is used is ever touched, so it
+   --  takes the memory of the widgets there are.
 
    type Listener is limited interface;
    --  What the application gives a tree to hear its widgets by. Events are
@@ -1010,8 +1012,8 @@ private
    type Box_Array is array (Slots) of Pixel_Box;
 
    type Node_Table is record
-      Object     : Widget_Array := [others => null];
-      --  The widget in each used slot; to call its operations.
+      Object     : Widget_Array;
+      --  The widget in each slot used (up to Fresh); to call its operations.
       Use_Number : Count_Array;
       Parent, First, Last, Next : Index_Array;
       Children   : Count_Array;
@@ -1025,12 +1027,15 @@ private
       Kids       : Node_Id_Array (Slots);
       --  The children being told of, while a node is.
       Layout_Dirty, Paint_Dirty, Semantics_Dirty : Flag_Array;
-      Free       : Node_Index := 0;
+      Free       : Node_Index;
       --  The slots given back, linked by Next.
-      Fresh      : Natural := 0;
+      Fresh      : Natural;
       --  How many slots have ever been used: those after are unused.
-      Used       : Natural := 0;
+      Used       : Natural;
    end record;
+   pragma Suppress_Initialization (Node_Table);
+   --  So that the table, made for every widget there could be, is not touched
+   --  but for the part that is used (see Set_Root, which makes it).
 
    type Table_Access is access Node_Table;
 

@@ -1,6 +1,6 @@
+with Ada.Containers.Vectors;
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
 with SDL3.Cursors;
 with SDL3.Events;
 with Pomarine.Icons;
@@ -22,10 +22,8 @@ with Pomarine.Icons;
 --  is there, and hides it.
 package Pomarine.Widgets.Menus is
 
-   Row_Capacity  : constant := Pomarine_Ui_Config.Menu_Rows;
    Text_Capacity : constant := 256;
-   --  Room for complete replacement text; drawing ellipsizes long rows.
-   --  Rows, and bytes of the text of each.
+   --  Bytes of the text of a row: room for complete replacement text; drawing ellipsizes long rows.
 
    type Row_Kind is (Heading, Action, Check, Separator, Note);
 
@@ -42,8 +40,7 @@ package Pomarine.Widgets.Menus is
       Text    : String := "";
       Shade   : Tone := Plain;
       Checked : Boolean := False)
-     with Pre  => Row_Count (Item) < Row_Capacity
-                  and then Text'Length <= Text_Capacity,
+     with Pre  => Text'Length <= Text_Capacity,
           Post => Row_Count (Item) = Row_Count (Item)'Old + 1;
    --  Add a row after the others.
 
@@ -158,15 +155,16 @@ private
       Swatch   : Themes.Slot := Themes.Primary;
    end record;
 
-   type Line_Array is array (1 .. Row_Capacity) of Line;
+   package Line_Vectors is new Ada.Containers.Vectors (Positive, Line);
 
    type Menu is new Widget with record
-      Rows    : Line_Array;
-      Used    : Natural range 0 .. Row_Capacity := 0;
-      Over    : Natural range 0 .. Row_Capacity := 0;
+      Rows    : Line_Vectors.Vector;
+      Used    : Natural := 0;
+      --  How many of Rows are there.
+      Over    : Natural := 0;
       --  The row that can be clicked under the pointer.
-      Pressed : Natural range 0 .. Row_Capacity := 0;
-      Chosen  : Natural range 0 .. Row_Capacity := 0;
+      Pressed : Natural := 0;
+      Chosen  : Natural := 0;
       Max_High : Float := 0.0;
       --  The most height, in points; 0.0 for none.
       Scrolled : Float := 0.0;

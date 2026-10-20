@@ -1,4 +1,37 @@
+with Ada.Unchecked_Deallocation;
+
 package body Pomarine.Marks is
+   procedure Free is new Ada.Unchecked_Deallocation (Mark_Array, Mark_Array_Access);
+
+   procedure Reserve (Store : in out Mark_Store; Count : Natural) is
+   begin
+      if Store.Data = null or else Store.Data'Length < Count then
+         declare
+            Room   : constant Positive :=
+              Positive'Max (16, Positive'Max (Count, (if Store.Data = null then 0 else 2 * Store.Data'Length)));
+            Bigger : constant Mark_Array_Access := new Mark_Array (1 .. Room);
+         begin
+            if Store.Data /= null then
+               Bigger (Store.Data'Range) := Store.Data.all;
+               Free (Store.Data);
+            end if;
+            Store.Data := Bigger;
+         end;
+      end if;
+   end Reserve;
+
+   overriding procedure Adjust (Store : in out Mark_Store) is
+   begin
+      if Store.Data /= null then
+         Store.Data := new Mark_Array'(Store.Data.all);
+      end if;
+   end Adjust;
+
+   overriding procedure Finalize (Store : in out Mark_Store) is
+   begin
+      Free (Store.Data);
+   end Finalize;
+
    function Can_Undo (Past : History) return Boolean is (Past.Position > 0);
    function Can_Redo (Past : History) return Boolean is (Past.Position < Past.Count);
 
@@ -25,27 +58,28 @@ package body Pomarine.Marks is
       Record_Edit (Past, Value, Index, Added => False);
    end Record_Remove;
 
-   procedure Apply (Change : Edit; Shown : in out Mark_Array; Count : in out Natural; Insert : Boolean) is
+   procedure Apply (Change : Edit; Shown : in out Mark_Store; Count : in out Natural; Insert : Boolean) is
    begin
       if Insert then
-         pragma Assert (Count < Max_Marks and then Change.Index <= Count + 1);
-         Shown (Change.Index + 1 .. Count + 1) := Shown (Change.Index .. Count);
-         Shown (Change.Index) := Change.Value;
+         pragma Assert (Change.Index <= Count + 1);
+         Reserve (Shown, Count + 2);
+         Shown.Data (Change.Index + 1 .. Count + 1) := Shown.Data (Change.Index .. Count);
+         Shown.Data (Change.Index) := Change.Value;
          Count := Count + 1;
       else
          pragma Assert (Change.Index <= Count);
-         Shown (Change.Index .. Count - 1) := Shown (Change.Index + 1 .. Count);
+         Shown.Data (Change.Index .. Count - 1) := Shown.Data (Change.Index + 1 .. Count);
          Count := Count - 1;
       end if;
    end Apply;
 
-   procedure Undo (Past : in out History; Shown : in out Mark_Array; Count : in out Natural) is
+   procedure Undo (Past : in out History; Shown : in out Mark_Store; Count : in out Natural) is
    begin
       Apply (Past.Steps (Past.Position), Shown, Count, Insert => not Past.Steps (Past.Position).Added);
       Past.Position := Past.Position - 1;
    end Undo;
 
-   procedure Redo (Past : in out History; Shown : in out Mark_Array; Count : in out Natural) is
+   procedure Redo (Past : in out History; Shown : in out Mark_Store; Count : in out Natural) is
    begin
       Past.Position := Past.Position + 1;
       Apply (Past.Steps (Past.Position), Shown, Count, Insert => Past.Steps (Past.Position).Added);

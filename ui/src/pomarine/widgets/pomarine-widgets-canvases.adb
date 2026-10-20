@@ -126,7 +126,7 @@ package body Pomarine.Widgets.Canvases is
       for Number in Lines'Range loop
          declare
             Was : constant Boolean :=
-              Number - Lines'First + 1 <= Item.Line_Count;
+              Number - Lines'First + 1 <= Natural (Item.Lines.Length);
             Old : constant Line :=
               (if Was then Item.Lines (Number - Lines'First + 1)
                else Lines (Number));
@@ -149,7 +149,7 @@ package body Pomarine.Widgets.Canvases is
          end;
       end loop;
       --  Those that are gone.
-      for Number in Lines'Length + 1 .. Item.Line_Count loop
+      for Number in Lines'Length + 1 .. Natural (Item.Lines.Length) loop
          if Is_Attached (Item) then
             Damage_Between
               (Item, Screen_X (Item, Item.Lines (Number).From_X),
@@ -158,8 +158,10 @@ package body Pomarine.Widgets.Canvases is
                Screen_Y (Item, Item.Lines (Number).To_Y));
          end if;
       end loop;
-      Item.Line_Count := Lines'Length;
-      Item.Lines (1 .. Lines'Length) := Lines;
+      Item.Lines.Set_Length (Ada.Containers.Count_Type (Lines'Length));
+      for Number in Lines'Range loop
+         Item.Lines (Number - Lines'First + 1) := Lines (Number);
+      end loop;
    end Set_Lines;
 
    function Ghost_End (Item : Canvas) return Line is
@@ -244,7 +246,7 @@ package body Pomarine.Widgets.Canvases is
       Best   : Float := Reach * Pixels;
       Found  : Natural := 0;
    begin
-      for Each of Item.Lines (1 .. Item.Line_Count) loop
+      for Each of Item.Lines loop
          declare
             X0 : constant Float := Screen_X (Item, Each.From_X);
             Y0 : constant Float := Screen_Y (Item, Each.From_Y);
@@ -413,7 +415,7 @@ package body Pomarine.Widgets.Canvases is
       end;
 
       --  Lines joining what is on it, under that.
-      for Each of Item.Lines (1 .. Item.Line_Count) loop
+      for Each of Item.Lines loop
          declare
             From_X : constant Float := Screen_X (Item, Each.From_X);
             From_Y : constant Float := Screen_Y (Item, Each.From_Y);

@@ -46,8 +46,6 @@ package Pomarine.Widgets.Page_Views is
    subtype Tools is Pictures.Tools;
    --  Pointer, Highlighter, Eraser: as of a Picture.
 
-   Max_Marks : constant := Pomarine.Marks.Max_Marks;
-
    Mark_Height : constant Float := 0.024;
    --  How tall a mark is, as a fraction of the page's width.
 
@@ -142,7 +140,7 @@ package Pomarine.Widgets.Page_Views is
    procedure Set_Marks
      (Item : in out Page_View; To : Mark_Array;
       Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
-     with Pre => To'Length <= Max_Marks, Post => Mark_Count (Item) = To'Length;
+     with Post => Mark_Count (Item) = To'Length;
    --  Past must belong to To; omit it to start with no history.
 
    procedure Clear_Marks (Item : in out Page_View)
@@ -258,8 +256,8 @@ private
       Head    : Natural := 0;
       Held    : Boolean := False;
       Chosen  : Tools := Pictures.Pointer;
-      Marked  : Mark_Array (1 .. Max_Marks + 1);
-      Marks   : Natural range 0 .. Max_Marks := 0;
+      Marked  : Pomarine.Marks.Mark_Store;
+      Marks   : Natural := 0;
       Version : Natural := 0;
       Past : Pomarine.Marks.History;
       Marking : Boolean := False;

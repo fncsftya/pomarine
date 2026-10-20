@@ -1,3 +1,4 @@
+with Ada.Strings.Unbounded;
 with Pomarine.Mark_Paths;
 with SDL3.Windows;
 with SDL3.Windows.Renderers;
@@ -67,7 +68,7 @@ package body Pomarine.Widgets.Pictures is
    function Mark_Count (Item : Picture) return Natural is (Item.Marks);
 
    function Mark_At (Item : Picture; Index : Positive) return Mark is
-     (Item.Marked (Index));
+     (Item.Marked.Data (Index));
 
    function Marks_Version (Item : Picture) return Natural is (Item.Version);
 
@@ -139,7 +140,8 @@ package body Pomarine.Widgets.Pictures is
       Item.Marking := False;
       Item.Past := Past;
       Item.Marks := To'Length;
-      Item.Marked (1 .. To'Length) := To;
+      Pomarine.Marks.Reserve (Item.Marked, To'Length + 1);
+      Item.Marked.Data (1 .. To'Length) := To;
       if Is_Attached (Item) then
          Invalidate (Item);
       end if;
@@ -174,13 +176,11 @@ package body Pomarine.Widgets.Pictures is
      (Natural'Max (Item.Anchor, Item.Head));
 
    function Selected_Text (Item : Picture) return String is
-      Result : String (1 .. Pomarine.Words.Text_Capacity + Pomarine.Words.Max_Words);
-      Last   : Natural := 0;
+      Result : Ada.Strings.Unbounded.Unbounded_String;
 
       procedure Append (Text : String) is
       begin
-         Result (Last + 1 .. Last + Text'Length) := Text;
-         Last := Last + Text'Length;
+         Ada.Strings.Unbounded.Append (Result, Text);
       end Append;
    begin
       if not Has_Selection (Item) or else Item.Found = null then
@@ -195,7 +195,7 @@ package body Pomarine.Widgets.Pictures is
          end if;
          Append (Pomarine.Words.Image (Item.Found.Words (Index), Item.Found.all));
       end loop;
-      return Result (1 .. Last);
+      return Ada.Strings.Unbounded.To_String (Result);
    end Selected_Text;
 
    procedure Select_Range (Item : in out Picture; From, To : Natural) is
@@ -282,7 +282,7 @@ package body Pomarine.Widgets.Pictures is
      (Float'Min (1.0, Float'Max (0.0, (Y - Origin_Y (Item)) / Item.Fitted)));
 
    procedure Extend_Mark (Item : in out Picture; X, Y : Float) is
-      Each : Mark renames Item.Marked (Item.Marks + 1);
+      Each : Mark renames Item.Marked.Data (Item.Marks + 1);
    begin
       Mark_Paths.Append (Each.Trace, Along (Item, X), Down_Of (Item, Y));
    end Extend_Mark;
@@ -292,13 +292,13 @@ package body Pomarine.Widgets.Pictures is
       Half   : constant Float := Mark_Height * Wide_Of (Item) / 2.0;
    begin
       for Index in reverse 1 .. Item.Marks loop
-         if (Item.Marked (Index).Trace.Count > 0 and then
-             Mark_Paths.Contains (Item.Marked (Index).Trace, X - Origin_X (Item), Y - Origin_Y (Item),
+         if (Item.Marked.Data (Index).Trace.Count > 0 and then
+             Mark_Paths.Contains (Item.Marked.Data (Index).Trace, X - Origin_X (Item), Y - Origin_Y (Item),
                                   Wide_Of (Item), Item.Fitted, Half))
-           or else (Item.Marked (Index).Trace.Count = 0
-           and then Across in Item.Marked (Index).Left .. Item.Marked (Index).Right
+           or else (Item.Marked.Data (Index).Trace.Count = 0
+           and then Across in Item.Marked.Data (Index).Left .. Item.Marked.Data (Index).Right
            and then abs (Y - (Origin_Y (Item)
-                              + Item.Marked (Index).Y * Item.Fitted)) <= Half)
+                              + Item.Marked.Data (Index).Y * Item.Fitted)) <= Half)
          then
             return Index;
          end if;
@@ -325,9 +325,9 @@ package body Pomarine.Widgets.Pictures is
                   Under : constant Natural := Mark_Under (Item, X, Y);
                begin
                   if Under > 0 then
-                     Pomarine.Marks.Record_Remove (Item.Past, Item.Marked (Under), Under);
-                     Item.Marked (Under .. Item.Marks - 1) :=
-                       Item.Marked (Under + 1 .. Item.Marks);
+                     Pomarine.Marks.Record_Remove (Item.Past, Item.Marked.Data (Under), Under);
+                     Item.Marked.Data (Under .. Item.Marks - 1) :=
+                       Item.Marked.Data (Under + 1 .. Item.Marks);
                      Item.Marks := Item.Marks - 1;
                      Item.Version := Item.Version + 1;
                      Invalidate (Item);
@@ -337,7 +337,8 @@ package body Pomarine.Widgets.Pictures is
             elsif Event.Button = 1 and then Contains (Item, X, Y) then
                Item.Marking := True;
                Item.Started := Along (Item, X);
-               Item.Marked (Item.Marks + 1) :=
+               Pomarine.Marks.Reserve (Item.Marked, Item.Marks + 2);
+               Item.Marked.Data (Item.Marks + 1) :=
                  (Left | Right => Item.Started, Y => Down_Of (Item, Y), Trace => <>, Page => <>);
                Extend_Mark (Item, X, Y);
                Clear_Selection (Item);
@@ -355,11 +356,10 @@ package body Pomarine.Widgets.Pictures is
                Item.Marking := False;
                Extend_Mark (Item, X, Y);
                --  A click, that went nowhere, marks nothing.
-               if Item.Marks < Max_Marks
-                 and then Item.Marked (Item.Marks + 1).Trace.Count > 1
+               if Item.Marked.Data (Item.Marks + 1).Trace.Count > 1
                then
                   Item.Marks := Item.Marks + 1;
-                  Pomarine.Marks.Record_Add (Item.Past, Item.Marked (Item.Marks), Item.Marks);
+                  Pomarine.Marks.Record_Add (Item.Past, Item.Marked.Data (Item.Marks), Item.Marks);
                   Item.Version := Item.Version + 1;
                end if;
                Invalidate (Item);
@@ -600,7 +600,7 @@ package body Pomarine.Widgets.Pictures is
       begin
          for Index in 1 .. Item.Marks + (if Item.Marking then 1 else 0) loop
             declare
-               Each : Mark renames Item.Marked (Index);
+               Each : Mark renames Item.Marked.Data (Index);
             begin
                if Each.Trace.Count > 0 then
                   Mark_Paths.Draw

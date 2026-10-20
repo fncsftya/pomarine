@@ -67,15 +67,23 @@ package body Pomarine.Widgets is
       Name  : Semantics.Text;
       Help  : Semantics.Text;
       Hooks : Hook_Array;
+      Link  : Natural;
+      --  While it is given back: the next that is.
    end record;
    pragma Suppress_Initialization (Cold_Block);
 
-   Cold_Pool : array (1 .. Node_Capacity) of Cold_Block;
-   Cold_Link : array (1 .. Node_Capacity) of Natural;
+   Chunk_Size : constant := 256;
+   type Cold_Chunk is array (1 .. Chunk_Size) of aliased Cold_Block;
+   type Cold_Chunk_Access is access Cold_Chunk;
+   Chunks : array (1 .. Node_Capacity / Chunk_Size + 1) of Cold_Chunk_Access := [others => null];
    Cold_Free : Natural := 0;
    Cold_Fresh : Natural := 0;
-   --  Static: nothing is made as it runs. A block the application gave
-   --  back is used again before one never used.
+   --  Made a chunk at a time, as they are wanted, and never moved, so that
+   --  what runs a widget's handlers may make more. A block the application
+   --  gave back is used again before one never used.
+
+   function Block (Index : Positive) return not null access Cold_Block is
+     (Chunks ((Index - 1) / Chunk_Size + 1) ((Index - 1) mod Chunk_Size + 1)'Access);
 
    function Cold (Item : in out Widget'Class) return Natural is
       Index : Natural;
@@ -83,15 +91,18 @@ package body Pomarine.Widgets is
       if Item.Cold = 0 then
          if Cold_Free /= 0 then
             Index := Cold_Free;
-            Cold_Free := Cold_Link (Index);
+            Cold_Free := Block (Index).Link;
          else
             pragma Assert (Cold_Fresh < Node_Capacity,
                            "more widgets with names or handlers than there is room for");
             Cold_Fresh := Cold_Fresh + 1;
             Index := Cold_Fresh;
+            if Chunks ((Index - 1) / Chunk_Size + 1) = null then
+               Chunks ((Index - 1) / Chunk_Size + 1) := new Cold_Chunk;
+            end if;
          end if;
-         Cold_Pool (Index) := (Name => Semantics.Empty_Text, Help => Semantics.Empty_Text,
-                               Hooks => [others => <>]);
+         Block (Index).all := (Name => Semantics.Empty_Text, Help => Semantics.Empty_Text,
+                               Hooks => [others => <>], Link => 0);
          Item.Cold := Index;
       end if;
       return Item.Cold;
@@ -101,7 +112,7 @@ package body Pomarine.Widgets is
    procedure Give_Back_Cold (Item : in out Widget'Class) is
    begin
       if Item.Cold /= 0 then
-         Cold_Link (Item.Cold) := Cold_Free;
+         Block (Item.Cold).Link := Cold_Free;
          Cold_Free := Item.Cold;
          Item.Cold := 0;
       end if;
@@ -435,7 +446,7 @@ package body Pomarine.Widgets is
       Self, Proc : System.Address) is
    begin
       Clear_Hook (Item, Kind);
-      for Each of Cold_Pool (Cold (Item)).Hooks loop
+      for Each of Block (Cold (Item)).all.Hooks loop
          if not Each.Used then
             Each := (Used => True, Kind => Kind, Run => Run, Self => Self, Proc => Proc);
             return;
@@ -449,7 +460,7 @@ package body Pomarine.Widgets is
       if Item.Cold = 0 then
          return;
       end if;
-      for Each of Cold_Pool (Item.Cold).Hooks loop
+      for Each of Block (Item.Cold).all.Hooks loop
          if Each.Used and then Each.Kind = Kind then
             Each := (others => <>);
          end if;
@@ -458,7 +469,7 @@ package body Pomarine.Widgets is
 
    function Has_Hook (Item : Widget'Class; Kind : Event_Kind) return Boolean is
      (Item.Cold /= 0
-      and then (for some Each of Cold_Pool (Item.Cold).Hooks =>
+      and then (for some Each of Block (Item.Cold).all.Hooks =>
                   Each.Used and then Each.Kind = Kind));
 
    function Run_Hooks (Item : in out Widget'Class; Event : Widget_Event) return Boolean is
@@ -467,7 +478,7 @@ package body Pomarine.Widgets is
       if Item.Cold = 0 then
          return False;
       end if;
-      for Each of Cold_Pool (Item.Cold).Hooks loop
+      for Each of Block (Item.Cold).all.Hooks loop
          if Each.Used and then Each.Kind = Event.Kind then
             Each.Run (Each.Self, Each.Proc, Item, Event);
             Ran := True;
@@ -639,6 +650,9 @@ package body Pomarine.Widgets is
    begin
       if Item.Nodes = null then
          Item.Nodes := new Node_Table;
+         Item.Nodes.Free := 0;
+         Item.Nodes.Fresh := 0;
+         Item.Nodes.Used := 0;
          Yoga.Nodes.Set_Measure_Handler (Measure_Bridge'Access);
       end if;
       Take_Slot (Item, Root, Slot);
@@ -1777,7 +1791,7 @@ package body Pomarine.Widgets is
 
    procedure Set_Accessible_Name (Item : in out Widget'Class; Text : String) is
    begin
-      Semantics.Set (Cold_Pool (Cold (Item)).Name, Text);
+      Semantics.Set (Block (Cold (Item)).all.Name, Text);
       if Item.Owner /= null then
          Item.Owner.Nodes.Semantics_Dirty (Item.Slot) := True;
       end if;
@@ -1785,7 +1799,7 @@ package body Pomarine.Widgets is
 
    procedure Set_Accessible_Help (Item : in out Widget'Class; Text : String) is
    begin
-      Semantics.Set (Cold_Pool (Cold (Item)).Help, Text);
+      Semantics.Set (Block (Cold (Item)).all.Help, Text);
       if Item.Owner /= null then
          Item.Owner.Nodes.Semantics_Dirty (Item.Slot) := True;
       end if;
@@ -1811,7 +1825,7 @@ package body Pomarine.Widgets is
    end Hide_From_Accessibility;
 
    function Accessible_Name (Item : Widget'Class) return String is
-     (if Item.Cold = 0 then "" else Semantics.To_String (Cold_Pool (Item.Cold).Name));
+     (if Item.Cold = 0 then "" else Semantics.To_String (Block (Item.Cold).all.Name));
 
    procedure Set_Title (Item : in out Tree; Text : String) is
    begin
@@ -1891,13 +1905,13 @@ package body Pomarine.Widgets is
             then
                Facts.Kind := Semantics.Window;
             end if;
-            if Mine.Cold /= 0 and then Semantics.Length (Cold_Pool (Mine.Cold).Name) > 0 then
-               Facts.Name := Cold_Pool (Mine.Cold).Name;
+            if Mine.Cold /= 0 and then Semantics.Length (Block (Mine.Cold).all.Name) > 0 then
+               Facts.Name := Block (Mine.Cold).all.Name;
             elsif Slot = Home.Root and then Semantics.Length (Home.Title) > 0 then
                Facts.Name := Home.Title;
             end if;
-            if Mine.Cold /= 0 and then Semantics.Length (Cold_Pool (Mine.Cold).Help) > 0 then
-               Facts.Help := Cold_Pool (Mine.Cold).Help;
+            if Mine.Cold /= 0 and then Semantics.Length (Block (Mine.Cold).all.Help) > 0 then
+               Facts.Help := Block (Mine.Cold).all.Help;
             end if;
             if Table.Focused (Slot) then
                Facts.Focusable := True;

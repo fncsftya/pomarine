@@ -1,3 +1,4 @@
+with Ada.Strings.Unbounded;
 with Pomarine.Mark_Paths;
 with Ada.Unchecked_Deallocation;
 with Pomarine.Line_Texts;
@@ -282,7 +283,7 @@ package body Pomarine.Widgets.Page_Views is
    function Mark_Count (Item : Page_View) return Natural is (Item.Marks);
 
    function Mark_At (Item : Page_View; Index : Positive) return Mark is
-     (Item.Marked (Index));
+     (Item.Marked.Data (Index));
 
    function Marks_Version (Item : Page_View) return Natural is (Item.Version);
 
@@ -346,8 +347,9 @@ package body Pomarine.Widgets.Page_Views is
    begin
       Item.Past := Past;
       Item.Marks := To'Length;
+      Pomarine.Marks.Reserve (Item.Marked, To'Length + 1);
       Item.Marking := False;
-      Item.Marked (1 .. To'Length) := To;
+      Item.Marked.Data (1 .. To'Length) := To;
       if Is_Attached (Item) then
          Invalidate (Item);
       end if;
@@ -375,13 +377,11 @@ package body Pomarine.Widgets.Page_Views is
 
    function Selected_Text (Item : Page_View) return String is
       Found  : constant Result_Access := Words_Of (Item, Item.Sel_Page);
-      Result : String (1 .. Pomarine.Words.Text_Capacity + Pomarine.Words.Max_Words);
-      Last   : Natural := 0;
+      Result : Ada.Strings.Unbounded.Unbounded_String;
 
       procedure Append (Text : String) is
       begin
-         Result (Last + 1 .. Last + Text'Length) := Text;
-         Last := Last + Text'Length;
+         Ada.Strings.Unbounded.Append (Result, Text);
       end Append;
    begin
       if not Has_Selection (Item) or else Found = null then
@@ -395,7 +395,7 @@ package body Pomarine.Widgets.Page_Views is
          end if;
          Append (Pomarine.Words.Image (Found.Words (Index), Found.all));
       end loop;
-      return Result (1 .. Last);
+      return Ada.Strings.Unbounded.To_String (Result);
    end Selected_Text;
 
    procedure Select_Range (Item : in out Page_View; Page, From, To : Natural) is
@@ -527,7 +527,7 @@ package body Pomarine.Widgets.Page_Views is
      (Float'Min (1.0, Float'Max (0.0, (Y - Page_Top (Item, Page)) / Page_Height (Item, Page))));
 
    procedure Extend_Mark (Item : in out Page_View; X, Y : Float) is
-      Each : Mark renames Item.Marked (Item.Marks + 1);
+      Each : Mark renames Item.Marked.Data (Item.Marks + 1);
    begin
       Mark_Paths.Append (Each.Trace, Along (Item, X), Down_Of (Item, Each.Page, Y));
    end Extend_Mark;
@@ -538,7 +538,7 @@ package body Pomarine.Widgets.Page_Views is
    begin
       for Index in reverse 1 .. Item.Marks loop
          declare
-            Each : Mark renames Item.Marked (Index);
+            Each : Mark renames Item.Marked.Data (Index);
          begin
             if Each.Page <= Count (Item)
               and then ((Each.Trace.Count > 0 and then
@@ -573,9 +573,9 @@ package body Pomarine.Widgets.Page_Views is
                   Under : constant Natural := Mark_Under (Item, X, Y);
                begin
                   if Under > 0 then
-                     Pomarine.Marks.Record_Remove (Item.Past, Item.Marked (Under), Under);
-                     Item.Marked (Under .. Item.Marks - 1) :=
-                       Item.Marked (Under + 1 .. Item.Marks);
+                     Pomarine.Marks.Record_Remove (Item.Past, Item.Marked.Data (Under), Under);
+                     Item.Marked.Data (Under .. Item.Marks - 1) :=
+                       Item.Marked.Data (Under + 1 .. Item.Marks);
                      Item.Marks := Item.Marks - 1;
                      Item.Version := Item.Version + 1;
                      Invalidate (Item);
@@ -588,7 +588,8 @@ package body Pomarine.Widgets.Page_Views is
                begin
                   Item.Marking := True;
                   Item.Started := Along (Item, X);
-                  Item.Marked (Item.Marks + 1) :=
+                  Pomarine.Marks.Reserve (Item.Marked, Item.Marks + 2);
+                  Item.Marked.Data (Item.Marks + 1) :=
                     (Left | Right => Item.Started, Y => Down_Of (Item, Page, Y), Page => Page, Trace => <>);
                   Extend_Mark (Item, X, Y);
                   Clear_Selection (Item);
@@ -607,11 +608,10 @@ package body Pomarine.Widgets.Page_Views is
                Item.Marking := False;
                Extend_Mark (Item, X, Y);
                --  A click, that went nowhere, marks nothing.
-               if Item.Marks < Max_Marks
-                 and then Item.Marked (Item.Marks + 1).Trace.Count > 1
+               if Item.Marked.Data (Item.Marks + 1).Trace.Count > 1
                then
                   Item.Marks := Item.Marks + 1;
-                  Pomarine.Marks.Record_Add (Item.Past, Item.Marked (Item.Marks), Item.Marks);
+                  Pomarine.Marks.Record_Add (Item.Past, Item.Marked.Data (Item.Marks), Item.Marks);
                   Item.Version := Item.Version + 1;
                end if;
                Invalidate (Item);
@@ -975,7 +975,7 @@ package body Pomarine.Widgets.Page_Views is
       begin
          for Index in 1 .. Item.Marks + (if Item.Marking then 1 else 0) loop
             declare
-               Each : Mark renames Item.Marked (Index);
+               Each : Mark renames Item.Marked.Data (Index);
             begin
                if Each.Page in First .. Last then
                   if Each.Trace.Count > 0 then
