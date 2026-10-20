@@ -287,6 +287,11 @@ package body Pomarine.Text_Areas is
       Item.Toolbar := To;
    end Set_Toolbar;
 
+   procedure Set_Radius (Item : in out Text_Area; Points : Float) is
+   begin
+      Item.Radius := Points;
+   end Set_Radius;
+
    procedure Set_Indent (Item : in out Text_Area; Points : Float) is
    begin
       Item.Indent := Points;
@@ -1733,7 +1738,7 @@ package body Pomarine.Text_Areas is
       --  The owner's, to go back to.
       Round : constant Float :=
         (if Item.Grows or else Colors (Themes.Border) = Colors (Themes.Background) then 0.0
-         else Pomarine.Boxes.Corner (Themes.Small_Radius, Item.Density));
+         else Pomarine.Boxes.Corner (Item.Radius, Item.Density));
       Inner_Round : constant Float := Float'Max (0.0, Round - Edge);
       --  Of the corners of the outline, and of what it holds, which is the
       --  less round by the width of the outline. A page, or a field whose

@@ -121,6 +121,10 @@ package Pomarine.Text_Areas is
 
    Toolbar_Points : constant Float := 32.0;
 
+   procedure Set_Radius (Item : in out Text_Area; Points : Float)
+     with Pre => Points >= 0.0;
+   --  Corner radius in points, initially Themes.Small_Radius; zero makes square corners.
+
    procedure Set_Indent (Item : in out Text_Area; Points : Float)
      with Pre => Points >= 0.0;
    --  Leave Points more at each side of the text of more than one line,
@@ -488,6 +492,7 @@ private
       Single   : Boolean := False;
       Read_Only : Boolean := False;
       Grows    : Boolean := False;
+      Radius   : Float := Themes.Small_Radius;
       Returned : Boolean := False;
       Across_Scroll : Float := 0.0;
       Lead     : Float := 0.0;  --  in points: see Set_Lead
