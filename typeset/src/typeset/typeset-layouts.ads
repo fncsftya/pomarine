@@ -61,12 +61,15 @@ package Typeset.Layouts is
    --  The paragraphs it has, as many as the document had when synced.
 
    --  Metrics
+   --  Para = 0 gives the body font; otherwise use the paragraph's heading
+   --  font once laid out. Heading_2 and Heading_3 use 1.5 and 1.25 times
+   --  the configured size.
 
-   function Line_Height (Item : Layout) return Float
+   function Line_Height (Item : Layout; Para : Natural := 0) return Float
      with Pre => Is_Configured (Item);
-   function Ascent (Item : Layout) return Float
+   function Ascent (Item : Layout; Para : Natural := 0) return Float
      with Pre => Is_Configured (Item);
-   function Font_Size (Item : Layout) return Float
+   function Font_Size (Item : Layout; Para : Natural := 0) return Float
      with Pre => Is_Configured (Item);
    function Width (Item : Layout) return Float
      with Pre => Is_Configured (Item);
@@ -287,6 +290,7 @@ package Typeset.Layouts is
 private
 
    type Paragraph_Layout is limited record
+      Kind       : Texts.Paragraph_Kind := Texts.Plain;
       Held       : CoreText.Strings.Text;
       --  The text, for CoreText: set when wanted, and edited as the
       --  paragraph is.
@@ -317,7 +321,9 @@ private
       --  Of each paragraph's text, in UTF-16 units: so far as it has been
       --  laid out or edited; before, its length in bytes, an estimate
       --  that costs nothing to find.
-      Font       : CoreText.Fonts.Font;
+      Font       : aliased CoreText.Fonts.Font;
+      H2_Font    : aliased CoreText.Fonts.Font;
+      H3_Font    : aliased CoreText.Fonts.Font;
       Line_High  : Long_Float := 0.0;  --  the font's
       Wide       : Float := 0.0;
       Gap        : Float := 0.0;

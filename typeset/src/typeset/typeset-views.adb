@@ -113,9 +113,6 @@ package body Typeset.Views is
       Rows_To   : Float := Float'Last)
    is
       pragma Unreferenced (Width);
-      Line_High : constant Float := Layouts.Line_Height (Laid);
-      Ascent    : constant Float := Layouts.Ascent (Laid);
-      Font_Size : constant Float := Layouts.Font_Size (Laid);
       First, Last : Positive;
       Reg_Ref   : constant not null access CoreText.Shaping.Registry :=
         (if Item.Shared /= null
@@ -137,6 +134,9 @@ package body Typeset.Views is
       begin
          for Para in First .. Last loop
             declare
+               Line_High : constant Float := Layouts.Line_Height (Laid, Para);
+               Ascent : constant Float := Layouts.Ascent (Laid, Para);
+               Font_Size : constant Float := Layouts.Font_Size (Laid, Para);
                Para_Y : constant Float :=
                  Top + (Layouts.Top (Laid, Para) - View_Top) * Scale;
                Lines  : constant Positive := Layouts.Line_Count (Laid, Para);

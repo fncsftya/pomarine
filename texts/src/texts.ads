@@ -32,6 +32,8 @@ package Texts is
    --  of dialogue, a note. Texts only keeps it.
 
    Plain : constant Paragraph_Kind := 0;
+   Heading_2 : constant Paragraph_Kind := 2;
+   Heading_3 : constant Paragraph_Kind := 3;
 
    --  UTF-8
 

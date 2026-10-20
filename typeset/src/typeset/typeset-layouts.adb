@@ -27,6 +27,21 @@ package body Typeset.Layouts is
    Most_Lines : constant := 1_000_000;
    --  More than a view could want of a paragraph at once.
 
+   function Font_For (Item : Layout; Para : Natural) return not null access constant CoreText.Fonts.Font is
+   begin
+      --  These borrows are used only by the immediate layout operation;
+      --  the limited layout owns the fonts throughout that operation.
+      pragma Assert (Para <= Count (Item));
+      if Para /= 0 and then Item.Paragraphs (Para) /= null then
+         case Item.Paragraphs (Para).Kind is
+            when Texts.Heading_2 => return Item.H2_Font'Unchecked_Access;
+            when Texts.Heading_3 => return Item.H3_Font'Unchecked_Access;
+            when others => null;
+         end case;
+      end if;
+      return Item.Font'Unchecked_Access;
+   end Font_For;
+
    --  Heights
 
    function Lines_For (Item : Layout; Units : Natural) return Long_Float is
@@ -48,7 +63,7 @@ package body Typeset.Layouts is
                (Item,
                 Natural'Max (0, Units - P.Lines.Last_Element.Stop));
       end if;
-      return Lines * Item.Line_High + Long_Float (Item.Gap);
+      return Lines * Long_Float (Line_Height (Item, Para)) + Long_Float (Item.Gap);
    end Height_Of;
 
    procedure Update_Height (Item : in out Layout; Para : Positive) is
@@ -112,6 +127,8 @@ package body Typeset.Layouts is
       Spacing    : Float := 0.0) is
    begin
       CoreText.Fonts.Open (Item.Font, Family, Size);
+      CoreText.Fonts.Open (Item.H2_Font, Family, Size * 1.5);
+      CoreText.Fonts.Open (Item.H3_Font, Family, Size * 1.25);
       Item.Line_High := Long_Float (CoreText.Fonts.Line_Height (Item.Font));
       Item.Wide := Page_Width;
       Item.Gap := Spacing;
@@ -360,7 +377,7 @@ package body Typeset.Layouts is
             Done : constant Docs.Change := Docs.Change_After (Doc, Item.Seen);
          begin
             Item.Seen := Item.Seen + 1;
-            if Done.Formats_Only then
+            if Done.Formats_Only or else Done.Kind_Only then
                Start_Again (Item, Doc);
                return;
             elsif not Done.Kind_Only then
@@ -390,12 +407,12 @@ package body Typeset.Layouts is
 
    --  Metrics
 
-   function Line_Height (Item : Layout) return Float is
-     (CoreText.Fonts.Line_Height (Item.Font));
-   function Ascent (Item : Layout) return Float is
-     (CoreText.Fonts.Ascent (Item.Font));
-   function Font_Size (Item : Layout) return Float is
-     (CoreText.Fonts.Size (Item.Font));
+   function Line_Height (Item : Layout; Para : Natural := 0) return Float is
+     (CoreText.Fonts.Line_Height (Font_For (Item, Para).all));
+   function Ascent (Item : Layout; Para : Natural := 0) return Float is
+     (CoreText.Fonts.Ascent (Font_For (Item, Para).all));
+   function Font_Size (Item : Layout; Para : Natural := 0) return Float is
+     (CoreText.Fonts.Size (Font_For (Item, Para).all));
    function Width (Item : Layout) return Float is (Item.Wide);
 
    --  Lines
@@ -421,6 +438,7 @@ package body Typeset.Layouts is
    procedure Hold (Item : Layout; Doc : Document; Para : Positive) is
       P : constant Paragraph_Access := Item.Paragraphs (Para);
    begin
+      P.Kind := Docs.Kind (Doc, Para);
       if not CoreText.Strings.Is_Set (P.Held) then
          CoreText.Strings.Set (P.Held, Docs.Text (Doc, Para));
       end if;
@@ -535,22 +553,22 @@ package body Typeset.Layouts is
               (if Old_Stop >= P.Edit_At and then Old_Stop <= P.Laid_Units
                  and then P.Edit_Stop <= Length
                then Rewrap
-                      (Item.Font, P.Lines, P.Held, Item.Wide,
+                      (Font_For (Item, Para).all, P.Lines, P.Held, Item.Wide,
                        P.Edit_At, Old_Stop, P.Edit_Stop)
-               else Wrap (Item.Font, P.Held, Item.Wide));
+               else Wrap (Font_For (Item, Para).all, P.Held, Item.Wide));
          begin
             P.Lines.Move (Source => Fresh);  --  not copied
          end;
          P.Dirty := False;
          P.Id := New_Id (Item);
       elsif P.Lines.Is_Empty and then Length <= Long_Units then
-         P.Lines := Wrap (Item.Font, P.Held, Item.Wide);
+         P.Lines := Wrap (Font_For (Item, Para).all, P.Held, Item.Wide);
          P.Id := New_Id (Item);
       else
          if P.Lines.Is_Empty then
             P.Id := New_Id (Item);
          end if;
-         Extend (Item.Font, P.Held, Item.Wide, P.Lines,
+         Extend (Font_For (Item, Para).all, P.Held, Item.Wide, P.Lines,
                  Until_Count => Lines, Until_Unit => Units);
       end if;
       Laid_Out (Item, Para);
@@ -605,7 +623,7 @@ package body Typeset.Layouts is
    begin
       Hold (Item, Doc, Para);
       CoreText.Shaping.Shape
-        (Reg, Item.Font, P.Held, Range_Of.First, Range_Of.Stop, Result);
+        (Reg, Font_For (Item, Para).all, P.Held, Range_Of.First, Range_Of.Stop, Result);
    end Shape_Line;
 
    --  Where paragraphs are
@@ -740,7 +758,7 @@ package body Typeset.Layouts is
    begin
       Hold (Item, Doc, Para);
       CoreText.Lines.Make
-        (Result, Item.Font, Item.Paragraphs (Para).Held, Bounds.First, Bounds.Stop);
+        (Result, Font_For (Item, Para).all, Item.Paragraphs (Para).Held, Bounds.First, Bounds.Stop);
       pragma Assert
         (CoreText.Lines.Length (Result) = Bounds.Stop - Bounds.First);
    end Set_Line;

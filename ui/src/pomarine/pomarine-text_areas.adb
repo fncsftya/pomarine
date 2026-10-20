@@ -434,7 +434,7 @@ package body Pomarine.Text_Areas is
    procedure Reveal (Item : in out Text_Area) is
       Para     : constant Positive := Item.At_Caret.Paragraph;
       Number   : constant Positive := Line_Of (Item, Item.At_Caret);
-      High     : constant Float := Layouts.Line_Height (Item.Laid);
+      High     : constant Float := Layouts.Line_Height (Item.Laid, Para);
       Line_Top : constant Float :=
         Layouts.Top (Item.Laid, Para) + Float (Number - 1) * High;
       Shown    : constant Float := View_Top (Item);
@@ -882,10 +882,10 @@ package body Pomarine.Text_Areas is
    function Point_At (Item : in out Text_Area; X, Y : Float)
       return Position
    is
-      High  : constant Float := Layouts.Line_Height (Item.Laid);
       Depth : constant Float :=
         View_Top (Item) + (Y - Text_Top (Item)) / Scale (Item);
       Para  : constant Positive := Layouts.Paragraph_At (Item.Laid, Depth);
+      High : constant Float := Layouts.Line_Height (Item.Laid, Para);
       Within : constant Float :=
         Float'Max (0.0, Depth - Layouts.Top (Item.Laid, Para)) / High;
       Wanted : constant Positive :=
@@ -922,7 +922,6 @@ package body Pomarine.Text_Areas is
    function Is_Over_Range
      (Item : in out Text_Area; From, To : Position; X, Y : Float) return Boolean
    is
-      High : constant Float := Layouts.Line_Height (Item.Laid);
    begin
       if not Contains (Item, X, Y) then
          return False;
@@ -931,6 +930,7 @@ package body Pomarine.Text_Areas is
       declare
          Depth : constant Float := View_Top (Item) + (Y - Text_Top (Item)) / Scale (Item);
          Para : constant Positive := Layouts.Paragraph_At (Item.Laid, Depth);
+         High : constant Float := Layouts.Line_Height (Item.Laid, Para);
          Within : constant Float := (Depth - Layouts.Top (Item.Laid, Para)) / High;
       begin
          if Para not in From.Paragraph .. To.Paragraph or else Within < 0.0
@@ -1538,7 +1538,6 @@ package body Pomarine.Text_Areas is
       Rows_From, Rows_To : Float;
       Marking : Boolean := False; Strike : Boolean := False)
    is
-      High  : constant Float := Layouts.Line_Height (Item.Laid);
       Shown : constant Float := View_Top (Item);
       Right : constant Float := Column (Item);
    begin
@@ -1546,6 +1545,7 @@ package body Pomarine.Text_Areas is
                   .. Positive'Min (Last, To.Paragraph)
       loop
          declare
+            High : constant Float := Layouts.Line_Height (Item.Laid, Para);
             Range_First : constant Natural :=
               (if Para = From.Paragraph then Units (Item, From) else 0);
             Range_Stop  : constant Natural :=
@@ -1602,9 +1602,9 @@ package body Pomarine.Text_Areas is
                         if Underlined then
                            declare
                               Top : constant Float := Float'Rounding
-                                (if Strike then Y + Layouts.Ascent (Item.Laid) * 0.6 * Scale (Item)
+                                (if Strike then Y + Layouts.Ascent (Item.Laid, Para) * 0.6 * Scale (Item)
                                  elsif Marking then Y + High * Scale (Item) - 2.0 * Item.Density
-                                 else Y + Layouts.Ascent (Item.Laid) * Scale (Item)
+                                 else Y + Layouts.Ascent (Item.Laid, Para) * Scale (Item)
                                       + Underline_Gap * Item.Density);
                               Stroke_Width : constant Float := Float'Max
                                 (1.0, Float'Rounding
@@ -1670,7 +1670,7 @@ package body Pomarine.Text_Areas is
       declare
          Para     : constant Positive := Item.At_Caret.Paragraph;
          Number   : constant Positive := Item.Caret_Line;
-         High     : constant Float := Layouts.Line_Height (Item.Laid);
+         High     : constant Float := Layouts.Line_Height (Item.Laid, Para);
          Line_Top : constant Float :=
            Layouts.Top (Item.Laid, Para) + Float (Number - 1) * High;
          Across   : constant Float := Item.Caret_Across;
