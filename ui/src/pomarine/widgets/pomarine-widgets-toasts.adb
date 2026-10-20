@@ -147,7 +147,7 @@ package body Pomarine.Widgets.Toasts is
       Pomarine.Boxes.Draw
         (Target,
          (Filled   => True,
-          Fill     => Themes.Paper,
+          Fill     => Colors (Themes.Page),
           Bordered => True,
           Border   => Colors (Themes.Border),
           Dashed   => False,
