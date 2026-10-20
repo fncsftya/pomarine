@@ -17,10 +17,10 @@ package body Pomarine.Widgets.Frames is
    Tag_Size      : constant Float := 9.0;
    Tag_Gap       : constant Float := 7.0;
    --  The square of a colour before the title, and after it.
-   Drag_Room     : constant Float := 32.0;
+   Drag_Room     : constant Float := 12.0;
    --  Left of the title field before the buttons, to take hold of.
-   Title_Size    : constant Float := 12.0;
-   Title_Height  : constant Float := 20.0;
+   Title_Size    : constant Float := Line_Texts.Regular_Size;
+   Title_Height  : constant Float := 28.0;
    Status_Pad    : constant Float := 12.0;
    Mini_Width    : constant Float := 200.0;
    Mini_Height   : constant Float := 28.0;
@@ -145,7 +145,7 @@ package body Pomarine.Widgets.Frames is
       if Editable_Title then
          Labels.Set_Intrinsic (Item.Title_Label);
          Text_Fields.Configure
-           (Item.Title_Field, Line_Texts.Interface_Font, Title_Size);
+           (Item.Title_Field, Line_Texts.Face_Name (Line_Texts.Serif_Bold), Title_Size);
          Set_Flex_Grow (Node (Item.Title_Field), 1.0);
          Set_Width (Node (Item.Title_Field), 0.0);
          --  The title is text, in the field's place, until it is to be
@@ -182,12 +182,21 @@ package body Pomarine.Widgets.Frames is
       Set_Height (Node (Item.Status_Bar), Status_Height * Pixels);
       Set_Flex_Direction (Node (Item.Status_Bar), Yoga.Row);
       Set_Align_Items (Node (Item.Status_Bar), Yoga.Center);
-      Set_Padding (Node (Item.Status_Bar), Yoga.Left, Status_Pad * Pixels);
+      Set_Padding (Node (Item.Status_Bar), Yoga.Horizontal, Status_Pad * Pixels);
       Set_Gap
         (Node (Item.Status_Bar), Yoga.All_Gutters, Button_Gap * Pixels);
-      Grips.Set_Shape (Item.Corner, Grips.Corner);
+      --  Not drawn, and not in the row: in the corner over what is there,
+      --  shown by a fill under the pointer.
       Grips.Set_Wanted_Cursor (Item.Corner, SDL3.Cursors.Resize);
-      Size (Item.Corner, Corner_Size, Status_Height, Pixels);
+      Grips.Set_Hover_Fill (Item.Corner, Themes.Hover_Row);
+      if Item.Floating then
+         Grips.Set_Radius
+           (Item.Corner, Themes.Large_Radius, (Bottom_Right => True, others => False));
+      end if;
+      Set_Position_Type (Node (Item.Corner), Yoga.Absolute);
+      Set_Position (Node (Item.Corner), Yoga.Right, 0.0);
+      Set_Position (Node (Item.Corner), Yoga.Bottom, 0.0);
+      Size (Item.Corner, Corner_Size, Corner_Size, Pixels);
       Set_Visible (Item.Corner, Item.Floating);
 
       if Item.Docked then
@@ -241,6 +250,7 @@ package body Pomarine.Widgets.Frames is
      (Item : in out Frame; Part : in out Widget'Class) is
    begin
       Add_Before (Item.Status_Bar, Part, Item.Corner);
+      --  Before the corner, which is over the row.
    end Add_Status_Item;
 
    procedure Add_Over_Content
@@ -492,6 +502,7 @@ package body Pomarine.Widgets.Frames is
    begin
       Item.Editing := True;
       Set_Visible (Item.Title_Area, False);
+      Set_Visible (Item.Spacer, False);
       --  The press that began it is not let go on what is hidden.
       Grips.Cancel_Drag (Item.Title_Area);
       Set_Visible (Item.Title_Field, True);
@@ -504,6 +515,7 @@ package body Pomarine.Widgets.Frames is
       Item.Editing := False;
       Set_Visible (Item.Title_Field, False);
       Set_Visible (Item.Title_Area, True);
+      Set_Visible (Item.Spacer, True);
    end End_Title_Edit;
 
    procedure Reset_Title_Edit (Item : in out Frame) is
@@ -511,6 +523,7 @@ package body Pomarine.Widgets.Frames is
       Item.Editing := False;
       if Item.Editable then
          Set_Visible (Item.Title_Area, True);
+         Set_Visible (Item.Spacer, True);
          Set_Visible (Item.Title_Field, False);
       end if;
    end Reset_Title_Edit;
