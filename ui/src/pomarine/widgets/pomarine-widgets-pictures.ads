@@ -1,3 +1,4 @@
+with Pomarine.Mark_Paths;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
@@ -29,8 +30,8 @@ with Pomarine.Words;
 --
 --  With the highlighter as its tool (Set_Tool), a drag over the picture
 --  does not select, but marks it: a translucent band, one line of text
---  tall, along the way the pointer went from where it was pressed (it
---  stays on the line pressed on). Marks are only drawn: they are kept as
+--  tall, following the pointer freely in both axes. Marks are only drawn:
+--  they are kept as
 --  fractions of the picture, as the words' boxes are, so they follow its
 --  zoom and scroll, and can be set (Set_Marks) and read (Mark_At) to be
 --  kept elsewhere; Marks_Version says when a mark was made.
@@ -54,12 +55,13 @@ package Pomarine.Widgets.Pictures is
 
    type Mark is record
       Left, Right, Y : Float := 0.0;
+      Trace : Pomarine.Mark_Paths.Path;
    end record
      with Dynamic_Predicate =>
        Mark.Left in 0.0 .. 1.0 and then Mark.Right in Mark.Left .. 1.0
        and then Mark.Y in 0.0 .. 1.0;
    --  A band from Left to Right, of the picture's width, centred Y down
-   --  it, of its height.
+   --  it, of its height, for legacy marks. Trace holds a freehand path when nonempty.
 
    type Mark_Array is array (Positive range <>) of Mark;
 

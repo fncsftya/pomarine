@@ -12,7 +12,7 @@ package body Pomarine.Widgets.Pictures is
    begin
       return (Left  => Unit (Left),
               Right => Float'Max (Unit (Left), Unit (Right)),
-              Y     => Unit (Y));
+              Y     => Unit (Y), Trace => <>);
    end Clamped_Mark;
 
    package Textures renames SDL3.Windows.Renderers.Textures;
@@ -232,23 +232,24 @@ package body Pomarine.Widgets.Pictures is
    function Down_Of (Item : Picture; Y : Float) return Float is
      (Float'Min (1.0, Float'Max (0.0, (Y - Origin_Y (Item)) / Item.Fitted)));
 
-   function Being_Made (Item : Picture; X : Float) return Mark is
-      Now : constant Float := Along (Item, X);
+   procedure Extend_Mark (Item : in out Picture; X, Y : Float) is
+      Each : Mark renames Item.Marked (Item.Marks + 1);
    begin
-      return (Left  => Float'Min (Item.Started, Now),
-              Right => Float'Max (Item.Started, Now),
-              Y     => Item.Marked (Item.Marks + 1).Y);
-   end Being_Made;
-   --  The mark as dragged to pixel X.
+      Mark_Paths.Append (Each.Trace, Along (Item, X), Down_Of (Item, Y));
+   end Extend_Mark;
 
    function Mark_Under (Item : Picture; X, Y : Float) return Natural is
       Across : constant Float := Along (Item, X);
       Half   : constant Float := Mark_Height * Wide_Of (Item) / 2.0;
    begin
       for Index in reverse 1 .. Item.Marks loop
-         if Across in Item.Marked (Index).Left .. Item.Marked (Index).Right
+         if (Item.Marked (Index).Trace.Count > 0 and then
+             Mark_Paths.Contains (Item.Marked (Index).Trace, X - Origin_X (Item), Y - Origin_Y (Item),
+                                  Wide_Of (Item), Item.Fitted, Half))
+           or else (Item.Marked (Index).Trace.Count = 0
+           and then Across in Item.Marked (Index).Left .. Item.Marked (Index).Right
            and then abs (Y - (Origin_Y (Item)
-                              + Item.Marked (Index).Y * Item.Fitted)) <= Half
+                              + Item.Marked (Index).Y * Item.Fitted)) <= Half)
          then
             return Index;
          end if;
@@ -287,25 +288,25 @@ package body Pomarine.Widgets.Pictures is
                Item.Marking := True;
                Item.Started := Along (Item, X);
                Item.Marked (Item.Marks + 1) :=
-                 (Left | Right => Item.Started, Y => Down_Of (Item, Y));
+                 (Left | Right => Item.Started, Y => Down_Of (Item, Y), Trace => <>);
+               Extend_Mark (Item, X, Y);
                Clear_Selection (Item);
                Invalidate (Item);
                Handled := True;
             end if;
          when SDL3.Events.Mouse_Move =>
             if Item.Marking then
-               Item.Marked (Item.Marks + 1) := Being_Made (Item, X);
+               Extend_Mark (Item, X, Y);
                Invalidate (Item);
                Handled := True;
             end if;
          when SDL3.Events.Mouse_Up =>
             if Item.Marking and then Event.Button = 1 then
                Item.Marking := False;
-               Item.Marked (Item.Marks + 1) := Being_Made (Item, X);
+               Extend_Mark (Item, X, Y);
                --  A click, that went nowhere, marks nothing.
                if Item.Marks < Max_Marks
-                 and then Item.Marked (Item.Marks + 1).Right
-                          - Item.Marked (Item.Marks + 1).Left > 0.002
+                 and then Item.Marked (Item.Marks + 1).Trace.Count > 1
                then
                   Item.Marks := Item.Marks + 1;
                   Item.Version := Item.Version + 1;
@@ -550,13 +551,20 @@ package body Pomarine.Widgets.Pictures is
             declare
                Each : Mark renames Item.Marked (Index);
             begin
-               SDL3.Painters.Fill_Rect
-                 (Target, Colors (Themes.Marker),
-                  (if Item.Dark then SDL3.Windows.Renderers.Add
-                   else SDL3.Windows.Renderers.Multiply),
-                  Left + Each.Left * Wide,
-                  Top + Each.Y * Item.Fitted - High / 2.0,
-                  (Each.Right - Each.Left) * Wide, High);
+               if Each.Trace.Count > 0 then
+                  Mark_Paths.Draw
+                    (Each.Trace, Target, Colors (Themes.Marker),
+                     (if Item.Dark then SDL3.Windows.Renderers.Add else SDL3.Windows.Renderers.Multiply),
+                     Left, Top, Wide, Item.Fitted, High / 2.0);
+               else
+                  SDL3.Painters.Fill_Rect
+                    (Target, Colors (Themes.Marker),
+                     (if Item.Dark then SDL3.Windows.Renderers.Add
+                      else SDL3.Windows.Renderers.Multiply),
+                     Left + Each.Left * Wide,
+                     Top + Each.Y * Item.Fitted - High / 2.0,
+                     (Each.Right - Each.Left) * Wide, High);
+               end if;
             end;
          end loop;
       end;

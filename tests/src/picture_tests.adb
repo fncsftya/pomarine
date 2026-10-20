@@ -1,3 +1,7 @@
+with Pomarine.Pages;
+with Pomarine.Page_Builds;
+with Pomarine.Widgets.Page_Views;
+with Pomarine.Mark_Paths;
 with SDL3.Events;
 with SDL3.Pictures.Jobs;
 with SDL3.Windows.Renderers;
@@ -198,6 +202,132 @@ package body Picture_Tests is
          Goldens.Check_Same ("picture-plain", Plain, Drawn);
       end;
    end Selecting;
+
+   type Empty_Source is new Pomarine.Pages.Source with null record;
+   overriding procedure Build
+     (Item : in out Empty_Source; Index : Positive; Content : out Pomarine.Pages.Page_Access;
+      Words : in out Pomarine.Words.Result; Ok : out Boolean);
+   overriding procedure Measure
+     (Item : in out Empty_Source; Count : Positive; Sizes : out Pomarine.Pages.Size_Array_Access;
+      Ok : out Boolean);
+
+   overriding procedure Build
+     (Item : in out Empty_Source; Index : Positive; Content : out Pomarine.Pages.Page_Access;
+      Words : in out Pomarine.Words.Result; Ok : out Boolean)
+   is
+      pragma Unreferenced (Item, Index, Words);
+   begin
+      Content := null;
+      Ok := False;
+   end Build;
+
+   overriding procedure Measure
+     (Item : in out Empty_Source; Count : Positive; Sizes : out Pomarine.Pages.Size_Array_Access;
+      Ok : out Boolean)
+   is
+      pragma Unreferenced (Item, Count);
+   begin
+      Sizes := null;
+      Ok := False;
+   end Measure;
+
+   Source : aliased Empty_Source;
+
+   procedure Freehand_Pages is
+      package Views renames Pomarine.Widgets.Page_Views;
+      Tree : Widgets.Tree;
+      Target : Renderers.Renderer;
+      Root : aliased Pomarine.Widgets.Panels.Panel;
+      View : aliased Views.Page_View;
+      Sizes : Pomarine.Pages.Size_Array_Access := new Pomarine.Pages.Size_Array'[(360.0, 500.0)];
+      Taken : Boolean;
+      procedure Send_Page (Event : Events.Event) is
+      begin
+         Widgets.Dispatch (Tree, Event, Taken);
+         Widgets.Paint (Tree, Target, Colors);
+      end Send_Page;
+   begin
+      Renderers.Create_Offscreen (Target, Width, Height);
+      Widgets.Set_Root (Tree, Root);
+      Widgets.Add (Root, View);
+      Nodes.Set_Flex_Grow (Widgets.Node (View), 1.0);
+      Views.Set_Document (View, Sizes, Source'Access);
+      Widgets.Layout (Tree, Target);
+      Widgets.Paint (Tree, Target, Colors);
+      Views.Set_Tool (View, Pictures.Highlighter);
+      Send_Page (Press (80.0, 40.0));
+      Send_Page (Move (80.0, 100.0));
+      Send_Page (Move (140.0, 120.0));
+      Send_Page (Release (100.0, 60.0));
+      pragma Assert (Views.Mark_Count (View) = 1);
+      pragma Assert (Views.Mark_At (View, 1).Trace.Count = 4);
+      pragma Assert (Views.Mark_At (View, 1).Page = 1);
+      Views.Set_Zoom (View, 2.0);
+      Widgets.Paint (Tree, Target, Colors);
+      pragma Assert (Views.Mark_At (View, 1).Trace.Count = 4);
+      Views.Set_Zoom (View, 1.0);
+      Widgets.Paint (Tree, Target, Colors);
+      Views.Set_Tool (View, Pictures.Eraser);
+      Send_Page (Press (80.0, 70.0));
+      Send_Page (Release (80.0, 70.0));
+      pragma Assert (Views.Mark_Count (View) = 0);
+      Pomarine.Page_Builds.Wait_Until_Idle;
+      Views.Clear_Document (View);
+      Pomarine.Pages.Free (Sizes);
+   end Freehand_Pages;
+
+   procedure Freehand is
+      Item : Fixture;
+      Trace : Pomarine.Mark_Paths.Path;
+      use type Pomarine.Mark_Paths.Point;
+   begin
+      Open (Item);
+      Pictures.Set_Tool (Item.Picture, Pictures.Highlighter);
+      Send (Item, Press (80.0, 40.0), Taken => True);
+      Send (Item, Move (80.0, 80.0), Taken => True);
+      Send (Item, Move (140.0, 100.0), Taken => True);
+      Send (Item, Move (100.0, 60.0), Taken => True);
+      Send (Item, Release (60.0, 100.0), Taken => True);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 1);
+      Trace := Pictures.Mark_At (Item.Picture, 1).Trace;
+      pragma Assert (Trace.Count = 5);
+      pragma Assert (Trace.Points (1).X = Trace.Points (2).X);
+      pragma Assert (Trace.Points (1).Y < Trace.Points (2).Y);
+      pragma Assert (Trace.Points (3).X > Trace.Points (4).X);
+      declare
+         Drawn : Images.Image;
+      begin
+         Images.Read (Drawn, Item.Target);
+         Goldens.Check ("picture-freehand", Drawn);
+      end;
+      Pictures.Set_Tool (Item.Picture, Pictures.Eraser);
+      Send (Item, Press (200.0, 150.0), Taken => True);
+      Send (Item, Release (200.0, 150.0), Taken => False);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 1);
+      Send (Item, Press (80.0, 60.0), Taken => True);
+      Send (Item, Release (80.0, 60.0), Taken => False);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 0);
+
+      --  A purely vertical drag is a stroke, whereas a click is not.
+      Pictures.Set_Tool (Item.Picture, Pictures.Highlighter);
+      Send (Item, Press (80.0, 40.0), Taken => True);
+      Send (Item, Release (80.0, 100.0), Taken => True);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 1);
+      Send (Item, Press (120.0, 40.0), Taken => True);
+      Send (Item, Release (120.0, 40.0), Taken => True);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 1);
+
+      --  Storage stays bounded even when there are many pointer events.
+      Trace := (others => <>);
+      for Index in 0 .. 1024 loop
+         Pomarine.Mark_Paths.Append (Trace, Float (Index) / 1024.0, Float (Index mod 7) / 7.0);
+      end loop;
+      pragma Assert (Trace.Count <= Pomarine.Mark_Paths.Max_Points);
+      pragma Assert (Trace.Points (1) = Pomarine.Mark_Paths.Point'(0.0, 0.0));
+      pragma Assert (Trace.Points (Trace.Count).X = 1.0);
+      pragma Assert (Pomarine.Mark_Paths.Contains (Trace, 100.0, Trace.Points (Trace.Count).Y * 100.0,
+                                                 100.0, 100.0, 2.0));
+   end Freehand;
 
    procedure Following_The_Picture is
       Item : Fixture;

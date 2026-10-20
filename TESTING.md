@@ -12,7 +12,9 @@ the layout helpers (`layouts-*`), the widgets as the
 design's sheet shows them (`sheet-*`: every kind on one board, pressed,
 focused and hovered states, and what each does with clicks and keys), and
 selecting words over a picture (`pictures-*`, with made-up `Pomarine.Words`:
-dragging, double and triple clicks, copying, zooming and scrolling). Tests
+dragging, double and triple clicks, copying, zooming and scrolling; freehand
+highlighting on pictures and document pages, erasing, direction changes and
+bounded storage for long strokes). Tests
 also check text with `Goldens.Check_Text`, and documents and layouts
 without drawing (`document-*`, `layout-*`).
 

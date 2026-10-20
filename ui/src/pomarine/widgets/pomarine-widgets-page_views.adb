@@ -25,7 +25,7 @@ package body Pomarine.Widgets.Page_Views is
         (Float'Min (1.0, Float'Max (0.0, Value)));
       Low : constant Float := Unit (Left);
    begin
-      return (Left => Low, Right => Float'Max (Low, Unit (Right)), Y => Unit (Y), Page => Page);
+      return (Left => Low, Right => Float'Max (Low, Unit (Right)), Y => Unit (Y), Page => Page, Trace => <>);
    end Clamped_Mark;
 
    --  Where things are
@@ -477,14 +477,11 @@ package body Pomarine.Widgets.Page_Views is
    function Down_Of (Item : Page_View; Page : Positive; Y : Float) return Float is
      (Float'Min (1.0, Float'Max (0.0, (Y - Page_Top (Item, Page)) / Page_Height (Item, Page))));
 
-   function Being_Made (Item : Page_View; X : Float) return Mark is
-      Now : constant Float := Along (Item, X);
+   procedure Extend_Mark (Item : in out Page_View; X, Y : Float) is
+      Each : Mark renames Item.Marked (Item.Marks + 1);
    begin
-      return (Left  => Float'Min (Item.Started, Now),
-              Right => Float'Max (Item.Started, Now),
-              Y     => Item.Marked (Item.Marks + 1).Y,
-              Page  => Item.Marked (Item.Marks + 1).Page);
-   end Being_Made;
+      Mark_Paths.Append (Each.Trace, Along (Item, X), Down_Of (Item, Each.Page, Y));
+   end Extend_Mark;
 
    function Mark_Under (Item : Page_View; X, Y : Float) return Natural is
       Across : constant Float := Along (Item, X);
@@ -495,9 +492,12 @@ package body Pomarine.Widgets.Page_Views is
             Each : Mark renames Item.Marked (Index);
          begin
             if Each.Page <= Count (Item)
-              and then Across in Each.Left .. Each.Right
+              and then ((Each.Trace.Count > 0 and then
+                Mark_Paths.Contains (Each.Trace, X - Origin_X (Item), Y - Page_Top (Item, Each.Page),
+                                     Wide_Of (Item), Page_Height (Item, Each.Page), Half))
+              or else (Each.Trace.Count = 0 and then Across in Each.Left .. Each.Right
               and then abs (Y - (Page_Top (Item, Each.Page)
-                                 + Each.Y * Page_Height (Item, Each.Page))) <= Half
+                                 + Each.Y * Page_Height (Item, Each.Page))) <= Half))
             then
                return Index;
             end if;
@@ -539,7 +539,8 @@ package body Pomarine.Widgets.Page_Views is
                   Item.Marking := True;
                   Item.Started := Along (Item, X);
                   Item.Marked (Item.Marks + 1) :=
-                    (Left | Right => Item.Started, Y => Down_Of (Item, Page, Y), Page => Page);
+                    (Left | Right => Item.Started, Y => Down_Of (Item, Page, Y), Page => Page, Trace => <>);
+                  Extend_Mark (Item, X, Y);
                   Clear_Selection (Item);
                   Invalidate (Item);
                   Handled := True;
@@ -547,18 +548,17 @@ package body Pomarine.Widgets.Page_Views is
             end if;
          when SDL3.Events.Mouse_Move =>
             if Item.Marking then
-               Item.Marked (Item.Marks + 1) := Being_Made (Item, X);
+               Extend_Mark (Item, X, Y);
                Invalidate (Item);
                Handled := True;
             end if;
          when SDL3.Events.Mouse_Up =>
             if Item.Marking and then Event.Button = 1 then
                Item.Marking := False;
-               Item.Marked (Item.Marks + 1) := Being_Made (Item, X);
+               Extend_Mark (Item, X, Y);
                --  A click, that went nowhere, marks nothing.
                if Item.Marks < Max_Marks
-                 and then Item.Marked (Item.Marks + 1).Right
-                          - Item.Marked (Item.Marks + 1).Left > 0.002
+                 and then Item.Marked (Item.Marks + 1).Trace.Count > 1
                then
                   Item.Marks := Item.Marks + 1;
                   Item.Version := Item.Version + 1;
@@ -927,11 +927,18 @@ package body Pomarine.Widgets.Page_Views is
                Each : Mark renames Item.Marked (Index);
             begin
                if Each.Page in First .. Last then
-                  SDL3.Painters.Fill_Rect
-                    (Target, Colors (Themes.Marker), SDL3.Windows.Renderers.Multiply,
-                     Left + Each.Left * Wide,
-                     Page_Top (Item, Each.Page) + Each.Y * Page_Height (Item, Each.Page) - High / 2.0,
-                     (Each.Right - Each.Left) * Wide, High);
+                  if Each.Trace.Count > 0 then
+                     Mark_Paths.Draw
+                       (Each.Trace, Target, Colors (Themes.Marker),
+                        SDL3.Windows.Renderers.Multiply,
+                        Left, Page_Top (Item, Each.Page), Wide, Page_Height (Item, Each.Page), High / 2.0);
+                  else
+                     SDL3.Painters.Fill_Rect
+                       (Target, Colors (Themes.Marker), SDL3.Windows.Renderers.Multiply,
+                        Left + Each.Left * Wide,
+                        Page_Top (Item, Each.Page) + Each.Y * Page_Height (Item, Each.Page) - High / 2.0,
+                        (Each.Right - Each.Left) * Wide, High);
+                  end if;
                end if;
             end;
          end loop;

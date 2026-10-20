@@ -4,6 +4,8 @@
 package Picture_Tests is
 
    procedure Selecting;
+   procedure Freehand;
+   procedure Freehand_Pages;
    procedure Following_The_Picture;
 
 end Picture_Tests;

@@ -165,6 +165,8 @@ begin
    Run ("sheet-states", Sheet_Tests.States'Access);
    Run ("sheet-behaviour", Sheet_Tests.Behaviour'Access);
 
+   Run ("pictures-freehand-pages", Picture_Tests.Freehand_Pages'Access);
+   Run ("pictures-freehand", Picture_Tests.Freehand'Access);
    Run ("pictures-selecting", Picture_Tests.Selecting'Access);
    Run ("pictures-following", Picture_Tests.Following_The_Picture'Access);
 

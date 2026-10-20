@@ -1,3 +1,4 @@
+with Pomarine.Mark_Paths;
 with Pomarine.Page_Builds;
 with Pomarine.Pages;
 with Pomarine.Scrollbars;
@@ -21,7 +22,7 @@ with SDL3.Windows.Renderers.Textures;
 --  Words of a page's text can be selected, by dragging from one to another
 --  (in the page the drag began in), a double click for a word, a triple for
 --  a line, Command with A for all of the page in view and Command with C
---  to copy. With the highlighter (Set_Tool) a drag marks a band of a page,
+--  to copy. With the highlighter (Set_Tool) a drag draws a freehand stroke on a page,
 --  as on a Picture; marks are of a page and fractions of its size, and so
 --  follow the zoom and can be kept elsewhere.
 package Pomarine.Widgets.Page_Views is
@@ -52,13 +53,14 @@ package Pomarine.Widgets.Page_Views is
 
    type Mark is record
       Left, Right, Y : Float := 0.0;
+      Trace : Pomarine.Mark_Paths.Path;
       Page           : Positive := 1;
    end record
      with Dynamic_Predicate =>
        Mark.Left in 0.0 .. 1.0 and then Mark.Right in Mark.Left .. 1.0
        and then Mark.Y in 0.0 .. 1.0;
    --  A band from Left to Right, of the page's width, centred Y down it,
-   --  of its height, on the page of that number.
+   --  of its height, on the page of that number. A nonempty Trace holds a freehand path.
 
    type Mark_Array is array (Positive range <>) of Mark;
 
