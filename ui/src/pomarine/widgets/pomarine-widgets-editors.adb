@@ -146,11 +146,11 @@ package body Pomarine.Widgets.Editors is
       return not null access Pomarine.Text_Areas.Text_Area is
      (Item.Text'Unchecked_Access);
 
-   Toolbar_Left  : constant Float := 8.0;
-   Toolbar_Top   : constant Float := 4.0;
+   Toolbar_Left  : constant Float := 12.0;
+   Toolbar_Top   : constant Float := 7.0;
    Button_Wide   : constant Float := 28.0;
-   Button_High   : constant Float := 24.0;
-   Button_Gap    : constant Float := 4.0;
+   Button_High   : constant Float := 28.0;
+   Button_Gap    : constant Float := 6.0;
    --  In points, in the toolbar's band at the top of the text area.
 
    Toolbar_Order : constant array (0 .. 3) of Docs.Format :=

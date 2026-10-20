@@ -76,6 +76,7 @@ package body Pomarine.Themes is
       Result.Slots (Bar_Ink)     := Soft_White;
       Result.Slots (Rule)        := Mix (From.Bar, Soft_White, 0.3);
       Result.Slots (Tint)        := From.Tint;
+      Result.Slots (Strip)       := From.Strip;
       Result.Slots (Hover_Row)   := Mix (From.Face, White, 0.3);
       Result.Slots (Marker)      := From.Marker;
       Result.Slots (Selection)   := Mix (From.Background, From.Accent, 0.4);

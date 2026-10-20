@@ -119,7 +119,7 @@ package Pomarine.Text_Areas is
    function Format_Active (Item : Text_Area; Style : Texts.Documents.Format) return Boolean
      with Pre => Is_Attached (Item);
 
-   Toolbar_Points : constant Float := 32.0;
+   Toolbar_Points : constant Float := 42.0;
 
    procedure Set_Radius (Item : in out Text_Area; Points : Float)
      with Pre => Points >= 0.0;

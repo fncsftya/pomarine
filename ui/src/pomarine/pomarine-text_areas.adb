@@ -1760,7 +1760,7 @@ package body Pomarine.Text_Areas is
             Band : constant Float := Float'Min (Toolbar_Room (Item), Float (Inner_Bottom - Inner_Top));
          begin
             Pomarine.Boxes.Fill_Round
-              (Target, Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.07),
+              (Target, Colors (Themes.Strip),
                Float (Inner_Left), Float (Inner_Top),
                Float (Integer'Max (0, Inner_Right - Inner_Left)), Band, Inner_Round,
                Pomarine.Boxes.Top_Corners);

@@ -21,7 +21,7 @@ package body Pomarine.Widgets.Frames is
    --  Left of the title field before the buttons, to take hold of.
    Title_Size    : constant Float := 12.0;
    Title_Height  : constant Float := 20.0;
-   Status_Pad    : constant Float := 10.0;
+   Status_Pad    : constant Float := 12.0;
    Mini_Width    : constant Float := 200.0;
    Mini_Height   : constant Float := 28.0;
    Mini_Gap      : constant Float := 4.0;
@@ -140,7 +140,7 @@ package body Pomarine.Widgets.Frames is
       end if;
       Panels.Set_Fill (Item.Tag, Themes.Bar);
       Set_Flex_Shrink (Node (Item.Tag), 0.0);
-      Labels.Set_Style (Item.Title_Label, Line_Texts.Strong);
+      Labels.Set_Style (Item.Title_Label, Line_Texts.Serif_Bold);
       Labels.Set_Ink (Item.Title_Label, Themes.Bar_Ink);
       if Editable_Title then
          Labels.Set_Intrinsic (Item.Title_Label);
@@ -172,7 +172,7 @@ package body Pomarine.Widgets.Frames is
 
       --  Its outline over the window's at the sides and the foot, a line
       --  between it and what is above.
-      Panels.Set_Fill (Item.Status_Bar, Themes.Tint);
+      Panels.Set_Fill (Item.Status_Bar, Themes.Strip);
       Panels.Set_Border (Item.Status_Bar, Themes.Border);
       if Item.Floating then
          Panels.Set_Radius (Item.Status_Bar, Themes.Large_Radius, Pomarine.Boxes.Bottom_Corners);

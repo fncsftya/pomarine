@@ -25,11 +25,11 @@ package Pomarine.Widgets.Frames is
    --  In points
 
    Outline       : constant Float := 1.0;
-   Bar_Height    : constant Float := 28.0;
-   Button_Size   : constant Float := 18.0;
+   Bar_Height    : constant Float := 30.0;
+   Button_Size   : constant Float := 20.0;
    Button_Gap    : constant Float := 4.0;
    Label_Height  : constant Float := 20.0;
-   Status_Height : constant Float := 26.0;
+   Status_Height : constant Float := 40.0;
    Corner_Size   : constant Float := 18.0;
    --  Of the outline, the title bar, the buttons in it (and the gap
    --  between them), the label of its title, the status line, and the

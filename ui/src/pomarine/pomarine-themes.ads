@@ -21,7 +21,7 @@ package Pomarine.Themes is
    Custom_Capacity : constant := Pomarine_Ui_Config.Custom_Colors;
    --  Slots an application may have of its own.
 
-   Core_Count : constant := 24;
+   Core_Count : constant := 25;
 
    type Slot is range 1 .. Core_Count + Custom_Capacity;
 
@@ -49,6 +49,7 @@ package Pomarine.Themes is
    Selection  : constant Slot := 22;  --  behind selected text, when it has focus
    Scrim      : constant Slot := 23;  --  over what is behind a dialog, to grey it out
    Drop_Shadow : constant Slot := 24; --  cast by what stands up, as a menu
+   Strip      : constant Slot := 25;  --  the band of a window's toolbar and status line
 
    function Custom (Offset : Natural) return Slot is
      (Slot (Core_Count + 1 + Offset))
@@ -115,6 +116,7 @@ package Pomarine.Themes is
       Danger_Ink  : Color;
       Bar        : Color;
       Tint       : Color;
+      Strip      : Color;  --  a toolbar's or status line's band, darker than Tint
       Marker     : Color;
       Scrim      : Color;
       Drop_Shadow : Color;
@@ -281,6 +283,7 @@ private
       Danger_Ink  => Light_Red,
       Bar         => (16#5C#, 16#6A#, 16#64#, 255),
       Tint        => (16#E4#, 16#E8#, 16#E5#, 255),
+      Strip       => Mix (Light_Background, Light_Foreground, 0.07),
       Marker      => (16#F0#, 16#D0#, 16#60#, 255),
       Scrim       => (16#1E#, 16#27#, 16#23#, 128),
       Drop_Shadow => Mix (Light_Border, Light_Foreground, 0.4),
@@ -314,6 +317,7 @@ private
       Danger_Ink  => (16#F0#, 16#98#, 16#8E#, 255),
       Bar         => (16#12#, 16#16#, 16#14#, 255),
       Tint        => (16#2B#, 16#33#, 16#30#, 255),
+      Strip       => (16#26#, 16#2E#, 16#2B#, 255),
       Marker      => (16#E6#, 16#C8#, 16#5A#, 255),
       Scrim       => (16#0D#, 16#11#, 16#10#, 160),
       Drop_Shadow => (16#0D#, 16#11#, 16#10#, 255),
