@@ -406,7 +406,11 @@ package body Widget_Tests is
          Text_Of (Widgets.Damage (Item.Tree)));
       Check_Painted (Item, "widgets-damage-edited");
 
-      --  The wheel scrolls it.
+      --  The wheel scrolls it, once there is more than fits.
+      Docs.Replace
+        (Item.Doc, Docs.Text_End (Item.Doc), Docs.Text_End (Item.Doc),
+         [for Line in 1 .. 40 => ASCII.LF] & "last");
+      Paint (Item);
       Send (Item,
             (Kind => Events.Mouse_Wheel, Wheel_Y => -2.0,
              Mouse_X => Page_At, Mouse_Y => Page_At, others => <>),
