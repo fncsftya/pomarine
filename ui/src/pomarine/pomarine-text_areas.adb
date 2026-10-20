@@ -1224,12 +1224,22 @@ package body Pomarine.Text_Areas is
    begin
       Item.Now := SDL3.Events.Milliseconds'Max (Item.Now, Now);
       On := (Item.Now - Item.Since) / Blink_Period mod 2 = 0;
-      Changed := Item.Focused and then On /= Item.Caret_On;
+      Changed := Item.Caret_Visible and then Item.Focused and then On /= Item.Caret_On;
       Item.Caret_On := On;
    end Tick;
 
+   procedure Set_Keyboard_Navigation (Item : in out Text_Area; To : Boolean := True) is
+   begin
+      Item.Keyboard_Navigation := To;
+   end Set_Keyboard_Navigation;
+
+   procedure Set_Caret_Visible (Item : in out Text_Area; To : Boolean := True) is
+   begin
+      Item.Caret_Visible := To;
+   end Set_Caret_Visible;
+
    function Is_Caret_Shown (Item : Text_Area) return Boolean is
-     (Item.Focused and then Item.Caret_On);
+     (Item.Caret_Visible and then Item.Focused and then Item.Caret_On);
 
    function Until_Blink (Item : Text_Area) return SDL3.Events.Milliseconds
    is (Blink_Period - (Item.Now - Item.Since) mod Blink_Period);
@@ -1258,6 +1268,13 @@ package body Pomarine.Text_Areas is
         (if Command then Line_Part elsif Option then Word else Character);
    begin
       Handled := True;
+      if not Item.Keyboard_Navigation
+        and then Key in Events.Key_Left_Arrow | Events.Key_Right_Arrow
+                      | Events.Key_Up_Arrow | Events.Key_Down_Arrow
+                      | Events.Key_Home | Events.Key_End | Events.Key_Page_Up | Events.Key_Page_Down
+      then
+         return;
+      end if;
       if not Item.Focused then
          null;
       elsif Command and then not Item.Single and then not Item.Read_Only

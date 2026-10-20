@@ -367,7 +367,16 @@ package Pomarine.Text_Areas is
    --  Changed says whether the caret has shown or hidden since the time
    --  was last said.
 
+   procedure Set_Keyboard_Navigation (Item : in out Text_Area; To : Boolean := True);
+   --  Allow arrow, Home, End and page keys to move or extend the selection
+   --  or scroll (on by default). Mouse selection and copying still work.
+
    function Is_Caret_Shown (Item : Text_Area) return Boolean;
+
+   procedure Set_Caret_Visible (Item : in out Text_Area; To : Boolean := True)
+     with Post => To or else not Is_Caret_Shown (Item);
+   --  Allow drawing the caret (on by default). Focus, navigation and
+   --  text selection still work when the caret is hidden.
 
    function Until_Blink (Item : Text_Area) return SDL3.Events.Milliseconds
      with Post => Until_Blink'Result in 1 .. Blink_Period;
@@ -536,6 +545,8 @@ private
       Since    : SDL3.Events.Milliseconds := 0;
       --  When the caret last moved, or the text was edited.
       Caret_On : Boolean := True;
+      Caret_Visible : Boolean := True;
+      Keyboard_Navigation : Boolean := True;
    end record;
 
 end Pomarine.Text_Areas;
