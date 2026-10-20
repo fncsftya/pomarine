@@ -148,6 +148,7 @@ begin
    Run ("widgets-resized", Widget_Tests.Resized'Access);
    Run ("widgets-walk", Widget_Tests.Tree_Walk'Access);
    Run ("widgets-toolbar", Widget_Tests.Toolbar'Access);
+   Run ("widgets-toolbar-assist", Widget_Tests.Toolbar_Assist'Access);
    Run ("widgets-caret", Widget_Tests.Caret_Only'Access);
    Run ("widgets-hiding", Widget_Tests.Hiding'Access);
    Run ("widgets-removing", Widget_Tests.Removing'Access);

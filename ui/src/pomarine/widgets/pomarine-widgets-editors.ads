@@ -23,7 +23,12 @@ private with Pomarine.Widgets.Buttons;
 --  toolbar (Set_Toolbar) of buttons (Bold, Italic, Underline,
 --  Strikethrough) in a band at the top of it, set apart from the text,
 --  which is below. Clicking one does not take the focus from the text.
---  It has none to begin with.
+--  It has none to begin with. It may also have a button of its own at the
+--  right of the toolbar (Set_Assist), in the colour of what a language model
+--  does, to offer something the application does of the text; a click is
+--  an Assist event. It can be clicked while the application allows it
+--  (Set_Assist_Allowed) and the text is not blank, and it is left out when
+--  the text area is too narrow for it.
 --
 --  Declare it after the renderer it is drawn to, and after the document
 --  it shows.
@@ -65,6 +70,30 @@ package Pomarine.Widgets.Editors is
    --  and not read only; Content_Height of its text area allows for it.
 
    function Has_Toolbar (Item : Editor) return Boolean;
+
+   Assist_Capacity : constant := 16;
+   --  Bytes of the label of the toolbar's button.
+
+   procedure Set_Assist (Item : in out Editor; Label : String)
+     with Pre => Label'Length <= Assist_Capacity;
+   --  Give the toolbar a button at its right with this label, whose click
+   --  is an Assist event; none ("") to have none. It has none to begin with.
+
+   function Assist_Label (Item : Editor) return String;
+
+   procedure Set_Assist_Allowed (Item : in out Editor; To : Boolean);
+   --  Say whether the application can do what the button is for: if not it
+   --  is off, whatever the text. It is not allowed to begin with.
+
+   function Assist_Is_Allowed (Item : Editor) return Boolean;
+
+   procedure Assist_Center (Item : Editor; Shown : out Boolean; X, Y : out Float);
+   --  Whether the button is shown, and where its middle is, in pixels from
+   --  the top left of the window: for a test to click it.
+
+   function Assist_Is_Enabled (Item : Editor) return Boolean;
+   --  Whether the button, if it is shown, can be clicked: allowed, and the
+   --  text not blank. As of the last time the toolbar was brought up to date.
 
    procedure Set_Indent (Item : in out Editor; Points : Float)
      with Pre => Points >= 0.0;
@@ -193,6 +222,16 @@ private
       --  Added to the tree when first wanted; shown while the text area
       --  has a toolbar.
       Toolbar_Shown : Boolean := False;
+      Assist        : Pomarine.Widgets.Buttons.Button;
+      --  Added to the tree when first wanted (see Set_Assist).
+      Assist_Text   : String (1 .. Assist_Capacity) := [others => ' '];
+      Assist_Length : Natural range 0 .. Assist_Capacity := 0;
+      Assist_Allowed : Boolean := False;
+      Assist_Filled  : Boolean := False;
+      --  Whether the text has something in it other than spaces, as of the
+      --  version and the document named next.
+      Assist_Version : Texts.Documents.Version := 0;
+      Assist_Serial  : Natural := 0;
       Pointer_In_Text : Boolean := True;
       Toolbar_On    : Boolean := False;
       Zoomed  : Float := 1.0;

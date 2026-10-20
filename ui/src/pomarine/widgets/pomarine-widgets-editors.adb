@@ -26,6 +26,10 @@ package body Pomarine.Widgets.Editors is
    procedure Update_Toolbar (Item : in out Editor);
    --  Show the toolbar's buttons if it is to have them, and hide them if not.
 
+   procedure Refresh_Assist (Item : in out Editor);
+   --  Show the assist button if it is wanted and there is room, and whether
+   --  it is on.
+
    procedure Configure
      (Item    : in out Editor;
       Family  : String;
@@ -208,7 +212,74 @@ package body Pomarine.Widgets.Editors is
             Buttons.Set_Selected (Item.Toolbar (Style), Text_Areas.Format_Active (Item.Text, Style));
          end loop;
       end if;
+      Refresh_Assist (Item);
    end Refresh_Toolbar;
+
+   Assist_Wide  : constant Float := 96.0;
+   Assist_Right : constant Float := 12.0;
+   Assist_Room  : constant Float :=
+     Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap + 8.0 + Assist_Wide + Assist_Right;
+   --  In points: how wide the text area is to be, for the button to have
+   --  room beside the style buttons.
+
+   function Has_Words (Doc : Docs.Document) return Boolean is
+   begin
+      for Para in 1 .. Docs.Count (Doc) loop
+         if (for some C of Docs.Text (Doc, Para) => C > ' ') then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Words;
+
+   procedure Refresh_Assist (Item : in out Editor) is
+   begin
+      if Item.Assist_Length = 0 or else not Has_Document (Item) then
+         if Is_Attached (Item.Assist) and then Is_Visible (Item.Assist) then
+            Set_Visible (Item.Assist, False);
+         end if;
+         return;
+      end if;
+      declare
+         Doc    : constant not null access constant Docs.Document := Document (Item);
+         Wanted : constant Boolean :=
+           Item.Toolbar_Shown and then Width_Of (Item) >= Assist_Room * Density (Item);
+         Filled : Boolean;
+      begin
+         if Docs.Current (Doc.all) /= Item.Assist_Version or else Docs.Serial (Doc.all) /= Item.Assist_Serial then
+            Item.Assist_Version := Docs.Current (Doc.all);
+            Item.Assist_Serial := Docs.Serial (Doc.all);
+            Item.Assist_Filled := Has_Words (Doc.all);
+         end if;
+         Filled := Item.Assist_Filled;
+         if Wanted and then not Is_Attached (Item.Assist) then
+            declare
+               Pixels : constant Float := Density (Item);
+               Label  : constant String := Item.Assist_Text (1 .. Item.Assist_Length);
+            begin
+               Buttons.Set_Kind (Item.Assist, Buttons.AI);
+               Buttons.Set_Label (Item.Assist, Label);
+               Set_Accessible_Name (Item.Assist, Label);
+               Set_Listener (Item.Assist, Item'Unchecked_Access);
+               Add (Item, Item.Assist);
+               Yoga.Nodes.Set_Position_Type (Node (Item.Assist), Yoga.Absolute);
+               Yoga.Nodes.Set_Position (Node (Item.Assist), Yoga.Right, Assist_Right * Pixels);
+               Yoga.Nodes.Set_Position (Node (Item.Assist), Yoga.Top, Toolbar_Top * Pixels);
+               Yoga.Nodes.Set_Width (Node (Item.Assist), Assist_Wide * Pixels);
+               Yoga.Nodes.Set_Height (Node (Item.Assist), Button_High * Pixels);
+               Request_Layout (Item);
+            end;
+         end if;
+         if Is_Attached (Item.Assist) then
+            if Is_Visible (Item.Assist) /= Wanted then
+               Set_Visible (Item.Assist, Wanted);
+            end if;
+            if Buttons.Is_Enabled (Item.Assist) /= (Item.Assist_Allowed and then Filled) then
+               Buttons.Set_Enabled (Item.Assist, Item.Assist_Allowed and then Filled);
+            end if;
+         end if;
+      end;
+   end Refresh_Assist;
 
    procedure Update_Toolbar (Item : in out Editor) is
       Wanted : constant Boolean := Item.Toolbar_On and then Toolbar_Wanted (Item);
@@ -243,6 +314,37 @@ package body Pomarine.Widgets.Editors is
 
    function Has_Toolbar (Item : Editor) return Boolean is (Item.Toolbar_On);
 
+   procedure Set_Assist (Item : in out Editor; Label : String) is
+   begin
+      Item.Assist_Length := Label'Length;
+      Item.Assist_Text (1 .. Label'Length) := Label;
+      if Is_Attached (Item.Assist) then
+         Buttons.Set_Label (Item.Assist, Label);
+         Set_Accessible_Name (Item.Assist, Label);
+      end if;
+      Refresh_Assist (Item);
+   end Set_Assist;
+
+   function Assist_Label (Item : Editor) return String is (Item.Assist_Text (1 .. Item.Assist_Length));
+
+   procedure Set_Assist_Allowed (Item : in out Editor; To : Boolean) is
+   begin
+      Item.Assist_Allowed := To;
+      Refresh_Assist (Item);
+   end Set_Assist_Allowed;
+
+   function Assist_Is_Allowed (Item : Editor) return Boolean is (Item.Assist_Allowed);
+
+   procedure Assist_Center (Item : Editor; Shown : out Boolean; X, Y : out Float) is
+   begin
+      Shown := Is_Attached (Item.Assist) and then Is_Visible (Item.Assist);
+      X := (if Shown then Left_Of (Item.Assist) + Width_Of (Item.Assist) / 2.0 else 0.0);
+      Y := (if Shown then Top_Of (Item.Assist) + Height_Of (Item.Assist) / 2.0 else 0.0);
+   end Assist_Center;
+
+   function Assist_Is_Enabled (Item : Editor) return Boolean is
+     (Item.Assist_Allowed and then Item.Assist_Filled and then Item.Assist_Length > 0);
+
    procedure Set_Indent (Item : in out Editor; Points : Float) is
    begin
       Text_Areas.Set_Indent (Item.Text, Points);
@@ -259,7 +361,11 @@ package body Pomarine.Widgets.Editors is
    begin
       case Event.Kind is
          when Click =>
-            if Has_Document (Self) then
+            if Is_Attached (Self.Assist) and then Source'Address = Self.Assist'Address then
+               if Buttons.Is_Enabled (Self.Assist) then
+                  Notify (Self, Assist);
+               end if;
+            elsif Has_Document (Self) then
                for Style in Docs.Format loop
                   if Source'Address = Self.Toolbar (Style)'Address then
                      Text_Areas.Toggle_Format (Self.Text, Style);

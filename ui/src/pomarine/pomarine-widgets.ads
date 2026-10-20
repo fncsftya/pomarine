@@ -72,7 +72,8 @@ package Pomarine.Widgets is
       Select_Tag,    --  a canvas's line selected (Row, its Tag; 0 for none)
       Delete,        --  Backspace or Delete with a line selected on a canvas
       Act,           --  a button at the end of a list's row (Row, Action)
-      Blur);         --  the widget has lost the focus (only said if it has a handler)
+      Blur,          --  the widget has lost the focus (only said if it has a handler)
+      Assist);       --  an editor's toolbar button for what the application does of its text
 
    No_Tag : constant Integer := -1;
 
