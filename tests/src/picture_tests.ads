@@ -5,6 +5,7 @@ package Picture_Tests is
 
    procedure Selecting;
    procedure Freehand;
+   procedure Undoing_Marks;
    procedure Freehand_Pages;
    procedure Following_The_Picture;
 

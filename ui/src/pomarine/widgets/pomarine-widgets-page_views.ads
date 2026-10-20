@@ -1,4 +1,4 @@
-with Pomarine.Mark_Paths;
+with Pomarine.Marks;
 with Pomarine.Page_Builds;
 with Pomarine.Pages;
 with Pomarine.Scrollbars;
@@ -46,23 +46,13 @@ package Pomarine.Widgets.Page_Views is
    subtype Tools is Pictures.Tools;
    --  Pointer, Highlighter, Eraser: as of a Picture.
 
-   Max_Marks : constant := 256;
+   Max_Marks : constant := Pomarine.Marks.Max_Marks;
 
    Mark_Height : constant Float := 0.024;
    --  How tall a mark is, as a fraction of the page's width.
 
-   type Mark is record
-      Left, Right, Y : Float := 0.0;
-      Trace : Pomarine.Mark_Paths.Path;
-      Page           : Positive := 1;
-   end record
-     with Dynamic_Predicate =>
-       Mark.Left in 0.0 .. 1.0 and then Mark.Right in Mark.Left .. 1.0
-       and then Mark.Y in 0.0 .. 1.0;
-   --  A band from Left to Right, of the page's width, centred Y down it,
-   --  of its height, on the page of that number. A nonempty Trace holds a freehand path.
-
-   type Mark_Array is array (Positive range <>) of Mark;
+   subtype Mark is Pomarine.Marks.Mark;
+   subtype Mark_Array is Pomarine.Marks.Mark_Array;
 
    function Clamped_Mark (Left, Right, Y : Float; Page : Positive) return Mark;
    --  A mark kept from elsewhere, made fit the page.
@@ -140,10 +130,20 @@ package Pomarine.Widgets.Page_Views is
      with Pre => Index <= Mark_Count (Item);
 
    function Marks_Version (Item : Page_View) return Natural;
-   --  Changes when a mark is made or removed; not by Set_Marks.
+   --  Changes on making, erasing, undoing or redoing marks; not by Set_Marks.
 
-   procedure Set_Marks (Item : in out Page_View; To : Mark_Array)
+   function History_Of (Item : Page_View) return Pomarine.Marks.History;
+   function Can_Undo (Item : Page_View) return Boolean;
+   function Can_Redo (Item : Page_View) return Boolean;
+   procedure Undo (Item : in out Page_View);
+   procedure Redo (Item : in out Page_View);
+   --  One stroke or erasure per step. Undo during a drag cancels the preview.
+
+   procedure Set_Marks
+     (Item : in out Page_View; To : Mark_Array;
+      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
      with Pre => To'Length <= Max_Marks, Post => Mark_Count (Item) = To'Length;
+   --  Past must belong to To; omit it to start with no history.
 
    procedure Clear_Marks (Item : in out Page_View)
      with Post => Mark_Count (Item) = 0;
@@ -183,6 +183,9 @@ package Pomarine.Widgets.Page_Views is
      (Item : in out Page_View; Now : SDL3.Events.Milliseconds);
 
    overriding function Until_Update (Item : Page_View) return Integer;
+
+   overriding procedure Handle_Command
+     (Item : in out Page_View; Tag : Integer; Done : out Boolean);
 
    overriding procedure Handle
      (Item    : in out Page_View;
@@ -258,6 +261,7 @@ private
       Marked  : Mark_Array (1 .. Max_Marks + 1);
       Marks   : Natural range 0 .. Max_Marks := 0;
       Version : Natural := 0;
+      Past : Pomarine.Marks.History;
       Marking : Boolean := False;
       Started : Float := 0.0;
       Down_Bar   : Scrollbars.Bar;

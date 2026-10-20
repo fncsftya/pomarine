@@ -1,3 +1,4 @@
+with Pomarine.Mark_Paths;
 with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with SDL3.Pictures;
@@ -12,7 +13,7 @@ package body Pomarine.Widgets.Pictures is
    begin
       return (Left  => Unit (Left),
               Right => Float'Max (Unit (Left), Unit (Right)),
-              Y     => Unit (Y), Trace => <>);
+              Y     => Unit (Y), Trace => <>, Page => <>);
    end Clamped_Mark;
 
    package Textures renames SDL3.Windows.Renderers.Textures;
@@ -87,9 +88,56 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Set_Tool;
 
-   procedure Set_Marks (Item : in out Picture; To : Mark_Array) is
+   function History_Of (Item : Picture) return Pomarine.Marks.History is (Item.Past);
+   function Can_Undo (Item : Picture) return Boolean is (Pomarine.Marks.Can_Undo (Item.Past));
+   function Can_Redo (Item : Picture) return Boolean is (Pomarine.Marks.Can_Redo (Item.Past));
+
+   procedure Undo (Item : in out Picture) is
+   begin
+      if Item.Marking then
+         Item.Marking := False;
+      elsif Can_Undo (Item) then
+         Pomarine.Marks.Undo (Item.Past, Item.Marked, Item.Marks);
+         Item.Version := Item.Version + 1;
+      else
+         return;
+      end if;
+      if Is_Attached (Item) then
+         Invalidate (Item);
+      end if;
+   end Undo;
+
+   procedure Redo (Item : in out Picture) is
+   begin
+      if Item.Marking or else not Can_Redo (Item) then
+         return;
+      end if;
+      Pomarine.Marks.Redo (Item.Past, Item.Marked, Item.Marks);
+      Item.Version := Item.Version + 1;
+      if Is_Attached (Item) then
+         Invalidate (Item);
+      end if;
+   end Redo;
+
+   overriding procedure Handle_Command
+     (Item : in out Picture; Tag : Integer; Done : out Boolean) is
+   begin
+      Done := True;
+      if Tag = Edit_Undo then
+         Undo (Item);
+      elsif Tag = Edit_Redo then
+         Redo (Item);
+      else
+         Done := False;
+      end if;
+   end Handle_Command;
+
+   procedure Set_Marks
+     (Item : in out Picture; To : Mark_Array;
+      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History) is
    begin
       Item.Marking := False;
+      Item.Past := Past;
       Item.Marks := To'Length;
       Item.Marked (1 .. To'Length) := To;
       if Is_Attached (Item) then
@@ -99,6 +147,7 @@ package body Pomarine.Widgets.Pictures is
 
    procedure Clear_Marks (Item : in out Picture) is
    begin
+      Item.Past := Pomarine.Marks.Empty_History;
       Item.Marking := False;
       if Item.Marks > 0 then
          Item.Marks := 0;
@@ -276,6 +325,7 @@ package body Pomarine.Widgets.Pictures is
                   Under : constant Natural := Mark_Under (Item, X, Y);
                begin
                   if Under > 0 then
+                     Pomarine.Marks.Record_Remove (Item.Past, Item.Marked (Under), Under);
                      Item.Marked (Under .. Item.Marks - 1) :=
                        Item.Marked (Under + 1 .. Item.Marks);
                      Item.Marks := Item.Marks - 1;
@@ -288,7 +338,7 @@ package body Pomarine.Widgets.Pictures is
                Item.Marking := True;
                Item.Started := Along (Item, X);
                Item.Marked (Item.Marks + 1) :=
-                 (Left | Right => Item.Started, Y => Down_Of (Item, Y), Trace => <>);
+                 (Left | Right => Item.Started, Y => Down_Of (Item, Y), Trace => <>, Page => <>);
                Extend_Mark (Item, X, Y);
                Clear_Selection (Item);
                Invalidate (Item);
@@ -309,6 +359,7 @@ package body Pomarine.Widgets.Pictures is
                  and then Item.Marked (Item.Marks + 1).Trace.Count > 1
                then
                   Item.Marks := Item.Marks + 1;
+                  Pomarine.Marks.Record_Add (Item.Past, Item.Marked (Item.Marks), Item.Marks);
                   Item.Version := Item.Version + 1;
                end if;
                Invalidate (Item);
@@ -390,7 +441,7 @@ package body Pomarine.Widgets.Pictures is
    end Select_Line;
 
    overriding function Accepts_Focus (Item : Picture) return Boolean is
-     (Has_Words (Item));
+     (Item.Length > 0);
 
    overriding procedure Focus_Changed
      (Item : in out Picture; Focused : Boolean)
@@ -640,6 +691,12 @@ package body Pomarine.Widgets.Pictures is
       Handled : out Boolean) is
    begin
       Handled := False;
+      if Event.Kind = SDL3.Events.Key_Down and then Event.Command and then not Event.Option
+        and then Event.Key = SDL3.Events.Key_Z
+      then
+         Handle_Command (Item, (if Event.Shift then Edit_Redo else Edit_Undo), Handled);
+         return;
+      end if;
       if Item.Fitted > 0.0
         and then Event.Kind in SDL3.Events.Mouse_Down
                              | SDL3.Events.Mouse_Move

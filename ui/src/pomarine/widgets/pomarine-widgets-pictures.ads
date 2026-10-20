@@ -1,4 +1,4 @@
-with Pomarine.Mark_Paths;
+with Pomarine.Marks;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
@@ -48,22 +48,13 @@ package Pomarine.Widgets.Pictures is
    --  What a drag does: select words, or highlight; and what a click does
    --  on a mark, with the eraser: remove it.
 
-   Max_Marks : constant := 256;
+   Max_Marks : constant := Pomarine.Marks.Max_Marks;
 
    Mark_Height : constant Float := 0.024;
    --  How tall a mark is, as a fraction of the picture's width.
 
-   type Mark is record
-      Left, Right, Y : Float := 0.0;
-      Trace : Pomarine.Mark_Paths.Path;
-   end record
-     with Dynamic_Predicate =>
-       Mark.Left in 0.0 .. 1.0 and then Mark.Right in Mark.Left .. 1.0
-       and then Mark.Y in 0.0 .. 1.0;
-   --  A band from Left to Right, of the picture's width, centred Y down
-   --  it, of its height, for legacy marks. Trace holds a freehand path when nonempty.
-
-   type Mark_Array is array (Positive range <>) of Mark;
+   subtype Mark is Pomarine.Marks.Mark;
+   subtype Mark_Array is Pomarine.Marks.Mark_Array;
 
    function Clamped_Mark (Left, Right, Y : Float) return Mark;
    --  A mark kept from elsewhere, made fit the picture: each of Left, Right
@@ -85,12 +76,22 @@ package Pomarine.Widgets.Pictures is
      with Pre => Index <= Mark_Count (Item);
 
    function Marks_Version (Item : Picture) return Natural;
-   --  Changes when a mark is made or they are cleared; not by Set_Marks.
+   --  Changes on making, erasing, undoing, redoing or clearing marks; not by Set_Marks.
 
-   procedure Set_Marks (Item : in out Picture; To : Mark_Array)
+   function History_Of (Item : Picture) return Pomarine.Marks.History;
+   function Can_Undo (Item : Picture) return Boolean;
+   function Can_Redo (Item : Picture) return Boolean;
+   procedure Undo (Item : in out Picture);
+   procedure Redo (Item : in out Picture);
+   --  One stroke or erasure per step. Undo during a drag cancels the preview.
+
+   procedure Set_Marks
+     (Item : in out Picture; To : Mark_Array;
+      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
      with Pre  => To'Length <= Max_Marks,
           Post => Mark_Count (Item) = To'Length;
-   --  Show these, in place of those made.
+   --  Show these, in place of those made. Past must belong to To; omit it
+   --  to start with no history (as when loading a source).
 
    procedure Clear_Marks (Item : in out Picture)
      with Post => Mark_Count (Item) = 0;
@@ -180,6 +181,9 @@ package Pomarine.Widgets.Pictures is
 
    overriding function Until_Update (Item : Picture) return Integer;
 
+   overriding procedure Handle_Command
+     (Item : in out Picture; Tag : Integer; Done : out Boolean);
+
    overriding procedure Handle
      (Item    : in out Picture;
       Event   : SDL3.Events.Event;
@@ -232,6 +236,7 @@ private
       Marked  : Mark_Array (1 .. Max_Marks + 1);
       Marks   : Natural range 0 .. Max_Marks := 0;
       Version : Natural := 0;
+      Past : Pomarine.Marks.History;
       Down_Bar   : Scrollbars.Bar;
       Across_Bar : Scrollbars.Bar;
       --  The bars down its side and along its foot.

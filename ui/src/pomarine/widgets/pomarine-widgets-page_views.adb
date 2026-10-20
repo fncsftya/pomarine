@@ -1,3 +1,4 @@
+with Pomarine.Mark_Paths;
 with Ada.Unchecked_Deallocation;
 with Pomarine.Line_Texts;
 with Pomarine.Themes;
@@ -135,6 +136,7 @@ package body Pomarine.Widgets.Page_Views is
 
    procedure Clear_Marks (Item : in out Page_View) is
    begin
+      Item.Past := Pomarine.Marks.Empty_History;
       if Item.Marks > 0 or else Item.Marking then
          Item.Marks := 0;
          Item.Marking := False;
@@ -294,8 +296,55 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Set_Tool;
 
-   procedure Set_Marks (Item : in out Page_View; To : Mark_Array) is
+   function History_Of (Item : Page_View) return Pomarine.Marks.History is (Item.Past);
+   function Can_Undo (Item : Page_View) return Boolean is (Pomarine.Marks.Can_Undo (Item.Past));
+   function Can_Redo (Item : Page_View) return Boolean is (Pomarine.Marks.Can_Redo (Item.Past));
+
+   procedure Undo (Item : in out Page_View) is
    begin
+      if Item.Marking then
+         Item.Marking := False;
+      elsif Can_Undo (Item) then
+         Pomarine.Marks.Undo (Item.Past, Item.Marked, Item.Marks);
+         Item.Version := Item.Version + 1;
+      else
+         return;
+      end if;
+      if Is_Attached (Item) then
+         Invalidate (Item);
+      end if;
+   end Undo;
+
+   procedure Redo (Item : in out Page_View) is
+   begin
+      if Item.Marking or else not Can_Redo (Item) then
+         return;
+      end if;
+      Pomarine.Marks.Redo (Item.Past, Item.Marked, Item.Marks);
+      Item.Version := Item.Version + 1;
+      if Is_Attached (Item) then
+         Invalidate (Item);
+      end if;
+   end Redo;
+
+   overriding procedure Handle_Command
+     (Item : in out Page_View; Tag : Integer; Done : out Boolean) is
+   begin
+      Done := True;
+      if Tag = Edit_Undo then
+         Undo (Item);
+      elsif Tag = Edit_Redo then
+         Redo (Item);
+      else
+         Done := False;
+      end if;
+   end Handle_Command;
+
+   procedure Set_Marks
+     (Item : in out Page_View; To : Mark_Array;
+      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History) is
+   begin
+      Item.Past := Past;
       Item.Marks := To'Length;
       Item.Marking := False;
       Item.Marked (1 .. To'Length) := To;
@@ -524,6 +573,7 @@ package body Pomarine.Widgets.Page_Views is
                   Under : constant Natural := Mark_Under (Item, X, Y);
                begin
                   if Under > 0 then
+                     Pomarine.Marks.Record_Remove (Item.Past, Item.Marked (Under), Under);
                      Item.Marked (Under .. Item.Marks - 1) :=
                        Item.Marked (Under + 1 .. Item.Marks);
                      Item.Marks := Item.Marks - 1;
@@ -561,6 +611,7 @@ package body Pomarine.Widgets.Page_Views is
                  and then Item.Marked (Item.Marks + 1).Trace.Count > 1
                then
                   Item.Marks := Item.Marks + 1;
+                  Pomarine.Marks.Record_Add (Item.Past, Item.Marked (Item.Marks), Item.Marks);
                   Item.Version := Item.Version + 1;
                end if;
                Invalidate (Item);
@@ -1024,6 +1075,12 @@ package body Pomarine.Widgets.Page_Views is
       Handled : out Boolean) is
    begin
       Handled := False;
+      if Event.Kind = SDL3.Events.Key_Down and then Event.Command and then not Event.Option
+        and then Event.Key = SDL3.Events.Key_Z
+      then
+         Handle_Command (Item, (if Event.Shift then Edit_Redo else Edit_Undo), Handled);
+         return;
+      end if;
       if Count (Item) = 0 then
          return;
       end if;

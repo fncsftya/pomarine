@@ -1,3 +1,4 @@
+with Pomarine.Marks;
 with Pomarine.Pages;
 with Pomarine.Page_Builds;
 with Pomarine.Widgets.Page_Views;
@@ -271,8 +272,18 @@ package body Picture_Tests is
       Send_Page (Press (80.0, 70.0));
       Send_Page (Release (80.0, 70.0));
       pragma Assert (Views.Mark_Count (View) = 0);
+      --  No OCR words are available: the picture still receives edit commands.
+      Send_Page (Chord (Events.Key_Z));
+      pragma Assert (Views.Mark_Count (View) = 1);
+      Send_Page (Chord (Events.Key_Z));
+      pragma Assert (Views.Mark_Count (View) = 0);
+      Widgets.Perform_Command (Tree, Widgets.Edit_Redo, Taken);
+      pragma Assert (Taken and then Views.Mark_Count (View) = 1);
+      Send_Page ((Kind => Events.Key_Down, Key => Events.Key_Z, Command => True, Shift => True, others => <>));
+      pragma Assert (Views.Mark_Count (View) = 0);
       Pomarine.Page_Builds.Wait_Until_Idle;
       Views.Clear_Document (View);
+      pragma Assert (not Views.Can_Undo (View) and then not Views.Can_Redo (View));
       Pomarine.Pages.Free (Sizes);
    end Freehand_Pages;
 
@@ -328,6 +339,84 @@ package body Picture_Tests is
       pragma Assert (Pomarine.Mark_Paths.Contains (Trace, 100.0, Trace.Points (Trace.Count).Y * 100.0,
                                                  100.0, 100.0, 2.0));
    end Freehand;
+
+   procedure Undoing_Marks is
+      Item : Fixture;
+      Taken : Boolean;
+      First, Second : Pictures.Mark;
+      Version : Natural;
+      use type Pomarine.Marks.Mark;
+   begin
+      Open (Item);
+      Pictures.Set_Words (Item.Picture, null);
+      pragma Assert (not Pictures.Has_Words (Item.Picture));
+      Pictures.Set_Tool (Item.Picture, Pictures.Highlighter);
+      Send (Item, Press (80.0, 40.0), Taken => True);
+      Send (Item, Move (80.0, 100.0), Taken => True);
+      Send (Item, Release (120.0, 100.0), Taken => True);
+      First := Pictures.Mark_At (Item.Picture, 1);
+      Send (Item, Press (160.0, 40.0), Taken => True);
+      Send (Item, Release (160.0, 100.0), Taken => True);
+      Second := Pictures.Mark_At (Item.Picture, 2);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 2);
+      Version := Pictures.Marks_Version (Item.Picture);
+      Send (Item, Chord (Events.Key_Z), Taken => True);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 1 and then Pictures.Can_Redo (Item.Picture));
+      pragma Assert (Pictures.Mark_At (Item.Picture, 1) = First);
+      pragma Assert (Pictures.Marks_Version (Item.Picture) = Version + 1);
+      Send (Item, Chord (Events.Key_Z), Taken => True);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 0);
+      --  Empty history consumes Undo without changing the version.
+      Version := Pictures.Marks_Version (Item.Picture);
+      Send (Item, Chord (Events.Key_Z), Taken => True);
+      pragma Assert (Pictures.Marks_Version (Item.Picture) = Version);
+      Widgets.Perform_Command (Item.Tree, Widgets.Edit_Redo, Taken);
+      pragma Assert (Taken and then Pictures.Mark_Count (Item.Picture) = 1);
+      Send (Item, (Kind => Events.Key_Down, Key => Events.Key_Z, Command => True, Shift => True,
+                   others => <>), Taken => True);
+      pragma Assert (Pictures.Mark_At (Item.Picture, 2) = Second);
+
+      Pictures.Set_Tool (Item.Picture, Pictures.Eraser);
+      Send (Item, Press (80.0, 70.0), Taken => True);
+      Send (Item, Release (80.0, 70.0), Taken => False);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 1);
+      Send (Item, Chord (Events.Key_Z), Taken => True);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 2);
+      pragma Assert (Pictures.Mark_At (Item.Picture, 1) = First);
+      pragma Assert (Pictures.Mark_At (Item.Picture, 2) = Second);
+      Widgets.Perform_Command (Item.Tree, Widgets.Edit_Redo, Taken);
+      pragma Assert (Taken and then Pictures.Mark_Count (Item.Picture) = 1);
+      Send (Item, Chord (Events.Key_Z), Taken => True);
+
+      --  A new stroke after undo discards the redo branch; cancelling a
+      --  preview or making a click does not consume an undo step.
+      Pictures.Set_Tool (Item.Picture, Pictures.Highlighter);
+      Send (Item, Press (200.0, 40.0), Taken => True);
+      Send (Item, Move (200.0, 100.0), Taken => True);
+      Send (Item, Chord (Events.Key_Z), Taken => True);
+      Send (Item, Release (200.0, 100.0), Taken => False);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 2 and then Pictures.Can_Redo (Item.Picture));
+      Send (Item, Press (200.0, 40.0), Taken => True);
+      Send (Item, Release (200.0, 40.0), Taken => True);
+      pragma Assert (Pictures.Can_Redo (Item.Picture));
+      Send (Item, Press (200.0, 40.0), Taken => True);
+      Send (Item, Release (200.0, 100.0), Taken => True);
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 3 and then not Pictures.Can_Redo (Item.Picture));
+      Pictures.Clear_Marks (Item.Picture);
+      pragma Assert (not Pictures.Can_Undo (Item.Picture) and then not Pictures.Can_Redo (Item.Picture));
+
+      --  The oldest edits expire within the fixed history capacity.
+      for Index in 1 .. Pomarine.Marks.Undo_Depth + 1 loop
+         Send (Item, Press (80.0, 40.0), Taken => True);
+         Send (Item, Release (80.0, 100.0), Taken => True);
+      end loop;
+      for Index in 1 .. Pomarine.Marks.Undo_Depth loop
+         Send (Item, Chord (Events.Key_Z), Taken => True);
+      end loop;
+      pragma Assert (Pictures.Mark_Count (Item.Picture) = 1 and then not Pictures.Can_Undo (Item.Picture));
+      Pictures.Set_Marks (Item.Picture, [First]);
+      pragma Assert (not Pictures.Can_Undo (Item.Picture) and then not Pictures.Can_Redo (Item.Picture));
+   end Undoing_Marks;
 
    procedure Following_The_Picture is
       Item : Fixture;
