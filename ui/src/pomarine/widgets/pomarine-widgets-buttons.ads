@@ -1,3 +1,4 @@
+with Pomarine.Line_Texts;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
@@ -42,6 +43,10 @@ package Pomarine.Widgets.Buttons is
      with Pre => Text'Length <= Label_Capacity;
    --  Show Text, in the debug font of SDL3.Windows.Renderers, scaled to
    --  the density, in the middle.
+
+   procedure Set_Label_Style
+     (Item : in out Button; Using : Line_Texts.Style; Underlined, Struck : Boolean := False);
+   --  Choose the label font and optional decorations.
 
    procedure Set_Icon (Item : in out Button; To : Pomarine.Icons.Icon);
    --  Show the icon, in the middle, in place of the label, if the tree has
@@ -145,6 +150,9 @@ private
       Text    : String (1 .. Label_Capacity) := [others => ' '];
       Length  : Natural range 0 .. Label_Capacity := 0;
       Style   : Kind := Normal;
+      Label_Style : Line_Texts.Style := Line_Texts.Strong;
+      Underlined : Boolean := False;
+      Struck : Boolean := False;
       Picture : Boolean := False;
       Which   : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
       Icon_Points : Float := 0.0;  --  0.0: the usual size

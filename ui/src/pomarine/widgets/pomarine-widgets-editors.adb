@@ -161,6 +161,7 @@ package body Pomarine.Widgets.Editors is
       and then Text_Areas.Has_Toolbar (Item.Text));
 
    procedure Build_Toolbar (Item : in out Editor) is
+      use type Docs.Format;
       Pixels : constant Float := Density (Item);
    begin
       for Place in Toolbar_Order'Range loop
@@ -173,6 +174,12 @@ package body Pomarine.Widgets.Editors is
                  (Part, (case Style is
                             when Docs.Bold => "B", when Docs.Italic => "I",
                             when Docs.Underline => "U", when Docs.Strikethrough => "S"));
+               Buttons.Set_Label_Style
+                 (Part, (case Style is
+                            when Docs.Bold => Line_Texts.Serif_Bold,
+                            when Docs.Italic => Line_Texts.Serif_Italic,
+                            when others => Line_Texts.Serif_Label),
+                  Underlined => Style = Docs.Underline, Struck => Style = Docs.Strikethrough);
                Set_Accessible_Name
                  (Part, (case Style is
                             when Docs.Bold => "Bold", when Docs.Italic => "Italic",

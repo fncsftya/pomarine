@@ -75,7 +75,7 @@ given a toolbar, with or without the focus, the layout unmoved, a click formatti
 the selection without taking the focus from the text, and gone when taken away.
 
 Only editors that ask for it (`Pomarine.Widgets.Editors.Set_Toolbar`) have a
-toolbar: four `Buttons`, in the UI font, in a tinted band at the top of the text
+toolbar: four `Buttons`, in Georgia with each letter showing its format, in a tinted band at the top of the text
 area, set apart from the text by a line. The text area (`Set_Toolbar`) leaves the
 top 32 points for them, above its padding, and its scroll bar starts below.
 Single-line fields and read-only views have none. Shortcuts are Command-B,

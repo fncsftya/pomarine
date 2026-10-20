@@ -33,6 +33,18 @@ package body Pomarine.Widgets.Buttons is
       end if;
    end Set_Label;
 
+   procedure Set_Label_Style
+     (Item : in out Button; Using : Line_Texts.Style; Underlined, Struck : Boolean := False)
+   is
+   begin
+      Item.Label_Style := Using;
+      Item.Underlined := Underlined;
+      Item.Struck := Struck;
+      if Is_Attached (Item) then
+         Invalidate (Item);
+      end if;
+   end Set_Label_Style;
+
    procedure Set_Kind (Item : in out Button; To : Kind) is
    begin
       if To /= Item.Style then
@@ -269,7 +281,7 @@ package body Pomarine.Widgets.Buttons is
       elsif Text_Lines (Item) /= null
       then Pomarine.Line_Texts.Width
              (Text_Lines (Item).all, Label (Item), Density (Item),
-              Pomarine.Line_Texts.Strong)
+              Item.Label_Style)
       else Wide);
 
    overriding procedure Draw
@@ -449,7 +461,13 @@ package body Pomarine.Widgets.Buttons is
             Pomarine.Line_Texts.Draw
               (Text_Lines (Item).all, Target, Ink, Label (Item),
                Text_Left, Top + High_Box / 2.0,
-               Pixels, Pomarine.Line_Texts.Strong);
+               Pixels, Item.Label_Style);
+            if Item.Underlined then
+               Fill_Rect (Target, Ink, Text_Left, Top + High_Box / 2.0 + 6.0 * Pixels, Span, Pixels);
+            end if;
+            if Item.Struck then
+               Fill_Rect (Target, Ink, Text_Left, Top + High_Box / 2.0, Span, Pixels);
+            end if;
          else
             Draw_Text
               (Target, Ink, Float'Rounding (Text_Left),
@@ -476,8 +494,8 @@ package body Pomarine.Widgets.Buttons is
                  (Text_Lines (Item).all, Target, White, Count,
                   Left_Edge + (Side - Pomarine.Line_Texts.Width
                                         (Text_Lines (Item).all, Count, Pixels,
-                                         Pomarine.Line_Texts.Strong)) / 2.0,
-                  Top_Edge + Side / 2.0, Pixels, Pomarine.Line_Texts.Strong);
+                                         Item.Label_Style)) / 2.0,
+                  Top_Edge + Side / 2.0, Pixels, Item.Label_Style);
             end;
          end if;
       end if;

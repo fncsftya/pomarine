@@ -26,7 +26,7 @@ package Pomarine.Line_Texts is
    --  Georgia, a serif that ships with macOS: the face of what is written
    --  and read, and of the display type of a screen.
 
-   type Style is (Regular, Strong, Heading, Display, Caption);
+   type Style is (Regular, Strong, Heading, Display, Caption, Serif_Label, Serif_Bold, Serif_Italic);
    --  Regular is the size of the text of a window, in the regular weight;
    --  Strong is the same size, and heavier, as of buttons; Heading is
    --  larger, and heavier still; Display is larger again, in the serif, as
@@ -41,7 +41,7 @@ package Pomarine.Line_Texts is
 
    function Size (Of_Style : Style) return Float is
      (case Of_Style is
-         when Regular | Strong => Regular_Size,
+         when Regular | Strong | Serif_Label | Serif_Bold | Serif_Italic => Regular_Size,
          when Heading          => Heading_Size,
          when Display          => Display_Size,
          when Caption          => Caption_Size);
@@ -51,7 +51,9 @@ package Pomarine.Line_Texts is
          when Regular           => Interface_Font,
          when Strong | Caption  => Interface_Medium,
          when Heading           => Interface_Bold,
-         when Display           => Serif);
+         when Display | Serif_Label => Serif,
+         when Serif_Bold        => "Georgia-Bold",
+         when Serif_Italic      => "Georgia-Italic");
 
    type Drawer is limited private;
 

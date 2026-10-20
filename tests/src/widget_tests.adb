@@ -5,6 +5,7 @@ with SDL3.Windows.Renderers;
 with SDL3.Windows;
 with SDL3;
 with Pomarine.Text_Areas;
+with Pomarine.Line_Texts;
 with Texts.Documents;
 with Goldens;
 with Pomarine.Clipboards;
@@ -527,6 +528,7 @@ package body Widget_Tests is
 
    procedure Toolbar is
       Item : Fixture;
+      Lines : aliased Pomarine.Line_Texts.Drawer;
       Page : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
       Height_Before, Content_Before : Float;
 
@@ -542,6 +544,7 @@ package body Widget_Tests is
       end Visible_Buttons;
    begin
       Open (Item, "Great skua" & ASCII.LF & "Bonxie");
+      Widgets.Set_Line_Texts (Item.Tree, Lines);
       Check_Flag ("widgets-toolbar-none", True, Widgets.Child_Count (Item.Page) = 0);
       Height_Before := Widgets.Height_Of (Item.Page);
       Content_Before := Pomarine.Text_Areas.Content_Height (Page.all);
