@@ -211,6 +211,13 @@ package Pomarine.Themes is
    Shadow_Offset : constant Float := 3.0;
    --  In points, down and to the right, of a shadow.
 
+   Small_Radius : constant Float := 3.0;
+   --  In points, of the corners of what is small and is pressed or typed
+   --  into: a button, a field, a chip, a menu.
+
+   Large_Radius : constant Float := 4.0;
+   --  Of the corners of what holds the rest: a card, a window, a dialog.
+
    Raise_Offset : constant Float := 2.0;
    --  In points, of the room a control that stands up is given for it.
 

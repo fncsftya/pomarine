@@ -121,17 +121,13 @@ package body Pomarine.Widgets.Chips is
       Colors : Themes.Theme)
    is
       Pixels : constant Float := Density (Item);
-      Edge   : constant Float := Pomarine.Boxes.Edge (Pixels);
       Middle : constant Float := Top_Of (Item) + Height_Of (Item) / 2.0;
       After  : Float := Left_Of (Item) + Pad * Pixels;
       Left, Top, Side : Float;
    begin
-      Fill_Rect
-        (Target, Colors (Themes.Page), Left_Of (Item), Top_Of (Item),
-         Width_Of (Item), Height_Of (Item));
-      Pomarine.Boxes.Outline
-        (Target, Colors (Themes.Border), Left_Of (Item), Top_Of (Item),
-         Width_Of (Item), Height_Of (Item), Edge);
+      Pomarine.Boxes.Draw_Flat
+        (Target, Colors (Themes.Page), Colors (Themes.Border), Left_Of (Item), Top_Of (Item),
+         Width_Of (Item), Height_Of (Item), Pixels, Radius => Themes.Small_Radius);
       if Item.Swatched then
          declare
             Size : constant Float := Float'Rounding (Swatch_Size * Pixels);
@@ -156,7 +152,8 @@ package body Pomarine.Widgets.Chips is
          Pomarine.Boxes.Draw_Control
            (Target, Colors, Face, Colors (Themes.Border),
             (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
-            Left, Top, Side, Side, Pixels, Sunken => Item.Down and then Item.Over);
+            Left, Top, Side, Side, Pixels, Sunken => Item.Down and then Item.Over,
+            Radius => Themes.Small_Radius - 1.0);
       end;
       if Icon_Library (Item) /= null then
          declare

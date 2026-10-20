@@ -1,5 +1,5 @@
 with SDL3.Painters;
-private with Pomarine.Boxes;
+with Pomarine.Boxes;
 
 --  A box that holds other widgets, to lay them out: with a colour to
 --  fill it with, or none, to show what is behind; an outline, and a
@@ -39,6 +39,19 @@ package Pomarine.Widgets.Panels is
 
    procedure Clear_Ring (Item : in out Panel);
 
+   procedure Set_Radius
+     (Item    : in out Panel;
+      Value   : Float;
+      Round   : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners;
+      Framed  : Boolean := False)
+     with Pre => Value >= 0.0;
+   --  Round the corners (those in Round) of the face, its outline and its
+   --  shadow, by Value points. What is in it is laid over the corners as
+   --  square as it is, so, if Framed, the outline is drawn again over it,
+   --  as wide as one (see Pomarine.Boxes.Edge): that is the outline, or the
+   --  fill if there is none, for a box whose fill is its outline, round what
+   --  it holds.
+
    Ring_Width : constant Float := 2.0;
 
    overriding procedure Draw
@@ -60,6 +73,7 @@ private
       Fill_Color  : Themes.Color := (0, 0, 0, 255);
       Border_Slot : Themes.Slot := Themes.Border;
       Shadow_Slot : Themes.Slot := Themes.Shadow;
+      Framed : Boolean := False;
       Ringed : Boolean := False;
       Ring_Slot : Themes.Slot := Themes.Focus;
    end record;

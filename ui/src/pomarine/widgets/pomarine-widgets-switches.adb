@@ -7,7 +7,6 @@ package body Pomarine.Widgets.Switches is
    use type Semantics.Role;
 
    use type SDL3.Events.Event_Kind;
-   use all type SDL3.Painters.Painter;
 
    Gap  : constant Float := 8.0;  --  in points, before the label
    Room : constant Float := 2.0;  --  in points, round the knob in the track
@@ -179,20 +178,18 @@ package body Pomarine.Widgets.Switches is
       end Draw_Label;
    begin
       --  The track, sunk.
-      Fill_Rect
+      Pomarine.Boxes.Draw_Flat
         (Target,
          (if Item.Enabled then Track else Themes.Dull (Colors, Track)),
-         Left, Top, Wide, High);
-      Pomarine.Boxes.Outline
-        (Target,
          (if Item.Enabled then Themes.Mix (Track, Colors (Themes.Foreground), 0.35)
           else Themes.Dull (Colors, Colors (Themes.Border))),
-         Left, Top, Wide, High, Edge);
+         Left, Top, Wide, High, Pixels, Radius => Themes.Small_Radius);
       if Item.Enabled and then Colors.Bevelled then
          Pomarine.Boxes.Bevel
            (Target, Themes.Highlight (Track), Themes.Shadow_Of (Track),
             Left + Edge, Top + Edge, Wide - 2.0 * Edge, High - 2.0 * Edge,
-            Pixels, Sunken => True);
+            Pixels, Sunken => True,
+            Radius => Float'Max (0.0, Pomarine.Boxes.Corner (Themes.Small_Radius, Pixels) - Edge));
       end if;
       --  The knob, standing up in it, at the end it is turned to.
       declare
@@ -208,7 +205,7 @@ package body Pomarine.Widgets.Switches is
              else Themes.Dull (Colors, Colors (Themes.Border))),
             (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
             X, Top + Inner, Knob_Wide, Knob_High, Pixels,
-            Bevelled => Item.Enabled, Sunken => Pressed);
+            Bevelled => Item.Enabled, Sunken => Pressed, Radius => Themes.Small_Radius - 1.0);
       end;
       if Item.Length > 0 and then Text_Lines (Item) /= null then
          Draw_Label;
@@ -285,7 +282,7 @@ package body Pomarine.Widgets.Switches is
            (Target, Colors (Themes.Focus),
             Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),
             Thick => Float'Max (1.0, Float'Rounding (2.0 * Density (Item))),
-            Density => Density (Item));
+            Density => Density (Item), Radius => Themes.Small_Radius);
       end if;
    end Draw_Over;
 

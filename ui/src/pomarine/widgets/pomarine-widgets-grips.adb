@@ -86,6 +86,18 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Clear_Shadow;
 
+   procedure Set_Radius
+     (Item  : in out Grip;
+      Value : Float;
+      Round : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners) is
+   begin
+      if Item.Look.Radius /= Value or else Pomarine.Boxes."/=" (Item.Look.Round, Round) then
+         Item.Look.Radius := Value;
+         Item.Look.Round := Round;
+         Refresh (Item);
+      end if;
+   end Set_Radius;
+
    procedure Set_Hover_Outline (Item : in out Grip; Value : Themes.Slot) is
    begin
       Item.Outlined := True;
@@ -301,13 +313,15 @@ package body Pomarine.Widgets.Grips is
               (Target, Themes.Resolve (Colors, Item.Outline_Color),
                Left_Of (Item), Top_Of (Item),
                Width_Of (Item) - Off, Height_Of (Item) - Off,
-               Pomarine.Boxes.Edge (Density (Item)));
+               Pomarine.Boxes.Edge (Density (Item)), Density => Density (Item),
+               Radius => Item.Look.Radius, Round => Item.Look.Round);
          end;
       end if;
       if Item.Focusable and then Is_Focus_Visible (Item) then
          Pomarine.Boxes.Outline
            (Target, Themes.Resolve (Colors, Themes.Focus), Left_Of (Item), Top_Of (Item),
-            Width_Of (Item), Height_Of (Item), Float'Max (1.0, Float'Rounding (2.0 * Density (Item))));
+            Width_Of (Item), Height_Of (Item), Float'Max (1.0, Float'Rounding (2.0 * Density (Item))),
+            Density => Density (Item), Radius => Item.Look.Radius, Round => Item.Look.Round);
       end if;
       if Item.Form = Corner then
          --  Dots a step apart, three along the bottom, two above, one

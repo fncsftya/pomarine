@@ -110,6 +110,10 @@ package body Pomarine.Widgets.Frames is
       --  its fill, round what is in it; a window casts a shadow, inside
       --  its box at the right and the foot.
       Panels.Set_Fill (Item.Outline_Panel, Themes.Border);
+      if Item.Floating then
+         --  A pane that fills its parent is square, as what it fills.
+         Panels.Set_Radius (Item.Outline_Panel, Themes.Large_Radius, Framed => True);
+      end if;
       Set_Flex_Direction (Node (Item.Outline_Panel), Yoga.Column);
       Set_Padding (Node (Item.Outline_Panel), Yoga.All_Edges, Edge (Item));
       if Item.Floating then
@@ -170,6 +174,9 @@ package body Pomarine.Widgets.Frames is
       --  between it and what is above.
       Panels.Set_Fill (Item.Status_Bar, Themes.Tint);
       Panels.Set_Border (Item.Status_Bar, Themes.Border);
+      if Item.Floating then
+         Panels.Set_Radius (Item.Status_Bar, Themes.Large_Radius, Pomarine.Boxes.Bottom_Corners);
+      end if;
       Set_Margin (Node (Item.Status_Bar), Yoga.Horizontal, -Edge (Item));
       Set_Margin (Node (Item.Status_Bar), Yoga.Bottom, -Edge (Item));
       Set_Height (Node (Item.Status_Bar), Status_Height * Pixels);

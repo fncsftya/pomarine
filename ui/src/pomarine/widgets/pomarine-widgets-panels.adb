@@ -81,6 +81,22 @@ package body Pomarine.Widgets.Panels is
       end if;
    end Set_Ring;
 
+   procedure Set_Radius
+     (Item   : in out Panel;
+      Value  : Float;
+      Round  : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners;
+      Framed : Boolean := False) is
+   begin
+      if Item.Look.Radius /= Value or else Pomarine.Boxes."/=" (Item.Look.Round, Round)
+        or else Item.Framed /= Framed
+      then
+         Item.Look.Radius := Value;
+         Item.Look.Round := Round;
+         Item.Framed := Framed;
+         Refresh (Item);
+      end if;
+   end Set_Radius;
+
    procedure Clear_Ring (Item : in out Panel) is
    begin
       if Item.Ringed then
@@ -113,11 +129,23 @@ package body Pomarine.Widgets.Panels is
    is
       Off : constant Float := Pomarine.Boxes.Inset (Item.Look, Density (Item));
    begin
+      if Item.Framed and then Item.Look.Radius > 0.0 then
+         Pomarine.Boxes.Outline
+           (Target,
+            (if Item.Look.Bordered then Themes.Resolve (Colors, Item.Border_Slot)
+             elsif Item.Fill_Fixed then Item.Fill_Color
+             else Themes.Resolve (Colors, Item.Fill_Slot)),
+            Left_Of (Item), Top_Of (Item), Width_Of (Item) - Off, Height_Of (Item) - Off,
+            Pomarine.Boxes.Edge (Density (Item)), Density => Density (Item),
+            Radius => Item.Look.Radius, Round => Item.Look.Round,
+            Over => Pomarine.Boxes.Over_Content);
+      end if;
       if Item.Ringed then
          Pomarine.Boxes.Outline
            (Target, Themes.Resolve (Colors, Item.Ring_Slot), Left_Of (Item),
             Top_Of (Item), Width_Of (Item) - Off, Height_Of (Item) - Off,
-            Float'Max (1.0, Float'Rounding (Ring_Width * Density (Item))));
+            Float'Max (1.0, Float'Rounding (Ring_Width * Density (Item))),
+            Density => Density (Item), Radius => Item.Look.Radius, Round => Item.Look.Round);
       end if;
    end Draw_Over;
 

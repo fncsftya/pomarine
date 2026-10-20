@@ -6,7 +6,6 @@ package body Pomarine.Widgets.Selects is
    use type Semantics.Role;
 
    use type SDL3.Events.Event_Kind;
-   use all type SDL3.Painters.Painter;
 
    Pad        : constant Float := 8.0;   --  in points, before the value
    Inner      : constant Float := 2.0;   --  round the button, in points
@@ -132,12 +131,10 @@ package body Pomarine.Widgets.Selects is
         Item.Enabled
         and then (Item.Open or else (Item.Down and then Is_Hovered (Item)));
    begin
-      Fill_Rect
+      Pomarine.Boxes.Draw_Flat
         (Target, (if Item.Enabled then Colors (Themes.Page) else Colors (Themes.Tint)),
-         Left, Top, Wide, High);
-      Pomarine.Boxes.Outline
-        (Target, (if Item.Open then Colors (Themes.Focus) else Colors (Themes.Border)),
-         Left, Top, Wide, High, Edge);
+         (if Item.Open then Colors (Themes.Focus) else Colors (Themes.Border)),
+         Left, Top, Wide, High, Pixels, Radius => Themes.Small_Radius);
       declare
          Face : constant Themes.Color :=
            Colors.Face_For
@@ -149,7 +146,7 @@ package body Pomarine.Widgets.Selects is
              else Themes.Dull (Colors, Colors (Themes.Border))),
             (Themes.Highlight (Face), Themes.Shadow_Of (Face)),
             Button_Left, Top + Around, Side, Side, Pixels,
-            Bevelled => Item.Enabled, Sunken => Pressed);
+            Bevelled => Item.Enabled, Sunken => Pressed, Radius => Themes.Small_Radius - 1.0);
       end;
       if Icon_Library (Item) /= null then
          declare

@@ -333,7 +333,9 @@ package body Pomarine.Widgets.Menus is
          Border   => (if Item.Accented then Purple else Colors (Themes.Border)),
          Dashed   => False,
          Shadowed => True,
-         Shadow   => Colors (Themes.Drop_Shadow));
+         Shadow   => Colors (Themes.Drop_Shadow),
+         Radius   => Themes.Small_Radius,
+         Round    => Pomarine.Boxes.All_Corners);
       Inner_Left  : constant Float := Left_Of (Item) + Edge;
       Inner_Width : constant Float :=
         Width_Of (Item) - Pomarine.Boxes.Inset (Look, Pixels) - 2.0 * Edge;

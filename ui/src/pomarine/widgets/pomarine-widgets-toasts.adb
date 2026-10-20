@@ -152,7 +152,8 @@ package body Pomarine.Widgets.Toasts is
           Border   => Colors (Themes.Border),
           Dashed   => False,
           Shadowed => True,
-          Shadow   => Colors (Themes.Drop_Shadow)),
+          Shadow   => Colors (Themes.Drop_Shadow),
+          others   => <>),
          Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),
          Pixels);
       Fill_Rect

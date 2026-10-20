@@ -1,3 +1,4 @@
+with Pomarine.Boxes;
 with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with CoreText.Wrapping;
@@ -1730,26 +1731,34 @@ package body Pomarine.Text_Areas is
       First, Last  : Positive;
       Outer_Clip   : constant Clip := Current_Clip (Target);
       --  The owner's, to go back to.
+      Round : constant Float :=
+        (if Item.Grows or else Colors (Themes.Border) = Colors (Themes.Background) then 0.0
+         else Pomarine.Boxes.Corner (Themes.Small_Radius, Item.Density));
+      Inner_Round : constant Float := Float'Max (0.0, Round - Edge);
+      --  Of the corners of the outline, and of what it holds, which is the
+      --  less round by the width of the outline. A page, or a field whose
+      --  outline is the colour of its ground, has none to round.
    begin
       Catch_Up (Item);
-      Fill_Rect
+      Pomarine.Boxes.Fill_Round
         (Target, (if Item.Focused then Colors (Themes.Focus) else Colors (Themes.Border)),
-         Item.Left, Item.Top, Item.Width, Item.Height);
-      Fill_Rect
+         Item.Left, Item.Top, Item.Width, Item.Height, Round);
+      Pomarine.Boxes.Fill_Round
         (Target, Colors (Themes.Background),
          Float (Inner_Left), Float (Inner_Top),
          Float (Integer'Max (0, Inner_Right - Inner_Left)),
-         Float (Integer'Max (0, Inner_Bottom - Inner_Top)));
+         Float (Integer'Max (0, Inner_Bottom - Inner_Top)), Inner_Round);
       if Has_Toolbar (Item) then
          --  The toolbar's band, set apart from the text under it by its
          --  tint and a line.
          declare
             Band : constant Float := Float'Min (Toolbar_Room (Item), Float (Inner_Bottom - Inner_Top));
          begin
-            Fill_Rect
+            Pomarine.Boxes.Fill_Round
               (Target, Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.07),
                Float (Inner_Left), Float (Inner_Top),
-               Float (Integer'Max (0, Inner_Right - Inner_Left)), Band);
+               Float (Integer'Max (0, Inner_Right - Inner_Left)), Band, Inner_Round,
+               Pomarine.Boxes.Top_Corners);
             Fill_Rect
               (Target, Colors (Themes.Border),
                Float (Inner_Left), Float (Inner_Top) + Band - Item.Density,

@@ -1,7 +1,7 @@
 with SDL3.Painters;
 with SDL3.Cursors;
 with SDL3.Events;
-private with Pomarine.Boxes;
+with Pomarine.Boxes;
 
 --  A place to take hold of and drag, as a window's title bar to move it
 --  or its corner to size it. It has no state of the thing it moves: it
@@ -41,6 +41,14 @@ package Pomarine.Widgets.Grips is
    --  Cast a solid shadow in Value, inside its box (see Pomarine.Boxes).
 
    procedure Clear_Shadow (Item : in out Grip);
+
+   procedure Set_Radius
+     (Item  : in out Grip;
+      Value : Float;
+      Round : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners)
+     with Pre => Value >= 0.0;
+   --  Round the corners (those in Round) of its face, outline, shadow and
+   --  rings, by Value points.
 
    procedure Set_Wanted_Cursor (Item : in out Grip; To : SDL3.Cursors.Kind);
    --  The pointer's shape over it, and while it is dragged.

@@ -345,22 +345,26 @@ package body Pomarine.Widgets.Buttons is
          begin
             Pomarine.Boxes.Draw_Control
               (Target, Colors, Face, Edge_Color, Edges, Left, Top, Wide_Box - Room, High_Box, Pixels,
-               Bevelled => Item.Enabled, Sunken => Pressed);
+               Bevelled => Item.Enabled, Sunken => Pressed, Radius => Themes.Small_Radius,
+               Round => Pomarine.Boxes.Left_Corners);
             Pomarine.Boxes.Draw_Control
               (Target, Colors, Caret_Face, Edge_Color, Caret_Edges, Left + Wide_Box - Room, Top, Room,
                High_Box, Pixels,
-               Bevelled => Item.Enabled, Sunken => Caret_Pressed or else Item.Selected);
+               Bevelled => Item.Enabled, Sunken => Caret_Pressed or else Item.Selected,
+               Radius => Themes.Small_Radius, Round => Pomarine.Boxes.Right_Corners);
          end;
       elsif Item.Style /= Quiet then
          Pomarine.Boxes.Draw_Control
            (Target, Colors, Face, Edge_Color, Edges, Left, Top, Wide_Box, High_Box, Pixels,
-            Bevelled => Item.Enabled, Sunken => Pressed or else Item.Selected);
+            Bevelled => Item.Enabled, Sunken => Pressed or else Item.Selected,
+            Radius => Themes.Small_Radius);
       end if;
       --  The ring of the focus: of a quiet button too, which has no face.
       if Item.Focusable and then Is_Focus_Visible (Item) then
          Pomarine.Boxes.Outline
            (Target, Colors (Themes.Focus), Left, Top, Wide_Box, High_Box,
-            Float'Max (1.0, Float'Rounding (Ring_Width * Pixels)));
+            Float'Max (1.0, Float'Rounding (Ring_Width * Pixels)),
+            Density => Pixels, Radius => Themes.Small_Radius);
       end if;
 
       --  A dropdown's caret, in a square of its own at the right, a groove
