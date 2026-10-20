@@ -1097,6 +1097,11 @@ private
       Capture_Button : Natural := 0;
       --  The widget that took a press, and which button, until it is
       --  let go.
+      Wheel_Taker : Node_Index := 0;
+      Wheel_Time  : SDL3.Events.Milliseconds := 0;
+      --  The widget that took the last wheel turn, and when. A turn soon
+      --  after goes to it first, so a pan or a scroll under way is not
+      --  taken over by what the pointer drifts across.
 
       Replace_All    : Boolean := False;
       --  Every widget is to be placed again at the next layout.

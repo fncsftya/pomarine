@@ -1334,6 +1334,9 @@ package body Pomarine.Widgets is
       if Within (Item, Item.Capture, Of_Widget) then
          Item.Capture := 0;
       end if;
+      if Within (Item, Item.Wheel_Taker, Of_Widget) then
+         Item.Wheel_Taker := 0;
+      end if;
    end Let_Go;
 
    procedure Set_Visible (Item : in out Widget'Class; To : Boolean) is
@@ -1415,6 +1418,9 @@ package body Pomarine.Widgets is
          end if;
          if Within (Home.all, Home.Capture, Slot) then
             Home.Capture := 0;
+         end if;
+         if Within (Home.all, Home.Wheel_Taker, Slot) then
+            Home.Wheel_Taker := 0;
          end if;
          if Above = 0 then
             Home.Root := 0;
@@ -1549,6 +1555,9 @@ package body Pomarine.Widgets is
       return Climbing;
    end Accepting;
 
+   Wheel_Stickiness : constant SDL3.Events.Milliseconds := 300;
+   --  How soon after a wheel turn the next still goes to the same widget.
+
    procedure Dispatch_Press
      (Item    : in out Tree;
       Event   : SDL3.Events.Event;
@@ -1681,8 +1690,21 @@ package body Pomarine.Widgets is
          when SDL3.Events.Mouse_Wheel | SDL3.Events.Pinch =>
             Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
                               Event.Mouse_Y * Item.Density);
+            if Event.Kind = SDL3.Events.Mouse_Wheel
+              and then Item.Wheel_Taker /= 0
+              and then Event.Time > 0
+              and then Event.Time >= Item.Wheel_Time
+              and then Event.Time - Item.Wheel_Time <= Wheel_Stickiness
+            then
+               --  Still turning what it was turning.
+               Over := Item.Wheel_Taker;
+            end if;
             Bubble (Item, Over, Event, Taker);
             Handled := Taker /= 0;
+            if Event.Kind = SDL3.Events.Mouse_Wheel then
+               Item.Wheel_Taker := Taker;
+               Item.Wheel_Time := Event.Time;
+            end if;
 
          when SDL3.Events.Key_Down | SDL3.Events.Text_Input
             | SDL3.Events.Text_Editing =>
