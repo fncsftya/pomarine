@@ -310,7 +310,10 @@ package body Typeset.Layouts is
          --  ones after the break, shifted, once rewrapped from the start.
          Broken : constant Boolean :=
            Done.From = Done.To and then Made = 1 and then Done.End_Units = 0
-           and then P /= null and then P.Complete and then not P.Dirty;
+           and then P /= null and then P.Complete and then not P.Dirty
+           --  Nothing came in before the break: pasting "text" and a
+           --  newline at a paragraph's end leaves the first part longer.
+           and then Last and then Docs.Length (Doc, Para) = Done.From_Units;
          Added  : Paragraph_Vectors.Vector;
       begin
          if Broken then
