@@ -1,3 +1,4 @@
+with Pomarine.Marks.Drawing;
 with Ada.Strings.Unbounded;
 with Pomarine.Mark_Paths;
 with SDL3.Windows;
@@ -598,26 +599,14 @@ package body Pomarine.Widgets.Pictures is
          Top  : constant Float := Origin_Y (Item);
          High : constant Float := Mark_Height * Wide;
       begin
-         for Index in 1 .. Item.Marks + (if Item.Marking then 1 else 0) loop
-            declare
-               Each : Mark renames Item.Marked.Data (Index);
-            begin
-               if Each.Trace.Count > 0 then
-                  Mark_Paths.Draw
-                    (Each.Trace, Target, Colors (Themes.Marker),
-                     (if Item.Dark then SDL3.Windows.Renderers.Add else SDL3.Windows.Renderers.Multiply),
-                     Left, Top, Wide, Item.Fitted, High / 2.0);
-               else
-                  SDL3.Painters.Fill_Rect
-                    (Target, Colors (Themes.Marker),
-                     (if Item.Dark then SDL3.Windows.Renderers.Add
-                      else SDL3.Windows.Renderers.Multiply),
-                     Left + Each.Left * Wide,
-                     Top + Each.Y * Item.Fitted - High / 2.0,
-                     (Each.Right - Each.Left) * Wide, High);
-               end if;
-            end;
-         end loop;
+         if Item.Marks > 0 or else Item.Marking then
+            --  Multiplication tints white lettering on dark paper without
+            --  brightening its background or washing the lettering out.
+            Pomarine.Marks.Drawing.Draw
+              (Item.Marked.Data (1 .. Item.Marks + (if Item.Marking then 1 else 0)), 1,
+               Target, Colors (Themes.Marker), SDL3.Windows.Renderers.Multiply,
+               Left, Top, Wide, Item.Fitted, High / 2.0);
+         end if;
       end;
       if Has_Selection (Item) then
          declare

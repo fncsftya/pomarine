@@ -1,3 +1,4 @@
+with Pomarine.Marks.Drawing;
 with Ada.Strings.Unbounded;
 with Pomarine.Mark_Paths;
 with Ada.Unchecked_Deallocation;
@@ -973,26 +974,14 @@ package body Pomarine.Widgets.Page_Views is
       declare
          High : constant Float := Mark_Height * Wide;
       begin
-         for Index in 1 .. Item.Marks + (if Item.Marking then 1 else 0) loop
-            declare
-               Each : Mark renames Item.Marked.Data (Index);
-            begin
-               if Each.Page in First .. Last then
-                  if Each.Trace.Count > 0 then
-                     Mark_Paths.Draw
-                       (Each.Trace, Target, Colors (Themes.Marker),
-                        SDL3.Windows.Renderers.Multiply,
-                        Left, Page_Top (Item, Each.Page), Wide, Page_Height (Item, Each.Page), High / 2.0);
-                  else
-                     SDL3.Painters.Fill_Rect
-                       (Target, Colors (Themes.Marker), SDL3.Windows.Renderers.Multiply,
-                        Left + Each.Left * Wide,
-                        Page_Top (Item, Each.Page) + Each.Y * Page_Height (Item, Each.Page) - High / 2.0,
-                        (Each.Right - Each.Left) * Wide, High);
-                  end if;
-               end if;
-            end;
-         end loop;
+         if Item.Marks > 0 or else Item.Marking then
+            for Page in First .. Last loop
+               Pomarine.Marks.Drawing.Draw
+                 (Item.Marked.Data (1 .. Item.Marks + (if Item.Marking then 1 else 0)), Page,
+                  Target, Colors (Themes.Marker), SDL3.Windows.Renderers.Multiply,
+                  Left, Page_Top (Item, Page), Wide, Page_Height (Item, Page), High / 2.0);
+            end loop;
+         end if;
       end;
       if Has_Selection (Item) and then Item.Sel_Page in First .. Last then
          declare

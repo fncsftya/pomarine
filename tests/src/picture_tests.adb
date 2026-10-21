@@ -49,6 +49,7 @@ package body Picture_Tests is
 
    procedure Make_Words is
    begin
+      Pomarine.Words.Reserve (Found, 6, Text_Of_Words'Length);
       Found.Text (1 .. Text_Of_Words'Length) := Text_Of_Words;
       Found.Length := Text_Of_Words'Length;
       Found.Count := 6;
@@ -311,6 +312,17 @@ package body Picture_Tests is
          Images.Read (Drawn, Item.Target);
          Goldens.Check ("picture-freehand", Drawn);
       end;
+      --  Retracing a mark has exactly the same pixels as drawing it once.
+      declare
+         Original : constant Pictures.Mark := Pictures.Mark_At (Item.Picture, 1);
+         Drawn : Images.Image;
+      begin
+         Pictures.Set_Marks (Item.Picture, [Original, Original]);
+         Widgets.Paint (Item.Tree, Item.Target, Colors);
+         Images.Read (Drawn, Item.Target);
+         Goldens.Check ("picture-freehand", Drawn);
+         Pictures.Set_Marks (Item.Picture, [Original]);
+      end;
       Pictures.Set_Tool (Item.Picture, Pictures.Eraser);
       Send (Item, Press (200.0, 150.0), Taken => True);
       Send (Item, Release (200.0, 150.0), Taken => False);
@@ -327,6 +339,40 @@ package body Picture_Tests is
       Send (Item, Press (120.0, 40.0), Taken => True);
       Send (Item, Release (120.0, 40.0), Taken => True);
       pragma Assert (Pictures.Mark_Count (Item.Picture) = 1);
+
+      --  On dark paper, white lettering becomes yellow and the paper stays dark.
+      declare
+         Dark_Page, Once, Twice : Images.Image;
+         use type Renderers.Color_Component;
+         File : constant String := Goldens.Scratch ("picture-dark-source.png");
+         Band : constant Pictures.Mark := (Left => 0.0, Right => 1.0, Y => 0.25, others => <>);
+         Ink, Paper : Renderers.Color;
+      begin
+         Images.Create (Dark_Page, 720, 400);
+         for Y in 0 .. 399 loop
+            for X in 0 .. 719 loop
+               Images.Set_Pixel
+                 (Dark_Page, X, Y, (if X in 50 .. 200 and then Y in 90 .. 110
+                                then (255, 255, 255, 255) else (20, 20, 20, 255)));
+            end loop;
+         end loop;
+         Images.Save_PNG (Dark_Page, File);
+         Pictures.Set_File (Item.Picture, File);
+         Widgets.Paint (Item.Tree, Item.Target, Pomarine.Themes.Dark);
+         SDL3.Pictures.Jobs.Wait_Until_Idle;
+         Widgets.Invalidate (Item.Picture);
+         Pictures.Set_Marks (Item.Picture, [Band]);
+         Widgets.Paint (Item.Tree, Item.Target, Pomarine.Themes.Dark);
+         Images.Read (Once, Item.Target);
+         Ink := Images.Pixel (Once, 100, 100);
+         Paper := Images.Pixel (Once, 300, 100);
+         pragma Assert (Ink.Red > 150 and then Ink.Blue < Ink.Red);
+         pragma Assert (Paper.Red < 50 and then Paper.Green < 50 and then Paper.Blue < 50);
+         Pictures.Set_Marks (Item.Picture, [Band, Band]);
+         Widgets.Paint (Item.Tree, Item.Target, Pomarine.Themes.Dark);
+         Images.Read (Twice, Item.Target);
+         Goldens.Check_Same ("picture-dark-overlap", Once, Twice);
+      end;
 
       --  Storage stays bounded even when there are many pointer events.
       Trace := (others => <>);
