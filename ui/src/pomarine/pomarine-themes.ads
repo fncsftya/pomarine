@@ -17,13 +17,20 @@ with Pomarine_Ui_Config;
 package Pomarine.Themes is
 
    subtype Color is SDL3.Windows.Renderers.Color;
+   use type SDL3.Windows.Renderers.Color_Component;
 
    Custom_Capacity : constant := Pomarine_Ui_Config.Custom_Colors;
    --  Slots an application may have of its own.
 
    Core_Count : constant := 25;
 
-   type Slot is range 1 .. Core_Count + Custom_Capacity;
+   type Slot is range -16#1000000# .. Core_Count + Custom_Capacity;
+   subtype Theme_Slot is Slot range 1 .. Slot'Last;
+   --  Positive slots follow the theme. Negative slots hold an opaque RGB colour,
+   --  allowing user colours without allocating or limiting the number of colours.
+
+   function Fixed (Value : Color) return Slot
+     with Pre => Value.Alpha = 255;
 
    Background : constant Slot := 1;   --  of the desk, the canvas
    Foreground : constant Slot := 2;   --  text
@@ -85,7 +92,7 @@ package Pomarine.Themes is
 
    type Tone_Array is array (Tone, Shade) of Color;
 
-   type Color_Array is array (Slot) of Color;
+   type Color_Array is array (Theme_Slot) of Color;
 
    type Theme is tagged record
       Slots    : Color_Array;
@@ -153,8 +160,8 @@ package Pomarine.Themes is
    --  Give the application's slot Custom (Offset) the colour To in Item. A
    --  theme made has them all black.
 
-   function Resolve (Item : Theme; Which : Slot) return Color is
-     (Item.Slots (Which));
+   function Resolve (Item : Theme; Which : Slot) return Color
+     with Pre => Which /= 0;
    --  The colour Which is in the theme Item: Item (Which).
 
    function Tone_Color (Item : Theme; Of_Tone : Tone; Of_Shade : Shade) return Color is

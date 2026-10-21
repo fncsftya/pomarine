@@ -1,5 +1,18 @@
 package body Pomarine.Themes is
 
+   function Fixed (Value : Color) return Slot is
+     (Slot (-1 - Integer (Value.Red) * 65536 - Integer (Value.Green) * 256 - Integer (Value.Blue)));
+
+   function Resolve (Item : Theme; Which : Slot) return Color is
+      subtype Byte is SDL3.Windows.Renderers.Color_Component;
+      RGB : constant Natural := (if Which < 0 then Natural (-Which - 1) else 0);
+   begin
+      if Which > 0 then
+         return Item.Slots (Which);
+      end if;
+      return (Byte (RGB / 65536), Byte ((RGB / 256) mod 256), Byte (RGB mod 256), 255);
+   end Resolve;
+
    Black : constant Color := (0, 0, 0, 255);
 
    function Make (From : Palette) return Theme is
