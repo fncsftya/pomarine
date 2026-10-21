@@ -13,6 +13,11 @@ package Pomarine.Widgets.Progress_Bars is
           Post => Value (Item) = To;
    --  Fill that much of the bar.
 
+   procedure Set_Over (Item : in out Progress_Bar; Surface, Fill : Themes.Theme_Slot);
+   --  The bar is on that surface, as a status line is: its track is the
+   --  theme's ink thinned over the surface, and what is done is in the
+   --  Fill slot, in place of the accent, which may not show on it.
+
    function Value (Item : Progress_Bar) return Float
      with Post => Value'Result in 0.0 .. 1.0;
 
@@ -29,6 +34,9 @@ private
 
    type Progress_Bar is new Widget with record
       Fraction : Float := 0.0;
+      Inked    : Boolean := False;
+      Surface  : Themes.Theme_Slot := Themes.Background;
+      Fill     : Themes.Theme_Slot := Themes.Accent;
    end record;
 
 end Pomarine.Widgets.Progress_Bars;

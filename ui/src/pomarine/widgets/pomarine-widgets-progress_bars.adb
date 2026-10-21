@@ -13,18 +13,30 @@ package body Pomarine.Widgets.Progress_Bars is
       end if;
    end Set_Value;
 
+   procedure Set_Over (Item : in out Progress_Bar; Surface, Fill : Themes.Theme_Slot) is
+   begin
+      Item.Inked := True;
+      Item.Surface := Surface;
+      Item.Fill := Fill;
+      if Is_Attached (Item) then
+         Invalidate (Item);
+      end if;
+   end Set_Over;
+
    function Value (Item : Progress_Bar) return Float is (Item.Fraction);
 
    overriding procedure Draw
      (Item   : in out Progress_Bar;
       Target : SDL3.Painters.Painter'Class;
       Colors : Themes.Theme) is
+      Ground : constant Themes.Color := Colors (if Item.Inked then Item.Surface else Themes.Background);
+      Ink    : constant Themes.Color := Colors (Themes.Foreground);
    begin
       SDL3.Painters.Fill_Rect
-        (Target, Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.2),
+        (Target, Themes.Mix (Ground, Ink, 0.2),
          Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item));
       SDL3.Painters.Fill_Rect
-        (Target, Colors (Themes.Accent),
+        (Target, Colors (if Item.Inked then Item.Fill else Themes.Accent),
          Left_Of (Item), Top_Of (Item),
          Float'Rounding (Width_Of (Item) * Item.Fraction), Height_Of (Item));
    end Draw;
