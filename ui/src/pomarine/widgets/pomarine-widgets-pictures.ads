@@ -229,6 +229,7 @@ private
       --  The word it has reached, 0 if it has not left the first: the
       --  selection is the words from Anchor to Head, either way round.
       Held    : Boolean := False;
+      Drag_Words : Boolean := False;
       Chosen  : Tools := Pointer;
       Marked  : Pomarine.Marks.Mark_Store;
       Marks   : Natural := 0;

@@ -266,7 +266,7 @@ package Pomarine.Text_Areas is
    --  Focus it, with the caret where it is nearest pixel X, Y; with
    --  Extend, the selection extended to there. A double click selects
    --  the word there, a triple its paragraph. Until Release, Drag
-   --  extends the selection.
+   --  extends the selection, by whole words after a double click.
 
    procedure Drag (Item : in out Text_Area; X, Y : Float)
      with Pre => Is_Attached (Item);
@@ -516,6 +516,8 @@ private
       --  was before it moved so.
       Focused  : Boolean := False;
       Dragging : Boolean := False;
+      Drag_Words : Boolean := False;
+      Drag_First, Drag_Stop : Position := (1, 1);
       Bar      : Scrollbars.Bar;
       Bar_Dirty : Boolean := False;
 

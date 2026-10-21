@@ -177,8 +177,16 @@ package body Picture_Tests is
 
       --  A double click is a word, a triple a line.
       Send (Item, Press (At_X (Item, 5), At_Y (Item, 5), 2), Taken => True);
-      Send (Item, Release (At_X (Item, 5), At_Y (Item, 5)), Taken => False);
+      Send (Item, Release (At_X (Item, 5), At_Y (Item, 5)), Taken => True);
       Check_Selected ("picture-word", "epsilon", Item);
+      Send (Item, Press (At_X (Item, 5), At_Y (Item, 5), 2), Taken => True);
+      Send (Item, Move (At_X (Item, 6), At_Y (Item, 6)), Taken => True);
+      Check_Selected ("picture-word-drag-forward", "epsilon" & ASCII.LF & "zeta", Item);
+      Send (Item, Move (At_X (Item, 4), At_Y (Item, 4)), Taken => True);
+      Check_Selected ("picture-word-drag-back", "delta epsilon", Item);
+      Send (Item, Move (At_X (Item, 5), At_Y (Item, 5)), Taken => True);
+      Check_Selected ("picture-word-drag-origin", "epsilon", Item);
+      Send (Item, Release (At_X (Item, 5), At_Y (Item, 5)), Taken => True);
       Send (Item, Press (At_X (Item, 5), At_Y (Item, 5), 3), Taken => True);
       Send (Item, Release (At_X (Item, 5), At_Y (Item, 5)), Taken => False);
       Check_Selected ("picture-line", "delta epsilon", Item);
@@ -485,7 +493,7 @@ package body Picture_Tests is
          Goldens.Check ("picture-zoomed-selection", Drawn);
       end;
       Send (Item, Press (At_X (Item, 5), At_Y (Item, 5), 2), Taken => True);
-      Send (Item, Release (At_X (Item, 5), At_Y (Item, 5)), Taken => False);
+      Send (Item, Release (At_X (Item, 5), At_Y (Item, 5)), Taken => True);
       Check_Selected ("picture-zoomed-word", "epsilon", Item);
 
       --  Scrolled across: the same again.
@@ -495,7 +503,7 @@ package body Picture_Tests is
           Mouse_X => 100.0, Mouse_Y => 100.0, others => <>),
          Taken => True);
       Send (Item, Press (At_X (Item, 2), At_Y (Item, 2), 2), Taken => True);
-      Send (Item, Release (At_X (Item, 2), At_Y (Item, 2)), Taken => False);
+      Send (Item, Release (At_X (Item, 2), At_Y (Item, 2)), Taken => True);
       Check_Selected ("picture-scrolled-word", "beta", Item);
    end Following_The_Picture;
 

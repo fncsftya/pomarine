@@ -988,6 +988,7 @@ package body Pomarine.Text_Areas is
       Point := Point_At (Item, X, Y);
       Item.Focused := True;
       Item.Dragging := True;
+      Item.Drag_Words := Clicks = 2 and then not Extend;
       Item.Has_Goal := False;
 
       if Clicks = 1 or else Extend then
@@ -1015,6 +1016,8 @@ package body Pomarine.Text_Areas is
          Item.At_Mark := (Point.Paragraph, 1);
          Item.At_Caret := Paragraph_End (Item, Point.Paragraph);
       end if;
+      Item.Drag_First := Item.At_Mark;
+      Item.Drag_Stop := Item.At_Caret;
       Moved (Item);
    end Click;
 
@@ -1022,7 +1025,24 @@ package body Pomarine.Text_Areas is
    begin
       Catch_Up (Item);
       if Item.Dragging then
-         Item.At_Caret := Point_At (Item, X, Y);
+         declare
+            Point : constant Position := Point_At (Item, X, Y);
+            First, Stop : Positive;
+         begin
+            if Item.Drag_Words then
+               pragma Assert (not (Item.Drag_Stop < Item.Drag_First));
+               Layouts.Word_At (Item.Doc.all, Point.Paragraph, Point.Index, First, Stop);
+               if Point < Item.Drag_First then
+                  Item.At_Mark := Item.Drag_Stop;
+                  Item.At_Caret := (Point.Paragraph, First);
+               else
+                  Item.At_Mark := Item.Drag_First;
+                  Item.At_Caret := (if Point < Item.Drag_Stop then Item.Drag_Stop else (Point.Paragraph, Stop));
+               end if;
+            else
+               Item.At_Caret := Point;
+            end if;
+         end;
          Moved (Item);
       end if;
    end Drag;

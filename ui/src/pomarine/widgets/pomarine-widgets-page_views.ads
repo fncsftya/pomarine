@@ -255,6 +255,7 @@ private
       Anchor  : Natural := 0;
       Head    : Natural := 0;
       Held    : Boolean := False;
+      Drag_Words : Boolean := False;
       Chosen  : Tools := Pictures.Pointer;
       Marked  : Pomarine.Marks.Mark_Store;
       Marks   : Natural := 0;

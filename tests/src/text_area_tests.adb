@@ -385,6 +385,15 @@ package body Text_Area_Tests is
       Open (Item, "Great skua" & ASCII.LF & "Bonxie");
       Click (Item, 90.0, 35.0, Clicks => 2);  --  on "skua"
       Check_Selection ("textarea-double-click-text", Item, "skua");
+      Text_Areas.Click (Item.Area, 180.0, 70.0, Clicks => 2);
+      Text_Areas.Drag (Item.Area, 70.0, 70.0);
+      Check_Selection ("textarea-word-drag-back", Item, "Great skua");
+      Text_Areas.Drag (Item.Area, 180.0, 70.0);
+      Check_Selection ("textarea-word-drag-origin", Item, "skua");
+      Text_Areas.Drag (Item.Area, 70.0, 120.0);
+      Check_Selection ("textarea-word-drag-next-line", Item, "skua" & ASCII.LF & "Bonxie");
+      Text_Areas.Release (Item.Area);
+      Click (Item, 90.0, 35.0, Clicks => 2);
       Press (Item, Events.Key_C, Command => True);
       Press (Item, Events.Key_Down_Arrow, Command => True);
       Type_In (Item, " ");

@@ -1104,9 +1104,12 @@ package body Pomarine.Widgets.Page_Views is
                      Handled := True;
                   elsif Event.Clicks = 2 then
                      Select_Range (Item, Page, Under, Under);
+                     Item.Held := True;
+                     Item.Drag_Words := True;
                      Handled := True;
                   else
                      Select_Range (Item, Page, Under, 0);
+                     Item.Drag_Words := False;
                      Item.Held := True;
                      Handled := True;
                   end if;
@@ -1121,7 +1124,7 @@ package body Pomarine.Widgets.Page_Views is
                begin
                   Select_Range
                     (Item, Item.Sel_Page, Item.Anchor,
-                     (if Under = Item.Anchor then 0 else Under));
+                     (if Under = Item.Anchor and then not Item.Drag_Words then 0 else Under));
                   Handled := True;
                end;
             end if;
