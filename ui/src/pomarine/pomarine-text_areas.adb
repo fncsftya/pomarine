@@ -1684,6 +1684,10 @@ package body Pomarine.Text_Areas is
       Command : constant Boolean := Event.Command;
       Option  : constant Boolean := Event.Option;
       Shift   : constant Boolean := Event.Shift;
+      Control_Motion : constant Boolean :=
+        Event.Control and then not Command and then not Option
+        and then Key in Events.Key_A | Events.Key_E | Events.Key_B
+                      | Events.Key_F | Events.Key_P | Events.Key_N;
       High    : constant Float := Layouts.Line_Height (Item.Laid);
 
       function Deleting return Deletion is
@@ -1691,14 +1695,35 @@ package body Pomarine.Text_Areas is
    begin
       Handled := True;
       if not Item.Keyboard_Navigation
-        and then Key in Events.Key_Left_Arrow | Events.Key_Right_Arrow
+        and then (Control_Motion or else Key in Events.Key_Left_Arrow | Events.Key_Right_Arrow
                       | Events.Key_Up_Arrow | Events.Key_Down_Arrow
-                      | Events.Key_Home | Events.Key_End | Events.Key_Page_Up | Events.Key_Page_Down
+                      | Events.Key_Home | Events.Key_End | Events.Key_Page_Up | Events.Key_Page_Down)
       then
          return;
       end if;
       if not Item.Focused then
          null;
+      elsif Control_Motion then
+         Move (Item,
+               (case Key is
+                   when Events.Key_A => Line_Start,
+                   when Events.Key_E => Line_End,
+                   when Events.Key_B => Previous_Character,
+                   when Events.Key_F => Next_Character,
+                   when Events.Key_P => Previous_Line,
+                   when Events.Key_N => Next_Line,
+                   when others => raise Program_Error),
+               Extend => Shift);
+         if Key = Events.Key_A and then Marker_Of (Item, Item.At_Caret.Paragraph).Length > 0
+           and then Item.At_Caret < Mark_End (Item, Item.At_Caret.Paragraph)
+         then
+            Item.At_Caret := Mark_End (Item, Item.At_Caret.Paragraph);
+            if not Shift then
+               Item.At_Mark := Item.At_Caret;
+            end if;
+            Moved (Item);
+         end if;
+         return;
       elsif Command and then not Item.Single and then not Item.Read_Only
         and then (Key = Events.Key_B or else Key = Events.Key_I or else Key = Events.Key_U
                   or else (Shift and then Key = Events.Key_S))

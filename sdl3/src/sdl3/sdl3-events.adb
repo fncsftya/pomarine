@@ -12,8 +12,9 @@ package body SDL3.Events is
    use type Interfaces.C.int;
    use type Interfaces.C.Strings.chars_ptr;
 
-   Control_Or_Command : constant Interfaces.Unsigned_16 := 16#0CC0#;
-   --  SDL_KMOD_CTRL and SDL_KMOD_GUI
+   Command_Keys : constant Interfaces.Unsigned_16 := 16#0C00#;
+   --  SDL_KMOD_GUI
+   Control_Keys : constant Interfaces.Unsigned_16 := 16#00C0#;
    Alt_Keys   : constant Interfaces.Unsigned_16 := 16#0300#;
    Shift_Keys : constant Interfaces.Unsigned_16 := 16#0003#;
 
@@ -91,7 +92,8 @@ package body SDL3.Events is
    procedure Set_Modifiers
      (Item : in out Event; Modifiers : Interfaces.Unsigned_16) is
    begin
-      Item.Command := (Modifiers and Control_Or_Command) /= 0;
+      Item.Command := (Modifiers and Command_Keys) /= 0;
+      Item.Control := (Modifiers and Control_Keys) /= 0;
       Item.Option := (Modifiers and Alt_Keys) /= 0;
       Item.Shift := (Modifiers and Shift_Keys) /= 0;
    end Set_Modifiers;
@@ -185,7 +187,7 @@ package body SDL3.Events is
    end Decode;
 
    function Command_Held return Boolean is
-     ((Thin.Get_Mod_State and Control_Or_Command) /= 0);
+     ((Thin.Get_Mod_State and Command_Keys) /= 0);
 
    function Ticks return Milliseconds is (Milliseconds (Thin.Get_Ticks));
 

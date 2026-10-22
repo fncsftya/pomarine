@@ -14,6 +14,7 @@ package Text_Area_Tests is
    procedure Clicked;
    procedure Escape;
    procedure Zoomed;
+   procedure Control_Movement;
    procedure Selecting_Keys;
    procedure Select_All_And_Type;
    procedure Copy_And_Paste;

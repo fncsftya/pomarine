@@ -67,6 +67,7 @@ begin
    Run ("textarea-clicked", Text_Area_Tests.Clicked'Access);
    Run ("textarea-escape", Text_Area_Tests.Escape'Access);
    Run ("textarea-zoomed", Text_Area_Tests.Zoomed'Access);
+   Run ("textarea-control-movement", Text_Area_Tests.Control_Movement'Access);
    Run ("textarea-select-keys", Text_Area_Tests.Selecting_Keys'Access);
    Run ("textarea-select-all", Text_Area_Tests.Select_All_And_Type'Access);
    Run ("textarea-paste", Text_Area_Tests.Copy_And_Paste'Access);

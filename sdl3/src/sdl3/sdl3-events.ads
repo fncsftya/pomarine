@@ -32,6 +32,10 @@ package SDL3.Events is
    Key_0         : constant Key_Code := 16#30#;
    Key_A         : constant Key_Code := 16#61#;
    Key_B         : constant Key_Code := 16#62#;
+   Key_E         : constant Key_Code := 16#65#;
+   Key_F         : constant Key_Code := 16#66#;
+   Key_N         : constant Key_Code := 16#6E#;
+   Key_P         : constant Key_Code := 16#70#;
    Key_I         : constant Key_Code := 16#69#;
    Key_U         : constant Key_Code := 16#75#;
    Key_C         : constant Key_Code := 16#63#;
@@ -58,7 +62,8 @@ package SDL3.Events is
       Kind    : Event_Kind := Other;
       Time    : Milliseconds := 0;  --  when, as Ticks
       Key     : Key_Code := 0;      --  of Key_Down
-      Command : Boolean := False;   --  Control or Command was held
+      Command : Boolean := False;   --  Command was held
+      Control : Boolean := False;   --  Control was held
       Option  : Boolean := False;   --  Option (Alt) was held
       Shift   : Boolean := False;   --  Shift was held
       Text    : String (1 .. Text_Capacity) := [others => ' '];
@@ -108,7 +113,7 @@ package SDL3.Events is
    --  to call from any thread.
 
    function Command_Held return Boolean;
-   --  Whether Control or Command is held now.
+   --  Whether Command is held now.
 
    function Ticks return Milliseconds;
    --  Since SDL was initialized.

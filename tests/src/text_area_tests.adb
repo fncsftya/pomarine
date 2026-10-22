@@ -349,6 +349,58 @@ package body Text_Area_Tests is
       Check (Item, "textarea-zoomed");
    end Zoomed;
 
+   procedure Control_Movement is
+      use type Text_Areas.Position;
+      Item : Fixture;
+      procedure Control (Key : Events.Key_Code; Shift : Boolean := False) is
+      begin
+         Send (Item, (Kind => Events.Key_Down, Key => Key, Control => True, Shift => Shift, others => <>));
+      end Control;
+   begin
+      Open (Item, "abcd" & ASCII.LF & "efgh");
+      for Single in Boolean loop
+         Text_Areas.Set_Single_Line (Item.Area, Single);
+         Text_Areas.Move (Item.Area, Text_Areas.Text_Start);
+         Control (Events.Key_E);
+         pragma Assert (Text_Areas.Caret (Item.Area) = (1, 5));
+         Control (Events.Key_A);
+         pragma Assert (Text_Areas.Caret (Item.Area) = (1, 1));
+         Control (Events.Key_F);
+         pragma Assert (Text_Areas.Caret (Item.Area) = (1, 2));
+         Control (Events.Key_B);
+         pragma Assert (Text_Areas.Caret (Item.Area) = (1, 1));
+         Control (Events.Key_E, Shift => True);
+         Check_Selection ("textarea-control-line", Item, "abcd");
+         Control (Events.Key_A);
+         Control (Events.Key_N);
+         pragma Assert (Text_Areas.Caret (Item.Area) = (2, 1));
+         Control (Events.Key_P);
+         pragma Assert (Text_Areas.Caret (Item.Area) = (1, 1));
+         Press (Item, Events.Key_A, Command => True);
+         Check_Selection ("textarea-command-select-all", Item, Docs.Whole (Item.Doc));
+      end loop;
+
+      Text_Areas.Set_Single_Line (Item.Area, False);
+      for Kind in Text_Areas.Bullets .. Text_Areas.Numbers loop
+         Docs.Load (Item.Doc, "list item");
+         Text_Areas.Move (Item.Area, Text_Areas.Text_Start);
+         Text_Areas.Toggle_Block (Item.Area, Kind);
+         Text_Areas.Move (Item.Area, Text_Areas.Text_End);
+         Control (Events.Key_A, Shift => True);
+         Check_Selection ("textarea-control-list-text", Item, "list item");
+         Control (Events.Key_E);
+         Control (Events.Key_A);
+         pragma Assert (not Text_Areas.Has_Selection (Item.Area));
+         Text_Areas.Insert (Item.Area, "new ");
+         Text_Areas.Move (Item.Area, Text_Areas.Text_End);
+         Control (Events.Key_A, Shift => True);
+         Check_Selection ("textarea-control-list-insert", Item, "new list item");
+         Control (Events.Key_A);
+         Control (Events.Key_A, Shift => True);
+         pragma Assert (not Text_Areas.Has_Selection (Item.Area));
+      end loop;
+   end Control_Movement;
+
    procedure Selecting_Keys is
       Item : Fixture;
    begin
