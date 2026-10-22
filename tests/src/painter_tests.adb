@@ -1,6 +1,7 @@
 with SDL3.Painters;
 with SDL3.Windows.Renderers;
 with Goldens;
+with Pomarine.Line_Texts;
 
 package body Painter_Tests is
 
@@ -89,6 +90,40 @@ package body Painter_Tests is
             Boolean'Image (Renderers.Is_Clipped (Now) and then Renderers.Is_Clipped (Same)));
       end;
    end Clips_Nest;
+
+   procedure Character_Sizes is
+      Drawer : Pomarine.Line_Texts.Drawer;
+      Target : Renderers.Renderer;
+      Seen   : Images.Image;
+      Sizes  : constant array (Positive range <>) of Positive := [12, 24, 48, 12];
+      use type Renderers.Color;
+   begin
+      Renderers.Create_Offscreen (Target, 100, 100);
+      for Size of Sizes loop
+         declare
+            Onto : constant Painters.Renderer_Painter := Painters.To (Target);
+            Top  : Natural := 100;
+         begin
+            Onto.Clear (Paper);
+            Pomarine.Line_Texts.Draw_Character
+              (Drawer, Onto, Blue, "Helvetica", Character'Pos ('H'), 10.0, 80.0, Float (Size));
+            Pomarine.Line_Texts.Flush (Drawer, Onto);
+            Images.Read (Seen, Target);
+            for Y in 0 .. 99 loop
+               for X in 0 .. 99 loop
+                  if Images.Pixel (Seen, X, Y) /= Paper then
+                     Top := Natural'Min (Top, Y);
+                  end if;
+               end loop;
+            end loop;
+            --  A capital reaches above half the requested em, and stays
+            --  within it, including when the cached glyph is drawn again.
+            Goldens.Check_Text
+              ("character-size" & Positive'Image (Size), "TRUE",
+               Boolean'Image (Top >= 80 - Size and then Top < 80 - Size / 2));
+         end;
+      end loop;
+   end Character_Sizes;
 
    procedure Full_Recording is
       Seen : Painters.Recorder;

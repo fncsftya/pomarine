@@ -95,6 +95,7 @@ begin
    Run ("painters-recording", Painter_Tests.Recording_Kept'Access);
    Run ("painters-replay", Painter_Tests.Replay_Is_Drawing'Access);
    Run ("painters-clips", Painter_Tests.Clips_Nest'Access);
+   Run ("painters-character-sizes", Painter_Tests.Character_Sizes'Access);
    Run ("painters-full", Painter_Tests.Full_Recording'Access);
 
    Run ("semantics-whole", Semantic_Tests.Whole_Tree'Access);

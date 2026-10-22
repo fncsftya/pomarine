@@ -165,6 +165,9 @@ package body Pomarine.Line_Texts is
             end if;
             Glyph := Line.Glyphs.First_Element;
             Glyph.X := 0.0;
+            --  The page supplies the size on each draw; Face_Size is only
+            --  used to find the glyph, not its size on the page.
+            Glyph.Size := 0.0;
             Item.Glyphs.Insert (Key, Glyph);
          end;
       end if;
