@@ -1530,7 +1530,10 @@ package body Pomarine.Text_Areas is
                     (Item,
                      -Event.Wheel_Y * Lines_Per_Notch
                       * Layouts.Line_Height (Item.Laid));
-                  Handled := View_Top (Item) /= Before;
+                  --  At either end it still holds the wheel, if there is a bar
+                  --  to scroll, so the canvas under it does not pan instead.
+                  Handled := View_Top (Item) /= Before
+                    or else Layouts.Total_Height (Item.Laid) > Extent (Item);
                end;
             end if;
          when Events.Text_Input =>
