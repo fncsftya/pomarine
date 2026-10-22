@@ -1,5 +1,7 @@
 # Pomarine
 
+NOTE: this is in heavily development and primarily tailored to support [Bonxie](https://github.com/fncsftya/bonxie). I'll try to turn it into a more generic library over time.
+
 A MacOS-only GUI library for Ada: a tree of widgets, laid out by Yoga's
 flexbox, drawn with SDL3, with text from CoreText. It is built to be fast
 (only what changed is drawn, nothing is allocated while it runs) and to be
