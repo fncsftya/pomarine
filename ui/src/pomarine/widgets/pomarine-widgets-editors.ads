@@ -223,6 +223,9 @@ package Pomarine.Widgets.Editors is
      with Pre => Has_Document (Item);
    --  Where the caret is drawn, in pixels: as Pomarine.Text_Areas.Caret_Box.
 
+   function Search_Count (Item : Editor) return Natural;
+   function Search_Current (Item : Editor) return Natural;
+
    function Area (Item : in out Editor)
       return not null access Pomarine.Text_Areas.Text_Area;
    function Highlight_Count (Item : Editor) return Natural;

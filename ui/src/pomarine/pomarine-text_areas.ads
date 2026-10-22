@@ -1,3 +1,4 @@
+with Pomarine.Searches;
 with SDL3.Painters;
 with SDL3.Events;
 with Texts.Documents;
@@ -256,6 +257,20 @@ package Pomarine.Text_Areas is
                   and then Is_Position (Item, To),
           Post => Mark (Item) = From and then Caret (Item) = To;
    --  Select from From to To, with the caret at To.
+
+   procedure Search (Item : in out Text_Area; Term : String)
+     with Pre => Is_Attached (Item);
+   procedure Search_Step (Item : in out Text_Area; Backwards : Boolean := False)
+     with Pre => Is_Attached (Item);
+   procedure Search_Choose (Item : in out Text_Area; Index : Natural)
+     with Pre => Is_Attached (Item) and then Index <= Search_Count (Item),
+          Post => Search_Current (Item) = Index;
+   procedure Search_Box (Item : in out Text_Area; X, Y, Width, Height : out Float)
+     with Pre => Is_Attached (Item) and then Search_Current (Item) > 0;
+   --  Select a transient find result and measure its first character, without moving the editing caret.
+
+   function Search_Count (Item : Text_Area) return Natural;
+   function Search_Current (Item : Text_Area) return Natural;
 
    procedure Select_All (Item : in out Text_Area)
      with Pre => Is_Attached (Item);
@@ -589,6 +604,10 @@ private
       Faint_From    : Position;
       Faint_To      : Position;
       Faint_Version : Texts.Documents.Version := 0;
+      Found : Pomarine.Searches.Results;
+      Search_Term : Ada.Strings.Unbounded.Unbounded_String;
+      Search_Seen : Texts.Documents.Version := 0;
+      Search_Serial : Natural := 0;
       Highlights : Highlight_Array;
       Highlight_Total : Natural range 0 .. Max_Highlights := 0;
       Highlight_Version : Texts.Documents.Version := 0;

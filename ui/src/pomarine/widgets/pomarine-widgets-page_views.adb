@@ -1,5 +1,4 @@
 with Pomarine.Marks.Drawing;
-with Ada.Strings.Unbounded;
 with Pomarine.Mark_Paths;
 with Ada.Unchecked_Deallocation;
 with Pomarine.Line_Texts;
@@ -160,6 +159,7 @@ package body Pomarine.Widgets.Page_Views is
 
    procedure Clear_Document (Item : in out Page_View) is
    begin
+      Search (Item, "");
       if Item.Measuring /= 0 then
          Pomarine.Page_Builds.Cancel (Item.Measuring);
          Item.Measuring := 0;
@@ -901,6 +901,83 @@ package body Pomarine.Widgets.Page_Views is
       Target.Restore_Clip (Base);
    end Draw_Page_Content;
 
+   procedure Search (Item : in out Page_View; Term : String) is
+   begin
+      if Item.Search_Job /= 0 then
+         Pomarine.Page_Builds.Cancel (Item.Search_Job);
+         Item.Search_Job := 0;
+      end if;
+      Pomarine.Searches.Clear (Item.Search_Found);
+      Item.Search_Term := Ada.Strings.Unbounded.To_Unbounded_String (Term);
+      Item.Search_Page := 0;
+      if Term /= "" and then Has_Document (Item) then
+         Item.Search_Page := 1;
+      end if;
+      Invalidate (Item);
+   end Search;
+
+   procedure Search_Step (Item : in out Page_View; Backwards : Boolean := False) is
+   begin
+      Pomarine.Searches.Step (Item.Search_Found, Backwards);
+      for B of Item.Search_Found.Boxes loop
+         if B.Hit = Item.Search_Found.Current then
+            Item.Wanted := 0;
+            if Total_Of (Item) > 0.0 then
+               Scroll_To (Item, Float'Min (1.0,
+                 (Offset (Item, B.Page) + B.Top * Page_Height (Item, B.Page)) / Total_Of (Item)));
+            end if;
+            if Wide_Of (Item) > Width_Of (Item) then
+               Scroll_Across_To (Item, Float'Min (1.0,
+                 B.Left * Wide_Of (Item) / (Wide_Of (Item) - Width_Of (Item))));
+            end if;
+            exit;
+         end if;
+      end loop;
+      Invalidate (Item);
+   end Search_Step;
+
+   function Search_Busy (Item : Page_View) return Boolean is (Item.Search_Page /= 0);
+   function Search_Count (Item : Page_View) return Natural is (Natural (Item.Search_Found.Matches.Length));
+   function Search_Current (Item : Page_View) return Natural is (Item.Search_Found.Current);
+
+   procedure Search_Update (Item : in out Page_View) is
+      use type Pomarine.Page_Builds.States;
+      Content : Pomarine.Pages.Page_Access;
+      Found : Result_Access;
+      Job : Pomarine.Page_Builds.Ticket;
+   begin
+      if Item.Search_Page = 0 then
+         return;
+      end if;
+      if Item.Search_Job /= 0 then
+         if Pomarine.Page_Builds.State (Item.Search_Job) = Pomarine.Page_Builds.Working then
+            return;
+         elsif Pomarine.Page_Builds.State (Item.Search_Job) = Pomarine.Page_Builds.Done then
+            Pomarine.Page_Builds.Take (Item.Search_Job, Content, Found);
+            if Found /= null then
+               Pomarine.Searches.Find_Words
+                 (Item.Search_Found, Found.all, Ada.Strings.Unbounded.To_String (Item.Search_Term), Item.Search_Page);
+            end if;
+            Pomarine.Pages.Free (Content);
+            Free (Found);
+         else
+            Pomarine.Page_Builds.Cancel (Item.Search_Job);
+         end if;
+         Item.Search_Job := 0;
+         if Item.Search_Found.Current = 0 and then not Item.Search_Found.Matches.Is_Empty then
+            Search_Step (Item);
+         end if;
+         Item.Search_Page := @ + 1;
+         Invalidate (Item);
+      end if;
+      if Item.Search_Page <= Count (Item) then
+         Pomarine.Page_Builds.Request (Item.Source, Item.Search_Page, Job);
+         Item.Search_Job := Job;
+      else
+         Item.Search_Page := 0;
+      end if;
+   end Search_Update;
+
    overriding procedure Draw
      (Item   : in out Page_View;
       Target : SDL3.Painters.Painter'Class;
@@ -970,6 +1047,10 @@ package body Pomarine.Widgets.Page_Views is
          end;
       end loop;
 
+      for Page in First .. Last loop
+         Pomarine.Searches.Draw
+           (Item.Search_Found, Target, Page, Left, Page_Top (Item, Page), Wide, Page_Height (Item, Page));
+      end loop;
       --  Marks and the selection, over the pages.
       declare
          High : constant Float := Mark_Height * Wide;
@@ -1016,13 +1097,14 @@ package body Pomarine.Widgets.Page_Views is
    is
       pragma Unreferenced (Now);
    begin
+      Search_Update (Item);
       if Item.Pending then
          Invalidate (Item);
       end if;
    end Update;
 
    overriding function Until_Update (Item : Page_View) return Integer is
-     (if Item.Pending then Poll else -1);
+     (if Item.Pending or else Item.Search_Page /= 0 then Poll else -1);
 
    overriding procedure Hover_Changed (Item : in out Page_View; Hovered : Boolean) is
    begin

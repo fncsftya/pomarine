@@ -1,3 +1,5 @@
+with Ada.Strings.Unbounded;
+with Pomarine.Searches;
 with Pomarine.Marks;
 with Pomarine.Page_Builds;
 with Pomarine.Pages;
@@ -172,6 +174,12 @@ package Pomarine.Widgets.Page_Views is
    procedure Copy (Item : Page_View);
    --  Put the selected words on the tree's clipboard, if there are any.
 
+   procedure Search (Item : in out Page_View; Term : String);
+   procedure Search_Step (Item : in out Page_View; Backwards : Boolean := False);
+   function Search_Busy (Item : Page_View) return Boolean;
+   function Search_Count (Item : Page_View) return Natural;
+   function Search_Current (Item : Page_View) return Natural;
+
    overriding procedure Draw
      (Item   : in out Page_View;
       Target : SDL3.Painters.Painter'Class;
@@ -232,6 +240,9 @@ private
    type Slot_Array is array (1 .. Cache_Size) of Slot;
 
    type Page_View is new Widget with record
+      Search_Found : Pomarine.Searches.Results;
+      Search_Term : Ada.Strings.Unbounded.Unbounded_String;
+      Search_Job, Search_Page : Natural := 0;
       Sizes   : Pomarine.Pages.Size_Array_Access;
       Source  : Pomarine.Pages.Source_Access;
       Ratios  : Float_Array_Access;

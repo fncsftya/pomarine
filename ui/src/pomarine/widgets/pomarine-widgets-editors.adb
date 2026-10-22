@@ -190,6 +190,9 @@ package body Pomarine.Widgets.Editors is
       Text_Areas.Caret_Box (Item.Text, X, Y, Width, Height);
    end Caret_Box;
 
+   function Search_Count (Item : Editor) return Natural is (Text_Areas.Search_Count (Item.Text));
+   function Search_Current (Item : Editor) return Natural is (Text_Areas.Search_Current (Item.Text));
+
    function Area (Item : in out Editor)
       return not null access Pomarine.Text_Areas.Text_Area is
      (Item.Text'Unchecked_Access);

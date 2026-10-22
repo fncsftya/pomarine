@@ -200,6 +200,11 @@ package body Pomarine.Text_Areas is
             end;
          end loop;
       end if;
+      if Item.Search_Seen /= Docs.Current (Item.Doc.all)
+        or else Item.Search_Serial /= Docs.Serial (Item.Doc.all)
+      then
+         Search (Item, Ada.Strings.Unbounded.To_String (Item.Search_Term));
+      end if;
       Seen := Docs.Current (Item.Doc.all);
       Layouts.Sync (Item.Laid, Item.Doc.all);
       Item.Anchor := Positive'Min (Item.Anchor, Count (Item));
@@ -334,6 +339,8 @@ package body Pomarine.Text_Areas is
       Item.Doc := Doc;
       Item.Explicit_Formats := False;
       Clear_Highlights (Item);
+      Pomarine.Searches.Clear (Item.Found);
+      Item.Search_Term := Ada.Strings.Unbounded.Null_Unbounded_String;
       Item.Serial := 0;  --  start again
       Item.Caret_Kept := False;
       Catch_Up (Item);
@@ -685,6 +692,62 @@ package body Pomarine.Text_Areas is
       Docs.Seal (Item.Doc.all);
       Moved (Item);
    end Select_Range;
+
+   function Search_Position (Item : Text_Area; Offset : Positive) return Position is
+      Left : Positive := Offset;
+   begin
+      for Para in 1 .. Docs.Count (Item.Doc.all) loop
+         if Left <= Docs.Byte_Length (Item.Doc.all, Para) + 1 then
+            return (Para, Left);
+         end if;
+         Left := Left - Docs.Byte_Length (Item.Doc.all, Para) - 1;
+      end loop;
+      return Docs.Text_End (Item.Doc.all);
+   end Search_Position;
+
+   procedure Search (Item : in out Text_Area; Term : String) is
+   begin
+      Pomarine.Searches.Clear (Item.Found);
+      Item.Search_Term := Ada.Strings.Unbounded.To_Unbounded_String (Term);
+      Item.Search_Seen := Docs.Current (Item.Doc.all);
+      Item.Search_Serial := Docs.Serial (Item.Doc.all);
+      if Term /= "" then
+         Pomarine.Searches.Find (Item.Found, Docs.Whole (Item.Doc.all), Term);
+      end if;
+   end Search;
+
+   procedure Search_Step (Item : in out Text_Area; Backwards : Boolean := False) is
+   begin
+      Catch_Up (Item);
+      Pomarine.Searches.Step (Item.Found, Backwards);
+      if Item.Found.Current > 0 then
+         declare
+            M : constant Pomarine.Searches.Match := Item.Found.Matches (Item.Found.Current);
+            Saved : constant Position := Item.At_Caret;
+         begin
+            Item.At_Caret := Search_Position (Item, M.First);
+            Reveal (Item);
+            Item.At_Caret := Saved;
+         end;
+      end if;
+   end Search_Step;
+
+   procedure Search_Choose (Item : in out Text_Area; Index : Natural) is
+   begin
+      Item.Found.Current := Index;
+   end Search_Choose;
+
+   procedure Search_Box (Item : in out Text_Area; X, Y, Width, Height : out Float) is
+      Saved : constant Position := Item.At_Caret;
+      M : constant Pomarine.Searches.Match := Item.Found.Matches (Item.Found.Current);
+   begin
+      Item.At_Caret := Search_Position (Item, M.First);
+      Caret_Box (Item, X, Y, Width, Height);
+      Item.At_Caret := Saved;
+   end Search_Box;
+
+   function Search_Count (Item : Text_Area) return Natural is (Natural (Item.Found.Matches.Length));
+   function Search_Current (Item : Text_Area) return Natural is (Item.Found.Current);
 
    procedure Select_All (Item : in out Text_Area) is
    begin
@@ -2232,6 +2295,20 @@ package body Pomarine.Text_Areas is
       Layouts.Visible
         (Item.Laid, Item.Doc.all, Item.Anchor, Item.Offset, Extent (Item),
          First, Last);
+
+      for Index in 1 .. Natural (Item.Found.Matches.Length) loop
+         declare
+            M : constant Pomarine.Searches.Match := Item.Found.Matches (Index);
+         begin
+            Draw_Range
+              (Item, Target, Search_Position (Item, M.First), Search_Position (Item, M.Last + 1), First, Last,
+               (if Index = Item.Found.Current then Themes.Color'(40, 120, 255, 130)
+                else Themes.Color'(60, 170, 255, 65)), False, Rows_From, Rows_To, Marking => True);
+            Draw_Range
+              (Item, Target, Search_Position (Item, M.First), Search_Position (Item, M.Last + 1), First, Last,
+               Themes.Color'(30, 110, 240, 230), True, Rows_From, Rows_To, Marking => True);
+         end;
+      end loop;
 
       for Index in 1 .. Highlight_Count (Item) loop
          declare

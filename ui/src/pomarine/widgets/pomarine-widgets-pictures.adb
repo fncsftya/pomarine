@@ -543,6 +543,34 @@ package body Pomarine.Widgets.Pictures is
      (if Item.Job /= 0 and then Jobs.State (Item.Job) = Jobs.Working
       then Poll else -1);
 
+   procedure Search (Item : in out Picture; Term : String) is
+   begin
+      Pomarine.Searches.Clear (Item.Search_Found);
+      if Item.Found /= null then
+         Pomarine.Searches.Find_Words (Item.Search_Found, Item.Found.all, Term);
+      end if;
+      Invalidate (Item);
+   end Search;
+
+   procedure Search_Step (Item : in out Picture; Backwards : Boolean := False) is
+   begin
+      Pomarine.Searches.Step (Item.Search_Found, Backwards);
+      for B of Item.Search_Found.Boxes loop
+         if B.Hit = Item.Search_Found.Current then
+            Scroll_To (Item, B.Top);
+            if Wide_Of (Item) > Width_Of (Item) then
+               Scroll_Across_To (Item, Float'Min (1.0,
+                 B.Left * Wide_Of (Item) / (Wide_Of (Item) - Width_Of (Item))));
+            end if;
+            exit;
+         end if;
+      end loop;
+      Invalidate (Item);
+   end Search_Step;
+
+   function Search_Count (Item : Picture) return Natural is (Natural (Item.Search_Found.Matches.Length));
+   function Search_Current (Item : Picture) return Natural is (Item.Search_Found.Current);
+
    overriding procedure Draw
      (Item   : in out Picture;
       Target : SDL3.Painters.Painter'Class;
@@ -629,6 +657,8 @@ package body Pomarine.Widgets.Pictures is
             end loop;
          end;
       end if;
+      Pomarine.Searches.Draw
+        (Item.Search_Found, Target, 1, Origin_X (Item), Origin_Y (Item), Wide, Item.Fitted);
       Scrollbars.Draw (Item.Down_Bar, Target, Colors, Down_Metrics (Item));
       Scrollbars.Draw
         (Item.Across_Bar, Target, Colors, Across_Metrics (Item));

@@ -1,3 +1,4 @@
+with Pomarine.Searches;
 with Pomarine.Marks;
 with Pomarine.Semantics;
 with SDL3.Painters;
@@ -168,6 +169,11 @@ package Pomarine.Widgets.Pictures is
    procedure Clear_Selection (Item : in out Picture)
      with Post => not Has_Selection (Item);
 
+   procedure Search (Item : in out Picture; Term : String);
+   procedure Search_Step (Item : in out Picture; Backwards : Boolean := False);
+   function Search_Count (Item : Picture) return Natural;
+   function Search_Current (Item : Picture) return Natural;
+
    overriding procedure Draw
      (Item   : in out Picture;
       Target : SDL3.Painters.Painter'Class;
@@ -203,6 +209,7 @@ package Pomarine.Widgets.Pictures is
 private
 
    type Picture is new Widget with record
+      Search_Found : Pomarine.Searches.Results;
       Name    : String (1 .. Path_Capacity) := [others => ' '];
       Length  : Natural range 0 .. Path_Capacity := 0;
       Loaded  : Boolean := False;
