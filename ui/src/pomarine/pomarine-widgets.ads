@@ -72,7 +72,8 @@ package Pomarine.Widgets is
       Delete,        --  Backspace or Delete with a line selected on a canvas
       Act,           --  a button at the end of a list's row (Row, Action)
       Blur,          --  the widget has lost the focus (only said if it has a handler)
-      Assist);       --  an editor's toolbar button for what the application does of its text
+      Assist,        --  an editor's toolbar button for what the application does of its text
+      Use_Tool);     --  one of an editor's tools added by the application (Row, its number)
 
    No_Tag : constant Integer := -1;
 
@@ -82,9 +83,9 @@ package Pomarine.Widgets is
       Index  : Natural := 0;
       --  Which of many like it, as the application said.
       case Kind is
-         when Choose | Select_Tag | Act =>
+         when Choose | Select_Tag | Act | Use_Tool =>
             Row : Natural := 0;
-            --  Of a menu's or a list's rows, or the tag of a canvas's line.
+            --  Of a menu's or a list's rows, the tag of a canvas's line, or an editor's tool.
             case Kind is
                when Act =>
                   Action : Natural := 0;

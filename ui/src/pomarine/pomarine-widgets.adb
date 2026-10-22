@@ -530,7 +530,7 @@ package body Pomarine.Widgets is
       Result.Tag := Tag;
       Result.Index := Index;
       case Kind is
-         when Choose | Select_Tag =>
+         when Choose | Select_Tag | Use_Tool =>
             Result.Row := Row;
          when Act =>
             Result.Row := Row;

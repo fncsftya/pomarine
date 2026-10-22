@@ -5,7 +5,8 @@ with SDL3.Events;
 with Texts.Documents;
 with Pomarine.Icons;
 with Pomarine.Text_Areas;
-private with Pomarine.Widgets.Buttons;
+with Pomarine.Widgets.Buttons;
+private with Pomarine.Widgets.Tooltips;
 
 --  A text area (see Pomarine.Text_Areas) as a widget: it is placed by the
 --  layout, takes the focus when clicked, and is drawn, updated and given
@@ -70,6 +71,26 @@ package Pomarine.Widgets.Editors is
    --  and not read only; Content_Height of its text area allows for it.
 
    function Has_Toolbar (Item : Editor) return Boolean;
+
+   Tool_Capacity : constant := 8;
+   --  Of the buttons the application may add after the style buttons.
+
+   function Tool_Count (Item : Editor) return Natural;
+
+   procedure Add_Tool
+     (Item            : in out Editor;
+      Label           : String;
+      Key             : Character := ASCII.NUL;
+      Needs_Selection : Boolean := False)
+     with Pre => Tool_Count (Item) < Tool_Capacity
+                 and then Label'Length > 0
+                 and then Label'Length <= Pomarine.Widgets.Buttons.Label_Capacity
+                 and then (Key = ASCII.NUL or else Key in 'a' .. 'z');
+   --  Give the toolbar a button, after a divider, with this label, in the
+   --  order added; none to begin with. Its click, or Command and Key while
+   --  the text has the focus, is a Use_Tool event whose Row is its number, from 1.
+   --  Hovering it shows its label and key. With Needs_Selection it is off
+   --  while nothing is selected, and its key does nothing.
 
    Assist_Capacity : constant := 16;
    --  Bytes of the label of the toolbar's button.
@@ -216,12 +237,29 @@ private
 
    type Format_Buttons is array (Texts.Documents.Format) of Pomarine.Widgets.Buttons.Button;
 
+   subtype Tool_Number is Positive range 1 .. Tool_Capacity;
+
+   type Tool_Buttons is array (Tool_Number) of Pomarine.Widgets.Buttons.Button;
+
+   type Tool_Keys is array (Tool_Number) of Character;
+
+   type Tool_Flags is array (Tool_Number) of Boolean;
+
    type Editor is new Widget and Listener with record
       Text    : aliased Pomarine.Text_Areas.Text_Area;
       Toolbar : Format_Buttons;
       --  Added to the tree when first wanted; shown while the text area
       --  has a toolbar.
       Toolbar_Shown : Boolean := False;
+      Tools         : Tool_Buttons;
+      Keys          : Tool_Keys := [others => ASCII.NUL];
+      Selective     : Tool_Flags := [others => False];
+      Tool_Total    : Natural range 0 .. Tool_Capacity := 0;
+      --  The application's buttons, after a divider at the right of the
+      --  style buttons. Hovering one shows Tip, below it.
+      Tip           : Pomarine.Widgets.Tooltips.Tooltip;
+      Tip_Shown     : Boolean := False;
+      Tip_For       : Tool_Number := 1;
       Assist        : Pomarine.Widgets.Buttons.Button;
       --  Added to the tree when first wanted (see Set_Assist).
       Assist_Text   : String (1 .. Assist_Capacity) := [others => ' '];

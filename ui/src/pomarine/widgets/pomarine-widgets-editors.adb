@@ -1,3 +1,4 @@
+with Ada.Characters.Handling;
 with System;
 with Texts;
 with Yoga.Nodes;
@@ -25,6 +26,12 @@ package body Pomarine.Widgets.Editors is
 
    procedure Update_Toolbar (Item : in out Editor);
    --  Show the toolbar's buttons if it is to have them, and hide them if not.
+
+   function Tool_For_Key (Item : Editor; Key : SDL3.Events.Key_Code) return Natural;
+   --  The number of the tool whose key it is; 0 if none.
+
+   procedure Refresh_Tip (Item : in out Editor);
+   --  Show the tooltip of the tool button the pointer is over, if any.
 
    procedure Refresh_Assist (Item : in out Editor);
    --  Show the assist button if it is wanted and there is room, and whether
@@ -157,6 +164,86 @@ package body Pomarine.Widgets.Editors is
    Button_Gap    : constant Float := 6.0;
    --  In points, in the toolbar's band at the top of the text area.
 
+   Command_Mark  : constant String :=
+     [Character'Val (16#E2#), Character'Val (16#8C#), Character'Val (16#98#)];
+   --  The command key's symbol, U+2318, in UTF-8.
+
+   Divider_Gap   : constant Float := 8.0;
+   Tool_Wide     : constant Float := 64.0;
+   Tools_Left    : constant Float :=
+     Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap + Divider_Gap + 1.0 + Divider_Gap;
+   --  In points: the divider is Divider_Gap after the style buttons, and
+   --  the tool buttons Divider_Gap after it.
+
+   function Tool_Left (Tool : Tool_Number) return Float is
+     (Tools_Left + Float (Tool - 1) * (Tool_Wide + Button_Gap));
+
+   function Tools_End (Item : Editor) return Float is
+     (if Item.Tool_Total = 0 then Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap
+      else Tool_Left (Item.Tool_Total) + Tool_Wide);
+
+   Tip_Gap       : constant Float := 4.0;
+   --  In points, between a tool button and its tooltip.
+
+   function Tip_Text (Item : Editor; Tool : Tool_Number) return String is
+     (Buttons.Label (Item.Tools (Tool))
+      & (if Item.Keys (Tool) = ASCII.NUL then ""
+         else "  " & Command_Mark & Ada.Characters.Handling.To_Upper (Item.Keys (Tool))));
+
+   function Tool_Count (Item : Editor) return Natural is (Item.Tool_Total);
+
+   function Tool_For_Key (Item : Editor; Key : SDL3.Events.Key_Code) return Natural is
+   begin
+      for Tool in 1 .. Item.Tool_Total loop
+         if Item.Keys (Tool) /= ASCII.NUL
+           and then Key = SDL3.Events.Key_Code (Character'Pos (Item.Keys (Tool)))
+         then
+            return Tool;
+         end if;
+      end loop;
+      return 0;
+   end Tool_For_Key;
+
+   procedure Refresh_Tip (Item : in out Editor) is
+      Found : Boolean := False;
+      Which : Tool_Number := 1;
+   begin
+      if Item.Toolbar_Shown then
+         for Tool in 1 .. Item.Tool_Total loop
+            if Is_Attached (Item.Tools (Tool)) and then Is_Hovered (Item.Tools (Tool)) then
+               Found := True;
+               Which := Tool;
+            end if;
+         end loop;
+      end if;
+      if Found then
+         if not Item.Tip_Shown or else Item.Tip_For /= Which then
+            declare
+               Pixels : constant Float := Density (Item);
+            begin
+               Tooltips.Set_Text (Item.Tip, Tip_Text (Item, Which));
+               if not Is_Attached (Item.Tip) then
+                  Add (Item, Item.Tip);
+                  Yoga.Nodes.Set_Position_Type (Node (Item.Tip), Yoga.Absolute);
+               end if;
+               Yoga.Nodes.Set_Position (Node (Item.Tip), Yoga.Left, Tool_Left (Which) * Pixels);
+               Yoga.Nodes.Set_Position
+                 (Node (Item.Tip), Yoga.Top, (Toolbar_Top + Button_High + Tip_Gap) * Pixels);
+               Yoga.Nodes.Set_Width
+                 (Node (Item.Tip), Float'Rounding (Tooltips.Natural_Width (Item.Tip) * Pixels));
+               Yoga.Nodes.Set_Height (Node (Item.Tip), Tooltips.Height * Pixels);
+               Set_Visible (Item.Tip, True);
+               Item.Tip_Shown := True;
+               Item.Tip_For := Which;
+               Request_Layout (Item);
+            end;
+         end if;
+      elsif Item.Tip_Shown then
+         Item.Tip_Shown := False;
+         Set_Visible (Item.Tip, False);
+      end if;
+   end Refresh_Tip;
+
    Toolbar_Order : constant array (0 .. 3) of Docs.Format :=
      [Docs.Bold, Docs.Italic, Docs.Underline, Docs.Strikethrough];
 
@@ -202,6 +289,23 @@ package body Pomarine.Widgets.Editors is
             Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
          end;
       end loop;
+      for Tool in 1 .. Item.Tool_Total loop
+         declare
+            Part : Buttons.Button renames Item.Tools (Tool);
+         begin
+            if not Is_Attached (Part) then
+               Set_Accessible_Name (Part, Buttons.Label (Part));
+               Buttons.Set_Enabled (Part, True);
+               Set_Listener (Part, Item'Unchecked_Access);
+               Add (Item, Part);
+            end if;
+            Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
+            Yoga.Nodes.Set_Position (Node (Part), Yoga.Left, Tool_Left (Tool) * Pixels);
+            Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, Toolbar_Top * Pixels);
+            Yoga.Nodes.Set_Width (Node (Part), Tool_Wide * Pixels);
+            Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
+         end;
+      end loop;
       Request_Layout (Item);
    end Build_Toolbar;
 
@@ -211,14 +315,37 @@ package body Pomarine.Widgets.Editors is
          for Style in Docs.Format loop
             Buttons.Set_Selected (Item.Toolbar (Style), Text_Areas.Format_Active (Item.Text, Style));
          end loop;
+         for Tool in 1 .. Item.Tool_Total loop
+            Buttons.Set_Enabled
+              (Item.Tools (Tool), not Item.Selective (Tool) or else Text_Areas.Has_Selection (Item.Text));
+         end loop;
       end if;
       Refresh_Assist (Item);
    end Refresh_Toolbar;
 
+   procedure Add_Tool
+     (Item            : in out Editor;
+      Label           : String;
+      Key             : Character := ASCII.NUL;
+      Needs_Selection : Boolean := False)
+   is
+      Tool : constant Tool_Number := Item.Tool_Total + 1;
+   begin
+      Item.Tool_Total := Tool;
+      Buttons.Set_Label (Item.Tools (Tool), Label);
+      Item.Keys (Tool) := Key;
+      Item.Selective (Tool) := Needs_Selection;
+      if Item.Toolbar_Shown then
+         Build_Toolbar (Item);
+         Set_Visible (Item.Tools (Tool), True);
+         Refresh_Toolbar (Item);
+      end if;
+   end Add_Tool;
+
    Assist_Wide  : constant Float := 96.0;
    Assist_Right : constant Float := 12.0;
-   Assist_Room  : constant Float :=
-     Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap + 8.0 + Assist_Wide + Assist_Right;
+   function Assist_Room (Item : Editor) return Float is
+     (Tools_End (Item) + 8.0 + Assist_Wide + Assist_Right);
    --  In points: how wide the text area is to be, for the button to have
    --  room beside the style buttons.
 
@@ -243,7 +370,7 @@ package body Pomarine.Widgets.Editors is
       declare
          Doc    : constant not null access constant Docs.Document := Document (Item);
          Wanted : constant Boolean :=
-           Item.Toolbar_Shown and then Width_Of (Item) >= Assist_Room * Density (Item);
+           Item.Toolbar_Shown and then Width_Of (Item) >= Assist_Room (Item) * Density (Item);
          Filled : Boolean;
       begin
          if Docs.Current (Doc.all) /= Item.Assist_Version or else Docs.Serial (Doc.all) /= Item.Assist_Serial then
@@ -290,12 +417,19 @@ package body Pomarine.Widgets.Editors is
          for Part of Item.Toolbar loop
             Set_Visible (Part, True);
          end loop;
+         for Tool in 1 .. Item.Tool_Total loop
+            Set_Visible (Item.Tools (Tool), True);
+         end loop;
          Refresh_Toolbar (Item);
       elsif not Wanted and then Item.Toolbar_Shown then
          Item.Toolbar_Shown := False;
          if Is_Attached (Item) then
+            Refresh_Tip (Item);
             for Part of Item.Toolbar loop
                Set_Visible (Part, False);
+            end loop;
+            for Tool in 1 .. Item.Tool_Total loop
+               Set_Visible (Item.Tools (Tool), False);
             end loop;
          end if;
       end if;
@@ -365,6 +499,12 @@ package body Pomarine.Widgets.Editors is
                if Buttons.Is_Enabled (Self.Assist) then
                   Notify (Self, Assist);
                end if;
+            elsif (for some Tool in 1 .. Self.Tool_Total => Source'Address = Self.Tools (Tool)'Address) then
+               for Tool in 1 .. Self.Tool_Total loop
+                  if Source'Address = Self.Tools (Tool)'Address and then Buttons.Is_Enabled (Self.Tools (Tool)) then
+                     Notify (Self, Use_Tool, Row => Tool);
+                  end if;
+               end loop;
             elsif Has_Document (Self) then
                for Style in Docs.Format loop
                   if Source'Address = Self.Toolbar (Style)'Address then
@@ -445,6 +585,14 @@ package body Pomarine.Widgets.Editors is
               (Item.Text, Target, Shown, Is_Settled (Item),
                Rows_From => Float (Part.Top),
                Rows_To   => Float (Part.Top + Part.Height));
+            if Item.Toolbar_Shown and then Item.Tool_Total > 0 and then Is_Attached (Item.Tools (1)) then
+               --  The divider between the style buttons and the tools.
+               SDL3.Painters.Fill_Rect
+                 (Target, Colors (Themes.Border),
+                  Left_Of (Item.Tools (1)) - (Divider_Gap + 1.0) * Pixels,
+                  Top_Of (Item.Tools (1)) + 3.0 * Pixels,
+                  Pixels, Height_Of (Item.Tools (1)) - 6.0 * Pixels);
+            end if;
             if Item.Hint_Length > 0 and then Text_Lines (Item) /= null
               and then Docs.Count (Text_Areas.Document (Item.Text).all) = 1
               and then Docs.Length (Text_Areas.Document (Item.Text).all, 1)
@@ -507,6 +655,19 @@ package body Pomarine.Widgets.Editors is
                 elsif Event.Key = SDL3.Events.Key_U then Docs.Underline
                 else Docs.Italic));
             Handled := True;
+         elsif Item.Toolbar_On and then Has_Focus (Item)
+           and then Event.Kind = SDL3.Events.Key_Down
+           and then Event.Command and then not Event.Option and then not Event.Shift
+           and then Tool_For_Key (Item, Event.Key) /= 0
+         then
+            declare
+               Tool : constant Tool_Number := Tool_For_Key (Item, Event.Key);
+            begin
+               if not Item.Selective (Tool) or else Text_Areas.Has_Selection (Item.Text) then
+                  Notify (Item, Use_Tool, Row => Tool);
+               end if;
+            end;
+            Handled := True;
          else
             Text_Areas.Handle (Item.Text, Event, Clipboard (Item).all, Handled);
          end if;
@@ -538,6 +699,7 @@ package body Pomarine.Widgets.Editors is
          end if;
          Update_Toolbar (Item);
          Refresh_Toolbar (Item);
+         Refresh_Tip (Item);
       end if;
    end Handle;
 
@@ -604,6 +766,7 @@ package body Pomarine.Widgets.Editors is
    begin
       if Has_Document (Item) then
          Text_Areas.Set_Hovered (Item.Text, Hovered);
+         Refresh_Tip (Item);
          Invalidate (Item);
       end if;
    end Hover_Changed;
