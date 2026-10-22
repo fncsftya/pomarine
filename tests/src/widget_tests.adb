@@ -839,6 +839,26 @@ package body Widget_Tests is
          Pomarine.Text_Areas.Select_Range (Page.all, (3, 1), (3, 1));
          Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Numbers);
          Check_Whole ("editing-toggle-renumber", "1. a" & ASCII.LF & ASCII.LF & "b" & ASCII.LF & "1. c");
+         declare
+            procedure Press_Back is
+            begin
+               Widgets.Dispatch
+                 (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Backspace, others => <>), Ignored);
+            end Press_Back;
+         begin
+            Docs.Replace (Item.Doc, (1, 1), Docs.Text_End (Item.Doc), "1. a" & ASCII.LF & "2. b" & ASCII.LF & "3. c");
+            Pomarine.Text_Areas.Select_Range (Page.all, (2, 1), (2, 1));
+            Press_Back;
+            Check_Whole ("editing-backspace-join", "1. ab" & ASCII.LF & "2. c");
+            Docs.Replace (Item.Doc, (1, 1), Docs.Text_End (Item.Doc), "1. a" & ASCII.LF & "2. b" & ASCII.LF & "3. c");
+            Pomarine.Text_Areas.Select_Range (Page.all, (2, 4), (2, 4));
+            Press_Back;
+            Check_Whole ("editing-backspace-mark", "1. a" & ASCII.LF & "b" & ASCII.LF & "1. c");
+            Docs.Replace (Item.Doc, (1, 1), Docs.Text_End (Item.Doc), "1. a" & ASCII.LF & "2. b" & ASCII.LF & "3. c");
+            Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 1));
+            Pomarine.Text_Areas.Insert (Page.all, "x");
+            Check_Whole ("editing-type-before-mark", "1. xa" & ASCII.LF & "2. b" & ASCII.LF & "3. c");
+         end;
       end;
    end Toolbar_Editing;
 

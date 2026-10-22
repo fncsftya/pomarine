@@ -1152,6 +1152,13 @@ package body Pomarine.Text_Areas is
       end;
    end Marker_Of;
 
+   --  Where the text of list item Para starts, after its lead and mark.
+   function Mark_End (Item : Text_Area; Para : Positive) return Position is
+      Found : constant Marker := Marker_Of (Item, Para);
+   begin
+      return (Para, Found.Lead + Found.Length + 1);
+   end Mark_End;
+
    procedure Paragraph_Range (Item : Text_Area; First, Last : out Positive) is
       From : constant Position := Selection_First (Item);
       To   : constant Position := Selection_Last (Item);
@@ -1420,9 +1427,23 @@ package body Pomarine.Text_Areas is
       Reveal (Item);
    end Set_Style;
 
+   --  Text typed or pasted into the lead or mark of a list item goes after the mark: the mark stays first.
+   procedure Clear_Of_Mark (Item : in out Text_Area; Typed : String) is
+      Where : constant Position := Item.At_Caret;
+   begin
+      if Has_Selection (Item) or else (Typed'Length > 0 and then Typed (Typed'First) = ASCII.LF)
+        or else Marker_Of (Item, Where.Paragraph).Length = 0
+        or else Where.Index > Mark_End (Item, Where.Paragraph).Index
+      then
+         return;
+      end if;
+      Select_Range (Item, Mark_End (Item, Where.Paragraph), Mark_End (Item, Where.Paragraph));
+   end Clear_Of_Mark;
+
    procedure Insert (Item : in out Text_Area; Typed : String) is
    begin
       Drop_Composition (Item);  --  Typed is what it became
+      Clear_Of_Mark (Item, Typed);
       Edit (Item, Selection_First (Item), Selection_Last (Item),
             Fitted (Item, Typed), Docs.Typing);
    end Insert;
@@ -1471,6 +1492,18 @@ package body Pomarine.Text_Areas is
           when Word => (if Forward then Next_Word else Previous_Word),
           when Line_Part => (if Forward then Line_End else Line_Start));
 
+   --  Numbers again the runs around the caret after text was removed.
+   procedure Renumber_Caret (Item : in out Text_Area) is
+      Para : constant Positive := Caret (Item).Paragraph;
+   begin
+      --  Plain text is left alone so that runs of deleting still undo together.
+      if (for some Near in Integer'Max (1, Para - 1) .. Integer'Min (Docs.Count (Item.Doc.all), Para + 1) =>
+            Marker_Of (Item, Near).Length > 0)
+      then
+         Renumber_Around (Item, Para - 1, Para + 1);
+      end if;
+   end Renumber_Caret;
+
    procedure Delete_Backward
      (Item : in out Text_Area; By : Deletion := Character) is
    begin
@@ -1478,17 +1511,31 @@ package body Pomarine.Text_Areas is
       if Has_Selection (Item) then
          Edit (Item, Selection_First (Item), Selection_Last (Item), "",
                Docs.Other);
+         Renumber_Caret (Item);
          return;
       end if;
       declare
-         From : Position :=
-           Step (Item, Item.At_Caret, Deletion_Motion (By, False));
+         At_Para : constant Positive := Item.At_Caret.Paragraph;
+         Found   : constant Marker := Marker_Of (Item, At_Para);
+         From    : Position := Step (Item, Item.At_Caret, Deletion_Motion (By, False));
       begin
-         --  At the start of a line, its part is the break before it.
-         if From = Item.At_Caret then
-            From := Step (Item, Item.At_Caret, Previous_Character);
+         if Found.Length > 0 and then Item.At_Caret = Mark_End (Item, At_Para) then
+            --  Just after the mark: the mark goes, not a piece of it.
+            Replace_Range (Item, (At_Para, 1), Item.At_Caret, "");
+         elsif Found.Length > 0 and then Item.At_Caret.Index = 1 and then At_Para > 1
+           and then Docs.Byte_Length (Item.Doc.all, At_Para - 1) > 0
+         then
+            --  Joining onto text above: the item gives up its mark.
+            Replace_Range (Item, (At_Para - 1, Docs.Byte_Length (Item.Doc.all, At_Para - 1) + 1),
+                           Mark_End (Item, At_Para), "");
+         else
+            --  At the start of a line, its part is the break before it.
+            if From = Item.At_Caret then
+               From := Step (Item, Item.At_Caret, Previous_Character);
+            end if;
+            Edit (Item, From, Item.At_Caret, "", Docs.Deleting_Back);
          end if;
-         Edit (Item, From, Item.At_Caret, "", Docs.Deleting_Back);
+         Renumber_Caret (Item);
       end;
    end Delete_Backward;
 
@@ -1499,16 +1546,26 @@ package body Pomarine.Text_Areas is
       if Has_Selection (Item) then
          Edit (Item, Selection_First (Item), Selection_Last (Item), "",
                Docs.Other);
+         Renumber_Caret (Item);
          return;
       end if;
       declare
-         To : Position :=
-           Step (Item, Item.At_Caret, Deletion_Motion (By, True));
+         Para : constant Positive := Item.At_Caret.Paragraph;
+         To   : Position := Step (Item, Item.At_Caret, Deletion_Motion (By, True));
       begin
-         if To = Item.At_Caret then
-            To := Step (Item, Item.At_Caret, Next_Character);
+         if Para < Docs.Count (Item.Doc.all) and then Marker_Of (Item, Para + 1).Length > 0
+           and then Item.At_Caret.Index = Docs.Byte_Length (Item.Doc.all, Para) + 1
+           and then Item.At_Caret.Index > 1
+         then
+            --  Pulling a list item up onto this text: it gives up its mark.
+            Replace_Range (Item, Item.At_Caret, Mark_End (Item, Para + 1), "");
+         else
+            if To = Item.At_Caret then
+               To := Step (Item, Item.At_Caret, Next_Character);
+            end if;
+            Edit (Item, Item.At_Caret, To, "", Docs.Deleting_Forward);
          end if;
-         Edit (Item, Item.At_Caret, To, "", Docs.Deleting_Forward);
+         Renumber_Caret (Item);
       end;
    end Delete_Forward;
 
@@ -1530,6 +1587,7 @@ package body Pomarine.Text_Areas is
       if Has_Selection (Item) then
          Edit (Item, Selection_First (Item), Selection_Last (Item), "",
                Docs.Other);
+         Renumber_Caret (Item);
       end if;
    end Cut;
 
@@ -1538,6 +1596,7 @@ package body Pomarine.Text_Areas is
       Board : in out Clipboards.Clipboard'Class) is
    begin
       Finish_Composition (Item);
+      Clear_Of_Mark (Item, Board.Text);
       Edit (Item, Selection_First (Item), Selection_Last (Item),
             Fitted (Item, Board.Text), Docs.Other);
    end Paste;
