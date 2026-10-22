@@ -45,14 +45,16 @@ package body Document_Tests is
    begin
       Docs.Load (Doc, "Hello " & UTF_8 ("é🙂") & LF & "world");
       for F in Docs.Format loop
-         Docs.Set_Format (Doc, (1, 1), (2, 4), F, True);
+         if Docs."/=" (F, Docs.Versioned) then
+            Docs.Set_Format (Doc, (1, 1), (2, 4), F, True);
+         end if;
       end loop;
       Docs.Load_Stored (Loaded, Docs.Stored (Doc));
       pragma Assert (Docs.Whole (Loaded) = Docs.Whole (Doc));
       pragma Assert (Docs.State (Loaded) = 0);
       pragma Assert (not Docs.Can_Undo (Loaded));
       for F in Docs.Format loop
-         pragma Assert (Docs.Has_Format (Loaded, (1, 1), (2, 4), F));
+         pragma Assert (Docs."=" (F, Docs.Versioned) or else Docs.Has_Format (Loaded, (1, 1), (2, 4), F));
       end loop;
       Docs.Set_Format (Doc, (1, 2), (1, 5), Docs.Bold, False);
       pragma Assert (not Docs.Has_Format (Doc, (1, 2), (1, 5), Docs.Bold));
@@ -108,6 +110,44 @@ package body Document_Tests is
       Docs.Load_Stored (Loaded, Docs.Stored (Doc));
       pragma Assert (Docs.Has_Format (Loaded, (1, 6), (1, 8), Docs.Faded));
       pragma Assert (not Docs.Has_Format (Loaded, (1, 1), (1, 5), Docs.Faded));
+      --  A text with versions is kept with its other versions, and which it is.
+      Docs.Load (Doc, "say it plain");
+      Docs.Set_Format (Doc, (1, 1), (1, 4), Docs.Bold, True);
+      Docs.Add_Version (Doc, (1, 5), (1, 7), "this & that");
+      Goldens.Check_Text
+        ("document-stored-versions",
+         "<version>1</version><p><b>say</b> <v sel=""2""><o>it</o>this &amp; that</v> plain</p>",
+         Docs.Stored (Doc));
+      pragma Assert (Docs.Whole (Doc) = "say this & that plain");
+      Docs.Add_Version (Doc, (1, 5), (1, 16), "so");
+      Goldens.Check_Text
+        ("document-stored-three-versions",
+         "<version>1</version><p><b>say</b> <v sel=""3""><o>it</o><o>this &amp; that</o>so</v> plain</p>",
+         Docs.Stored (Doc));
+      Docs.Load_Stored (Loaded, Docs.Stored (Doc));
+      pragma Assert (Docs.Whole (Loaded) = "say so plain");
+      Goldens.Check_Text ("document-versions-reloaded", Docs.Stored (Doc), Docs.Stored (Loaded));
+      Docs.Choose_Version (Loaded, Docs.Version_At (Loaded, (1, 6)), 1);
+      pragma Assert (Docs.Whole (Loaded) = "say it plain");
+      Goldens.Check_Text
+        ("document-version-chosen",
+         "<version>1</version><p><b>say</b> <v sel=""1""><o>this &amp; that</o><o>so</o>it</v> plain</p>",
+         Docs.Stored (Loaded));
+      declare
+         From, To : Texts.Position;
+      begin
+         Docs.Undo (Loaded, From, To);
+         pragma Assert (Docs.Whole (Loaded) = "say so plain");
+         Goldens.Check_Text ("document-version-choice-undone", Docs.Stored (Doc), Docs.Stored (Loaded));
+      end;
+      --  Two next to each other stay two.
+      Docs.Load (Doc, "abcd");
+      Docs.Add_Version (Doc, (1, 1), (1, 3), "X");
+      Docs.Add_Version (Doc, (1, 2), (1, 4), "Y");
+      Goldens.Check_Text
+        ("document-versions-adjacent",
+         "<version>1</version><p><v sel=""2""><o>ab</o>X</v><v sel=""2""><o>cd</o>Y</v></p>",
+         Docs.Stored (Doc));
       Docs.Load (Doc, "");
       Goldens.Check_Text ("document-stored-empty", "<version>1</version><p></p>", Docs.Stored (Doc));
 

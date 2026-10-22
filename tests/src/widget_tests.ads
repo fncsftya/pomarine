@@ -14,6 +14,12 @@ package Widget_Tests is
    procedure Toolbar_Assist;
    --  The button at the right of the toolbar: off until allowed and while the
    --  text is blank, its click an Assist event, left out when it is not wanted.
+   procedure Toolbar_Tools;
+   --  The buttons the application adds after the style buttons: off without a selection
+   --  when they need one, their click or Command and their key a Use_Tool event.
+   procedure Versions;
+   --  Writing another version of a selection, taking it or giving it up, and going
+   --  through the versions of a text that has them, by the bar and by the arrow keys.
    procedure Caret_Only;
    procedure Hiding;
    procedure Removing;

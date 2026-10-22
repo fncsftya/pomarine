@@ -1,6 +1,6 @@
-private with Ada.Containers.Vectors;
+with Ada.Containers.Vectors;
 private with Ada.Finalization;
-private with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded;
 
 --  A document: paragraphs of text, each with an id and a kind, edited by
 --  replacing what is between two positions; a log of those changes, for
@@ -55,14 +55,22 @@ package Texts.Documents is
    function Kind (Item : Document; Para : Positive) return Paragraph_Kind
      with Pre => Para <= Count (Item);
 
-   type Format is (Bold, Underline, Italic, Strikethrough, Faded);
-   --  Faded is text drawn part see-through.
+   type Format is (Bold, Underline, Italic, Strikethrough, Faded, Versioned);
+   --  Faded is text drawn part see-through. Versioned is text that has
+   --  several versions, one of which is the text (see Add_Version).
    type Format_Set is array (Format) of Boolean;
    No_Formats : constant Format_Set := [others => False];
+
+   package Version_Lists is new Ada.Containers.Vectors
+     (Positive, Ada.Strings.Unbounded.Unbounded_String, "=" => Ada.Strings.Unbounded."=");
 
    type Format_Run is record
       From, To : Position;
       Style : Format;
+      Choice   : Natural := 0;
+      Versions : Version_Lists.Vector;
+      --  Of a Versioned run: the versions in order, and which is the text,
+      --  whose place in Versions is not kept up to date while it is.
    end record;
 
    function Run_Count (Item : Document) return Natural;
@@ -71,13 +79,45 @@ package Texts.Documents is
    function Has_Format (Item : Document; From, To : Position; Style : Format) return Boolean
      with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    procedure Set_Format (Item : in out Document; From, To : Position; Style : Format; Enabled : Boolean)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To,
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
+                 and then Style /= Versioned,
           Post => Has_Format (Item, From, To, Style) = Enabled;
+
+   --  Versions: a span of one paragraph's text can have several versions,
+   --  as of a wording, of which one is the text and the others are kept.
+
+   function Version_At (Item : Document; At_Point : Position) return Natural;
+   --  The index (as Run's) of the Versioned run that has At_Point in it
+   --  (its end is not), or 0.
+
+   function Version_Overlapping (Item : Document; From, To : Position) return Natural;
+   --  The index of the first Versioned run that shares text with From to To
+   --  (or, if From = To, has From in it), or 0.
+
+   procedure Add_Version
+     (Item : in out Document; From, To : Position; Words : String)
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
+                 and then From.Paragraph = To.Paragraph and then Words'Length > 0
+                 and then (for all C of Words => C not in ASCII.LF | ASCII.CR);
+   --  Make Words the text from From to To, and keep what was there as a
+   --  version, as one step to undo. If a Versioned run is exactly From to
+   --  To, Words is a new version of it; if not, it is made one, of two.
+
+   procedure Choose_Version (Item : in out Document; Index : Positive; Choice : Positive)
+     with Pre => Index <= Run_Count (Item) and then Run (Item, Index).Style = Versioned
+                 and then Choice <= Natural (Run (Item, Index).Versions.Length);
+   --  Make the text of the Versioned run Index its version Choice, as one
+   --  step to undo. What was the text is kept as its version.
+
+   procedure Discard_Redo (Item : in out Document);
+   --  Forget the steps taken back.
 
    --  What is kept of a document, as markup: <version>1</version>, then a
    --  <p> for each paragraph, its text with & < > as &amp; &lt; &gt;, and
    --  <b>, <i>, <u>, <s> and <f> round the runs of bold, italic, underlined,
-   --  struck-through and faded text. Text without a <version> is plain, a paragraph
+   --  struck-through and faded text, and <v sel="N"> the run of a text with
+   --  versions, with the other versions in <o> in it before the text; N is
+   --  which version, of them all, the text is. Text without a <version> is plain, a paragraph
    --  to each line: Upgraded makes the markup of it, and Load_Stored loads
    --  it so. Markup that is not well formed, or of a version not known, is
    --  rejected with Constraint_Error, and the document left as it was.

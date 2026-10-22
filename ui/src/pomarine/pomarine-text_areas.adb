@@ -1127,6 +1127,35 @@ package body Pomarine.Text_Areas is
       Docs.Seal (Item.Doc.all);
    end Replace_Range;
 
+   procedure Add_Version (Item : in out Text_Area; From, To : Position; Words : String) is
+   begin
+      Finish_Composition (Item);
+      Catch_Up (Item);
+      Docs.Seal (Item.Doc.all);
+      Docs.Add_Version (Item.Doc.all, From, To, Words);
+      Docs.Seal (Item.Doc.all);
+      Catch_Up (Item);
+      Item.At_Caret := Docs.Run (Item.Doc.all, Docs.Version_At (Item.Doc.all, From)).To;
+      Item.At_Mark := Item.At_Caret;
+      Item.Has_Goal := False;
+      Moved (Item);
+   end Add_Version;
+
+   procedure Choose_Version (Item : in out Text_Area; Index : Positive; Choice : Positive) is
+      Where : constant Position := Docs.Run (Item.Doc.all, Index).From;
+   begin
+      Finish_Composition (Item);
+      Catch_Up (Item);
+      Docs.Seal (Item.Doc.all);
+      Docs.Choose_Version (Item.Doc.all, Index, Choice);
+      Docs.Seal (Item.Doc.all);
+      Catch_Up (Item);
+      Item.At_Caret := Docs.Run (Item.Doc.all, Docs.Version_At (Item.Doc.all, Where)).To;
+      Item.At_Mark := Item.At_Caret;
+      Item.Has_Goal := False;
+      Moved (Item);
+   end Choose_Version;
+
    function Deletion_Motion (By : Deletion; Forward : Boolean) return Motion
    is (case By is
           when Character =>
@@ -1822,6 +1851,24 @@ package body Pomarine.Text_Areas is
             Draw_Range
               (Item, Target, Decoration.From, Decoration.To, First, Last, Decoration.Ink, True,
                Rows_From, Rows_To, Marking => True);
+         end;
+      end loop;
+
+      for I in 1 .. Docs.Run_Count (Item.Doc.all) loop
+         declare
+            R : constant Docs.Format_Run := Docs.Run (Item.Doc.all, I);
+            use type Docs.Format;
+            Ink : constant Themes.Color := Themes.Mix (Colors (Themes.Foreground), Colors (Themes.Background), 0.55);
+         begin
+            --  Text with versions, in the grey of neither a kind of grammar's mark.
+            if R.Style = Docs.Versioned then
+               Draw_Range
+                 (Item, Target, R.From, R.To, First, Last, (Ink with delta Alpha => 40), False,
+                  Rows_From, Rows_To, Marking => True);
+               Draw_Range
+                 (Item, Target, R.From, R.To, First, Last, Ink, True,
+                  Rows_From, Rows_To, Marking => True);
+            end if;
          end;
       end loop;
 

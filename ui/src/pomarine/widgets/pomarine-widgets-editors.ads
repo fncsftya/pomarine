@@ -6,6 +6,8 @@ with Texts.Documents;
 with Pomarine.Icons;
 with Pomarine.Text_Areas;
 with Pomarine.Widgets.Buttons;
+private with Pomarine.Widgets.Labels;
+private with Pomarine.Widgets.Panels;
 private with Pomarine.Widgets.Tooltips;
 
 --  A text area (see Pomarine.Text_Areas) as a widget: it is placed by the
@@ -91,6 +93,29 @@ package Pomarine.Widgets.Editors is
    --  the text has the focus, is a Use_Tool event whose Row is its number, from 1.
    --  Hovering it shows its label and key. With Needs_Selection it is off
    --  while nothing is selected, and its key does nothing.
+
+   procedure Begin_Version (Item : in out Editor)
+     with Pre => Has_Document (Item);
+   --  Start writing another version of the selected text (which must be in
+   --  one paragraph; if it touches a text that has versions, that text is
+   --  what is selected). The text goes, to leave the caret where it began,
+   --  and what is typed there (a line break is not typed: Return accepts)
+   --  is the new version. A tick and a cross by the caret, Return and
+   --  Escape, accept it or give it up: given up, the text is as it was.
+   --  Nothing is done if there is no such selection.
+
+   function Is_Writing_Version (Item : Editor) return Boolean;
+
+   procedure Finish_Version (Item : in out Editor; Keep : Boolean)
+     with Pre => Is_Writing_Version (Item);
+   --  Accept what was typed (not blank) as another version, or, if not
+   --  Keep, give it up.
+
+   --  A text that has versions is marked in a neutral grey. Clicking it
+   --  shows a bar with its number of versions and buttons to go to the
+   --  one before and the one after, round the end; so do the left and
+   --  right arrow keys, when the bar is shown or the pointer is over the
+   --  text.
 
    Assist_Capacity : constant := 16;
    --  Bytes of the label of the toolbar's button.
@@ -257,6 +282,26 @@ private
       Tool_Total    : Natural range 0 .. Tool_Capacity := 0;
       --  The application's buttons, after a divider at the right of the
       --  style buttons. Hovering one shows Tip, below it.
+      Writing       : Boolean := False;
+      Writing_State : Natural := 0;
+      --  The document's state before the text went, to go back to.
+      Target_From, Target_To : Texts.Position := (1, 1);
+      Typed_From, Typed_To   : Texts.Position := (1, 1);
+      --  What was selected, and where what is typed is now.
+      Writing_Seen  : Texts.Documents.Version := 0;
+      Confirm       : Pomarine.Widgets.Panels.Panel;
+      Accept_Button, Cancel_Button : Pomarine.Widgets.Buttons.Button;
+      Confirm_Left, Confirm_Top : Integer := -1;
+      Cycle_Left, Cycle_Top     : Integer := -1;
+      --  Where the bubbles were put, so as not to ask for a layout when they have not moved.
+      Cycle         : Pomarine.Widgets.Panels.Panel;
+      Back_Button, Next_Button : Pomarine.Widgets.Buttons.Button;
+      Cycle_Count   : Pomarine.Widgets.Labels.Label;
+      Cycle_Open    : Boolean := False;
+      Cycle_From    : Texts.Position := (1, 1);
+      Hovering      : Boolean := False;
+      Hover_From    : Texts.Position := (1, 1);
+      Cycle_Target  : Texts.Position := (1, 1);
       Tip           : Pomarine.Widgets.Tooltips.Tooltip;
       Tip_Shown     : Boolean := False;
       Tip_For       : Tool_Number := 1;

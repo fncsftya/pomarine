@@ -6,6 +6,7 @@ with SDL3.Windows;
 with SDL3;
 with Pomarine.Text_Areas;
 with Pomarine.Line_Texts;
+with Texts;
 with Texts.Documents;
 with Goldens;
 with Pomarine.Clipboards;
@@ -673,6 +674,153 @@ package body Widget_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Flag ("widgets-assist-removed", True, Visible_Buttons = 4);
    end Toolbar_Assist;
+
+   type Uses is limited record
+      Count : Natural := 0;
+      Last  : Natural := 0;
+   end record;
+
+   package Using_Tools is new Pomarine.Widgets.Callbacks (Uses);
+
+   procedure Used
+     (Item : in out Uses; From : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   is
+      pragma Unreferenced (From);
+   begin
+      Item.Count := Item.Count + 1;
+      Item.Last := Event.Row;
+   end Used;
+
+   function Key (Which : Events.Key_Code; Command : Boolean := False) return Events.Event is
+     ((Kind => Events.Key_Down, Key => Which, Command => Command, others => <>));
+
+   procedure Toolbar_Tools is
+      use all type Widgets.Event_Kind;
+      Item   : Fixture;
+      Lines  : aliased Pomarine.Line_Texts.Drawer;
+      Heard  : aliased Uses;
+      Page   : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Ignored : Boolean;
+   begin
+      Open (Item, "Great skua");
+      Widgets.Set_Line_Texts (Item.Tree, Lines);
+      Using_Tools.On (Item.Page, Use_Tool, Heard'Unrestricted_Access, Used'Access);
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
+      Pomarine.Widgets.Editors.Add_Tool (Item.Page, "Plain", Key => 'p');
+      Pomarine.Widgets.Editors.Add_Tool (Item.Page, "Picky", Key => 'k', Needs_Selection => True);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-tools-count", True, Pomarine.Widgets.Editors.Tool_Count (Item.Page) = 2);
+
+      --  The key, with Command, while the text has the focus, and what is selected if it needs it.
+      Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('p')), True), Ignored);
+      Widgets.Deliver (Item.Tree);
+      Check_Flag ("widgets-tools-key", True, Heard.Count = 1 and then Heard.Last = 1);
+      Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('k')), True), Ignored);
+      Widgets.Deliver (Item.Tree);
+      Check_Flag ("widgets-tools-needs-selection", True, Heard.Count = 1);
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 6));
+      Widgets.Update (Item.Tree, 100);
+      Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('k')), True), Ignored);
+      Widgets.Deliver (Item.Tree);
+      Check_Flag ("widgets-tools-selected", True, Heard.Count = 2 and then Heard.Last = 2);
+      Check_Flag ("widgets-tools-key-taken", True, Pomarine.Text_Areas.Selected_Text (Page.all) = "Great");
+      Check_Painted (Item, "widgets-toolbar-tools");
+   end Toolbar_Tools;
+
+   procedure Versions is
+      Item   : Fixture;
+      Lines  : aliased Pomarine.Line_Texts.Drawer;
+      Page   : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Ignored : Boolean;
+
+      procedure Check_Stored (Name, Expected : String) is
+      begin
+         Goldens.Check_Text (Name, Expected, Docs.Stored (Item.Doc));
+      end Check_Stored;
+
+      procedure Press_Key (Which : Events.Key_Code) is
+      begin
+         Widgets.Dispatch (Item.Tree, Key (Which), Ignored);
+      end Press_Key;
+
+      procedure Click_Text (At_Place : Texts.Position) is
+         X, Y, Wide, High : Float;
+      begin
+         Pomarine.Text_Areas.Select_Range (Page.all, At_Place, At_Place);
+         Pomarine.Text_Areas.Caret_Box (Page.all, X, Y, Wide, High);
+         Widgets.Dispatch (Item.Tree, Press ((X + 2.0) / Density, (Y + High / 2.0) / Density), Ignored);
+         Widgets.Dispatch (Item.Tree, Release ((X + 2.0) / Density, (Y + High / 2.0) / Density), Ignored);
+      end Click_Text;
+   begin
+      Open (Item, "say it plain");
+      Widgets.Set_Line_Texts (Item.Tree, Lines);
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
+      Widgets.Layout (Item.Tree, Item.Target);
+
+      --  The text goes, and what is typed is the new version, taken by Return.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 5), (1, 7));
+      Pomarine.Widgets.Editors.Begin_Version (Item.Page);
+      Check_Flag ("widgets-versions-writing", True, Pomarine.Widgets.Editors.Is_Writing_Version (Item.Page));
+      Goldens.Check_Text ("widgets-versions-gone", "say  plain", Docs.Whole (Item.Doc));
+      Check_Flag ("widgets-versions-caret", True, Texts."=" (Pomarine.Text_Areas.Caret (Page.all), (1, 5)));
+      Pomarine.Text_Areas.Insert (Page.all, "this");
+      Widgets.Update (Item.Tree, 100);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Painted (Item, "widgets-versions-writing");
+      Press_Key (Events.Key_Return);
+      Check_Flag ("widgets-versions-done", False, Pomarine.Widgets.Editors.Is_Writing_Version (Item.Page));
+      Check_Stored ("widgets-versions-kept", "<version>1</version><p>say <v sel=""2""><o>it</o>this</v> plain</p>");
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Painted (Item, "widgets-versions-marked");
+
+      --  Given up with Escape, it is as it was.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 6), (1, 7));
+      Pomarine.Widgets.Editors.Begin_Version (Item.Page);
+      Goldens.Check_Text ("widgets-versions-gone-all", "say  plain", Docs.Whole (Item.Doc));
+      Pomarine.Text_Areas.Insert (Page.all, "zzz");
+      Press_Key (Events.Key_Escape);
+      Check_Stored ("widgets-versions-given-up", "<version>1</version><p>say <v sel=""2""><o>it</o>this</v> plain</p>");
+      Check_Flag ("widgets-versions-not-redone", False, Docs.Can_Redo (Item.Doc));
+
+      --  Nothing typed is nothing to keep.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 4));
+      Pomarine.Widgets.Editors.Begin_Version (Item.Page);
+      Press_Key (Events.Key_Return);
+      Check_Stored ("widgets-versions-blank", "<version>1</version><p>say <v sel=""2""><o>it</o>this</v> plain</p>");
+
+      --  Another version of the text that has them, from a selection of part of it.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 6), (1, 7));
+      Pomarine.Widgets.Editors.Begin_Version (Item.Page);
+      Pomarine.Text_Areas.Insert (Page.all, "that");
+      Press_Key (Events.Key_Return);
+      Check_Stored
+        ("widgets-versions-third",
+         "<version>1</version><p>say <v sel=""3""><o>it</o><o>this</o>that</v> plain</p>");
+
+      --  Clicking it shows the bar, and the arrow keys, round the end.
+      Click_Text ((1, 6));
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Painted (Item, "widgets-versions-bar");
+      Press_Key (Events.Key_Right_Arrow);
+      Check_Stored
+        ("widgets-versions-first-again",
+         "<version>1</version><p>say <v sel=""1""><o>this</o><o>that</o>it</v> plain</p>");
+      Press_Key (Events.Key_Left_Arrow);
+      Check_Stored
+        ("widgets-versions-last-again",
+         "<version>1</version><p>say <v sel=""3""><o>it</o><o>this</o>that</v> plain</p>");
+      Press_Key (Events.Key_Left_Arrow);
+      Check_Stored
+        ("widgets-versions-second-again",
+         "<version>1</version><p>say <v sel=""2""><o>it</o><o>that</o>this</v> plain</p>");
+
+      --  Escape puts the bar away, and the arrow keys are the caret's again.
+      Press_Key (Events.Key_Escape);
+      Widgets.Dispatch (Item.Tree, Move (300.0, 150.0), Ignored);
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 1));
+      Press_Key (Events.Key_Right_Arrow);
+      Check_Flag ("widgets-versions-arrow-moves", True, Texts."=" (Pomarine.Text_Areas.Caret (Page.all), (1, 2)));
+   end Versions;
 
    procedure Caret_Only is
       Item : Fixture;

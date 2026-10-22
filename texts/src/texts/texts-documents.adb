@@ -464,7 +464,9 @@ package body Texts.Documents is
          declare
             Existing : constant Format_Run := Runs (I);
          begin
-            if Existing.Style = R.Style and then not (Existing.To < R.From) and then not (R.To < Existing.From) then
+            if Existing.Style = R.Style and then R.Style /= Versioned
+              and then not (Existing.To < R.From) and then not (R.To < Existing.From)
+            then
                if Existing.From < R.From then
                   R.From := Existing.From;
                end if;
@@ -645,15 +647,15 @@ package body Texts.Documents is
                   A := Map (Change_Of, A);
                   B := Map (Change_Of, B);
                end if;
-               if A < B then
-                  Include_Format (Updated, Format_Run'(A, B, R.Style));
+               if A < B and then (R.Style /= Versioned or else A.Paragraph = B.Paragraph) then
+                  Include_Format (Updated, (R with delta From => A, To => B));
                end if;
             end;
          end loop;
          if From < Ending then
             for F in Format loop
-               if Inherited (F) then
-                  Include_Format (Updated, Format_Run'(From, Ending, F));
+               if Inherited (F) and then F /= Versioned then
+                  Include_Format (Updated, Format_Run'(From, Ending, F, others => <>));
                end if;
             end loop;
          end if;
@@ -795,16 +797,16 @@ package body Texts.Documents is
                   Include_Format (Updated, R);
                else
                   if R.From < From then
-                     Include_Format (Updated, Format_Run'(R.From, From, R.Style));
+                     Include_Format (Updated, (R with delta To => From));
                   end if;
                   if Ending < R.To then
-                     Include_Format (Updated, Format_Run'(Ending, R.To, R.Style));
+                     Include_Format (Updated, (R with delta From => Ending));
                   end if;
                end if;
             end loop;
             for F in Format loop
-               if Formats (F) then
-                  Include_Format (Updated, Format_Run'(From, Ending, F));
+               if Formats (F) and then F /= Versioned then
+                  Include_Format (Updated, Format_Run'(From, Ending, F, others => <>));
                end if;
             end loop;
             Item.Formats := Updated;
@@ -856,15 +858,15 @@ package body Texts.Documents is
             Include_Format (Updated, R);
          else
             if R.From < From then
-               Include_Format (Updated, Format_Run'(R.From, From, Style));
+               Include_Format (Updated, (R with delta To => From));
             end if;
             if To < R.To then
-               Include_Format (Updated, Format_Run'(To, R.To, Style));
+               Include_Format (Updated, (R with delta From => To));
             end if;
          end if;
       end loop;
       if Enabled then
-         Include_Format (Updated, Format_Run'(From, To, Style));
+         Include_Format (Updated, Format_Run'(From, To, Style, others => <>));
       end if;
       Item.Formats := Updated;
       Log_Change (Item, Change'(From => From, To => To, Ending => To, Formats_Only => True, others => <>));
@@ -873,8 +875,110 @@ package body Texts.Documents is
       Item.Joining := False;
    end Set_Format;
 
+   function Version_At (Item : Document; At_Point : Position) return Natural is
+   begin
+      for I in 1 .. Natural (Item.Formats.Length) loop
+         declare
+            R : Format_Run renames Item.Formats (I);
+         begin
+            if R.Style = Versioned and then not (At_Point < R.From) and then At_Point < R.To then
+               return I;
+            end if;
+         end;
+      end loop;
+      return 0;
+   end Version_At;
+
+   function Version_Overlapping (Item : Document; From, To : Position) return Natural is
+   begin
+      if not (From < To) then
+         return Version_At (Item, From);
+      end if;
+      for I in 1 .. Natural (Item.Formats.Length) loop
+         declare
+            R : Format_Run renames Item.Formats (I);
+         begin
+            if R.Style = Versioned and then R.From < To and then From < R.To then
+               return I;
+            end if;
+         end;
+      end loop;
+      return 0;
+   end Version_Overlapping;
+
+   procedure Set_Version_Run (Item : in out Document; Value : Format_Run);
+   --  Make Value the Versioned run that starts where it does, as an edit of
+   --  the styles alone.
+
+   procedure Set_Version_Run (Item : in out Document; Value : Format_Run) is
+      Old : constant Format_Vectors.Vector := Item.Formats;
+      Updated : Format_Vectors.Vector;
+   begin
+      for R of Item.Formats loop
+         if R.Style /= Versioned or else R.From /= Value.From then
+            Include_Format (Updated, R);
+         end if;
+      end loop;
+      Include_Format (Updated, Value);
+      Item.Formats := Updated;
+      Log_Change (Item, Change'(From => Value.From, To => Value.To, Ending => Value.To,
+                                Formats_Only => True, others => <>));
+      Push (Item, (From => Value.From, Formats_Only => True, Format_End => Value.To, Old_Formats => Old,
+                   New_Formats => Updated, others => <>));
+      Item.Joining := False;
+   end Set_Version_Run;
+
+   procedure Add_Version
+     (Item : in out Document; From, To : Position; Words : String)
+   is
+      Clean    : constant String := Sanitized (Words);
+      Live     : constant String := Between (Item, From, To);
+      Versions : Version_Lists.Vector;
+      Same     : Natural := 0;
+   begin
+      for I in 1 .. Natural (Item.Formats.Length) loop
+         if Item.Formats (I).Style = Versioned and then Item.Formats (I).From = From
+           and then Item.Formats (I).To = To
+         then
+            Same := I;
+         end if;
+      end loop;
+      if Same > 0 then
+         Versions := Item.Formats (Same).Versions;
+         Versions.Replace_Element (Item.Formats (Same).Choice, Unbounded.To_Unbounded_String (Live));
+      else
+         Versions.Append (Unbounded.To_Unbounded_String (Live));
+      end if;
+      Versions.Append (Unbounded.To_Unbounded_String (Clean));
+      Begin_Step (Item);
+      Replace (Item, From, To, Clean);
+      Set_Version_Run
+        (Item, (From, End_After (From, Clean), Versioned, Natural (Versions.Length), Versions));
+      End_Step (Item);
+   end Add_Version;
+
+   procedure Choose_Version (Item : in out Document; Index : Positive; Choice : Positive) is
+      R        : constant Format_Run := Item.Formats (Index);
+      Versions : Version_Lists.Vector := R.Versions;
+      Wanted   : constant String := Unbounded.To_String (Versions (Choice));
+   begin
+      if Choice = R.Choice then
+         return;
+      end if;
+      Versions.Replace_Element (R.Choice, Unbounded.To_Unbounded_String (Between (Item, R.From, R.To)));
+      Begin_Step (Item);
+      Replace (Item, R.From, R.To, Wanted);
+      Set_Version_Run (Item, (R.From, End_After (R.From, Wanted), Versioned, Choice, Versions));
+      End_Step (Item);
+   end Choose_Version;
+
+   procedure Discard_Redo (Item : in out Document) is
+   begin
+      Item.Redos.Clear;
+   end Discard_Redo;
+
    --  Stored: <version>1</version>, then a <p> for each paragraph, in which
-   --  <b>, <i>, <u>, <s> and <f> mark the runs; & < > in the text are &amp; &lt; &gt;.
+   --  <b>, <i>, <u>, <s>, <f> and <v> mark the runs; & < > in the text are &amp; &lt; &gt;.
 
    Version_Open  : constant String := "<version>";
    Version_Close : constant String := "</version>";
@@ -886,7 +990,8 @@ package body Texts.Documents is
          when Underline     => 'u',
          when Italic        => 'i',
          when Strikethrough => 's',
-         when Faded         => 'f');
+         when Faded         => 'f',
+         when Versioned     => 'v');
 
    function Is_Space (C : Character) return Boolean is
      (C in ' ' | ASCII.HT | ASCII.LF | ASCII.CR);
@@ -919,7 +1024,12 @@ package body Texts.Documents is
 
       Result : Unbounded.Unbounded_String :=
         Unbounded.To_Unbounded_String (Version_Open & Version_Made & Version_Close);
-      Open  : array (1 .. Format'Pos (Format'Last) + 1) of Format;
+      type Opened is record
+         Style : Format;
+         Id    : Natural;  --  of a <v>: where its run starts, to tell it from the next
+      end record;
+
+      Open  : array (1 .. Format'Pos (Format'Last) + 1) of Opened;
       Depth : Natural := 0;
 
       procedure Escape (Words : String) is
@@ -934,20 +1044,39 @@ package body Texts.Documents is
          end loop;
       end Escape;
 
-      procedure Reach (Wanted : Format_Set) is
-         Keep : Natural := 0;
+      procedure Reach (Wanted : Format_Set; Wording : Natural; Piece : Format_Run) is
+         Keep    : Natural := 0;
+         Outer   : constant Natural := (if Depth > 0 and then Open (1).Style = Versioned then Open (1).Id else 0);
       begin
-         while Keep < Depth and then Wanted (Open (Keep + 1)) loop
-            Keep := Keep + 1;
-         end loop;
+         --  A text with versions is outside the rest, so that it is one element.
+         if Wording = Outer then
+            while Keep < Depth and then Wanted (Open (Keep + 1).Style) loop
+               Keep := Keep + 1;
+            end loop;
+         end if;
          while Depth > Keep loop
-            Unbounded.Append (Result, "</" & Tag_Of (Open (Depth)) & ">");
+            Unbounded.Append (Result, "</" & Tag_Of (Open (Depth).Style) & ">");
             Depth := Depth - 1;
          end loop;
+         if Wording /= 0 and then Depth = 0 then
+            Depth := 1;
+            Open (1) := (Versioned, Wording);
+            Unbounded.Append
+              (Result, "<v sel=""" & Ada.Strings.Fixed.Trim (Piece.Choice'Image, Ada.Strings.Both) & """>");
+            for Number in 1 .. Natural (Piece.Versions.Length) loop
+               if Number /= Piece.Choice then
+                  Unbounded.Append (Result, "<o>");
+                  Escape (Unbounded.To_String (Piece.Versions (Number)));
+                  Unbounded.Append (Result, "</o>");
+               end if;
+            end loop;
+         end if;
          for Style in Format loop
-            if Wanted (Style) and then not (for some I in 1 .. Depth => Open (I) = Style) then
+            if Style /= Versioned and then Wanted (Style)
+              and then not (for some I in 1 .. Depth => Open (I).Style = Style)
+            then
                Depth := Depth + 1;
-               Open (Depth) := Style;
+               Open (Depth) := (Style, 0);
                Unbounded.Append (Result, "<" & Tag_Of (Style) & ">");
             end if;
          end loop;
@@ -965,9 +1094,9 @@ package body Texts.Documents is
                if R.From.Paragraph <= Para and then Para <= R.To.Paragraph then
                   declare
                      P : constant Format_Run :=
-                       (From  => (Para, (if R.From.Paragraph = Para then R.From.Index else 1)),
-                        To    => (Para, (if R.To.Paragraph = Para then R.To.Index else Stop)),
-                        Style => R.Style);
+                       (R with delta
+                          From => (Para, (if R.From.Paragraph = Para then R.From.Index else 1)),
+                          To   => (Para, (if R.To.Paragraph = Para then R.To.Index else Stop)));
                   begin
                      Pieces.Append (P);
                      Cuts.Include (P.From.Index);
@@ -981,19 +1110,25 @@ package body Texts.Documents is
                   A : constant Positive := Cut_Sets.Element (Cut);
                   Next : constant Cut_Sets.Cursor := Cut_Sets.Next (Cut);
                   Wanted : Format_Set := No_Formats;
+                  Wording : Natural := 0;
+                  Piece : Format_Run := (From => (1, 1), To => (1, 1), Style => Bold, others => <>);
                begin
                   if Cut_Sets.Has_Element (Next) then
                      for P of Pieces loop
                         if P.From.Index <= A and then A < P.To.Index then
                            Wanted (P.Style) := True;
+                           if P.Style = Versioned then
+                              Wording := P.From.Index;
+                              Piece := P;
+                           end if;
                         end if;
                      end loop;
-                     Reach (Wanted);
+                     Reach (Wanted, Wording, Piece);
                      Escape (Slice (Item, Para, A, Cut_Sets.Element (Next)));
                   end if;
                end;
             end loop;
-            Reach (No_Formats);
+            Reach (No_Formats, 0, (From => (1, 1), To => (1, 1), Style => Bold, others => <>));
             Unbounded.Append (Result, "</p>");
          end;
       end loop;
@@ -1018,8 +1153,11 @@ package body Texts.Documents is
       Cursor : Positive := Source'First;
 
       type Opened is record
-         Style : Format;
-         Start : Positive;
+         Style  : Format;
+         Start  : Positive;
+         Choice : Natural := 0;
+         Rest   : Version_Lists.Vector;
+         --  Of a <v>: which version the text is, and the other versions.
       end record;
 
       Nesting_Limit : constant := 64;
@@ -1030,8 +1168,10 @@ package body Texts.Documents is
       Para     : Natural := 0;
       Inside   : Boolean := False;  --  between <p> and </p>
       Length   : Natural := 0;      --  bytes of the paragraph so far
-      Versioned : Boolean := False;
+      Saw_Version : Boolean := False;
       Checked  : Document;
+      Collecting : Boolean := False;  --  between <o> and </o>
+      Alternative : Unbounded.Unbounded_String;
 
       procedure Fail (Reason : String) with No_Return is
       begin
@@ -1040,7 +1180,12 @@ package body Texts.Documents is
 
       procedure Add (C : Character) is
       begin
-         if not Inside then
+         if Collecting then
+            if C in ASCII.LF | ASCII.CR then
+               Fail ("line break in a version");
+            end if;
+            Unbounded.Append (Alternative, C);
+         elsif not Inside then
             if not Is_Space (C) then
                Fail ("text outside a paragraph");
             end if;
@@ -1097,20 +1242,22 @@ package body Texts.Documents is
             Styled  : Boolean := True;
          begin
             Cursor := Stop + 1;
-            if Name = "version" and then not Closing then
+            if Collecting and then not (Closing and then Name = "o") then
+               Fail ("tag in a version");
+            elsif Name = "version" and then not Closing then
                declare
                   Ends : constant Natural := Ada.Strings.Fixed.Index (Source (Cursor .. Source'Last), Version_Close);
                begin
-                  if Versioned or else Para > 0 or else Ends = 0 then
+                  if Saw_Version or else Para > 0 or else Ends = 0 then
                      Fail ("misplaced version");
                   elsif Source (Cursor .. Ends - 1) /= Version_Made then
                      raise Constraint_Error with "Unsupported rich text version";
                   end if;
-                  Versioned := True;
+                  Saw_Version := True;
                   Cursor := Ends + Version_Close'Length;
                end;
             elsif Name = "p" then
-               if not Versioned or else Inside = not Closing then
+               if not Saw_Version or else Inside = not Closing then
                   Fail ("misplaced paragraph");
                elsif Closing then
                   if Depth > 0 then
@@ -1125,6 +1272,29 @@ package body Texts.Documents is
                      Unbounded.Append (Body_Text, ASCII.LF);
                   end if;
                end if;
+            elsif Name = "o" then
+               if Closing then
+                  Stack (Depth).Rest.Append (Alternative);
+                  Collecting := False;
+               elsif Depth = 0 or else Stack (Depth).Style /= Versioned then
+                  Fail ("version outside a <v>");
+               else
+                  Collecting := True;
+                  Alternative := Unbounded.Null_Unbounded_String;
+               end if;
+            elsif not Closing and then Name'Length > 7 and then Name (Name'First .. Name'First + 5) = "v sel="
+              and then Name (Name'First + 6) = '"' and then Name (Name'Last) = '"'
+              and then (for all C of Name (Name'First + 7 .. Name'Last - 1) => C in '0' .. '9')
+              and then Name'Length < 16
+            then
+               if not Inside then
+                  Fail ("style outside a paragraph");
+               elsif Depth = Nesting_Limit then
+                  Fail ("styles nested too deeply");
+               end if;
+               Depth := Depth + 1;
+               Stack (Depth) :=
+                 (Versioned, Length + 1, Natural'Value (Name (Name'First + 7 .. Name'Last - 1)), others => <>);
             elsif Name'Length = 1 then
                case Name (Name'First) is
                   when 'b' => Style := Bold;
@@ -1132,6 +1302,7 @@ package body Texts.Documents is
                   when 'i' => Style := Italic;
                   when 's' => Style := Strikethrough;
                   when 'f' => Style := Faded;
+                  when 'v' => Style := Versioned;
                   when others => Styled := False;
                end case;
                if not Styled then
@@ -1139,17 +1310,33 @@ package body Texts.Documents is
                elsif not Inside then
                   Fail ("style outside a paragraph");
                elsif not Closing then
-                  if Depth = Nesting_Limit then
+                  if Style = Versioned then
+                     Fail ("<v> without its version");
+                  elsif Depth = Nesting_Limit then
                      Fail ("styles nested too deeply");
                   end if;
                   Depth := Depth + 1;
-                  Stack (Depth) := (Style, Length + 1);
+                  Stack (Depth) := (Style, Length + 1, others => <>);
                elsif Depth = 0 or else Stack (Depth).Style /= Style then
                   Fail ("misnested style");
                else
-                  if Stack (Depth).Start < Length + 1 then
+                  if Style = Versioned then
+                     if Stack (Depth).Choice not in 1 .. Natural (Stack (Depth).Rest.Length) + 1 then
+                        Fail ("version not there");
+                     end if;
+                     if Stack (Depth).Start < Length + 1 then
+                        declare
+                           Every : Version_Lists.Vector := Stack (Depth).Rest;
+                        begin
+                           Every.Insert (Stack (Depth).Choice, Unbounded.Null_Unbounded_String);
+                           Include_Format
+                             (Runs, Format_Run'((Para, Stack (Depth).Start), (Para, Length + 1), Style,
+                                                Stack (Depth).Choice, Every));
+                        end;
+                     end if;
+                  elsif Stack (Depth).Start < Length + 1 then
                      Include_Format
-                       (Runs, Format_Run'((Para, Stack (Depth).Start), (Para, Length + 1), Style));
+                       (Runs, Format_Run'((Para, Stack (Depth).Start), (Para, Length + 1), Style, others => <>));
                   end if;
                   Depth := Depth - 1;
                end if;
@@ -1169,7 +1356,7 @@ package body Texts.Documents is
             Cursor := Cursor + 1;
          end if;
       end loop;
-      if Inside or else not Versioned then
+      if Inside or else not Saw_Version then
          Fail ("truncated");
       end if;
       Load (Checked, Unbounded.To_String (Body_Text));
@@ -1189,12 +1376,13 @@ package body Texts.Documents is
                for Second in 1 .. Natural (Runs.Length) loop
                   if First /= Second
                     and then Runs (First).Style = Runs (Second).Style
+                    and then Runs (First).Style /= Versioned
                     and then Runs (Second).From.Index = 1
                     and then Runs (Second).From.Paragraph = Runs (First).To.Paragraph + 1
                     and then Runs (First).To.Index = Byte_Length (Checked, Runs (First).To.Paragraph) + 1
                   then
                      Runs.Replace_Element
-                       (First, Format_Run'(Runs (First).From, Runs (Second).To, Runs (First).Style));
+                       (First, (Runs (First) with delta To => Runs (Second).To));
                      Runs.Delete (Second);
                      Joined := True;
                      exit Search;

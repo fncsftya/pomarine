@@ -293,6 +293,23 @@ package Pomarine.Text_Areas is
    --  Apply an external correction, move the caret after it, and keep it
    --  as its own undo step. The caller invalidates the owning widget.
 
+   procedure Add_Version (Item : in out Text_Area; From, To : Position; Words : String)
+     with Pre => Is_Attached (Item) and then not Is_Read_Only (Item)
+                 and then Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
+                 and then From.Paragraph = To.Paragraph and then Words'Length > 0
+                 and then (for all C of Words => C not in ASCII.LF | ASCII.CR);
+   --  As Texts.Documents.Add_Version, as its own undo step, with the caret
+   --  after the new text. The caller invalidates the owning widget.
+
+   procedure Choose_Version (Item : in out Text_Area; Index : Positive; Choice : Positive)
+     with Pre => Is_Attached (Item) and then not Is_Read_Only (Item)
+                 and then Index <= Texts.Documents.Run_Count (Document (Item).all)
+                 and then Texts.Documents."="
+                            (Texts.Documents.Run (Document (Item).all, Index).Style, Texts.Documents.Versioned)
+                 and then Choice <= Natural (Texts.Documents.Run (Document (Item).all, Index).Versions.Length);
+   --  As Texts.Documents.Choose_Version, as its own undo step, with the
+   --  caret after the text. The caller invalidates the owning widget.
+
    type Deletion is (Character, Word, Line_Part);
 
    procedure Delete_Backward
