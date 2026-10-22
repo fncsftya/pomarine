@@ -113,7 +113,7 @@ package body Document_Tests is
       --  A text with versions is kept with its other versions, and which it is.
       Docs.Load (Doc, "say it plain");
       Docs.Set_Format (Doc, (1, 1), (1, 4), Docs.Bold, True);
-      Docs.Add_Version (Doc, (1, 5), (1, 7), "this & that");
+      Docs.Add_Version (Doc, (1, 5), (1, 7), Docs.Escaped ("this & that"));
       Goldens.Check_Text
         ("document-stored-versions",
          "<version>1</version><p><b>say</b> <v sel=""2""><o>it</o>this &amp; that</v> plain</p>",
@@ -139,6 +139,31 @@ package body Document_Tests is
          Docs.Undo (Loaded, From, To);
          pragma Assert (Docs.Whole (Loaded) = "say so plain");
          Goldens.Check_Text ("document-version-choice-undone", Docs.Stored (Doc), Docs.Stored (Loaded));
+      end;
+      --  A version keeps its styles, which come and go with it.
+      Docs.Load (Doc, "plain words");
+      Docs.Add_Version (Doc, (1, 1), (1, 6), "<b>bold</b> and <i>it</i>");
+      Goldens.Check_Text
+        ("document-versions-styled",
+         "<version>1</version><p><v sel=""2""><o>plain</o><b>bold</b> and <i>it</i></v> words</p>",
+         Docs.Stored (Doc));
+      pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 5), Docs.Bold));
+      Docs.Choose_Version (Doc, Docs.Version_At (Doc, (1, 2)), 1);
+      pragma Assert (Docs.Whole (Doc) = "plain words");
+      pragma Assert (not Docs.Has_Format (Doc, (1, 1), (1, 2), Docs.Bold));
+      Docs.Choose_Version (Doc, Docs.Version_At (Doc, (1, 2)), 2);
+      Goldens.Check_Text
+        ("document-versions-styled-back",
+         "<version>1</version><p><v sel=""2""><o>plain</o><b>bold</b> and <i>it</i></v> words</p>",
+         Docs.Stored (Doc));
+      Docs.Load_Stored (Loaded, Docs.Stored (Doc));
+      Goldens.Check_Text ("document-versions-styled-reloaded", Docs.Stored (Doc), Docs.Stored (Loaded));
+      begin
+         Docs.Load_Stored (Loaded, "<version>1</version><p><v sel=""1""><o>a<v sel=""1""></o>b</v></p>");
+         Goldens.Check_Text ("document-versions-nested-rejected", "rejected", "accepted");
+      exception
+         when Constraint_Error =>
+            Goldens.Check_Text ("document-versions-nested-rejected", "rejected", "rejected");
       end;
       --  Two next to each other stay two.
       Docs.Load (Doc, "abcd");

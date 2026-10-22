@@ -752,15 +752,14 @@ package body Pomarine.Widgets.Editors is
    begin
       Track_Writing (Item);
       declare
-         Typed : String :=
+         Plain : constant String :=
            (if Item.Typed_From < Item.Typed_To then Docs.Between (Doc.all, Item.Typed_From, Item.Typed_To) else "");
+         --  What was typed as markup, to keep its styles; if it is more than a paragraph, as text.
+         Typed : constant String :=
+           (if Item.Typed_From < Item.Typed_To and then Item.Typed_From.Paragraph = Item.Typed_To.Paragraph
+            then Docs.Fragment (Doc.all, Item.Typed_From, Item.Typed_To) else Docs.Escaped (Plain));
          Seen  : Natural;
       begin
-         for C of Typed loop
-            if C in ASCII.LF | ASCII.CR then
-               C := ' ';
-            end if;
-         end loop;
          Item.Writing := False;
          --  Back to the text as it was before it went, and not to be redone.
          while Docs.Can_Undo (Doc.all) and then Docs.State (Doc.all) > Item.Writing_State loop
@@ -769,7 +768,7 @@ package body Pomarine.Widgets.Editors is
             exit when Docs.State (Doc.all) = Seen;
          end loop;
          Docs.Discard_Redo (Doc.all);
-         if Keep and then (for some C of Typed => C /= ' ') then
+         if Keep and then (for some C of Plain => C not in ' ' | ASCII.LF) then
             Text_Areas.Add_Version (Item.Text, Item.Target_From, Item.Target_To, Typed);
          end if;
       end;
@@ -1123,7 +1122,9 @@ package body Pomarine.Widgets.Editors is
 
    overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind is
      (if Item.Enabled and then (not Item.Toolbar_Shown or else Item.Pointer_In_Text)
-      then SDL3.Cursors.Text else SDL3.Cursors.Default);
+      then (if Item.Hovering and then not Item.Writing then SDL3.Cursors.Pointer else SDL3.Cursors.Text)
+      else SDL3.Cursors.Default);
+   --  A text with versions is clicked, to go through them.
 
    overriding procedure Hover_Changed
      (Item : in out Editor; Hovered : Boolean) is

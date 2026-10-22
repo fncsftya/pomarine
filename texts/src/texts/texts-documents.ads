@@ -94,14 +94,23 @@ package Texts.Documents is
    --  The index of the first Versioned run that shares text with From to To
    --  (or, if From = To, has From in it), or 0.
 
+   function Escaped (Raw : String) return String;
+   --  Raw as markup: with & < > as &amp; &lt; &gt;, and no line breaks.
+
+   function Fragment (Item : Document; From, To : Position) return String
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From)
+                 and then From.Paragraph = To.Paragraph;
+   --  The text from From to To as markup, with its styles but not versions:
+   --  what a version is kept as.
+
    procedure Add_Version
      (Item : in out Document; From, To : Position; Words : String)
      with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then From.Paragraph = To.Paragraph and then Words'Length > 0
-                 and then (for all C of Words => C not in ASCII.LF | ASCII.CR);
-   --  Make Words the text from From to To, and keep what was there as a
-   --  version, as one step to undo. If a Versioned run is exactly From to
-   --  To, Words is a new version of it; if not, it is made one, of two.
+                 and then From.Paragraph = To.Paragraph and then Words'Length > 0;
+   --  Make Words, markup as Fragment gives, the text from From to To, and
+   --  keep what was there as a version, as one step to undo. If a
+   --  Versioned run is exactly From to To, Words is a new version of it;
+   --  if not, it is made one, of two.
 
    procedure Choose_Version (Item : in out Document; Index : Positive; Choice : Positive)
      with Pre => Index <= Run_Count (Item) and then Run (Item, Index).Style = Versioned
@@ -116,7 +125,7 @@ package Texts.Documents is
    --  <p> for each paragraph, its text with & < > as &amp; &lt; &gt;, and
    --  <b>, <i>, <u>, <s> and <f> round the runs of bold, italic, underlined,
    --  struck-through and faded text, and <v sel="N"> the run of a text with
-   --  versions, with the other versions in <o> in it before the text; N is
+   --  versions, with the other versions, as markup of their own, in <o> in it before the text; N is
    --  which version, of them all, the text is. Text without a <version> is plain, a paragraph
    --  to each line: Upgraded makes the markup of it, and Load_Stored loads
    --  it so. Markup that is not well formed, or of a version not known, is

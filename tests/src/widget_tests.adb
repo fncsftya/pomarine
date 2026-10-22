@@ -1,5 +1,6 @@
 with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
+with SDL3.Cursors;
 with SDL3.Events;
 with SDL3.Windows.Renderers;
 with SDL3.Windows;
@@ -820,6 +821,30 @@ package body Widget_Tests is
       Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 1));
       Press_Key (Events.Key_Right_Arrow);
       Check_Flag ("widgets-versions-arrow-moves", True, Texts."=" (Pomarine.Text_Areas.Caret (Page.all), (1, 2)));
+
+      --  Typed in bold, it is a bold version, and goes through with it.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 5), (1, 9));
+      Pomarine.Widgets.Editors.Begin_Version (Item.Page);
+      Pomarine.Text_Areas.Toggle_Format (Page.all, Docs.Bold);
+      Pomarine.Text_Areas.Insert (Page.all, "bold");
+      Press_Key (Events.Key_Return);
+      Check_Stored
+        ("widgets-versions-bold",
+         "<version>1</version><p>say <v sel=""4""><o>it</o><o>this</o><o>that</o><b>bold</b></v> plain</p>");
+      Click_Text ((1, 6));
+      Press_Key (Events.Key_Right_Arrow);
+      Check_Stored
+        ("widgets-versions-bold-gone",
+         "<version>1</version><p>say <v sel=""1""><o>this</o><o>that</o><o><b>bold</b></o>it</v> plain</p>");
+      Press_Key (Events.Key_Left_Arrow);
+      Check_Stored
+        ("widgets-versions-bold-back",
+         "<version>1</version><p>say <v sel=""4""><o>it</o><o>this</o><o>that</o><b>bold</b></v> plain</p>");
+      Check_Flag ("widgets-versions-pointer", True,
+                  SDL3.Cursors."=" (Pomarine.Widgets.Editors.Cursor (Item.Page), SDL3.Cursors.Pointer));
+      Widgets.Dispatch (Item.Tree, Move (300.0, 150.0), Ignored);
+      Check_Flag ("widgets-versions-text-cursor", True,
+                  SDL3.Cursors."=" (Pomarine.Widgets.Editors.Cursor (Item.Page), SDL3.Cursors.Text));
    end Versions;
 
    procedure Caret_Only is

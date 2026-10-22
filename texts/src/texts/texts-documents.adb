@@ -906,72 +906,6 @@ package body Texts.Documents is
       return 0;
    end Version_Overlapping;
 
-   procedure Set_Version_Run (Item : in out Document; Value : Format_Run);
-   --  Make Value the Versioned run that starts where it does, as an edit of
-   --  the styles alone.
-
-   procedure Set_Version_Run (Item : in out Document; Value : Format_Run) is
-      Old : constant Format_Vectors.Vector := Item.Formats;
-      Updated : Format_Vectors.Vector;
-   begin
-      for R of Item.Formats loop
-         if R.Style /= Versioned or else R.From /= Value.From then
-            Include_Format (Updated, R);
-         end if;
-      end loop;
-      Include_Format (Updated, Value);
-      Item.Formats := Updated;
-      Log_Change (Item, Change'(From => Value.From, To => Value.To, Ending => Value.To,
-                                Formats_Only => True, others => <>));
-      Push (Item, (From => Value.From, Formats_Only => True, Format_End => Value.To, Old_Formats => Old,
-                   New_Formats => Updated, others => <>));
-      Item.Joining := False;
-   end Set_Version_Run;
-
-   procedure Add_Version
-     (Item : in out Document; From, To : Position; Words : String)
-   is
-      Clean    : constant String := Sanitized (Words);
-      Live     : constant String := Between (Item, From, To);
-      Versions : Version_Lists.Vector;
-      Same     : Natural := 0;
-   begin
-      for I in 1 .. Natural (Item.Formats.Length) loop
-         if Item.Formats (I).Style = Versioned and then Item.Formats (I).From = From
-           and then Item.Formats (I).To = To
-         then
-            Same := I;
-         end if;
-      end loop;
-      if Same > 0 then
-         Versions := Item.Formats (Same).Versions;
-         Versions.Replace_Element (Item.Formats (Same).Choice, Unbounded.To_Unbounded_String (Live));
-      else
-         Versions.Append (Unbounded.To_Unbounded_String (Live));
-      end if;
-      Versions.Append (Unbounded.To_Unbounded_String (Clean));
-      Begin_Step (Item);
-      Replace (Item, From, To, Clean);
-      Set_Version_Run
-        (Item, (From, End_After (From, Clean), Versioned, Natural (Versions.Length), Versions));
-      End_Step (Item);
-   end Add_Version;
-
-   procedure Choose_Version (Item : in out Document; Index : Positive; Choice : Positive) is
-      R        : constant Format_Run := Item.Formats (Index);
-      Versions : Version_Lists.Vector := R.Versions;
-      Wanted   : constant String := Unbounded.To_String (Versions (Choice));
-   begin
-      if Choice = R.Choice then
-         return;
-      end if;
-      Versions.Replace_Element (R.Choice, Unbounded.To_Unbounded_String (Between (Item, R.From, R.To)));
-      Begin_Step (Item);
-      Replace (Item, R.From, R.To, Wanted);
-      Set_Version_Run (Item, (R.From, End_After (R.From, Wanted), Versioned, Choice, Versions));
-      End_Step (Item);
-   end Choose_Version;
-
    procedure Discard_Redo (Item : in out Document) is
    begin
       Item.Redos.Clear;
@@ -1065,9 +999,7 @@ package body Texts.Documents is
               (Result, "<v sel=""" & Ada.Strings.Fixed.Trim (Piece.Choice'Image, Ada.Strings.Both) & """>");
             for Number in 1 .. Natural (Piece.Versions.Length) loop
                if Number /= Piece.Choice then
-                  Unbounded.Append (Result, "<o>");
-                  Escape (Unbounded.To_String (Piece.Versions (Number)));
-                  Unbounded.Append (Result, "</o>");
+                  Unbounded.Append (Result, "<o>" & Unbounded.To_String (Piece.Versions (Number)) & "</o>");
                end if;
             end loop;
          end if;
@@ -1170,8 +1102,6 @@ package body Texts.Documents is
       Length   : Natural := 0;      --  bytes of the paragraph so far
       Saw_Version : Boolean := False;
       Checked  : Document;
-      Collecting : Boolean := False;  --  between <o> and </o>
-      Alternative : Unbounded.Unbounded_String;
 
       procedure Fail (Reason : String) with No_Return is
       begin
@@ -1180,12 +1110,7 @@ package body Texts.Documents is
 
       procedure Add (C : Character) is
       begin
-         if Collecting then
-            if C in ASCII.LF | ASCII.CR then
-               Fail ("line break in a version");
-            end if;
-            Unbounded.Append (Alternative, C);
-         elsif not Inside then
+         if not Inside then
             if not Is_Space (C) then
                Fail ("text outside a paragraph");
             end if;
@@ -1196,6 +1121,20 @@ package body Texts.Documents is
             Length := Length + 1;
          end if;
       end Add;
+
+      procedure Check_Fragment (Words : String) is
+         --  A version is well formed markup of a paragraph, without versions.
+         Probe : Document;
+      begin
+         if (for some C of Words => C in ASCII.LF | ASCII.CR)
+           or else Ada.Strings.Fixed.Index (Words, "<v") /= 0
+           or else Ada.Strings.Fixed.Index (Words, "<o") /= 0
+           or else Ada.Strings.Fixed.Index (Words, "<p") /= 0
+         then
+            Fail ("not a version");
+         end if;
+         Load_Stored (Probe, Version_Open & Version_Made & Version_Close & "<p>" & Words & "</p>");
+      end Check_Fragment;
 
       procedure Entity is
          Stop : Natural := Cursor;
@@ -1242,9 +1181,7 @@ package body Texts.Documents is
             Styled  : Boolean := True;
          begin
             Cursor := Stop + 1;
-            if Collecting and then not (Closing and then Name = "o") then
-               Fail ("tag in a version");
-            elsif Name = "version" and then not Closing then
+            if Name = "version" and then not Closing then
                declare
                   Ends : constant Natural := Ada.Strings.Fixed.Index (Source (Cursor .. Source'Last), Version_Close);
                begin
@@ -1273,15 +1210,19 @@ package body Texts.Documents is
                   end if;
                end if;
             elsif Name = "o" then
-               if Closing then
-                  Stack (Depth).Rest.Append (Alternative);
-                  Collecting := False;
-               elsif Depth = 0 or else Stack (Depth).Style /= Versioned then
+               if Closing or else Depth = 0 or else Stack (Depth).Style /= Versioned then
                   Fail ("version outside a <v>");
-               else
-                  Collecting := True;
-                  Alternative := Unbounded.Null_Unbounded_String;
                end if;
+               declare
+                  Ends : constant Natural := Ada.Strings.Fixed.Index (Source (Cursor .. Source'Last), "</o>");
+               begin
+                  if Ends = 0 then
+                     Fail ("unterminated version");
+                  end if;
+                  Check_Fragment (Source (Cursor .. Ends - 1));
+                  Stack (Depth).Rest.Append (Unbounded.To_Unbounded_String (Source (Cursor .. Ends - 1)));
+                  Cursor := Ends + 4;
+               end;
             elsif not Closing and then Name'Length > 7 and then Name (Name'First .. Name'First + 5) = "v sel="
               and then Name (Name'First + 6) = '"' and then Name (Name'Last) = '"'
               and then (for all C of Name (Name'First + 7 .. Name'Last - 1) => C in '0' .. '9')
@@ -1544,5 +1485,140 @@ package body Texts.Documents is
                  At_Point.Index);
       end if;
    end Map;
+
+   function Escaped (Raw : String) return String is
+      Result : Unbounded.Unbounded_String;
+   begin
+      for C of Raw loop
+         case C is
+            when '&'    => Unbounded.Append (Result, "&amp;");
+            when '<'    => Unbounded.Append (Result, "&lt;");
+            when '>'    => Unbounded.Append (Result, "&gt;");
+            when ASCII.LF | ASCII.CR => Unbounded.Append (Result, ' ');
+            when others => Unbounded.Append (Result, C);
+         end case;
+      end loop;
+      return Unbounded.To_String (Result);
+   end Escaped;
+
+   Paragraph_Open  : constant String := "<p>";
+   Paragraph_Close : constant String := "</p>";
+
+   function Fragment (Item : Document; From, To : Position) return String is
+      Probe : Document;
+   begin
+      Load (Probe, Between (Item, From, To));
+      for R of Item.Formats loop
+         if R.Style /= Versioned and then R.From < To and then From < R.To then
+            declare
+               A : constant Position := (if R.From < From then From else R.From);
+               B : constant Position := (if To < R.To then To else R.To);
+            begin
+               if A < B then
+                  Include_Format
+                    (Probe.Formats,
+                     Format_Run'((1, A.Index - From.Index + 1), (1, B.Index - From.Index + 1), R.Style,
+                                 others => <>));
+               end if;
+            end;
+         end if;
+      end loop;
+      declare
+         Whole_Markup : constant String := Stored (Probe);
+         First : constant Natural := Ada.Strings.Fixed.Index (Whole_Markup, Paragraph_Open);
+      begin
+         return Whole_Markup (First + Paragraph_Open'Length .. Whole_Markup'Last - Paragraph_Close'Length);
+      end;
+   end Fragment;
+
+   procedure Set_Version_Text
+     (Item : in out Document; From, To : Position; Words : String; Choice : Positive;
+      Versions : Version_Lists.Vector);
+   --  Make Words, markup, the text From to To, as the version Choice of
+   --  Versions of a Versioned run there, as one edit to undo.
+
+   procedure Set_Version_Text
+     (Item : in out Document; From, To : Position; Words : String; Choice : Positive;
+      Versions : Version_Lists.Vector)
+   is
+      Probe : Document;
+   begin
+      Load_Stored (Probe, Version_Open & Version_Made & Version_Close & Paragraph_Open & Words & Paragraph_Close);
+      declare
+         Raw    : constant String := Whole (Probe);
+         Ending : constant Position := End_After (From, Raw);
+         Old    : Format_Vectors.Vector;
+         Updated : Format_Vectors.Vector;
+      begin
+         Begin_Step (Item);
+         Replace (Item, From, To, Raw);
+         Old := Item.Formats;
+         --  What is round the text is kept; its own styles are the version's.
+         for R of Old loop
+            if R.Style = Versioned and then R.From = From then
+               null;
+            elsif not (R.From < Ending) or else not (From < R.To) then
+               Include_Format (Updated, R);
+            else
+               if R.From < From then
+                  Include_Format (Updated, (R with delta To => From));
+               end if;
+               if Ending < R.To then
+                  Include_Format (Updated, (R with delta From => Ending));
+               end if;
+            end if;
+         end loop;
+         for R of Probe.Formats loop
+            Include_Format
+              (Updated,
+               Format_Run'((From.Paragraph, From.Index + R.From.Index - 1),
+                           (From.Paragraph, From.Index + R.To.Index - 1), R.Style, others => <>));
+         end loop;
+         Include_Format (Updated, Format_Run'(From, Ending, Versioned, Choice, Versions));
+         Item.Formats := Updated;
+         Log_Change (Item, Change'(From => From, To => Ending, Ending => Ending,
+                                   Formats_Only => True, others => <>));
+         Push (Item, (From => From, Formats_Only => True, Format_End => Ending, Old_Formats => Old,
+                      New_Formats => Updated, others => <>));
+         Item.Joining := False;
+         End_Step (Item);
+      end;
+   end Set_Version_Text;
+
+   procedure Add_Version
+     (Item : in out Document; From, To : Position; Words : String)
+   is
+      Live     : constant String := Fragment (Item, From, To);
+      Versions : Version_Lists.Vector;
+      Same     : Natural := 0;
+   begin
+      for I in 1 .. Natural (Item.Formats.Length) loop
+         if Item.Formats (I).Style = Versioned and then Item.Formats (I).From = From
+           and then Item.Formats (I).To = To
+         then
+            Same := I;
+         end if;
+      end loop;
+      if Same > 0 then
+         Versions := Item.Formats (Same).Versions;
+         Versions.Replace_Element (Item.Formats (Same).Choice, Unbounded.To_Unbounded_String (Live));
+      else
+         Versions.Append (Unbounded.To_Unbounded_String (Live));
+      end if;
+      Versions.Append (Unbounded.To_Unbounded_String (Words));
+      Set_Version_Text (Item, From, To, Words, Natural (Versions.Length), Versions);
+   end Add_Version;
+
+   procedure Choose_Version (Item : in out Document; Index : Positive; Choice : Positive) is
+      R        : constant Format_Run := Item.Formats (Index);
+      Versions : Version_Lists.Vector := R.Versions;
+      Wanted   : constant String := Unbounded.To_String (Versions (Choice));
+   begin
+      if Choice = R.Choice then
+         return;
+      end if;
+      Versions.Replace_Element (R.Choice, Unbounded.To_Unbounded_String (Fragment (Item, R.From, R.To)));
+      Set_Version_Text (Item, R.From, R.To, Wanted, Choice, Versions);
+   end Choose_Version;
 
 end Texts.Documents;

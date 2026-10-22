@@ -296,9 +296,8 @@ package Pomarine.Text_Areas is
    procedure Add_Version (Item : in out Text_Area; From, To : Position; Words : String)
      with Pre => Is_Attached (Item) and then not Is_Read_Only (Item)
                  and then Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then From.Paragraph = To.Paragraph and then Words'Length > 0
-                 and then (for all C of Words => C not in ASCII.LF | ASCII.CR);
-   --  As Texts.Documents.Add_Version, as its own undo step, with the caret
+                 and then From.Paragraph = To.Paragraph and then Words'Length > 0;
+   --  As Texts.Documents.Add_Version, Words being markup, as its own undo step, with the caret
    --  after the new text. The caller invalidates the owning widget.
 
    procedure Choose_Version (Item : in out Text_Area; Index : Positive; Choice : Positive)
