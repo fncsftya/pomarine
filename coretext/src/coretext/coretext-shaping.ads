@@ -23,6 +23,8 @@ package CoreText.Shaping is
       Id   : Interfaces.Unsigned_16;
       Font : Font_Id;
       X    : Float;  --  of the glyph's origin from the line's start
+      Size : Float := 0.0;
+      --  Of the font it was set in, in the units of the line: 0 if not said.
    end record;
 
    package Glyph_Vectors is new Ada.Containers.Vectors (Positive, Glyph);

@@ -179,7 +179,7 @@ package body Typeset.Views is
                                     Item.Slabs (Item.Active)
                                       (Line.First
                                        .. Line.First + Line.Count - 1),
-                                    X => Left, Baseline => Baseline,
+                                    X => Left + Layouts.Inset_Of (Laid, Para) * Scale, Baseline => Baseline,
                                     Scale => Scale,
                                     Size => Font_Size * Scale,
                                     Value => Value, Settled => Settled);
@@ -188,7 +188,7 @@ package body Typeset.Views is
                               Glyph_Atlas.Draw
                                 (Atlas_Ref.all, Reg_Ref.all, Target,
                                  Item.Scratch,
-                                 X => Left, Baseline => Baseline,
+                                 X => Left + Layouts.Inset_Of (Laid, Para) * Scale, Baseline => Baseline,
                                  Scale => Scale, Size => Font_Size * Scale,
                                  Value => Value, Settled => Settled);
                            end if;

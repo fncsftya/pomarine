@@ -32,8 +32,18 @@ package Texts is
    --  of dialogue, a note. Texts only keeps it.
 
    Plain : constant Paragraph_Kind := 0;
+   Heading_1 : constant Paragraph_Kind := 1;
    Heading_2 : constant Paragraph_Kind := 2;
    Heading_3 : constant Paragraph_Kind := 3;
+
+   type Paragraph_Inset is record
+      Indent : Natural := 0;     --  steps in from the left
+      Quoted : Boolean := False; --  set apart, with a rule along its left
+   end record;
+   --  How a paragraph sits in the page, apart from its kind. Texts only
+   --  keeps it.
+
+   No_Inset : constant Paragraph_Inset := (others => <>);
 
    --  UTF-8
 

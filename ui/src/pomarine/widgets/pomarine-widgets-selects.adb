@@ -21,6 +21,14 @@ package body Pomarine.Widgets.Selects is
       end if;
    end Changed_Look;
 
+   procedure Set_Faced (Item : in out Select_Field; To : Boolean) is
+   begin
+      if Item.Faced /= To then
+         Item.Faced := To;
+         Invalidate (Item);
+      end if;
+   end Set_Faced;
+
    procedure Set_Value (Item : in out Select_Field; Text : String) is
    begin
       if Text /= Value (Item) then
@@ -165,9 +173,16 @@ package body Pomarine.Widgets.Selects is
          end;
       end if;
       if Item.Length > 0 and then Text_Lines (Item) /= null then
-         Pomarine.Line_Texts.Draw
-           (Text_Lines (Item).all, Target, Ink, Value (Item),
-            Left + Pad * Pixels, Top + High / 2.0, Pixels);
+         declare
+            Face : constant String := (if Item.Faced then Value (Item) else "");
+            Start : constant Float := Left + Pad * Pixels;
+         begin
+            Pomarine.Line_Texts.Draw
+              (Text_Lines (Item).all, Target, Ink,
+               Pomarine.Line_Texts.Fitted
+                 (Text_Lines (Item).all, Value (Item), Button_Left - Around - Start, Pixels, Face => Face),
+               Start, Top + High / 2.0, Pixels, Face => Face);
+         end;
       end if;
    end Draw;
 

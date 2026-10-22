@@ -44,18 +44,32 @@ package body Document_Tests is
       A, B : Texts.Position;
    begin
       Docs.Load (Doc, "Hello " & UTF_8 ("é🙂") & LF & "world");
-      for F in Docs.Format loop
-         if Docs."/=" (F, Docs.Versioned) then
-            Docs.Set_Format (Doc, (1, 1), (2, 4), F, True);
-         end if;
+      for F in Docs.Bold .. Docs.Faded loop
+         Docs.Set_Format (Doc, (1, 1), (2, 4), F, True);
       end loop;
+      Docs.Set_Size (Doc, (1, 3), (2, 2), 14);
+      Docs.Set_Size (Doc, (1, 5), (1, 7), 20);
+      Docs.Set_Family (Doc, (1, 4), (1, 6), "Menlo");
       Docs.Load_Stored (Loaded, Docs.Stored (Doc));
       pragma Assert (Docs.Whole (Loaded) = Docs.Whole (Doc));
       pragma Assert (Docs.State (Loaded) = 0);
       pragma Assert (not Docs.Can_Undo (Loaded));
-      for F in Docs.Format loop
-         pragma Assert (Docs."=" (F, Docs.Versioned) or else Docs.Has_Format (Loaded, (1, 1), (2, 4), F));
+      for F in Docs.Bold .. Docs.Faded loop
+         pragma Assert (Docs.Has_Format (Loaded, (1, 1), (2, 4), F));
       end loop;
+      --  A size or family is of the text it is set on, over another; the markup keeps them.
+      pragma Assert (Docs.Size_At (Loaded, (1, 1), (1, 2)) = 0);
+      pragma Assert (Docs.Size_At (Loaded, (1, 3), (1, 4)) = 14);
+      pragma Assert (Docs.Size_At (Loaded, (1, 5), (1, 7)) = 20);
+      pragma Assert (Docs.Size_At (Loaded, (1, 9), (2, 2)) = 14);
+      pragma Assert (Docs.Size_At (Loaded, (2, 2), (2, 3)) = 0);
+      pragma Assert (Docs.Family_At (Loaded, (1, 4), (1, 6)) = "Menlo");
+      pragma Assert (Docs.Family_At (Loaded, (1, 3), (1, 4)) = "");
+      pragma Assert (Docs.Stored (Loaded) = Docs.Stored (Doc));
+      Docs.Set_Size (Doc, (1, 3), (1, 9), 0);
+      pragma Assert (Docs.Size_At (Doc, (1, 5), (1, 7)) = 0);
+      Docs.Undo (Doc, A, B);
+      pragma Assert (Docs.Size_At (Doc, (1, 5), (1, 7)) = 20);
       Docs.Set_Format (Doc, (1, 2), (1, 5), Docs.Bold, False);
       pragma Assert (not Docs.Has_Format (Doc, (1, 2), (1, 5), Docs.Bold));
       pragma Assert (Docs.Has_Format (Doc, (1, 1), (1, 2), Docs.Bold));

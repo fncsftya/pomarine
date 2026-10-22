@@ -55,9 +55,15 @@ package Texts.Documents is
    function Kind (Item : Document; Para : Positive) return Paragraph_Kind
      with Pre => Para <= Count (Item);
 
-   type Format is (Bold, Underline, Italic, Strikethrough, Faded, Versioned);
-   --  Faded is text drawn part see-through. Versioned is text that has
-   --  several versions, one of which is the text (see Add_Version).
+   function Inset (Item : Document; Para : Positive) return Paragraph_Inset
+     with Pre => Para <= Count (Item);
+
+   type Format is (Bold, Underline, Italic, Strikethrough, Faded, Sized, Faced, Versioned);
+   --  Faded is text drawn part see-through. Sized is text of its own size
+   --  (a run's Choice is its points) and Faced text of its own family (its
+   --  Name): runs of these are told apart by what they say, and never
+   --  overlap. Versioned is text that has several versions, one of which is
+   --  the text (see Add_Version).
    type Format_Set is array (Format) of Boolean;
    No_Formats : constant Format_Set := [others => False];
 
@@ -71,6 +77,8 @@ package Texts.Documents is
       Versions : Version_Lists.Vector;
       --  Of a Versioned run: the versions in order, and which is the text,
       --  whose place in Versions is not kept up to date while it is.
+      Name     : Ada.Strings.Unbounded.Unbounded_String;
+      --  Of a Faced run: the family.
    end record;
 
    function Run_Count (Item : Document) return Natural;
@@ -80,8 +88,28 @@ package Texts.Documents is
      with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    procedure Set_Format (Item : in out Document; From, To : Position; Style : Format; Enabled : Boolean)
      with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then Style /= Versioned,
+                 and then Style not in Sized | Faced | Versioned,
           Post => Has_Format (Item, From, To, Style) = Enabled;
+
+   Largest_Size : constant := 999;
+   --  Points.
+
+   function Size_At (Item : Document; From, To : Position) return Natural
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   function Family_At (Item : Document; From, To : Position) return String
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   --  The size in points, or the family, of what is from From to To: of the
+   --  text at From, or, if From = To, before it (what is typed there is of
+   --  it); 0, or "", if it has none of its own.
+
+   procedure Set_Size (Item : in out Document; From, To : Position; Points : Natural)
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
+                 and then Points <= Largest_Size;
+   procedure Set_Family (Item : in out Document; From, To : Position; Name : String)
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
+                 and then (for all C of Name => C not in '"' | '<' | '>' | '&' | ASCII.LF | ASCII.CR);
+   --  Make the text from From to To of that size, or family, over any other
+   --  there; none (0 or "") to give it back its default. One step to undo.
 
    --  Versions: a span of one paragraph's text can have several versions,
    --  as of a wording, of which one is the text and the others are kept.
@@ -124,7 +152,8 @@ package Texts.Documents is
    --  What is kept of a document, as markup: <version>1</version>, then a
    --  <p> for each paragraph, its text with & < > as &amp; &lt; &gt;, and
    --  <b>, <i>, <u>, <s> and <f> round the runs of bold, italic, underlined,
-   --  struck-through and faded text, and <v sel="N"> the run of a text with
+   --  struck-through and faded text, <z n="14"> and <y n="Georgia"> round
+   --  those of a size, in points, and a family, and <v sel="N"> the run of a text with
    --  versions, with the other versions, as markup of their own, in <o> in it before the text; N is
    --  which version, of them all, the text is. Text without a <version> is plain, a paragraph
    --  to each line: Upgraded makes the markup of it, and Load_Stored loads
@@ -191,7 +220,9 @@ package Texts.Documents is
       Undo_As  : Edit_Kind := Other;
       Recorded : Boolean := True;
       Explicit_Formats : Boolean := False;
-      Formats : Format_Set := No_Formats)
+      Formats : Format_Set := No_Formats;
+      Sizing  : Natural := 0;
+      Facing  : String := "")
      with Pre  => Is_Position (Item, From) and then Is_Position (Item, To)
                   and then not (To < From)
                   and then (for all C of By => C /= ASCII.CR),
@@ -204,6 +235,9 @@ package Texts.Documents is
    --  kind; the rest of those from From to To go; each line feed in By
    --  starts a new Plain paragraph.
    --
+   --  Explicit_Formats, the text is in just the Formats, and of size Sizing
+   --  and family Facing if they are Sized and Faced.
+   --
    --  Recorded, it can be undone. An edit not recorded, as of what an
    --  input method shows before it is typed, must be taken back before
    --  the next recorded one: the history does not allow for it.
@@ -213,6 +247,12 @@ package Texts.Documents is
      with Pre  => Para <= Count (Item),
           Post => Kind (Item, Para) = To;
    --  An edit, which can be undone.
+
+   procedure Set_Inset
+     (Item : in out Document; Para : Positive; To : Paragraph_Inset)
+     with Pre  => Para <= Count (Item),
+          Post => Inset (Item, Para) = To;
+   --  An edit, which can be undone. Stored as attributes of the paragraph.
 
    --  The history of edits
 
@@ -323,6 +363,7 @@ private
       --  not when loaded.
       Id        : Paragraph_Id := 1;
       Kind      : Paragraph_Kind := Plain;
+      Inset     : Paragraph_Inset;
       Marks     : Mark_Access;
       Marked    : Natural := 0;
       --  Marks (K): the units of the first K * Mark_Spacing bytes, right
@@ -335,8 +376,9 @@ private
      (Positive, Paragraph_Access);
 
    type Named is record
-      Id   : Paragraph_Id := 1;
-      Kind : Paragraph_Kind := Plain;
+      Id    : Paragraph_Id := 1;
+      Kind  : Paragraph_Kind := Plain;
+      Inset : Paragraph_Inset;
    end record;
 
    package Named_Vectors is new Ada.Containers.Vectors (Positive, Named);
@@ -357,7 +399,8 @@ private
       Kind      : Edit_Kind := Other;
       Kind_Only : Boolean := False;
       Old_Kind, New_Kind : Paragraph_Kind := Plain;
-      --  Of From's paragraph, if Kind_Only.
+      Old_Inset, New_Inset : Paragraph_Inset;
+      --  Of From's paragraph, if Kind_Only (which is of its inset too).
    end record;
    --  Removed was replaced by Inserted, at From.
 

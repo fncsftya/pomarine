@@ -53,6 +53,12 @@ package Pomarine.Widgets.Menus is
 
    function Is_Accented (Item : Menu) return Boolean;
 
+   procedure Set_Faced (Item : in out Menu; To : Boolean);
+   --  Draw the text of each action and box in the font it names, as of a
+   --  menu of fonts.
+
+   function Is_Faced (Item : Menu) return Boolean;
+
    procedure Set_Icon (Item : in out Menu; Row : Positive; To : Pomarine.Icons.Icon)
      with Pre => Row <= Row_Count (Item);
 
@@ -170,6 +176,7 @@ private
       Scrolled : Float := 0.0;
       --  How far the rows are scrolled up, in pixels.
       Accented : Boolean := False;
+      Faced    : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Menus;

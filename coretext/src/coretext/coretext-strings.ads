@@ -1,6 +1,7 @@
 with Ada.Finalization;
 with CoreText.Fonts;
 private with Ada.Containers.Vectors;
+private with Ada.Strings.Unbounded;
 with System;
 
 package CoreText.Strings is
@@ -73,8 +74,12 @@ package CoreText.Strings is
    --  at Unit; First = Stop = Unit if there is none.
 
    procedure Clear_Styles (Item : in out Text);
-   procedure Add_Style (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean)
+   procedure Add_Style
+     (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean;
+      Size : Float := 0.0; Family : String := "")
      with Pre => First < Stop and then Stop <= Length (Item);
+   --  Set the range in bold and italic, if they are, and in a size and
+   --  family of its own, if it has them (0.0 and "" for those of the font).
    function Attributed (Item : Text; Using : Fonts.Font; First, Stop : Natural) return System.Address
      with Pre => Is_Set (Item) and then First <= Stop and then Stop <= Length (Item);
    --  Owned CFAttributedStringRef; caller releases it.
@@ -88,6 +93,8 @@ private
    type Style_Run is record
       First, Stop : Natural;
       Bold, Italic : Boolean;
+      Size   : Float;
+      Family : Ada.Strings.Unbounded.Unbounded_String;
    end record;
    package Style_Vectors is new Ada.Containers.Vectors (Positive, Style_Run);
 

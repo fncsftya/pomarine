@@ -1,27 +1,60 @@
 package body Pomarine.Line_Texts is
 
+   function Named_Face (Item : in out Drawer; Face : String; Using : Style) return Positive;
+   --  Which of Item.Named is the font Face at the size of Using, opening
+   --  it if it is not.
+
+   function Named_Face (Item : in out Drawer; Face : String; Using : Style) return Positive is
+      use Ada.Strings.Unbounded;
+      Slot : Positive;
+   begin
+      for Each in 1 .. Item.Named_Opens loop
+         if Item.Named (Each).Name = Face
+           and then CoreText.Fonts.Size (Item.Named (Each).Font) = Size (Using)
+         then
+            return Each;
+         end if;
+      end loop;
+      if Item.Named_Opens < Named_Faces then
+         Item.Named_Opens := Item.Named_Opens + 1;
+         Slot := Item.Named_Opens;
+      else
+         Slot := Item.Named_Turn;
+         Item.Named_Turn := (if Slot = Named_Faces then 1 else Slot + 1);
+         --  Lines shaped in the font being closed are forgotten.
+         for Each of Item.Cache loop
+            Each.Used := False;
+         end loop;
+      end if;
+      Item.Named (Slot).Name := To_Unbounded_String (Face);
+      CoreText.Fonts.Open (Item.Named (Slot).Font, Face, Size (Using));
+      return Slot;
+   end Named_Face;
+
    function Shape
-     (Item : in out Drawer; Text : String; Using : Style) return Positive;
+     (Item : in out Drawer; Text : String; Using : Style; Face : String := "") return Positive;
    --  Which of Item.Cache is Text shaped in Using, opening the font and
    --  shaping it if it is not there. A line is shaped again each time it
    --  is drawn otherwise: labels and buttons are drawn, and measured,
    --  every time what is behind them is.
 
    function Shape
-     (Item : in out Drawer; Text : String; Using : Style) return Positive
+     (Item : in out Drawer; Text : String; Using : Style; Face : String := "") return Positive
    is
       use Ada.Strings.Unbounded;
+      Named : constant Natural := (if Face = "" then 0 else Named_Face (Item, Face, Using));
    begin
       for Entry_Of in Item.Cache'Range loop
          if Item.Cache (Entry_Of).Used
            and then Item.Cache (Entry_Of).Using = Using
+           and then Item.Cache (Entry_Of).Face = Face
            and then Item.Cache (Entry_Of).Text = Text
          then
             return Entry_Of;
          end if;
       end loop;
 
-      if not CoreText.Fonts.Is_Open (Item.Faces (Using)) then
+      if Named = 0 and then not CoreText.Fonts.Is_Open (Item.Faces (Using)) then
          CoreText.Fonts.Open
            (Item.Faces (Using), Face_Name (Using), Size (Using));
       end if;
@@ -30,10 +63,11 @@ package body Pomarine.Line_Texts is
          Slot : constant Positive := Item.Next;
       begin
          CoreText.Shaping.Shape
-           (Item.Reg, Item.Faces (Using), Item.Source, 0,
+           (Item.Reg, (if Named = 0 then Item.Faces (Using) else Item.Named (Named).Font), Item.Source, 0,
             CoreText.Strings.Length (Item.Source), Item.Cache (Slot).Line);
          Item.Cache (Slot).Used := True;
          Item.Cache (Slot).Using := Using;
+         Item.Cache (Slot).Face := To_Unbounded_String (Face);
          Item.Cache (Slot).Text := To_Unbounded_String (Text);
          Item.Next := (if Slot = Cache_Size then 1 else Slot + 1);
          return Slot;
@@ -157,14 +191,40 @@ package body Pomarine.Line_Texts is
      (Item  : in out Drawer;
       Text  : String;
       Scale : Float;
-      Using : Style := Regular) return Float is
+      Using : Style := Regular;
+      Face  : String := "") return Float is
    begin
       declare
-         Which : constant Positive := Shape (Item, Text, Using);
+         Which : constant Positive := Shape (Item, Text, Using, Face);
       begin
          return Item.Cache (Which).Line.Width * Scale;
       end;
    end Width;
+
+   function Fitted
+     (Item  : in out Drawer;
+      Text  : String;
+      Room  : Float;
+      Scale : Float;
+      Using : Style := Regular;
+      Face  : String := "") return String
+   is
+      Ellipsis : constant String :=
+        [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A6#)];
+      Last     : Natural := Text'Length;
+   begin
+      if Room <= 0.0 or else Width (Item, Text, Scale, Using, Face) <= Room then
+         return Text;
+      end if;
+      while Last > 0 loop
+         Last := Last - 1;
+         while Last > 0 and then Character'Pos (Text (Text'First + Last)) in 16#80# .. 16#BF# loop
+            Last := Last - 1;
+         end loop;
+         exit when Width (Item, Text (Text'First .. Text'First + Last - 1) & Ellipsis, Scale, Using, Face) <= Room;
+      end loop;
+      return Text (Text'First .. Text'First + Last - 1) & Ellipsis;
+   end Fitted;
 
    function Height
      (Item  : in out Drawer;
@@ -185,13 +245,16 @@ package body Pomarine.Line_Texts is
       Left   : Float;
       Middle : Float;
       Scale  : Float;
-      Using  : Style := Regular) is
+      Using  : Style := Regular;
+      Face   : String := "") is
    begin
       declare
-         Which   : constant Positive := Shape (Item, Text, Using);
-         Face    : CoreText.Fonts.Font renames Item.Faces (Using);
-         Ascent  : constant Float := CoreText.Fonts.Ascent (Face);
-         Descent : constant Float := CoreText.Fonts.Descent (Face);
+         Which   : constant Positive := Shape (Item, Text, Using, Face);
+         Named   : constant Natural := (if Face = "" then 0 else Named_Face (Item, Face, Using));
+         Ascent  : constant Float :=
+           CoreText.Fonts.Ascent (if Named = 0 then Item.Faces (Using) else Item.Named (Named).Font);
+         Descent : constant Float :=
+           CoreText.Fonts.Descent (if Named = 0 then Item.Faces (Using) else Item.Named (Named).Font);
       begin
          Typeset.Glyph_Atlas.Draw
            (Item.Atlas, Item.Reg, Target, Item.Cache (Which).Line,

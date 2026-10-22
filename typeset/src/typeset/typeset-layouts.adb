@@ -34,6 +34,7 @@ package body Typeset.Layouts is
       pragma Assert (Para <= Count (Item));
       if Para /= 0 and then Item.Paragraphs (Para) /= null then
          case Item.Paragraphs (Para).Kind is
+            when Texts.Heading_1 => return Item.H1_Font'Unchecked_Access;
             when Texts.Heading_2 => return Item.H2_Font'Unchecked_Access;
             when Texts.Heading_3 => return Item.H3_Font'Unchecked_Access;
             when others => null;
@@ -127,6 +128,7 @@ package body Typeset.Layouts is
       Spacing    : Float := 0.0) is
    begin
       CoreText.Fonts.Open (Item.Font, Family, Size);
+      CoreText.Fonts.Open (Item.H1_Font, Family, Size * 2.0);
       CoreText.Fonts.Open (Item.H2_Font, Family, Size * 1.5);
       CoreText.Fonts.Open (Item.H3_Font, Family, Size * 1.25);
       Item.Line_High := Long_Float (CoreText.Fonts.Line_Height (Item.Font));
@@ -410,13 +412,30 @@ package body Typeset.Layouts is
 
    --  Metrics
 
+   function Boost_Of (Item : Layout; Para : Natural) return Float is
+     (if Para /= 0 and then Item.Paragraphs (Para) /= null then Item.Paragraphs (Para).Boost else 1.0);
+
    function Line_Height (Item : Layout; Para : Natural := 0) return Float is
-     (CoreText.Fonts.Line_Height (Font_For (Item, Para).all));
+     (CoreText.Fonts.Line_Height (Font_For (Item, Para).all) * Boost_Of (Item, Para));
    function Ascent (Item : Layout; Para : Natural := 0) return Float is
-     (CoreText.Fonts.Ascent (Font_For (Item, Para).all));
+     (CoreText.Fonts.Ascent (Font_For (Item, Para).all) * Boost_Of (Item, Para));
    function Font_Size (Item : Layout; Para : Natural := 0) return Float is
      (CoreText.Fonts.Size (Font_For (Item, Para).all));
    function Width (Item : Layout) return Float is (Item.Wide);
+
+   function Is_Held (Item : Layout; Para : Positive) return Boolean is (Item.Paragraphs (Para) /= null);
+
+   function Is_Quoted (Item : Layout; Para : Positive) return Boolean is (Item.Paragraphs (Para).Inset.Quoted);
+
+   function Rule_Offset (Item : Layout; Para : Positive) return Float is
+     (Float (Item.Paragraphs (Para).Inset.Indent) * Indent_Step);
+
+   function Inset_Of (Item : Layout; Para : Positive) return Float is
+     (Rule_Offset (Item, Para) + (if Is_Quoted (Item, Para) then Quote_Room else 0.0));
+
+   function Wrap_Width (Item : Layout; Para : Positive) return Float is
+     (Float'Max (1.0, Item.Wide - Inset_Of (Item, Para)));
+   --  How wide the paragraph's lines may be.
 
    --  Lines
 
@@ -442,10 +461,12 @@ package body Typeset.Layouts is
       P : constant Paragraph_Access := Item.Paragraphs (Para);
    begin
       P.Kind := Docs.Kind (Doc, Para);
+      P.Inset := Docs.Inset (Doc, Para);
       if not CoreText.Strings.Is_Set (P.Held) then
          CoreText.Strings.Set (P.Held, Docs.Text (Doc, Para));
       end if;
       CoreText.Strings.Clear_Styles (P.Held);
+      P.Boost := 0.0;
       declare
          A : Positive := 1;
          Last : constant Positive := Docs.Byte_Length (Doc, Para) + 1;
@@ -466,18 +487,28 @@ package body Typeset.Layouts is
                      end if;
                   end;
                end loop;
-               if Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Bold)
-                 or else Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Italic)
-               then
-                  CoreText.Strings.Add_Style
-                    (P.Held, Docs.Units_Before (Doc, Para, A), Docs.Units_Before (Doc, Para, B),
-                     Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Bold),
-                     Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Italic));
-               end if;
+               declare
+                  Points : constant Natural := Docs.Size_At (Doc, (Para, A), (Para, B));
+                  Family : constant String := Docs.Family_At (Doc, (Para, A), (Para, B));
+                  Bold   : constant Boolean := Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Bold);
+                  Italic : constant Boolean := Docs.Has_Format (Doc, (Para, A), (Para, B), Docs.Italic);
+               begin
+                  if Bold or else Italic or else Points > 0 or else Family /= "" then
+                     CoreText.Strings.Add_Style
+                       (P.Held, Docs.Units_Before (Doc, Para, A), Docs.Units_Before (Doc, Para, B),
+                        Bold, Italic, Float (Points), Family);
+                  end if;
+                  P.Boost := Float'Max
+                    (P.Boost,
+                     (if Points > 0 then Float (Points) / CoreText.Fonts.Size (Font_For (Item, Para).all) else 1.0));
+               end;
                A := B;
             end;
          end loop;
       end;
+      if P.Boost = 0.0 then
+         P.Boost := 1.0;
+      end if;
       pragma Assert
         (CoreText.Strings.Length (P.Held) = Item.Lengths (Para));
    end Hold;
@@ -556,22 +587,22 @@ package body Typeset.Layouts is
               (if Old_Stop >= P.Edit_At and then Old_Stop <= P.Laid_Units
                  and then P.Edit_Stop <= Length
                then Rewrap
-                      (Font_For (Item, Para).all, P.Lines, P.Held, Item.Wide,
+                      (Font_For (Item, Para).all, P.Lines, P.Held, Wrap_Width (Item, Para),
                        P.Edit_At, Old_Stop, P.Edit_Stop)
-               else Wrap (Font_For (Item, Para).all, P.Held, Item.Wide));
+               else Wrap (Font_For (Item, Para).all, P.Held, Wrap_Width (Item, Para)));
          begin
             P.Lines.Move (Source => Fresh);  --  not copied
          end;
          P.Dirty := False;
          P.Id := New_Id (Item);
       elsif P.Lines.Is_Empty and then Length <= Long_Units then
-         P.Lines := Wrap (Font_For (Item, Para).all, P.Held, Item.Wide);
+         P.Lines := Wrap (Font_For (Item, Para).all, P.Held, Wrap_Width (Item, Para));
          P.Id := New_Id (Item);
       else
          if P.Lines.Is_Empty then
             P.Id := New_Id (Item);
          end if;
-         Extend (Font_For (Item, Para).all, P.Held, Item.Wide, P.Lines,
+         Extend (Font_For (Item, Para).all, P.Held, Wrap_Width (Item, Para), P.Lines,
                  Until_Count => Lines, Until_Unit => Units);
       end if;
       Laid_Out (Item, Para);
@@ -776,8 +807,8 @@ package body Typeset.Layouts is
       Set : CoreText.Lines.Line;
    begin
       Set_Line (Item, Doc, Para, Number, Set);
-      return CoreText.Lines.Offset_For_Index
-               (Set, Units - Line (Item, Para, Number).First);
+      return Inset_Of (Item, Para)
+             + CoreText.Lines.Offset_For_Index (Set, Units - Line (Item, Para, Number).First);
    end Caret_Offset;
 
    function Units_At_Offset
@@ -792,7 +823,7 @@ package body Typeset.Layouts is
       Units  : Natural;
    begin
       Set_Line (Item, Doc, Para, Number, Set);
-      Units := Bounds.First + CoreText.Lines.Index_For_Position (Set, X);
+      Units := Bounds.First + CoreText.Lines.Index_For_Position (Set, X - Inset_Of (Item, Para));
       --  The end of a line that breaks is the start of the next: stop
       --  before the character it breaks after.
       if (Number < Line_Count (Item, Para)

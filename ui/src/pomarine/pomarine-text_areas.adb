@@ -1,3 +1,4 @@
+with Ada.Strings.Fixed;
 with Pomarine.Boxes;
 with SDL3.Windows;
 with SDL3.Windows.Renderers;
@@ -10,6 +11,7 @@ package body Pomarine.Text_Areas is
    package Events renames SDL3.Events;
 
    use type Events.Key_Code;
+   use type Texts.Paragraph_Kind;
    use type Events.Event_Kind;
    use type Docs.Version;
    use type Texts.Position;
@@ -507,7 +509,9 @@ package body Pomarine.Text_Areas is
          return;
       end if;
       Docs.Replace (Item.Doc.all, From, To, By, Undo_As, Recorded,
-                    Explicit_Formats => Item.Explicit_Formats, Formats => Item.Pending_Formats);
+                    Explicit_Formats => Item.Explicit_Formats, Formats => Item.Pending_Formats,
+                    Sizing => Item.Pending_Size,
+                    Facing => Ada.Strings.Unbounded.To_String (Item.Pending_Family));
       Catch_Up (Item);
       Item.At_Caret := Texts.End_After (From, By);
       Item.At_Mark := Item.At_Caret;
@@ -1089,6 +1093,9 @@ package body Pomarine.Text_Areas is
       return Docs.Has_Format (Item.Doc.all, From, Selection_Last (Item), Style);
    end Format_Active;
 
+   procedure Start_Pending (Item : in out Text_Area);
+   --  Have the formats of the text at the caret be what is typed next, to change.
+
    procedure Toggle_Format (Item : in out Text_Area; Style : Docs.Format) is
    begin
       if Item.Single or else Item.Read_Only then
@@ -1101,16 +1108,317 @@ package body Pomarine.Text_Areas is
          Catch_Up (Item);
          Reveal (Item);
       else
-         if not Item.Explicit_Formats then
-            for F in Docs.Format loop
-               Item.Pending_Formats (F) := Format_Active (Item, F);
-            end loop;
-         end if;
+         Start_Pending (Item);
          Item.Pending_Formats (Style) := not Item.Pending_Formats (Style);
-         Item.Explicit_Formats := True;
          Docs.Seal (Item.Doc.all);
       end if;
    end Toggle_Format;
+
+   Bullet_Mark : constant String := [Standard.Character'Val (16#E2#), Standard.Character'Val (16#80#),
+      Standard.Character'Val (16#A2#), ' '];
+
+   type Marker is record
+      Lead   : Natural := 0;  --  spaces before it
+      Length : Natural := 0;  --  bytes of the mark; 0 if there is none
+      Which  : Block := Bullets;
+   end record;
+
+   function Marker_Of (Item : Text_Area; Para : Positive) return Marker is
+      Stop  : constant Positive := Natural'Min (Docs.Byte_Length (Item.Doc.all, Para), 48) + 1;
+      Text  : constant String := Docs.Slice (Item.Doc.all, Para, 1, Stop);
+      Lead  : Natural := 0;
+   begin
+      while Lead < Text'Length and then Text (Text'First + Lead) = ' ' loop
+         Lead := Lead + 1;
+      end loop;
+      declare
+         Rest   : constant String := Text (Text'First + Lead .. Text'Last);
+         Figures : Natural := 0;
+      begin
+         if Rest'Length >= Bullet_Mark'Length
+           and then Rest (Rest'First .. Rest'First + Bullet_Mark'Length - 1) = Bullet_Mark
+         then
+            return (Lead, Bullet_Mark'Length, Bullets);
+         end if;
+         while Figures < Rest'Length and then Rest (Rest'First + Figures) in '0' .. '9' loop
+            Figures := Figures + 1;
+         end loop;
+         if Figures > 0 and then Rest'Length >= Figures + 2
+           and then Rest (Rest'First + Figures .. Rest'First + Figures + 1) = ". "
+         then
+            return (Lead, Figures + 2, Numbers);
+         end if;
+         return (Lead, 0, Bullets);
+      end;
+   end Marker_Of;
+
+   procedure Paragraph_Range (Item : Text_Area; First, Last : out Positive) is
+      From : constant Position := Selection_First (Item);
+      To   : constant Position := Selection_Last (Item);
+   begin
+      First := From.Paragraph;
+      Last := (if To.Paragraph > From.Paragraph and then To.Index = 1 then To.Paragraph - 1 else To.Paragraph);
+   end Paragraph_Range;
+
+   function Size_Here (Item : Text_Area) return Natural is
+     (if Item.Explicit_Formats and then not Has_Selection (Item) then Item.Pending_Size
+      else Docs.Size_At (Item.Doc.all, Selection_First (Item), Selection_Last (Item)));
+
+   function Family_Here (Item : Text_Area) return String is
+     (if Item.Explicit_Formats and then not Has_Selection (Item)
+      then Ada.Strings.Unbounded.To_String (Item.Pending_Family)
+      else Docs.Family_At (Item.Doc.all, Selection_First (Item), Selection_Last (Item)));
+
+   procedure Start_Pending (Item : in out Text_Area) is
+   begin
+      if not Item.Explicit_Formats then
+         Item.Pending_Size := Size_Here (Item);
+         Item.Pending_Family := Ada.Strings.Unbounded.To_Unbounded_String (Family_Here (Item));
+         for F in Docs.Format loop
+            Item.Pending_Formats (F) := Format_Active (Item, F);
+         end loop;
+         Item.Explicit_Formats := True;
+      end if;
+   end Start_Pending;
+
+   procedure Set_Size (Item : in out Text_Area; Points : Natural) is
+   begin
+      if Item.Single or else Item.Read_Only then
+         return;
+      end if;
+      Finish_Composition (Item);
+      if Has_Selection (Item) then
+         Docs.Set_Size (Item.Doc.all, Selection_First (Item), Selection_Last (Item), Points);
+         Catch_Up (Item);
+         Reveal (Item);
+      else
+         Start_Pending (Item);
+         Item.Pending_Size := Points;
+         Item.Pending_Formats (Docs.Sized) := Points > 0;
+         Docs.Seal (Item.Doc.all);
+      end if;
+   end Set_Size;
+
+   procedure Set_Family (Item : in out Text_Area; Name : String) is
+   begin
+      if Item.Single or else Item.Read_Only then
+         return;
+      end if;
+      Finish_Composition (Item);
+      if Has_Selection (Item) then
+         Docs.Set_Family (Item.Doc.all, Selection_First (Item), Selection_Last (Item), Name);
+         Catch_Up (Item);
+         Reveal (Item);
+      else
+         Start_Pending (Item);
+         Item.Pending_Family := Ada.Strings.Unbounded.To_Unbounded_String (Name);
+         Item.Pending_Formats (Docs.Faced) := Name /= "";
+         Docs.Seal (Item.Doc.all);
+      end if;
+   end Set_Family;
+
+   function Block_Active (Item : Text_Area; Which : Block) return Boolean is
+      Found : constant Marker := Marker_Of (Item, Caret (Item).Paragraph);
+   begin
+      if Which = Quote then
+         return Docs.Inset (Item.Doc.all, Caret (Item).Paragraph).Quoted;
+      end if;
+      return Found.Length > 0 and then Found.Which = Which;
+   end Block_Active;
+
+   function Paragraph_Style (Item : Text_Area) return Texts.Paragraph_Kind is
+     (Docs.Kind (Item.Doc.all, Caret (Item).Paragraph));
+
+   --  Numbers the run of numbered paragraphs (alike in their lead) that Para is in, from 1.
+   procedure Renumber_Run (Item : in out Text_Area; Para : Positive) is
+      First : Positive := Para;
+      Last  : Positive := Para;
+      Lead  : Natural;
+
+      function Joins (Other : Positive) return Boolean is
+        (Marker_Of (Item, Other).Which = Numbers and then Marker_Of (Item, Other).Length > 0
+         and then Marker_Of (Item, Other).Lead = Lead);
+   begin
+      if Marker_Of (Item, Para).Length = 0 or else Marker_Of (Item, Para).Which /= Numbers then
+         return;
+      end if;
+      Lead := Marker_Of (Item, Para).Lead;
+      while First > 1 and then Joins (First - 1) loop
+         First := First - 1;
+      end loop;
+      while Last < Docs.Count (Item.Doc.all) and then Joins (Last + 1) loop
+         Last := Last + 1;
+      end loop;
+      for Each in First .. Last loop
+         declare
+            Found : constant Marker := Marker_Of (Item, Each);
+            Wanted : constant String :=
+              Ada.Strings.Fixed.Trim (Natural'Image (Each - First + 1), Ada.Strings.Left) & ". ";
+            Old   : constant String := Docs.Slice (Item.Doc.all, Each, Found.Lead + 1, Found.Lead + Found.Length + 1);
+         begin
+            if Old /= Wanted then
+               Replace_Range (Item, (Each, Found.Lead + 1), (Each, Found.Lead + Found.Length + 1), Wanted);
+            end if;
+         end;
+      end loop;
+   end Renumber_Run;
+
+   --  Numbers again the runs that touch paragraphs First .. Last (clipped to the document) and keeps
+   --  the selection where it was in its paragraphs, whatever the new marks take.
+   procedure Renumber_Around (Item : in out Text_Area; First, Last : Integer) is
+      From : constant Position := Selection_First (Item);
+      To   : constant Position := Selection_Last (Item);
+      From_Tail : constant Natural := Docs.Byte_Length (Item.Doc.all, From.Paragraph) + 1 - From.Index;
+      To_Tail   : constant Natural := Docs.Byte_Length (Item.Doc.all, To.Paragraph) + 1 - To.Index;
+   begin
+      for Para in Integer'Max (1, First) .. Integer'Min (Docs.Count (Item.Doc.all), Last) loop
+         Renumber_Run (Item, Para);
+      end loop;
+      Select_Range
+        (Item, (From.Paragraph, Docs.Byte_Length (Item.Doc.all, From.Paragraph) + 1 - From_Tail),
+         (To.Paragraph, Docs.Byte_Length (Item.Doc.all, To.Paragraph) + 1 - To_Tail));
+   end Renumber_Around;
+
+   procedure Toggle_Block (Item : in out Text_Area; Which : Block) is
+      First, Last : Positive;
+      Every  : Boolean := True;
+      Number : Natural := 0;
+   begin
+      if Item.Single or else Item.Read_Only then
+         return;
+      end if;
+      Finish_Composition (Item);
+      Paragraph_Range (Item, First, Last);
+      if Which = Quote then
+         Every := (for all Para in First .. Last => Docs.Inset (Item.Doc.all, Para).Quoted);
+         Docs.Seal (Item.Doc.all);
+         Docs.Begin_Step (Item.Doc.all);
+         for Para in First .. Last loop
+            Docs.Set_Inset (Item.Doc.all, Para, (Docs.Inset (Item.Doc.all, Para) with delta Quoted => not Every));
+         end loop;
+         Docs.End_Step (Item.Doc.all);
+         Docs.Seal (Item.Doc.all);
+         Catch_Up (Item);
+         Reveal (Item);
+         return;
+      end if;
+      for Para in First .. Last loop
+         declare
+            Found : constant Marker := Marker_Of (Item, Para);
+         begin
+            Every := Every and then Found.Length > 0 and then Found.Which = Which;
+         end;
+      end loop;
+      Docs.Seal (Item.Doc.all);
+      Docs.Begin_Step (Item.Doc.all);
+      for Para in First .. Last loop
+         declare
+            Found : constant Marker := Marker_Of (Item, Para);
+         begin
+            Number := Number + 1;
+            Docs.Replace
+              (Item.Doc.all, (Para, Found.Lead + 1), (Para, Found.Lead + 1 + Found.Length),
+               (if Every then ""
+                else (case Which is
+                         when Bullets => Bullet_Mark,
+                         when Quote   => raise Program_Error,
+                         when Numbers => Ada.Strings.Fixed.Trim (Natural'Image (Number), Ada.Strings.Left) & ". ")));
+         end;
+      end loop;
+      Docs.End_Step (Item.Doc.all);
+      Docs.Seal (Item.Doc.all);
+      Renumber_Around (Item, First - 1, Last + 1);
+      Catch_Up (Item);
+      Reveal (Item);
+   end Toggle_Block;
+
+   --  Return in a list item starts the next one, or ends the list on an empty item; Continue is False
+   --  (Shift+Return) for a new plain paragraph after the item.
+   procedure Split_Line (Item : in out Text_Area; Continue : Boolean) is
+      Para  : constant Positive := Caret (Item).Paragraph;
+      Found : constant Marker := Marker_Of (Item, Para);
+      Empty : constant Boolean :=
+        Found.Length > 0 and then Docs.Byte_Length (Item.Doc.all, Para) = Found.Lead + Found.Length;
+   begin
+      if Found.Length = 0 or else Has_Selection (Item) then
+         Insert (Item, [ASCII.LF]);
+      elsif Empty then
+         Finish_Composition (Item);
+         Replace_Range (Item, (Para, 1), (Para, Found.Lead + Found.Length + 1), "");
+         if not Continue then
+            Insert (Item, [ASCII.LF]);
+         end if;
+      elsif not Continue then
+         Insert (Item, [ASCII.LF]);
+      else
+         declare
+            Lead : constant String := [1 .. Found.Lead => ' '];
+            Prefix : constant String :=
+              Docs.Slice (Item.Doc.all, Para, Found.Lead + 1, Found.Lead + Found.Length + 1);
+            Next : constant String :=
+              (if Found.Which = Bullets then Bullet_Mark
+               else Ada.Strings.Fixed.Trim
+                      (Natural'Image (Natural'Value (Prefix (Prefix'First .. Prefix'Last - 2)) + 1), Ada.Strings.Left)
+                    & ". ");
+         begin
+            Insert (Item, ASCII.LF & Lead & Next);
+         end;
+      end if;
+   end Split_Line;
+
+   procedure Break_Line (Item : in out Text_Area; Continue : Boolean) is
+   begin
+      Split_Line (Item, Continue);
+      Renumber_Around (Item, Caret (Item).Paragraph - 1, Caret (Item).Paragraph + 1);
+   end Break_Line;
+
+   procedure Shift_Indent (Item : in out Text_Area; Outward : Boolean) is
+      First, Last : Positive;
+   begin
+      if Item.Single or else Item.Read_Only then
+         return;
+      end if;
+      Finish_Composition (Item);
+      Paragraph_Range (Item, First, Last);
+      Docs.Seal (Item.Doc.all);
+      Docs.Begin_Step (Item.Doc.all);
+      for Para in First .. Last loop
+         declare
+            Was : constant Texts.Paragraph_Inset := Docs.Inset (Item.Doc.all, Para);
+         begin
+            if not Outward then
+               Docs.Set_Inset (Item.Doc.all, Para, (Was with delta Indent => Was.Indent + 1));
+            elsif Was.Indent > 0 then
+               Docs.Set_Inset (Item.Doc.all, Para, (Was with delta Indent => Was.Indent - 1));
+            end if;
+         end;
+      end loop;
+      Docs.End_Step (Item.Doc.all);
+      Docs.Seal (Item.Doc.all);
+      Catch_Up (Item);
+      Reveal (Item);
+   end Shift_Indent;
+
+   procedure Set_Style (Item : in out Text_Area; To : Texts.Paragraph_Kind) is
+      First, Last : Positive;
+   begin
+      if Item.Single or else Item.Read_Only then
+         return;
+      end if;
+      Finish_Composition (Item);
+      Paragraph_Range (Item, First, Last);
+      Docs.Seal (Item.Doc.all);
+      Docs.Begin_Step (Item.Doc.all);
+      for Para in First .. Last loop
+         if Docs.Kind (Item.Doc.all, Para) /= To then
+            Docs.Set_Kind (Item.Doc.all, Para, To);
+         end if;
+      end loop;
+      Docs.End_Step (Item.Doc.all);
+      Docs.Seal (Item.Doc.all);
+      Catch_Up (Item);
+      Reveal (Item);
+   end Set_Style;
 
    procedure Insert (Item : in out Text_Area; Typed : String) is
    begin
@@ -1396,7 +1704,7 @@ package body Pomarine.Text_Areas is
          if Item.Single then
             Item.Returned := True;
          else
-            Insert (Item, [ASCII.LF]);
+            Break_Line (Item, Continue => not Shift);
          end if;
          return;
       elsif Key = Events.Key_Escape then
@@ -1881,6 +2189,26 @@ package body Pomarine.Text_Areas is
             Underlined => False,
             Rows_From => Rows_From, Rows_To => Rows_To);
       end if;
+
+      --  The rule beside each quoted paragraph, down its height so that quoted paragraphs together have one.
+      for Para in First .. Last loop
+         if Layouts.Is_Quoted (Item.Laid, Para) then
+            declare
+               Rule_Top : constant Float := Float'Floor
+                 (Text_Top (Item) + (Layouts.Top (Item.Laid, Para) - View_Top (Item)) * Scale (Item));
+               Rule_Bottom : constant Float := Float'Floor
+                 (Text_Top (Item)
+                  + (Layouts.Top (Item.Laid, Para) + Layouts.Height (Item.Laid, Para) - View_Top (Item))
+                    * Scale (Item));
+            begin
+               SDL3.Painters.Fill_Rect
+                 (Target, Themes.Mix (Colors (Themes.Foreground), Colors (Themes.Background), 0.6),
+                  Float'Rounding (Column_Left (Item) + Layouts.Rule_Offset (Item.Laid, Para) * Scale (Item)),
+                  Rule_Top, Float'Max (1.0, Float'Rounding (Layouts.Rule_Width * Item.Density)),
+                  Rule_Bottom - Rule_Top);
+            end;
+         end if;
+      end loop;
 
       Views.Draw
         (Item.View, Item.Laid, Item.Doc.all, Target, Colors (Themes.Foreground),

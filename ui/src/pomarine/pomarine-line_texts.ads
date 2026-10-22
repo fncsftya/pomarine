@@ -64,9 +64,12 @@ package Pomarine.Line_Texts is
      (Item  : in out Drawer;
       Text  : String;
       Scale : Float;
-      Using : Style := Regular) return Float
+      Using : Style := Regular;
+      Face  : String := "") return Float
      with Pre => Scale > 0.0;
-   --  Of Text in pixels, at Scale pixels to a point.
+   --  Of Text in pixels, at Scale pixels to a point. If Face is not empty
+   --  it is the font (a PostScript or family name) it is in, at the size
+   --  of Using, in place of Using's own.
 
    function Height
      (Item  : in out Drawer;
@@ -76,6 +79,18 @@ package Pomarine.Line_Texts is
    --  Of a line of text in pixels, at Scale pixels to a point: the font's
    --  ascent, descent and leading.
 
+   function Fitted
+     (Item  : in out Drawer;
+      Text  : String;
+      Room  : Float;
+      Scale : Float;
+      Using : Style := Regular;
+      Face  : String := "") return String
+     with Pre => Scale > 0.0;
+   --  Text, or as much of its start as fits Room pixels with an ellipsis
+   --  after it, cut where a character begins. All of it if Room is not
+   --  positive.
+
    procedure Draw
      (Item   : in out Drawer;
       Target : SDL3.Painters.Painter'Class;
@@ -84,9 +99,10 @@ package Pomarine.Line_Texts is
       Left   : Float;
       Middle : Float;
       Scale  : Float;
-      Using  : Style := Regular)
+      Using  : Style := Regular;
+      Face   : String := "")
      with Pre => Scale > 0.0;
-   --  Draw Text with its start Left pixels, and the middle of its height
+   --  Draw Text, in Face if it is not empty as Width says, with its start Left pixels, and the middle of its height
    --  Middle pixels, from the top left of the target. It is drawn at
    --  once, so that what is drawn after is over it.
 
@@ -149,9 +165,17 @@ private
    Cache_Size : constant := 64;
    --  How many lines are kept shaped: more than a screen has.
 
+   Named_Faces : constant := 128;
+   --  How many fonts, by name, are kept open for lines in a face of
+   --  their own; when they are all in use the first is closed for the
+   --  next, and the lines shaped in them are forgotten.
+
+   type Named_Face_Array is array (1 .. Named_Faces) of Open_Face;
+
    type Cached_Line is record
       Used  : Boolean := False;
       Using : Style := Regular;
+      Face  : Ada.Strings.Unbounded.Unbounded_String;
       Text  : Ada.Strings.Unbounded.Unbounded_String;
       Line  : CoreText.Shaping.Shaped;
    end record;
@@ -171,6 +195,9 @@ private
       Turn   : Positive range 1 .. Character_Faces := 1;
       --  The face to close when none is free.
       Glyphs : Glyph_Maps.Map;
+      Named  : Named_Face_Array;
+      Named_Opens : Natural range 0 .. Named_Faces := 0;
+      Named_Turn  : Positive range 1 .. Named_Faces := 1;
    end record;
 
 end Pomarine.Line_Texts;

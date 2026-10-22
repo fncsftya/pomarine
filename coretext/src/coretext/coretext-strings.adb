@@ -13,9 +13,12 @@ package body CoreText.Strings is
       Item.Styles.Clear;
    end Clear_Styles;
 
-   procedure Add_Style (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean) is
+   procedure Add_Style
+     (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean;
+      Size : Float := 0.0; Family : String := "") is
    begin
-      Item.Styles.Append (Style_Run'(First, Stop, Bold, Italic));
+      Item.Styles.Append
+        (Style_Run'(First, Stop, Bold, Italic, Size, Ada.Strings.Unbounded.To_Unbounded_String (Family)));
    end Add_Style;
 
    function Attributed (Item : Text; Using : Fonts.Font; First, Stop : Natural) return System.Address is
@@ -43,16 +46,43 @@ package body CoreText.Strings is
             declare
                Traits : constant Interfaces.Unsigned_32 :=
                  (if R.Bold then 2 else 0) or (if R.Italic then 1 else 0);
-               Face : Thin.Ref := Thin.CT_Font_Create_Copy_With_Symbolic_Traits
-                 (Font, 0.0, System.Null_Address, Traits, 3);
+               Made   : Thin.Ref := Thin.Null_Ref;
+               Chosen : Thin.Ref := Font;
+               Face   : Thin.Ref := Thin.Null_Ref;
                A : constant Natural := Natural'Max (First, R.First);
                B : constant Natural := Natural'Min (Stop, R.Stop);
             begin
+               if R.Size > 0.0 or else Ada.Strings.Unbounded.Length (R.Family) > 0 then
+                  declare
+                     Name : Thin.Ref := Core.Create_String
+                       (if Ada.Strings.Unbounded.Length (R.Family) > 0
+                        then Ada.Strings.Unbounded.To_String (R.Family) else Fonts.Family_Name (Using));
+                  begin
+                     Made := Thin.CT_Font_Create_With_Name
+                       (Name, Interfaces.C.double (if R.Size > 0.0 then R.Size else Fonts.Size (Using)),
+                        System.Null_Address);
+                     Core.Release (Name);
+                  end;
+                  if Made /= Thin.Null_Ref then
+                     Chosen := Made;
+                  end if;
+               end if;
+               if Traits /= 0 then
+                  Face := Thin.CT_Font_Create_Copy_With_Symbolic_Traits
+                    (Chosen, 0.0, System.Null_Address, Traits, 3);
+               end if;
                if Face /= Thin.Null_Ref then
                   Thin.CF_Attributed_String_Set_Attribute
                     (Result, (Interfaces.C.long (A - First), Interfaces.C.long (B - A)),
                      Thin.Font_Attribute_Name, Face);
                   Core.Release (Face);
+               elsif Made /= Thin.Null_Ref then
+                  Thin.CF_Attributed_String_Set_Attribute
+                    (Result, (Interfaces.C.long (A - First), Interfaces.C.long (B - A)),
+                     Thin.Font_Attribute_Name, Made);
+               end if;
+               if Made /= Thin.Null_Ref then
+                  Core.Release (Made);
                end if;
             end;
          end if;

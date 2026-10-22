@@ -62,7 +62,7 @@ package Typeset.Layouts is
 
    --  Metrics
    --  Para = 0 gives the body font; otherwise use the paragraph's heading
-   --  font once laid out. Heading_2 and Heading_3 use 1.5 and 1.25 times
+   --  font once laid out. Heading_1, Heading_2 and Heading_3 use 2, 1.5 and 1.25 times
    --  the configured size.
 
    function Line_Height (Item : Layout; Para : Natural := 0) return Float
@@ -73,6 +73,28 @@ package Typeset.Layouts is
      with Pre => Is_Configured (Item);
    function Width (Item : Layout) return Float
      with Pre => Is_Configured (Item);
+
+   Indent_Step : constant := 32.0;
+   --  How far in, in layout units, each step of a paragraph's indent is.
+   Quote_Room : constant := 18.0;
+   --  How far in a quoted paragraph's text is from its rule.
+   Rule_Width : constant := 3.0;
+
+   function Is_Held (Item : Layout; Para : Positive) return Boolean
+     with Pre => Para <= Count (Item);
+   --  Whether the layout has the paragraph's kind and inset, as it has once it is laid out or being.
+
+   function Is_Quoted (Item : Layout; Para : Positive) return Boolean
+     with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
+
+   function Rule_Offset (Item : Layout; Para : Positive) return Float
+     with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
+   --  How far across the rule of a quoted paragraph is, in layout units.
+
+   function Inset_Of (Item : Layout; Para : Positive) return Float
+     with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
+   --  How far in the paragraph's lines start, in layout units: they are
+   --  that much narrower. Caret_Offset and Units_At_Offset count it.
 
    --  Lines
 
@@ -291,6 +313,10 @@ private
 
    type Paragraph_Layout is limited record
       Kind       : Texts.Paragraph_Kind := Texts.Plain;
+      Inset      : Texts.Paragraph_Inset;
+      Boost      : Float := 1.0;
+      --  How many times the kind's font the largest text in it is: its
+      --  lines are that much higher.
       Held       : CoreText.Strings.Text;
       --  The text, for CoreText: set when wanted, and edited as the
       --  paragraph is.
@@ -322,6 +348,7 @@ private
       --  laid out or edited; before, its length in bytes, an estimate
       --  that costs nothing to find.
       Font       : aliased CoreText.Fonts.Font;
+      H1_Font    : aliased CoreText.Fonts.Font;
       H2_Font    : aliased CoreText.Fonts.Font;
       H3_Font    : aliased CoreText.Fonts.Font;
       Line_High  : Long_Float := 0.0;  --  the font's

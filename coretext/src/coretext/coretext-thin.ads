@@ -182,6 +182,9 @@ private package CoreText.Thin is
    function CT_Font_Copy_Family_Name (Font : Ref) return Ref
      with Import, Convention => C, External_Name => "CTFontCopyFamilyName";
 
+   function CT_Font_Get_Size (Font : Ref) return double
+     with Import, Convention => C, External_Name => "CTFontGetSize";
+
    function CT_Font_Get_Ascent (Font : Ref) return double
      with Import, Convention => C, External_Name => "CTFontGetAscent";
 

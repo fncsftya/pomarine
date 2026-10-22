@@ -150,6 +150,8 @@ begin
    Run ("widgets-toolbar", Widget_Tests.Toolbar'Access);
    Run ("widgets-toolbar-assist", Widget_Tests.Toolbar_Assist'Access);
    Run ("widgets-toolbar-tools", Widget_Tests.Toolbar_Tools'Access);
+   Run ("widgets-toolbar-editing", Widget_Tests.Toolbar_Editing'Access);
+   Run ("widgets-toolbar-fonts", Widget_Tests.Toolbar_Fonts'Access);
    Run ("widgets-versions", Widget_Tests.Versions'Access);
    Run ("widgets-caret", Widget_Tests.Caret_Only'Access);
    Run ("widgets-hiding", Widget_Tests.Hiding'Access);

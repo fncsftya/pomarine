@@ -15,6 +15,8 @@ package Widget_Tests is
    --  The button at the right of the toolbar: off until allowed and while the
    --  text is blank, its click an Assist event, left out when it is not wanted.
    procedure Toolbar_Tools;
+   procedure Toolbar_Editing;
+   procedure Toolbar_Fonts;
    --  The buttons the application adds after the style buttons: off without a selection
    --  when they need one, their click or Command and their key a Use_Tool event.
    procedure Versions;

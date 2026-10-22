@@ -59,11 +59,12 @@ package body Widget_Tests is
 
    procedure Open
      (Item    : in out Fixture;
-      Content : String := "Great skua") is
+      Content : String := "Great skua";
+      Wide    : Positive := Width) is
    begin
       Renderers.Create_Offscreen
         (Item.Target,
-         Positive (Float (Width) * Density),
+         Positive (Float (Wide) * Density),
          Positive (Float (Height) * Density));
       Docs.Load (Item.Doc, Content);
       Widgets.Set_Density (Item.Tree, Density);
@@ -556,7 +557,7 @@ package body Widget_Tests is
       --  which the text is, and the layout does not move.
       Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
-      Check_Flag ("widgets-toolbar-buttons", True, Visible_Buttons = 4);
+      Check_Flag ("widgets-toolbar-buttons", True, Visible_Buttons = 9);
       Check_Flag ("widgets-toolbar-same-height", True, Widgets.Height_Of (Item.Page) = Height_Before);
       Check_Flag ("widgets-toolbar-room", True,
                   Pomarine.Text_Areas.Content_Height (Page.all)
@@ -564,7 +565,7 @@ package body Widget_Tests is
       Check_Painted (Item, "widgets-toolbar");
       Widgets.Release_Focus (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
-      Check_Flag ("widgets-toolbar-unfocused", True, Visible_Buttons = 4);
+      Check_Flag ("widgets-toolbar-unfocused", True, Visible_Buttons = 9);
       Check_Painted (Item, "widgets-toolbar-unfocused");
 
       --  A button formats the selection, and the text keeps the focus.
@@ -638,7 +639,7 @@ package body Widget_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
 
       --  Not asked for, there is none; asked for, there it is, off until it is allowed.
-      Check_Flag ("widgets-assist-none", True, Visible_Buttons = 4);
+      Check_Flag ("widgets-assist-none", True, Visible_Buttons = 9);
       Pomarine.Widgets.Editors.Set_Assist (Item.Page, "Find Sources");
       Widgets.Update (Item.Tree, 100);
       Widgets.Layout (Item.Tree, Item.Target);
@@ -673,7 +674,7 @@ package body Widget_Tests is
       --  Taken away, it goes.
       Pomarine.Widgets.Editors.Set_Assist (Item.Page, "");
       Widgets.Layout (Item.Tree, Item.Target);
-      Check_Flag ("widgets-assist-removed", True, Visible_Buttons = 4);
+      Check_Flag ("widgets-assist-removed", True, Visible_Buttons = 9);
    end Toolbar_Assist;
 
    type Uses is limited record
@@ -727,6 +728,227 @@ package body Widget_Tests is
       Check_Flag ("widgets-tools-key-taken", True, Pomarine.Text_Areas.Selected_Text (Page.all) = "Great");
       Check_Painted (Item, "widgets-toolbar-tools");
    end Toolbar_Tools;
+
+   procedure Toolbar_Editing is
+      use type Texts.Paragraph_Kind;
+      Item  : Fixture;
+      Lines : aliased Pomarine.Line_Texts.Drawer;
+      Page  : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Bullet : constant String := Character'Val (16#E2#) & Character'Val (16#80#) & Character'Val (16#A2#) & " ";
+      Undone, Redone : Texts.Position;
+
+      procedure Check_Whole (Name, Expected : String) is
+      begin
+         Goldens.Check_Text (Name, Expected, Docs.Whole (Item.Doc));
+      end Check_Whole;
+   begin
+      Open (Item, "one" & ASCII.LF & "two" & ASCII.LF & "three");
+      Widgets.Set_Line_Texts (Item.Tree, Lines);
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
+      Widgets.Layout (Item.Tree, Item.Target);
+
+      --  Lists and quotations mark each paragraph the selection touches.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 2), (3, 3));
+      Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Bullets);
+      Check_Whole ("editing-bullets", Bullet & "one" & ASCII.LF & Bullet & "two" & ASCII.LF & Bullet & "three");
+      Check_Flag ("editing-bullets-active", True,
+                  Pomarine.Text_Areas.Block_Active (Page.all, Pomarine.Text_Areas.Bullets));
+      Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Numbers);
+      Check_Whole ("editing-numbers", "1. one" & ASCII.LF & "2. two" & ASCII.LF & "3. three");
+      --  A quotation or an indent is how the paragraph sits, not its text.
+      Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Quote);
+      Check_Whole ("editing-quote", "1. one" & ASCII.LF & "2. two" & ASCII.LF & "3. three");
+      Check_Flag ("editing-quote-set", True,
+                  Docs.Inset (Item.Doc, 1).Quoted and then Docs.Inset (Item.Doc, 3).Quoted
+                  and then Pomarine.Text_Areas.Block_Active (Page.all, Pomarine.Text_Areas.Quote));
+      declare
+         Copy : Docs.Document;
+      begin
+         Check_Flag ("editing-quote-stored", True,
+                     Ada.Strings.Fixed.Index (Docs.Stored (Item.Doc), "<p q=""1"">1. one</p>") > 0);
+         Docs.Load_Stored (Copy, Docs.Stored (Item.Doc));
+         Check_Flag ("editing-quote-reloaded", True,
+                     Docs.Inset (Copy, 2).Quoted and then Docs.Whole (Copy) = Docs.Whole (Item.Doc));
+      end;
+      Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Quote);
+      Check_Flag ("editing-quote-off", True, not Docs.Inset (Item.Doc, 2).Quoted);
+
+      --  One step each.
+      Docs.Undo (Item.Doc, Undone, Redone);
+      Check_Flag ("editing-undo", True, Docs.Inset (Item.Doc, 2).Quoted);
+
+      --  Indent is steps, and does not touch the text or a mark.
+      Pomarine.Text_Areas.Select_Range (Page.all, (2, 1), (2, 1));
+      Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => False);
+      Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => False);
+      Check_Whole ("editing-indent", "1. one" & ASCII.LF & "2. two" & ASCII.LF & "3. three");
+      Check_Flag ("editing-indent-steps", True,
+                  Docs.Inset (Item.Doc, 2).Indent = 2 and then Docs.Inset (Item.Doc, 1).Indent = 0);
+      Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => True);
+      Check_Flag ("editing-outdent", True, Docs.Inset (Item.Doc, 2).Indent = 1);
+      Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => True);
+      Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => True);
+      Check_Flag ("editing-outdent-floor", True, Docs.Inset (Item.Doc, 2).Indent = 0);
+      Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => False);
+      Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Bullets);
+      Check_Whole ("editing-indent-mark", "1. one" & ASCII.LF & Bullet & "two" & ASCII.LF & "1. three");
+
+      --  A paragraph's style is kept in what is stored.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 1));
+      Pomarine.Text_Areas.Set_Style (Page.all, Texts.Heading_2);
+      Check_Flag ("editing-style", True, Docs.Kind (Item.Doc, 1) = Texts.Heading_2);
+      Check_Flag ("editing-style-seen", True, Pomarine.Text_Areas.Paragraph_Style (Page.all) = Texts.Heading_2);
+      declare
+         Copy : Docs.Document;
+      begin
+         Docs.Load_Stored (Copy, Docs.Stored (Item.Doc));
+         Check_Flag ("editing-style-stored", True,
+                     Docs.Kind (Copy, 1) = Texts.Heading_2 and then Docs.Kind (Copy, 2) = Texts.Plain);
+      end;
+      Docs.Undo (Item.Doc, Undone, Redone);
+      Check_Flag ("editing-style-undone", True, Docs.Kind (Item.Doc, 1) = Texts.Plain);
+      Check_Painted (Item, "widgets-toolbar-editing");
+
+      --  Return in a list starts the next item, on an empty item it ends the list; Shift+Return leaves it.
+      declare
+         Ignored : Boolean;
+
+         procedure Press_Return (Shifted : Boolean) is
+         begin
+            Widgets.Dispatch
+              (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, Shift => Shifted, others => <>),
+               Ignored);
+         end Press_Return;
+      begin
+         Docs.Replace (Item.Doc, (1, 1), Docs.Text_End (Item.Doc), "1. one");
+         Pomarine.Text_Areas.Select_Range (Page.all, (1, 7), (1, 7));
+         Press_Return (False);
+         Check_Whole ("editing-return-number", "1. one" & ASCII.LF & "2. ");
+         Press_Return (False);
+         Check_Whole ("editing-return-empty", "1. one" & ASCII.LF);
+         Docs.Replace (Item.Doc, (1, 1), Docs.Text_End (Item.Doc), Bullet & "a");
+         Pomarine.Text_Areas.Select_Range (Page.all, (1, 6), (1, 6));
+         Press_Return (True);
+         Check_Whole ("editing-shift-return", Bullet & "a" & ASCII.LF);
+         Docs.Replace (Item.Doc, (1, 1), Docs.Text_End (Item.Doc), "1. a" & ASCII.LF & "2. b" & ASCII.LF & "3. c");
+         Pomarine.Text_Areas.Select_Range (Page.all, (1, 5), (1, 5));
+         Press_Return (False);
+         Check_Whole ("editing-return-renumber", "1. a" & ASCII.LF & "2. " & ASCII.LF & "3. b" & ASCII.LF & "4. c");
+         Press_Return (False);
+         Check_Whole ("editing-return-end-renumber", "1. a" & ASCII.LF & ASCII.LF & "1. b" & ASCII.LF & "2. c");
+         Pomarine.Text_Areas.Select_Range (Page.all, (3, 1), (3, 1));
+         Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Numbers);
+         Check_Whole ("editing-toggle-renumber", "1. a" & ASCII.LF & ASCII.LF & "b" & ASCII.LF & "1. c");
+      end;
+   end Toolbar_Editing;
+
+   procedure Toolbar_Fonts is
+      use type Texts.Paragraph_Kind;
+      Item    : Fixture;
+      Lines   : aliased Pomarine.Line_Texts.Drawer;
+      Page    : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Ignored : Boolean;
+
+      --  The middle of a point, in the editor, in points in the window.
+      function X_At (Points : Float) return Float is (Widgets.Left_Of (Item.Page) / Density + Points);
+      function Y_At (Points : Float) return Float is (Widgets.Top_Of (Item.Page) / Density + Points);
+
+      procedure Click (X, Y : Float) is
+      begin
+         Widgets.Dispatch (Item.Tree, Press (X, Y), Ignored);
+         Widgets.Dispatch (Item.Tree, Release (X, Y), Ignored);
+         Widgets.Deliver (Item.Tree);
+         Widgets.Layout (Item.Tree, Item.Target);
+      end Click;
+
+      function Visible_Count return Natural is
+         Count : Natural := 0;
+      begin
+         for Each in 1 .. Widgets.Child_Count (Item.Page) loop
+            if Widgets.Is_Visible (Widgets.Child_At (Item.Page, Each).all) then
+               Count := Count + 1;
+            end if;
+         end loop;
+         return Count;
+      end Visible_Count;
+
+      Closed : Natural;
+      Before : Float;
+
+      Size_X  : constant Float := 340.0 + 112.0 + 6.0 + 30.0;
+      Style_X : constant Float := 340.0 + 112.0 + 6.0 + 68.0 + 6.0 + 48.0;
+      Menu_Y  : constant Float := 39.0;
+   begin
+      Open (Item, "Great skua" & ASCII.LF & "Bonxie", Wide => 760);
+      Widgets.Set_Line_Texts (Item.Tree, Lines);
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Closed := Visible_Count;
+      Check_Flag ("fonts-controls", True, Closed = 12);
+      Goldens.Check_Text ("fonts-family", "Georgia", Pomarine.Widgets.Editors.Font_Family (Item.Page));
+      Check_Flag ("fonts-size", True, Pomarine.Widgets.Editors.Font_Size (Item.Page) = 18.0);
+      Check_Painted (Item, "widgets-toolbar-fonts");
+
+      --  The size's menu opens under it, and a click on its third row, 10 pt, sizes what is selected.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 6));
+      Widgets.Update (Item.Tree, 100);
+      Before := Pomarine.Text_Areas.Content_Height (Page.all);
+      Click (X_At (Size_X), Y_At (21.0));
+      Check_Flag ("fonts-size-menu", True, Visible_Count = Closed + 1);
+      Check_Painted (Item, "widgets-toolbar-size-menu");
+      Click (X_At (Size_X), Y_At (Menu_Y + 3.0 + 2.0 * 26.0 + 13.0));
+      Check_Flag ("fonts-size-chosen", True, Docs.Size_At (Item.Doc, (1, 1), (1, 6)) = 10);
+      Check_Flag ("fonts-size-only-selected", True, Docs.Size_At (Item.Doc, (2, 1), (2, 3)) = 0);
+      Check_Flag ("fonts-size-base-kept", True, Pomarine.Widgets.Editors.Font_Size (Item.Page) = 18.0);
+      Check_Painted (Item, "widgets-toolbar-sized");
+      Check_Flag ("fonts-menu-closed", True, Visible_Count = Closed);
+      --  The paragraph still has text of the larger size, so its lines are as high as ever.
+      Check_Flag ("fonts-size-line-kept", True, Pomarine.Text_Areas.Content_Height (Page.all) = Before);
+
+      --  Another opened and closed by clicking it again.
+      Click (X_At (Size_X), Y_At (21.0));
+      Click (X_At (Size_X), Y_At (21.0));
+      Check_Flag ("fonts-menu-toggled", True, Visible_Count = Closed);
+
+      --  The style's third row, Heading 2, for the paragraph the caret is in.
+      Pomarine.Text_Areas.Select_Range (Page.all, (2, 1), (2, 1));
+      Click (X_At (Style_X), Y_At (21.0));
+      Click (X_At (Style_X), Y_At (Menu_Y + 3.0 + 2.0 * 26.0 + 13.0));
+      Check_Flag ("fonts-style-chosen", True, Docs.Kind (Item.Doc, 2) = Texts.Heading_2);
+      Check_Flag ("fonts-style-first-kept", True, Docs.Kind (Item.Doc, 1) = Texts.Plain);
+      Check_Painted (Item, "widgets-toolbar-heading");
+
+      --  A family of its own for part of a word, in the middle of the sized text.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 3), (1, 5));
+      Pomarine.Text_Areas.Set_Family (Page.all, "Menlo");
+      Goldens.Check_Text ("fonts-family-here", "Menlo", Pomarine.Text_Areas.Family_Here (Page.all));
+      Check_Flag ("fonts-family-outside", True, Docs.Family_At (Item.Doc, (1, 1), (1, 2)) = "");
+      Widgets.Update (Item.Tree, 200);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Painted (Item, "widgets-toolbar-mixed");
+      declare
+         Copy : Docs.Document;
+      begin
+         Docs.Load_Stored (Copy, Docs.Stored (Item.Doc));
+         Check_Flag ("fonts-stored", True,
+                     Docs.Family_At (Copy, (1, 3), (1, 5)) = "Menlo"
+                     and then Docs.Size_At (Copy, (1, 1), (1, 2)) = 10
+                     and then Docs.Size_At (Copy, (1, 5), (1, 6)) = 10
+                     and then Docs.Family_At (Copy, (1, 5), (1, 6)) = "");
+         Goldens.Check_Text ("fonts-stored-text", Docs.Whole (Item.Doc), Docs.Whole (Copy));
+      end;
+
+      --  Typed text takes the size and family of what is before it.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 4), (1, 4));
+      Pomarine.Text_Areas.Insert (Page.all, "x");
+      Check_Flag ("fonts-typed", True, Docs.Size_At (Item.Doc, (1, 4), (1, 5)) = 10
+                  and then Docs.Family_At (Item.Doc, (1, 4), (1, 5)) = "Menlo");
+
+      --  Any family, in code, for the text that has none of its own.
+      Pomarine.Widgets.Editors.Set_Font (Item.Page, "Menlo", 14.0);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Goldens.Check_Text ("fonts-set-family", "Menlo", Pomarine.Widgets.Editors.Font_Family (Item.Page));
+   end Toolbar_Fonts;
 
    procedure Versions is
       Item   : Fixture;

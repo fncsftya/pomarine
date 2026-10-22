@@ -7,7 +7,9 @@ with Pomarine.Icons;
 with Pomarine.Text_Areas;
 with Pomarine.Widgets.Buttons;
 private with Pomarine.Widgets.Labels;
+private with Pomarine.Widgets.Menus;
 private with Pomarine.Widgets.Panels;
+private with Pomarine.Widgets.Selects;
 private with Pomarine.Widgets.Tooltips;
 
 --  A text area (see Pomarine.Text_Areas) as a widget: it is placed by the
@@ -23,11 +25,18 @@ private with Pomarine.Widgets.Tooltips;
 --  a single line.
 --
 --  A text area for more than one line, that can be edited, may have a
---  toolbar (Set_Toolbar) of buttons (Bold, Italic, Underline,
---  Strikethrough) in a band at the top of it, set apart from the text,
---  which is below. Clicking one does not take the focus from the text.
---  It has none to begin with. It may also have a button of its own at the
---  right of the toolbar (Set_Assist), in the colour of what a language model
+--  toolbar (Set_Toolbar) in a band at the top of it, set apart from the
+--  text, which is below. In sections, divided, from the left: buttons for Bold,
+--  Italic, Underline and Strikethrough; for bulleted and numbered lists,
+--  a quotation, and less and more indent (see Pomarine.Text_Areas.Block);
+--  and the font: the family and size (in points) of the text selected (of
+--  what is typed, if none is), and the style of the paragraphs the selection
+--  touches (Normal, Heading 1, 2 or 3), each chosen from a menu. Family and
+--  size may change within a paragraph; the style is a paragraph's own. When it is too narrow for all, the sections
+--  at the right go first.
+--  Clicking one does not take the focus from the text. It has none to begin
+--  with. It may also have a button of its own at the right of the toolbar
+--  (Set_Assist), in the colour of what a language model
 --  does, to offer something the application does of the text; a click is
 --  an Assist event. It can be clicked while the application allows it
 --  (Set_Assist_Allowed) and the text is not blank, and it is left out when
@@ -73,6 +82,27 @@ package Pomarine.Widgets.Editors is
    --  and not read only; Content_Height of its text area allows for it.
 
    function Has_Toolbar (Item : Editor) return Boolean;
+
+   type Edit_Action is (Bulleted, Numbered, Quoted, Outdent, Indent);
+   --  The toolbar's editing buttons.
+
+   procedure Set_Edit_Icon (Item : in out Editor; Action : Edit_Action; To : Pomarine.Icons.Icon);
+   --  Show To on the button, in place of its text, where the tree has icons.
+
+   Family_Capacity : constant := 64;
+
+   procedure Set_Font (Item : in out Editor; Family : String; Size : Float)
+     with Pre => Is_Configured (Item) and then Family'Length in 1 .. Family_Capacity
+                 and then Size > 0.0;
+   --  Set the font of the text that has no size or family of its own, in
+   --  points before Zoom: it is the font of the editor to begin with, and
+   --  what the toolbar's controls show for such text.
+
+   function Font_Family (Item : Editor) return String
+     with Pre => Is_Configured (Item);
+
+   function Font_Size (Item : Editor) return Float
+     with Pre => Is_Configured (Item);
 
    Tool_Capacity : constant := 8;
    --  Of the buttons the application may add after the style buttons.
@@ -270,6 +300,11 @@ private
 
    type Tool_Flags is array (Tool_Number) of Boolean;
 
+   type Edit_Buttons is array (Edit_Action) of Pomarine.Widgets.Buttons.Button;
+
+   type Choice is (Nothing, Pick_Family, Pick_Size, Pick_Style);
+   --  Which of the font controls has its menu open.
+
    type Editor is new Widget and Listener with record
       Text    : aliased Pomarine.Text_Areas.Text_Area;
       Toolbar : Format_Buttons;
@@ -282,6 +317,15 @@ private
       Tool_Total    : Natural range 0 .. Tool_Capacity := 0;
       --  The application's buttons, after a divider at the right of the
       --  style buttons. Hovering one shows Tip, below it.
+      Editing       : Edit_Buttons;
+      Family_Box, Size_Box, Style_Box : Pomarine.Widgets.Selects.Select_Field;
+      Chooser       : Pomarine.Widgets.Menus.Menu;
+      Choosing      : Choice := Nothing;
+      Face          : String (1 .. Family_Capacity) := [others => ' '];
+      Face_Length   : Natural range 0 .. Family_Capacity := 0;
+      Points        : Float := 0.0;
+      Column, Between : Float := 0.0;
+      --  The font as set; and the measure and spacing it was configured with.
       Writing       : Boolean := False;
       Writing_State : Natural := 0;
       --  The document's state before the text went, to go back to.

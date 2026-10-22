@@ -72,6 +72,16 @@ package body Pomarine.Widgets.Menus is
 
    function Row_Count (Item : Menu) return Natural is (Item.Used);
 
+   procedure Set_Faced (Item : in out Menu; To : Boolean) is
+   begin
+      if Item.Faced /= To then
+         Item.Faced := To;
+         Invalidate (Item);
+      end if;
+   end Set_Faced;
+
+   function Is_Faced (Item : Menu) return Boolean is (Item.Faced);
+
    procedure Changed_Look (Item : in out Menu);
 
    procedure Changed_Look (Item : in out Menu) is
@@ -346,31 +356,6 @@ package body Pomarine.Widgets.Menus is
       Saved    : SDL3.Painters.Clip;
       Reserve  : constant Float := (if Is_Scrollable (Item) then 8.0 * Pixels else 0.0);
       --  Of the width, for the bar that shows how far it is scrolled.
-
-      Ellipsis : constant String :=
-        [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A6#)];
-
-      function Fitted (Value : String; Room : Float; Using : Pomarine.Line_Texts.Style) return String;
-      --  Value, or as much of its start as fits Room pixels with an
-      --  ellipsis after it, cut where a character begins.
-
-      function Fitted (Value : String; Room : Float; Using : Pomarine.Line_Texts.Style) return String is
-         Last : Natural := Value'Length;
-      begin
-         if Room <= 0.0 or else Pomarine.Line_Texts.Width (Text_Lines (Item).all, Value, Pixels, Using) <= Room then
-            return Value;
-         end if;
-         while Last > 0 loop
-            Last := Last - 1;
-            while Last > 0 and then Character'Pos (Value (Value'First + Last)) in 16#80# .. 16#BF# loop
-               Last := Last - 1;
-            end loop;
-            exit when Pomarine.Line_Texts.Width
-                        (Text_Lines (Item).all, Value (Value'First .. Value'First + Last - 1) & Ellipsis,
-                         Pixels, Using) <= Room;
-         end loop;
-         return Value (Value'First .. Value'First + Last - 1) & Ellipsis;
-      end Fitted;
    begin
       Pomarine.Boxes.Draw
         (Target, Look, Left_Of (Item), Top_Of (Item), Width_Of (Item),
@@ -483,12 +468,20 @@ package body Pomarine.Widgets.Menus is
                    else Themes.Mix (Themes.Resolve (Colors, Each.Swatch), Colors (Themes.Page), 0.6)));
                After := After + (Swatch_Size + Gap) * Pixels;
             end if;
-            if Each.Length > 0 and then Text_Lines (Item) /= null then
-               Pomarine.Line_Texts.Draw
-                 (Text_Lines (Item).all, Target, Ink,
-                  Fitted (Each.Text (1 .. Each.Length),
-                          Inner_Left + Inner_Width - Reserve - Inset * Pixels - After, Using),
-                  After, Middle, Pixels, Using);
+            if Each.Length > 0 and then Text_Lines (Item) /= null
+              and then Top + High > Rows_Top (Item) and then Top < Rows_Bottom (Item)
+            then
+               declare
+                  Face : constant String :=
+                    (if Item.Faced and then Each.Kind in Action | Check then Each.Text (1 .. Each.Length) else "");
+               begin
+                  Pomarine.Line_Texts.Draw
+                    (Text_Lines (Item).all, Target, Ink,
+                     Pomarine.Line_Texts.Fitted
+                       (Text_Lines (Item).all, Each.Text (1 .. Each.Length),
+                        Inner_Left + Inner_Width - Reserve - Inset * Pixels - After, Pixels, Using, Face),
+                     After, Middle, Pixels, Using, Face);
+               end;
             end if;
             Top := Top + High;
          end;

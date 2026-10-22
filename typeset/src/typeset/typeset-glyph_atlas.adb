@@ -349,14 +349,15 @@ package body Typeset.Glyph_Atlas is
       Value    : Color;
       Settled  : Boolean)
    is
-      Raster : constant Float := Raster_Size (Size, Settled);
-      Ratio  : constant Float := Size / Raster;
       Alpha  : constant Float := Float (Value.Alpha) / 255.0;
       Base   : constant Float := Float'Rounding (Baseline);
       Page_F : constant Float := Float (Page_Size);
    begin
       for G of Line loop
          declare
+            Own    : constant Float := (if G.Size > 0.0 then G.Size * Scale else Size);
+            Raster : constant Float := Raster_Size (Own, Settled);
+            Ratio  : constant Float := Own / Raster;
             At_X  : constant Float := X + G.X * Scale;
             Whole : constant Float := Floor (At_X);
             Sub   : constant Natural :=

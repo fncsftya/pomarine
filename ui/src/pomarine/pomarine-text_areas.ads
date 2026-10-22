@@ -5,6 +5,7 @@ with Pomarine.Clipboards;
 with Pomarine.Scrollbars;
 with Pomarine.Themes;
 with Typeset.Views;
+private with Ada.Strings.Unbounded;
 private with Typeset.Layouts;
 
 --  A box to edit a document in: a view of it, which the application
@@ -118,6 +119,51 @@ package Pomarine.Text_Areas is
      with Pre => Is_Attached (Item);
    function Format_Active (Item : Text_Area; Style : Texts.Documents.Format) return Boolean
      with Pre => Is_Attached (Item);
+
+   --  Size and family: of the text selected (of what is typed next, if
+   --  nothing is) in points and by name; none (0, "") for those of the text
+   --  area's font.
+
+   procedure Set_Size (Item : in out Text_Area; Points : Natural)
+     with Pre => Is_Attached (Item) and then Points <= Texts.Documents.Largest_Size;
+   procedure Set_Family (Item : in out Text_Area; Name : String)
+     with Pre => Is_Attached (Item);
+   function Size_Here (Item : Text_Area) return Natural
+     with Pre => Is_Attached (Item);
+   function Family_Here (Item : Text_Area) return String
+     with Pre => Is_Attached (Item);
+   --  The text at the start of the selection, or before the caret.
+
+   --  Paragraphs: those the selection touches (the one the caret is in, if
+   --  nothing is selected; the one a selection ends at the start of, not).
+
+   type Block is (Bullets, Numbers, Quote);
+   --  A paragraph in a list is marked "• " or "1. " before its text. A
+   --  quoted one is set in from the left with a rule beside it: that is
+   --  stored with the paragraph (Texts.Paragraph_Inset), not in its text.
+
+   procedure Toggle_Block (Item : in out Text_Area; Which : Block)
+     with Pre => Is_Attached (Item);
+   --  Mark the paragraphs as Which, in place of any other mark (Quote
+   --  is apart from the others), or, if they all are already, take the
+   --  mark off. One step to undo.
+
+   function Block_Active (Item : Text_Area; Which : Block) return Boolean
+     with Pre => Is_Attached (Item);
+   --  Whether the paragraph with the caret is marked as Which.
+
+   procedure Shift_Indent (Item : in out Text_Area; Outward : Boolean)
+     with Pre => Is_Attached (Item);
+   --  Set the paragraphs in a step further (Outward, a step less, if they
+   --  are in at all). The text is not changed.
+
+   procedure Set_Style (Item : in out Text_Area; To : Texts.Paragraph_Kind)
+     with Pre => Is_Attached (Item);
+   --  Make the paragraphs of kind To (Plain, a heading), as one step.
+
+   function Paragraph_Style (Item : Text_Area) return Texts.Paragraph_Kind
+     with Pre => Is_Attached (Item);
+   --  The kind of the paragraph with the caret.
 
    Toolbar_Points : constant Float := 42.0;
 
@@ -505,6 +551,8 @@ private
       Indent   : Float := 0.0;
       Pending_Formats : Texts.Documents.Format_Set := Texts.Documents.No_Formats;
       Explicit_Formats : Boolean := False;
+      Pending_Size   : Natural := 0;
+      Pending_Family : Ada.Strings.Unbounded.Unbounded_String;
       Single   : Boolean := False;
       Read_Only : Boolean := False;
       Grows    : Boolean := False;

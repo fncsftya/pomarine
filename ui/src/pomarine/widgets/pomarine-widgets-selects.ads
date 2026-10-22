@@ -26,6 +26,9 @@ package Pomarine.Widgets.Selects is
 
    function Value (Item : Select_Field) return String;
 
+   procedure Set_Faced (Item : in out Select_Field; To : Boolean);
+   --  Draw the value in the font it names, as of a select of fonts.
+
    procedure Set_Open (Item : in out Select_Field; To : Boolean);
    --  Show it as open, its menu shown, or not.
 
@@ -75,6 +78,7 @@ private
       Enabled : Boolean := True;
       Down    : Boolean := False;
       Clicked : Boolean := False;
+      Faced   : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Selects;

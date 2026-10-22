@@ -1,6 +1,7 @@
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with System;
+with CoreText.Fonts;
 with Texts;
 with Yoga.Nodes;
 package body Pomarine.Widgets.Editors is
@@ -23,6 +24,7 @@ package body Pomarine.Widgets.Editors is
 
    use type Docs.Version;
    use type Texts.Position;
+   use type Texts.Paragraph_Kind;
    use type System.Address;
 
    procedure Update_Toolbar (Item : in out Editor);
@@ -33,6 +35,9 @@ package body Pomarine.Widgets.Editors is
 
    procedure Refresh_Tip (Item : in out Editor);
    --  Show the tooltip of the tool button the pointer is over, if any.
+
+   procedure Close_Chooser (Item : in out Editor);
+   --  Hide the menu of a font control, if one is open.
 
    procedure Refresh_Assist (Item : in out Editor);
    --  Show the assist button if it is wanted and there is room, and whether
@@ -46,7 +51,38 @@ package body Pomarine.Widgets.Editors is
       Spacing : Float := 0.0) is
    begin
       Text_Areas.Configure (Item.Text, Family, Size, Measure, Spacing);
+      Item.Face_Length := Natural'Min (Family'Length, Family_Capacity);
+      Item.Face (1 .. Item.Face_Length) := Family (Family'First .. Family'First + Item.Face_Length - 1);
+      Item.Points := Size;
+      Item.Column := Measure;
+      Item.Between := Spacing;
    end Configure;
+
+   procedure Set_Edit_Icon (Item : in out Editor; Action : Edit_Action; To : Pomarine.Icons.Icon) is
+   begin
+      Buttons.Set_Icon (Item.Editing (Action), To);
+   end Set_Edit_Icon;
+
+   function Font_Family (Item : Editor) return String is (Item.Face (1 .. Item.Face_Length));
+
+   function Font_Size (Item : Editor) return Float is (Item.Points);
+
+   procedure Set_Font (Item : in out Editor; Family : String; Size : Float) is
+   begin
+      if Family = Font_Family (Item) and then Size = Item.Points then
+         return;
+      end if;
+      Text_Areas.Configure (Item.Text, Family, Size, Item.Column, Item.Between);
+      Item.Face_Length := Family'Length;
+      Item.Face (1 .. Family'Length) := Family;
+      Item.Points := Size;
+      if Is_Placed (Item) then
+         Placed (Item, Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item));
+      end if;
+      if Is_Attached (Item) then
+         Invalidate (Item);
+      end if;
+   end Set_Font;
 
    function Is_Configured (Item : Editor) return Boolean is
      (Text_Areas.Is_Configured (Item.Text));
@@ -171,16 +207,42 @@ package body Pomarine.Widgets.Editors is
 
    Divider_Gap   : constant Float := 8.0;
    Tool_Wide     : constant Float := 64.0;
-   Tools_Left    : constant Float :=
+   Edit_Left     : constant Float :=
      Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap + Divider_Gap + 1.0 + Divider_Gap;
-   --  In points: the divider is Divider_Gap after the style buttons, and
-   --  the tool buttons Divider_Gap after it.
+   Edit_End      : constant Float := Edit_Left + 5.0 * Button_Wide + 4.0 * Button_Gap;
+   Family_Wide   : constant Float := 112.0;
+   Family_Menu_Wide : constant Float := 240.0;
+   --  The menu of families is wider than the select, to show more of their names.
+   Size_Wide     : constant Float := 68.0;
+   Style_Wide    : constant Float := 106.0;
+   Font_Left     : constant Float := Edit_End + Divider_Gap + 1.0 + Divider_Gap;
+   Size_Left     : constant Float := Font_Left + Family_Wide + Button_Gap;
+   Style_Left    : constant Float := Size_Left + Size_Wide + Button_Gap;
+   Font_End      : constant Float := Style_Left + Style_Wide;
+   Tools_Left    : constant Float := Font_End + Divider_Gap + 1.0 + Divider_Gap;
+   --  In points: each section is Divider_Gap after the one before, divider
+   --  between: the style buttons, the editing buttons, the font controls
+   --  and the tool buttons.
+
+   Menu_Rows_High : constant Float := 240.0;
+   --  The most the menu of a font control is high, in points.
+
+   Sizes : constant array (1 .. 12) of Positive := [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 32, 48];
+   --  The sizes, in points, the menu has.
+
+   function Style_Name (Kind : Texts.Paragraph_Kind) return String is
+     (case Kind is
+         when Texts.Heading_1 => "Heading 1", when Texts.Heading_2 => "Heading 2",
+         when Texts.Heading_3 => "Heading 3", when others => "Normal");
+
+   function Size_Text (Points : Float) return String is
+     (Ada.Strings.Fixed.Trim (Integer'Image (Integer (Points)), Ada.Strings.Left) & " pt");
 
    function Tool_Left (Tool : Tool_Number) return Float is
      (Tools_Left + Float (Tool - 1) * (Tool_Wide + Button_Gap));
 
    function Tools_End (Item : Editor) return Float is
-     (if Item.Tool_Total = 0 then Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap
+     (if Item.Tool_Total = 0 then Font_End
       else Tool_Left (Item.Tool_Total) + Tool_Wide);
 
    Assist_Wide  : constant Float := 96.0;
@@ -256,6 +318,36 @@ package body Pomarine.Widgets.Editors is
      (Has_Document (Item) and then Is_Attached (Item) and then Item.Enabled
       and then Text_Areas.Has_Toolbar (Item.Text));
 
+   Bullet_Label : constant String := [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A2#)];
+   Quote_Label  : constant String := [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#9C#)];
+   Arrow_Left   : constant String := [Character'Val (16#E2#), Character'Val (16#86#), Character'Val (16#90#)];
+   Arrow_Right  : constant String := [Character'Val (16#E2#), Character'Val (16#86#), Character'Val (16#92#)];
+   --  U+2022, U+201C, U+2190 and U+2192 in UTF-8.
+
+   function Family_Shown (Item : Editor) return String is
+     (if Text_Areas.Family_Here (Item.Text) /= "" then Text_Areas.Family_Here (Item.Text) else Font_Family (Item));
+   --  Of the text at the caret, or the selection's start.
+
+   function Size_Shown (Item : Editor) return Float is
+     (if Text_Areas.Size_Here (Item.Text) > 0 then Float (Text_Areas.Size_Here (Item.Text)) else Item.Points);
+
+   procedure Place_Select
+     (Item : in out Editor; Part : in out Selects.Select_Field; Name : String; Left, Wide : Float)
+   is
+      Pixels : constant Float := Density (Item);
+   begin
+      if not Is_Attached (Part) then
+         Set_Accessible_Name (Part, Name);
+         Set_Listener (Part, Item'Unchecked_Access);
+         Add (Item, Part);
+      end if;
+      Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
+      Yoga.Nodes.Set_Position (Node (Part), Yoga.Left, Left * Pixels);
+      Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, Toolbar_Top * Pixels);
+      Yoga.Nodes.Set_Width (Node (Part), Wide * Pixels);
+      Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
+   end Place_Select;
+
    procedure Build_Toolbar (Item : in out Editor) is
       use type Docs.Format;
       Pixels : constant Float := Density (Item);
@@ -270,7 +362,8 @@ package body Pomarine.Widgets.Editors is
                  (Part, (case Style is
                             when Docs.Bold => "B", when Docs.Italic => "I",
                             when Docs.Underline => "U", when Docs.Strikethrough => "S",
-                            when Docs.Faded => "F", when Docs.Versioned => "V"));
+                            when Docs.Faded => "F", when Docs.Sized => "Z", when Docs.Faced => "Y",
+                            when Docs.Versioned => "V"));
                Buttons.Set_Label_Style
                  (Part, (case Style is
                             when Docs.Bold => Line_Texts.Serif_Bold,
@@ -282,7 +375,8 @@ package body Pomarine.Widgets.Editors is
                             when Docs.Bold => "Bold", when Docs.Italic => "Italic",
                             when Docs.Underline => "Underline",
                             when Docs.Strikethrough => "Strikethrough",
-                            when Docs.Faded => "Faded", when Docs.Versioned => "Versions"));
+                            when Docs.Faded => "Faded", when Docs.Sized => "Size", when Docs.Faced => "Family",
+                            when Docs.Versioned => "Versions"));
                Buttons.Set_Enabled (Part, True);
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
@@ -296,6 +390,37 @@ package body Pomarine.Widgets.Editors is
             Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
          end;
       end loop;
+      for Action in Edit_Action loop
+         declare
+            Part : Buttons.Button renames Item.Editing (Action);
+         begin
+            if not Is_Attached (Part) then
+               Buttons.Set_Label
+                 (Part, (case Action is
+                            when Bulleted => Bullet_Label, when Numbered => "1.", when Quoted => Quote_Label,
+                            when Outdent => Arrow_Left, when Indent => Arrow_Right));
+               Set_Accessible_Name
+                 (Part, (case Action is
+                            when Bulleted => "Bulleted list", when Numbered => "Numbered list",
+                            when Quoted => "Quotation", when Outdent => "Decrease indent",
+                            when Indent => "Increase indent"));
+               Buttons.Set_Enabled (Part, True);
+               Set_Listener (Part, Item'Unchecked_Access);
+               Add (Item, Part);
+            end if;
+            Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
+            Yoga.Nodes.Set_Position
+              (Node (Part), Yoga.Left,
+               (Edit_Left + Float (Edit_Action'Pos (Action)) * (Button_Wide + Button_Gap)) * Pixels);
+            Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, Toolbar_Top * Pixels);
+            Yoga.Nodes.Set_Width (Node (Part), Button_Wide * Pixels);
+            Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
+         end;
+      end loop;
+      Place_Select (Item, Item.Family_Box, "Font family", Font_Left, Family_Wide);
+      Selects.Set_Faced (Item.Family_Box, True);
+      Place_Select (Item, Item.Size_Box, "Font size", Size_Left, Size_Wide);
+      Place_Select (Item, Item.Style_Box, "Paragraph style", Style_Left, Style_Wide);
       for Tool in 1 .. Item.Tool_Total loop
          declare
             Part : Buttons.Button renames Item.Tools (Tool);
@@ -328,7 +453,47 @@ package body Pomarine.Widgets.Editors is
             Reserved : constant Float :=
               (if Item.Assist_Length > 0 then 8.0 + Assist_Wide + Assist_Right else Toolbar_Left);
             Fits     : constant Boolean := Width_Of (Item) >= (Tools_End (Item) + Reserved) * Density (Item);
+            Edits_Fit : constant Boolean := Width_Of (Item) >= (Edit_End + Reserved) * Density (Item);
+            Fonts_Fit : constant Boolean := Width_Of (Item) >= (Font_End + Reserved) * Density (Item);
+
+            procedure Show (Part : in out Widget'Class; To : Boolean) is
+            begin
+               if Is_Visible (Part) /= To then
+                  Set_Visible (Part, To);
+               end if;
+            end Show;
+
+            procedure Say (Part : in out Selects.Select_Field; Text : String) is
+            begin
+               if Selects.Value (Part) /= Text then
+                  Selects.Set_Value (Part, Text);
+               end if;
+            end Say;
          begin
+            for Action in Edit_Action loop
+               Show (Item.Editing (Action), Edits_Fit);
+            end loop;
+            if Has_Document (Item) then
+               for Action in Bulleted .. Quoted loop
+                  Buttons.Set_Selected
+                    (Item.Editing (Action),
+                     Text_Areas.Block_Active
+                       (Item.Text, (case Action is when Bulleted => Text_Areas.Bullets,
+                                                   when Numbered => Text_Areas.Numbers,
+                                                   when others => Text_Areas.Quote)));
+               end loop;
+               Say (Item.Style_Box, Style_Name (Text_Areas.Paragraph_Style (Item.Text)));
+            end if;
+            Show (Item.Family_Box, Fonts_Fit);
+            Show (Item.Size_Box, Fonts_Fit);
+            Show (Item.Style_Box, Fonts_Fit);
+            if not Fonts_Fit or else not Edits_Fit then
+               Close_Chooser (Item);
+            end if;
+            if Has_Document (Item) then
+               Say (Item.Family_Box, Family_Shown (Item));
+               Say (Item.Size_Box, Size_Text (Size_Shown (Item)));
+            end if;
             for Tool in 1 .. Item.Tool_Total loop
                Buttons.Set_Enabled
                  (Item.Tools (Tool), not Item.Selective (Tool) or else Text_Areas.Has_Selection (Item.Text));
@@ -440,6 +605,13 @@ package body Pomarine.Widgets.Editors is
       elsif not Wanted and then Item.Toolbar_Shown then
          Item.Toolbar_Shown := False;
          if Is_Attached (Item) then
+            Close_Chooser (Item);
+            for Action in Edit_Action loop
+               Set_Visible (Item.Editing (Action), False);
+            end loop;
+            Set_Visible (Item.Family_Box, False);
+            Set_Visible (Item.Size_Box, False);
+            Set_Visible (Item.Style_Box, False);
             Refresh_Tip (Item);
             for Style of Toolbar_Order loop
                Set_Visible (Item.Toolbar (Style), False);
@@ -472,7 +644,7 @@ package body Pomarine.Widgets.Editors is
          Buttons.Set_Label (Item.Assist, Label);
          Set_Accessible_Name (Item.Assist, Label);
       end if;
-      Refresh_Assist (Item);
+      Refresh_Toolbar (Item);
    end Set_Assist;
 
    function Assist_Label (Item : Editor) return String is (Item.Assist_Text (1 .. Item.Assist_Length));
@@ -815,14 +987,151 @@ package body Pomarine.Widgets.Editors is
       return False;
    end Cycling_From;
 
+   --  The font controls' menus
+
+   procedure Mark_Open (Item : in out Editor; Which : Choice; On : Boolean) is
+   begin
+      case Which is
+         when Pick_Family  => Selects.Set_Open (Item.Family_Box, On);
+         when Pick_Size    => Selects.Set_Open (Item.Size_Box, On);
+         when Pick_Style   => Selects.Set_Open (Item.Style_Box, On);
+         when Nothing => null;
+      end case;
+   end Mark_Open;
+
+   procedure Close_Chooser (Item : in out Editor) is
+   begin
+      if Item.Choosing /= Nothing then
+         Mark_Open (Item, Item.Choosing, False);
+         Item.Choosing := Nothing;
+         if Is_Attached (Item.Chooser) then
+            Set_Visible (Item.Chooser, False);
+         end if;
+         Invalidate (Item);
+      end if;
+   end Close_Chooser;
+
+   procedure Open_Chooser (Item : in out Editor; Which : Choice) is
+      Pixels : constant Float := Density (Item);
+      Left   : constant Float := (case Which is when Pick_Family => Font_Left, when Pick_Size => Size_Left,
+                                                 when others => Style_Left);
+      Wide   : constant Float := (case Which is when Pick_Family => Family_Wide, when Pick_Size => Size_Wide,
+                                                 when others => Style_Wide);
+   begin
+      if Item.Choosing = Which then
+         Close_Chooser (Item);
+         return;
+      end if;
+      Close_Chooser (Item);
+      if not Is_Attached (Item.Chooser) then
+         Set_Listener (Item.Chooser, Item'Unchecked_Access);
+         Add (Item, Item.Chooser);
+         Yoga.Nodes.Set_Position_Type (Node (Item.Chooser), Yoga.Absolute);
+      end if;
+      Menus.Clear (Item.Chooser);
+      Menus.Set_Faced (Item.Chooser, Which = Pick_Family);
+      case Which is
+         when Pick_Family =>
+            declare
+               Names : constant CoreText.Fonts.Family_Vectors.Vector := CoreText.Fonts.Families;
+            begin
+               for Name of Names loop
+                  Menus.Add (Item.Chooser, Menus.Check, Name, Checked => Name = Family_Shown (Item));
+               end loop;
+            end;
+         when Pick_Size =>
+            for Points of Sizes loop
+               Menus.Add (Item.Chooser, Menus.Check, Size_Text (Float (Points)),
+                          Checked => Float (Points) = Size_Shown (Item));
+            end loop;
+         when others =>
+            for Kind in Texts.Paragraph_Kind range 0 .. 3 loop
+               Menus.Add (Item.Chooser, Menus.Check, Style_Name (Kind),
+                          Checked => Kind = Text_Areas.Paragraph_Style (Item.Text));
+            end loop;
+      end case;
+      Menus.Set_Max_Height (Item.Chooser, Menu_Rows_High);
+      for Row in 1 .. Menus.Row_Count (Item.Chooser) loop
+         if Menus.Is_Checked (Item.Chooser, Row) then
+            Menus.Reveal (Item.Chooser, Row);
+         end if;
+      end loop;
+      Yoga.Nodes.Set_Position (Node (Item.Chooser), Yoga.Left, Left * Pixels);
+      Yoga.Nodes.Set_Position
+        (Node (Item.Chooser), Yoga.Top, (Toolbar_Top + Button_High + Tip_Gap) * Pixels);
+      Yoga.Nodes.Set_Width
+        (Node (Item.Chooser), Float'Max (Wide, (if Which = Pick_Family then Family_Menu_Wide else 120.0)) * Pixels);
+      Yoga.Nodes.Set_Height (Node (Item.Chooser), Menus.Shown_Height (Item.Chooser) * Pixels);
+      Set_Visible (Item.Chooser, True);
+      Raise_To_Front (Item.Chooser);
+      Mark_Open (Item, Which, True);
+      Item.Choosing := Which;
+      Request_Layout (Item);
+      Invalidate (Item);
+   end Open_Chooser;
+
+   procedure Choose_Row (Item : in out Editor; Row : Positive) is
+      Which : constant Choice := Item.Choosing;
+   begin
+      Close_Chooser (Item);
+      case Which is
+         when Pick_Family =>
+            declare
+               Names : constant CoreText.Fonts.Family_Vectors.Vector := CoreText.Fonts.Families;
+            begin
+               if Row <= Natural (Names.Length) and then Has_Document (Item) then
+                  Text_Areas.Set_Family (Item.Text, Names (Row));
+               end if;
+            end;
+         when Pick_Size =>
+            if Row <= Sizes'Last and then Has_Document (Item) then
+               Text_Areas.Set_Size (Item.Text, Sizes (Row));
+            end if;
+         when Pick_Style =>
+            if Row <= 4 then
+               Text_Areas.Set_Style (Item.Text, Texts.Paragraph_Kind (Row - 1));
+            end if;
+         when Nothing =>
+            null;
+      end case;
+      Refresh_Toolbar (Item);
+      Invalidate (Item);
+   end Choose_Row;
+
    overriding procedure Handle_Event
      (Self   : in out Editor;
       Source : in out Widget'Class;
       Event  : Widget_Event) is
    begin
       case Event.Kind is
+         when Choose =>
+            if Is_Attached (Self.Chooser) and then Source'Address = Self.Chooser'Address then
+               Choose_Row (Self, Event.Row);
+            end if;
          when Click =>
-            if Is_Attached (Self.Confirm) and then Source'Address = Self.Accept_Button'Address then
+            if Is_Attached (Self.Family_Box) and then Source'Address = Self.Family_Box'Address then
+               Open_Chooser (Self, Pick_Family);
+            elsif Is_Attached (Self.Size_Box) and then Source'Address = Self.Size_Box'Address then
+               Open_Chooser (Self, Pick_Size);
+            elsif Is_Attached (Self.Style_Box) and then Source'Address = Self.Style_Box'Address then
+               Open_Chooser (Self, Pick_Style);
+            elsif (for some Action in Edit_Action => Is_Attached (Self.Editing (Action))
+                   and then Source'Address = Self.Editing (Action)'Address)
+            then
+               for Action in Edit_Action loop
+                  if Source'Address = Self.Editing (Action)'Address and then Has_Document (Self) then
+                     case Action is
+                        when Bulleted => Text_Areas.Toggle_Block (Self.Text, Text_Areas.Bullets);
+                        when Numbered => Text_Areas.Toggle_Block (Self.Text, Text_Areas.Numbers);
+                        when Quoted   => Text_Areas.Toggle_Block (Self.Text, Text_Areas.Quote);
+                        when Outdent  => Text_Areas.Shift_Indent (Self.Text, Outward => True);
+                        when Indent   => Text_Areas.Shift_Indent (Self.Text, Outward => False);
+                     end case;
+                  end if;
+               end loop;
+               Refresh_Toolbar (Self);
+               Invalidate (Self);
+            elsif Is_Attached (Self.Confirm) and then Source'Address = Self.Accept_Button'Address then
                if Self.Writing then
                   Finish_Version (Self, True);
                end if;
@@ -926,6 +1235,25 @@ package body Pomarine.Widgets.Editors is
               (Item.Text, Target, Shown, Is_Settled (Item),
                Rows_From => Float (Part.Top),
                Rows_To   => Float (Part.Top + Part.Height));
+            if Item.Toolbar_Shown and then Is_Attached (Item.Editing (Bulleted)) then
+               --  The dividers before the editing buttons and the font controls.
+               declare
+                  Origin : constant Float := Left_Of (Item.Toolbar (Docs.Bold)) - Toolbar_Left * Pixels;
+                  Top    : constant Float := Top_Of (Item.Toolbar (Docs.Bold)) + 3.0 * Pixels;
+                  High   : constant Float := Height_Of (Item.Toolbar (Docs.Bold)) - 6.0 * Pixels;
+               begin
+                  if Is_Visible (Item.Editing (Bulleted)) then
+                     SDL3.Painters.Fill_Rect
+                       (Target, Colors (Themes.Border), Origin + (Edit_Left - Divider_Gap - 1.0) * Pixels, Top,
+                        Pixels, High);
+                  end if;
+                  if Is_Visible (Item.Family_Box) then
+                     SDL3.Painters.Fill_Rect
+                       (Target, Colors (Themes.Border), Origin + (Font_Left - Divider_Gap - 1.0) * Pixels, Top,
+                        Pixels, High);
+                  end if;
+               end;
+            end if;
             if Item.Toolbar_Shown and then Item.Tool_Total > 0 and then Is_Attached (Item.Tools (1))
               and then Is_Visible (Item.Tools (1))
             then
@@ -986,6 +1314,12 @@ package body Pomarine.Widgets.Editors is
               not Item.Toolbar_Shown
               or else Event.Mouse_Y * Density (Item)
                       >= Top_Of (Item) + Text_Areas.Toolbar_Points * Density (Item);
+         end if;
+         if Item.Choosing /= Nothing and then Event.Kind = SDL3.Events.Mouse_Down
+           and then not Is_Hovered (Item.Chooser) and then not Is_Hovered (Item.Family_Box)
+           and then not Is_Hovered (Item.Size_Box) and then not Is_Hovered (Item.Style_Box)
+         then
+            Close_Chooser (Item);
          end if;
          if Item.Writing and then Event.Kind = SDL3.Events.Key_Down
            and then Event.Key in SDL3.Events.Key_Return | SDL3.Events.Key_Escape
@@ -1145,6 +1479,7 @@ package body Pomarine.Widgets.Editors is
       if Has_Document (Item) then
          Text_Areas.Set_Focus (Item.Text, Focused);
          if not Focused then
+            Close_Chooser (Item);
             Close_Cycle (Item);
             Refresh_Bubbles (Item);
          end if;

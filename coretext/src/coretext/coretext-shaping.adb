@@ -141,6 +141,7 @@ package body CoreText.Shaping is
                   end if;
                   declare
                      Id : constant Font_Id := Register (Reg, Font);
+                     Size : constant Float := Float (Thin.CT_Font_Get_Size (Font));
                      --  A run is at most a line's glyphs: few enough for
                      --  the stack.
                      Ids : Id_Array (1 .. Count);
@@ -154,7 +155,8 @@ package body CoreText.Shaping is
                         Result.Glyphs.Append
                           (Glyph'(Id   => Ids (I),
                                   Font => Id,
-                                  X    => Float (Positions (I).X)));
+                                  X    => Float (Positions (I).X),
+                                  Size => Size));
                      end loop;
                   end;
                end if;
