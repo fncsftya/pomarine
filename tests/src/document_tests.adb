@@ -100,6 +100,14 @@ package body Document_Tests is
       Goldens.Check_Text ("document-stored-reloaded", Docs.Stored (Doc), Docs.Stored (Loaded));
       pragma Assert (Docs.Whole (Loaded) = Docs.Whole (Doc));
       pragma Assert (Docs.Has_Format (Loaded, (1, 1), (2, 3), Docs.Bold));
+      --  Faded text is kept as <f>, and comes back faded.
+      Docs.Load (Doc, "fade me");
+      Docs.Set_Format (Doc, (1, 6), (1, 8), Docs.Faded, True);
+      Goldens.Check_Text
+        ("document-stored-faded", "<version>1</version><p>fade <f>me</f></p>", Docs.Stored (Doc));
+      Docs.Load_Stored (Loaded, Docs.Stored (Doc));
+      pragma Assert (Docs.Has_Format (Loaded, (1, 6), (1, 8), Docs.Faded));
+      pragma Assert (not Docs.Has_Format (Loaded, (1, 1), (1, 5), Docs.Faded));
       Docs.Load (Doc, "");
       Goldens.Check_Text ("document-stored-empty", "<version>1</version><p></p>", Docs.Stored (Doc));
 

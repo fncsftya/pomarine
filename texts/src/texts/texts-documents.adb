@@ -874,7 +874,7 @@ package body Texts.Documents is
    end Set_Format;
 
    --  Stored: <version>1</version>, then a <p> for each paragraph, in which
-   --  <b>, <i>, <u> and <s> mark the runs; & < > in the text are &amp; &lt; &gt;.
+   --  <b>, <i>, <u>, <s> and <f> mark the runs; & < > in the text are &amp; &lt; &gt;.
 
    Version_Open  : constant String := "<version>";
    Version_Close : constant String := "</version>";
@@ -885,7 +885,8 @@ package body Texts.Documents is
          when Bold          => 'b',
          when Underline     => 'u',
          when Italic        => 'i',
-         when Strikethrough => 's');
+         when Strikethrough => 's',
+         when Faded         => 'f');
 
    function Is_Space (C : Character) return Boolean is
      (C in ' ' | ASCII.HT | ASCII.LF | ASCII.CR);
@@ -1130,6 +1131,7 @@ package body Texts.Documents is
                   when 'u' => Style := Underline;
                   when 'i' => Style := Italic;
                   when 's' => Style := Strikethrough;
+                  when 'f' => Style := Faded;
                   when others => Styled := False;
                end case;
                if not Styled then

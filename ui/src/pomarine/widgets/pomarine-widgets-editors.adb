@@ -264,7 +264,8 @@ package body Pomarine.Widgets.Editors is
                Buttons.Set_Label
                  (Part, (case Style is
                             when Docs.Bold => "B", when Docs.Italic => "I",
-                            when Docs.Underline => "U", when Docs.Strikethrough => "S"));
+                            when Docs.Underline => "U", when Docs.Strikethrough => "S",
+                            when Docs.Faded => "F"));
                Buttons.Set_Label_Style
                  (Part, (case Style is
                             when Docs.Bold => Line_Texts.Serif_Bold,
@@ -275,7 +276,8 @@ package body Pomarine.Widgets.Editors is
                  (Part, (case Style is
                             when Docs.Bold => "Bold", when Docs.Italic => "Italic",
                             when Docs.Underline => "Underline",
-                            when Docs.Strikethrough => "Strikethrough"));
+                            when Docs.Strikethrough => "Strikethrough",
+                            when Docs.Faded => "Faded"));
                Buttons.Set_Enabled (Part, True);
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
@@ -312,7 +314,7 @@ package body Pomarine.Widgets.Editors is
    procedure Refresh_Toolbar (Item : in out Editor) is
    begin
       if Item.Toolbar_Shown then
-         for Style in Docs.Format loop
+         for Style of Toolbar_Order loop
             Buttons.Set_Selected (Item.Toolbar (Style), Text_Areas.Format_Active (Item.Text, Style));
          end loop;
          for Tool in 1 .. Item.Tool_Total loop
@@ -414,8 +416,8 @@ package body Pomarine.Widgets.Editors is
       if Wanted and then not Item.Toolbar_Shown then
          Build_Toolbar (Item);
          Item.Toolbar_Shown := True;
-         for Part of Item.Toolbar loop
-            Set_Visible (Part, True);
+         for Style of Toolbar_Order loop
+            Set_Visible (Item.Toolbar (Style), True);
          end loop;
          for Tool in 1 .. Item.Tool_Total loop
             Set_Visible (Item.Tools (Tool), True);
@@ -425,8 +427,8 @@ package body Pomarine.Widgets.Editors is
          Item.Toolbar_Shown := False;
          if Is_Attached (Item) then
             Refresh_Tip (Item);
-            for Part of Item.Toolbar loop
-               Set_Visible (Part, False);
+            for Style of Toolbar_Order loop
+               Set_Visible (Item.Toolbar (Style), False);
             end loop;
             for Tool in 1 .. Item.Tool_Total loop
                Set_Visible (Item.Tools (Tool), False);
@@ -506,7 +508,7 @@ package body Pomarine.Widgets.Editors is
                   end if;
                end loop;
             elsif Has_Document (Self) then
-               for Style in Docs.Format loop
+               for Style of Toolbar_Order loop
                   if Source'Address = Self.Toolbar (Style)'Address then
                      Text_Areas.Toggle_Format (Self.Text, Style);
                      Refresh_Toolbar (Self);

@@ -55,7 +55,8 @@ package Texts.Documents is
    function Kind (Item : Document; Para : Positive) return Paragraph_Kind
      with Pre => Para <= Count (Item);
 
-   type Format is (Bold, Underline, Italic, Strikethrough);
+   type Format is (Bold, Underline, Italic, Strikethrough, Faded);
+   --  Faded is text drawn part see-through.
    type Format_Set is array (Format) of Boolean;
    No_Formats : constant Format_Set := [others => False];
 
@@ -75,8 +76,8 @@ package Texts.Documents is
 
    --  What is kept of a document, as markup: <version>1</version>, then a
    --  <p> for each paragraph, its text with & < > as &amp; &lt; &gt;, and
-   --  <b>, <i>, <u> and <s> round the runs of bold, italic, underlined and
-   --  struck-through text. Text without a <version> is plain, a paragraph
+   --  <b>, <i>, <u>, <s> and <f> round the runs of bold, italic, underlined,
+   --  struck-through and faded text. Text without a <version> is plain, a paragraph
    --  to each line: Upgraded makes the markup of it, and Load_Stored loads
    --  it so. Markup that is not well formed, or of a version not known, is
    --  rejected with Constraint_Error, and the document left as it was.

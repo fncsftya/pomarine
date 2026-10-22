@@ -1560,6 +1560,8 @@ package body Pomarine.Text_Areas is
 
    Faint_Alpha : constant SDL3.Windows.Renderers.Color_Component := 150;
    --  How much of the page's colour covers text that is not settled.
+   Faded_Alpha : constant SDL3.Windows.Renderers.Color_Component := 128;
+   --  How much of it covers text chosen to be faded.
 
    procedure Draw_Range
      (Item        : in out Text_Area;
@@ -1852,6 +1854,22 @@ package body Pomarine.Text_Areas is
             if R.Style = Docs.Underline or else R.Style = Docs.Strikethrough then
                Draw_Range (Item, Target, R.From, R.To, First, Last, Colors (Themes.Foreground), True,
                            Rows_From, Rows_To, Strike => R.Style = Docs.Strikethrough);
+            end if;
+         end;
+      end loop;
+
+      --  Faded runs: laid over with the page's own colour, part see-through.
+      for I in 1 .. Docs.Run_Count (Item.Doc.all) loop
+         declare
+            R : constant Docs.Format_Run := Docs.Run (Item.Doc.all, I);
+            use type Docs.Format;
+         begin
+            if R.Style = Docs.Faded then
+               Draw_Range
+                 (Item, Target, R.From, R.To, First, Last,
+                  (Colors (Themes.Background) with delta Alpha => Faded_Alpha),
+                  Underlined => False,
+                  Rows_From => Rows_From, Rows_To => Rows_To);
             end if;
          end;
       end loop;
