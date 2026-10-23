@@ -1621,6 +1621,13 @@ package body Pomarine.Widgets.Editors is
          then
             Close_Chooser (Item);
          end if;
+         if Item.Linking and then Event.Kind = SDL3.Events.Mouse_Down
+           and then not Is_Hovered (Item.Link_Box) and then not Is_Hovered (Item.Link_Parts.Field)
+           and then not Is_Hovered (Item.Link_Accept) and then not Is_Hovered (Item.Link_Cancel)
+           and then not Is_Hovered (Item.Link_Sources) and then not Is_Hovered (Item.Chooser)
+         then
+            Finish_Link (Item, False);
+         end if;
          if Item.Link_Owner /= null and then Item.Link_Owner.Linking and then Event.Kind = SDL3.Events.Key_Down
            and then Event.Key = SDL3.Events.Key_Escape
          then
