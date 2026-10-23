@@ -73,7 +73,9 @@ package Pomarine.Widgets is
       Act,           --  a button at the end of a list's row (Row, Action)
       Blur,          --  the widget has lost the focus (only said if it has a handler)
       Assist,        --  an editor's toolbar button for what the application does of its text
-      Use_Tool);     --  one of an editor's tools added by the application (Row, its number)
+      Use_Tool,      --  one of an editor's tools added by the application (Row, its number)
+      Follow,        --  Command-click on a link in an editor (see Followed there)
+      Ask_Link);     --  an editor has begun to ask for a link's address (see Add_Link_Choice there)
 
    No_Tag : constant Integer := -1;
 
@@ -927,7 +929,7 @@ private
    --  hook is run with whatever it was given, which only the package that
    --  made it knows how to use.
 
-   Hook_Capacity : constant := 8;
+   Hook_Capacity : constant := 12;
    --  How many kinds of event one widget has its own handlers for.
 
    type Hook_Runner is access procedure

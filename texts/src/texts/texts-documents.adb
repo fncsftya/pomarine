@@ -532,7 +532,7 @@ package body Texts.Documents is
              then R.From < From and then not (R.To < From)
              else not (From < R.From) and then From < R.To)
          then
-            Inherited (R.Style) := True;
+            Inherited (R.Style) := R.Style /= Linked;
             if R.Style = Sized then
                Inherited_Size := R.Choice;
             elsif R.Style = Faced then
@@ -650,7 +650,7 @@ package body Texts.Documents is
                B : Position := R.To;
             begin
                --  Insertion inherits the style immediately before it.
-               if From = To and then A < From and then not (B < From) then
+               if From = To and then A < From and then not (B < From) and then R.Style /= Linked then
                   B := Map (Change_Of, B);
                   if B = From then
                      B := Ending;
@@ -658,6 +658,9 @@ package body Texts.Documents is
                else
                   A := Map (Change_Of, A);
                   B := Map (Change_Of, B);
+                  if R.Style = Linked and then From = To and then R.To = From then
+                     B := From;  --  what is typed at the end of a link is not in it
+                  end if;
                end if;
                if A < B and then (R.Style /= Versioned or else A.Paragraph = B.Paragraph) then
                   Include_Format (Updated, (R with delta From => A, To => B));
@@ -824,7 +827,7 @@ package body Texts.Documents is
                end if;
             end loop;
             for F in Format loop
-               if Formats (F) and then F /= Versioned
+               if Formats (F) and then F not in Linked | Versioned
                  and then (F /= Sized or else Sizing > 0) and then (F /= Faced or else Facing'Length > 0)
                then
                   Include_Format
@@ -970,6 +973,20 @@ package body Texts.Documents is
          Format_Run'(From, To, Faced, Name => Unbounded.To_Unbounded_String (Name), others => <>), Name'Length > 0);
    end Set_Family;
 
+   function Link_At (Item : Document; From, To : Position) return String is
+      Found : constant Natural := Run_At (Item, From, To, Linked);
+   begin
+      return (if Found = 0 then "" else Unbounded.To_String (Item.Formats (Found).Name));
+   end Link_At;
+
+   procedure Set_Link (Item : in out Document; From, To : Position; Address : String) is
+   begin
+      Set_Valued
+        (Item, From, To,
+         Format_Run'(From, To, Linked, Name => Unbounded.To_Unbounded_String (Address), others => <>),
+         Address'Length > 0);
+   end Set_Link;
+
    function Version_At (Item : Document; At_Point : Position) return Natural is
    begin
       for I in 1 .. Natural (Item.Formats.Length) loop
@@ -1022,6 +1039,7 @@ package body Texts.Documents is
          when Faded         => 'f',
          when Sized         => 'z',
          when Faced         => 'y',
+         when Linked        => 'a',
          when Versioned     => 'v');
 
    function Is_Space (C : Character) return Boolean is
@@ -1139,8 +1157,24 @@ package body Texts.Documents is
          end loop;
       end Escape;
 
+      function Quoted (Words : String) return String is
+         Made : Unbounded.Unbounded_String;
+      begin
+         for C of Words loop
+            case C is
+               when '&'    => Unbounded.Append (Made, "&amp;");
+               when '<'    => Unbounded.Append (Made, "&lt;");
+               when '>'    => Unbounded.Append (Made, "&gt;");
+               when '"'    => Unbounded.Append (Made, "&quot;");
+               when others => Unbounded.Append (Made, C);
+            end case;
+         end loop;
+         return Unbounded.To_String (Made);
+      end Quoted;
+
       procedure Reach
-        (Wanted : Format_Set; Points : Natural; Family : String; Wording : Natural; Piece : Format_Run) is
+        (Wanted  : Format_Set; Points : Natural; Family : String; Address : String;
+         Wording : Natural; Piece : Format_Run) is
          Keep    : Natural := 0;
          Outer   : constant Natural := (if Depth > 0 and then Open (1).Style = Versioned then Open (1).Id else 0);
       begin
@@ -1149,6 +1183,7 @@ package body Texts.Documents is
             while Keep < Depth and then Wanted (Open (Keep + 1).Style)
               and then (Open (Keep + 1).Style /= Sized or else Open (Keep + 1).Id = Points)
               and then (Open (Keep + 1).Style /= Faced or else Unbounded.To_String (Open (Keep + 1).Name) = Family)
+              and then (Open (Keep + 1).Style /= Linked or else Unbounded.To_String (Open (Keep + 1).Name) = Address)
             loop
                Keep := Keep + 1;
             end loop;
@@ -1175,13 +1210,17 @@ package body Texts.Documents is
                Depth := Depth + 1;
                Open (Depth) :=
                  (Style, (if Style = Sized then Points else 0),
-                  (if Style = Faced then Unbounded.To_Unbounded_String (Family) else Unbounded.Null_Unbounded_String));
+                  (case Style is
+                      when Faced  => Unbounded.To_Unbounded_String (Family),
+                      when Linked => Unbounded.To_Unbounded_String (Address),
+                      when others => Unbounded.Null_Unbounded_String));
                Unbounded.Append
                  (Result,
                   "<" & Tag_Of (Style)
                   & (case Style is
                         when Sized => " n=""" & Ada.Strings.Fixed.Trim (Points'Image, Ada.Strings.Both) & """",
                         when Faced => " n=""" & Family & """",
+                        when Linked => " h=""" & Quoted (Address) & """",
                         when others => "")
                   & ">");
             end if;
@@ -1218,6 +1257,7 @@ package body Texts.Documents is
                   Wanted : Format_Set := No_Formats;
                   Points : Natural := 0;
                   Family : Unbounded.Unbounded_String;
+                  Address : Unbounded.Unbounded_String;
                   Wording : Natural := 0;
                   Piece : Format_Run := (From => (1, 1), To => (1, 1), Style => Bold, others => <>);
                begin
@@ -1229,6 +1269,8 @@ package body Texts.Documents is
                               Points := P.Choice;
                            elsif P.Style = Faced then
                               Family := P.Name;
+                           elsif P.Style = Linked then
+                              Address := P.Name;
                            end if;
                            if P.Style = Versioned then
                               Wording := P.From.Index;
@@ -1236,12 +1278,13 @@ package body Texts.Documents is
                            end if;
                         end if;
                      end loop;
-                     Reach (Wanted, Points, Unbounded.To_String (Family), Wording, Piece);
+                     Reach (Wanted, Points, Unbounded.To_String (Family), Unbounded.To_String (Address),
+                            Wording, Piece);
                      Escape (Slice (Item, Para, A, Cut_Sets.Element (Next)));
                   end if;
                end;
             end loop;
-            Reach (No_Formats, 0, "", 0, (From => (1, 1), To => (1, 1), Style => Bold, others => <>));
+            Reach (No_Formats, 0, "", "", 0, (From => (1, 1), To => (1, 1), Style => Bold, others => <>));
             Unbounded.Append (Result, "</p>");
          end;
       end loop;
@@ -1429,6 +1472,62 @@ package body Texts.Documents is
                Depth := Depth + 1;
                Stack (Depth) :=
                  (Versioned, Length + 1, Natural'Value (Name (Name'First + 7 .. Name'Last - 1)), others => <>);
+            elsif not Closing and then Name'Length > 5 and then Name (Name'First .. Name'First + 4) = "a h="""
+              and then Name (Name'Last) = '"'
+            then
+               declare
+                  Raw     : constant String := Name (Name'First + 5 .. Name'Last - 1);
+                  Address : Unbounded.Unbounded_String;
+                  At_Raw  : Natural := Raw'First;
+               begin
+                  if not Inside then
+                     Fail ("style outside a paragraph");
+                  elsif Depth = Nesting_Limit then
+                     Fail ("styles nested too deeply");
+                  elsif Raw'Length = 0 then
+                     Fail ("empty link");
+                  end if;
+                  while At_Raw <= Raw'Last loop
+                     if Raw (At_Raw) = '&' then
+                        declare
+                           Semi : Natural := At_Raw;
+                        begin
+                           while Semi <= Raw'Last and then Raw (Semi) /= ';' loop
+                              Semi := Semi + 1;
+                           end loop;
+                           if Semi > Raw'Last then
+                              Fail ("unterminated entity");
+                           end if;
+                           declare
+                              Entity_Name : constant String := Raw (At_Raw + 1 .. Semi - 1);
+                           begin
+                              if Entity_Name = "amp" then
+                                 Unbounded.Append (Address, '&');
+                              elsif Entity_Name = "lt" then
+                                 Unbounded.Append (Address, '<');
+                              elsif Entity_Name = "gt" then
+                                 Unbounded.Append (Address, '>');
+                              elsif Entity_Name = "quot" then
+                                 Unbounded.Append (Address, '"');
+                              else
+                                 Fail ("unknown entity &" & Entity_Name & ";");
+                              end if;
+                           end;
+                           At_Raw := Semi + 1;
+                        end;
+                     elsif Raw (At_Raw) = '"' then
+                        Fail ("bad value");
+                     else
+                        Unbounded.Append (Address, Raw (At_Raw));
+                        At_Raw := At_Raw + 1;
+                     end if;
+                  end loop;
+                  if Unbounded.Length (Address) > Link_Capacity then
+                     Fail ("link too long");
+                  end if;
+                  Depth := Depth + 1;
+                  Stack (Depth) := (Linked, Length + 1, 0, Address, others => <>);
+               end;
             elsif not Closing and then Name'Length > 5 and then Name (Name'First) in 'z' | 'y'
               and then Name (Name'First + 1 .. Name'First + 4) = " n=""" and then Name (Name'Last) = '"'
             then
@@ -1463,6 +1562,7 @@ package body Texts.Documents is
                   when 'f' => Style := Faded;
                   when 'z' => Style := Sized;
                   when 'y' => Style := Faced;
+                  when 'a' => Style := Linked;
                   when 'v' => Style := Versioned;
                   when others => Styled := False;
                end case;
@@ -1471,7 +1571,7 @@ package body Texts.Documents is
                elsif not Inside then
                   Fail ("style outside a paragraph");
                elsif not Closing then
-                  if Style in Versioned | Sized | Faced then
+                  if Style in Versioned | Sized | Faced | Linked then
                      Fail ("<" & Name & "> without its value");
                   elsif Depth = Nesting_Limit then
                      Fail ("styles nested too deeply");

@@ -18,6 +18,7 @@ package Text_Area_Tests is
    procedure Selecting_Keys;
    procedure Select_All_And_Type;
    procedure Copy_And_Paste;
+   procedure Links;
    procedure Cut_And_Undo;
    procedure Undo_Typing;
    procedure Words;

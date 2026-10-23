@@ -709,7 +709,7 @@ package body Widget_Tests is
       Using_Tools.On (Item.Page, Use_Tool, Heard'Unrestricted_Access, Used'Access);
       Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
       Pomarine.Widgets.Editors.Add_Tool (Item.Page, "Plain", Key => 'p');
-      Pomarine.Widgets.Editors.Add_Tool (Item.Page, "Picky", Key => 'k', Needs_Selection => True);
+      Pomarine.Widgets.Editors.Add_Tool (Item.Page, "Picky", Key => 'j', Needs_Selection => True);
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Flag ("widgets-tools-count", True, Pomarine.Widgets.Editors.Tool_Count (Item.Page) = 2);
 
@@ -717,12 +717,12 @@ package body Widget_Tests is
       Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('p')), True), Ignored);
       Widgets.Deliver (Item.Tree);
       Check_Flag ("widgets-tools-key", True, Heard.Count = 1 and then Heard.Last = 1);
-      Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('k')), True), Ignored);
+      Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('j')), True), Ignored);
       Widgets.Deliver (Item.Tree);
       Check_Flag ("widgets-tools-needs-selection", True, Heard.Count = 1);
       Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 6));
       Widgets.Update (Item.Tree, 100);
-      Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('k')), True), Ignored);
+      Widgets.Dispatch (Item.Tree, Key (Events.Key_Code (Character'Pos ('j')), True), Ignored);
       Widgets.Deliver (Item.Tree);
       Check_Flag ("widgets-tools-selected", True, Heard.Count = 2 and then Heard.Last = 2);
       Check_Flag ("widgets-tools-key-taken", True, Pomarine.Text_Areas.Selected_Text (Page.all) = "Great");
@@ -895,8 +895,8 @@ package body Widget_Tests is
       Closed : Natural;
       Before : Float;
 
-      Size_X  : constant Float := 340.0 + 112.0 + 6.0 + 30.0;
-      Style_X : constant Float := 340.0 + 112.0 + 6.0 + 68.0 + 6.0 + 48.0;
+      Size_X  : constant Float := 374.0 + 112.0 + 6.0 + 30.0;
+      Style_X : constant Float := 374.0 + 112.0 + 6.0 + 68.0 + 6.0 + 48.0;
       Menu_Y  : constant Float := 39.0;
    begin
       Open (Item, "Great skua" & ASCII.LF & "Bonxie", Wide => 760);
@@ -904,7 +904,7 @@ package body Widget_Tests is
       Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
       Closed := Visible_Count;
-      Check_Flag ("fonts-controls", True, Closed = 12);
+      Check_Flag ("fonts-controls", True, Closed = 13);
       Goldens.Check_Text ("fonts-family", "Georgia", Pomarine.Widgets.Editors.Font_Family (Item.Page));
       Check_Flag ("fonts-size", True, Pomarine.Widgets.Editors.Font_Size (Item.Page) = 18.0);
       Check_Painted (Item, "widgets-toolbar-fonts");
@@ -969,6 +969,135 @@ package body Widget_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
       Goldens.Check_Text ("fonts-set-family", "Menlo", Pomarine.Widgets.Editors.Font_Family (Item.Page));
    end Toolbar_Fonts;
+
+   procedure Links is
+      use all type Widgets.Event_Kind;
+      Item    : Fixture;
+      Asked   : aliased Taps;
+      Before  : Natural;
+      Lines   : aliased Pomarine.Line_Texts.Drawer;
+      Page    : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Ignored : Boolean;
+      Plain   : constant String := "";
+
+      function Button_X return Float is (Widgets.Left_Of (Item.Page) / Density + 343.0);
+      function Button_Y return Float is (Widgets.Top_Of (Item.Page) / Density + 21.0);
+
+      procedure Press_Key (Which : Events.Key_Code; Command : Boolean := False) is
+      begin
+         Widgets.Dispatch (Item.Tree, Key (Which, Command), Ignored);
+         Widgets.Deliver (Item.Tree);
+         Widgets.Layout (Item.Tree, Item.Target);
+      end Press_Key;
+
+      function Link_Of (Place : Texts.Position) return String is
+        (Docs.Link_At (Item.Doc, Place, Place));
+   begin
+      Open (Item, "see here now", Wide => 760);
+      Widgets.Set_Line_Texts (Item.Tree, Lines);
+      Counting.On (Item.Page, Ask_Link, Asked'Unrestricted_Access, Tapped'Access);
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
+      Widgets.Layout (Item.Tree, Item.Target);
+
+      --  With nothing selected there is nothing to link.
+      Press_Key (Events.Key_K, Command => True);
+      Check_Flag ("widgets-link-needs-selection", False, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+
+      --  Command+K asks, by a bubble, and nothing is linked until it is accepted.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 5), (1, 9));
+      Press_Key (Events.Key_K, Command => True);
+      Check_Flag ("widgets-link-asking", True, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+      Goldens.Check_Text ("widgets-link-empty-field", Plain, Pomarine.Widgets.Editors.Link_Address (Item.Page));
+      Pomarine.Widgets.Editors.Set_Link_Address (Item.Page, "example.org");
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Painted (Item, "widgets-link-bubble");
+      Check_Flag ("widgets-link-not-yet", True, Docs.Link_At (Item.Doc, (1, 5), (1, 9)) = "");
+
+      --  Return accepts it; a domain with no scheme is made https.
+      Press_Key (Events.Key_Return);
+      Check_Flag ("widgets-link-accepted", False, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+      Goldens.Check_Text ("widgets-link-made", "https://example.org", Link_Of ((1, 6)));
+      Goldens.Check_Text ("widgets-link-outside", Plain, Link_Of ((1, 2)));
+      Check_Painted (Item, "widgets-link-made");
+
+      --  Asked again, the field has the address; Escape gives it up and leaves it.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 5), (1, 9));
+      Press_Key (Events.Key_K, Command => True);
+      Goldens.Check_Text
+        ("widgets-link-prefilled", "https://example.org", Pomarine.Widgets.Editors.Link_Address (Item.Page));
+      Pomarine.Widgets.Editors.Set_Link_Address (Item.Page, "https://other.org");
+      Press_Key (Events.Key_Escape);
+      Check_Flag ("widgets-link-escaped", False, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+      Goldens.Check_Text ("widgets-link-kept", "https://example.org", Link_Of ((1, 6)));
+
+      --  What is not an address is not taken: Return does nothing, and giving it up leaves the link.
+      Press_Key (Events.Key_K, Command => True);
+      Pomarine.Widgets.Editors.Set_Link_Address (Item.Page, "not an address");
+      Press_Key (Events.Key_Return);
+      Check_Flag ("widgets-link-refused", True, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+      Pomarine.Widgets.Editors.Finish_Link (Item.Page, Keep => False);
+      Goldens.Check_Text ("widgets-link-refused-kept", "https://example.org", Link_Of ((1, 6)));
+
+      --  Accepted blank, the link goes; undo brings it back.
+      Press_Key (Events.Key_K, Command => True);
+      Pomarine.Widgets.Editors.Set_Link_Address (Item.Page, Plain);
+      Press_Key (Events.Key_Return);
+      Goldens.Check_Text ("widgets-link-taken-away", Plain, Link_Of ((1, 6)));
+      Pomarine.Text_Areas.Undo (Page.all);
+      Goldens.Check_Text ("widgets-link-undone", "https://example.org", Link_Of ((1, 6)));
+
+      --  Blank, with no link to take away, is not taken.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 4));
+      Press_Key (Events.Key_K, Command => True);
+      Press_Key (Events.Key_Return);
+      Check_Flag ("widgets-link-blank-refused", True, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+
+      --  The toolbar's button, after the indent buttons, asks the same, and the tick is off while
+      --  the field is not an address.
+      Pomarine.Widgets.Editors.Finish_Link (Item.Page, Keep => False);
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 10), (1, 13));
+      Widgets.Update (Item.Tree, 100);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Widgets.Dispatch (Item.Tree, Press (Button_X, Button_Y), Ignored);
+      Widgets.Dispatch (Item.Tree, Release (Button_X, Button_Y), Ignored);
+      Widgets.Deliver (Item.Tree);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-link-button", True, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+      Pomarine.Widgets.Editors.Set_Link_Address (Item.Page, "mailto:a@b.org");
+      Pomarine.Widgets.Editors.Finish_Link (Item.Page, Keep => True);
+      Goldens.Check_Text ("widgets-link-button-made", "mailto:a@b.org", Link_Of ((1, 11)));
+
+      --  The application may offer addresses: asked of it when the bubble begins, and the list is shown
+      --  with the field, under it, once there are some.
+      Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 4));
+      Before := Asked.Count;
+      Press_Key (Events.Key_K, Command => True);
+      Check_Flag ("widgets-link-asks", True, Asked.Count = Before + 1);
+      Pomarine.Widgets.Editors.Add_Link_Choice (Item.Page, "Skua", "https://skua.org/");
+      Pomarine.Widgets.Editors.Add_Link_Choice (Item.Page, "", "https://bonxie.org/");
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Painted (Item, "widgets-link-sources");
+      --  Its select, clicked, opens the list (over it, as there is no room under), and a row is the link.
+      Widgets.Dispatch (Item.Tree, Press (225.0, 171.0), Ignored);
+      Widgets.Dispatch (Item.Tree, Release (225.0, 171.0), Ignored);
+      Widgets.Deliver (Item.Tree);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Painted (Item, "widgets-link-sources-open");
+      Widgets.Dispatch (Item.Tree, Press (225.0, 133.0), Ignored);
+      Widgets.Dispatch (Item.Tree, Release (225.0, 133.0), Ignored);
+      Widgets.Deliver (Item.Tree);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-link-source-chosen", False, Pomarine.Widgets.Editors.Is_Linking (Item.Page));
+      Goldens.Check_Text ("widgets-link-source-made", "https://bonxie.org/", Link_Of ((1, 2)));
+
+      --  Saved and loaded, the links are as they were.
+      declare
+         Copy : Docs.Document;
+      begin
+         Docs.Load_Stored (Copy, Docs.Stored (Item.Doc));
+         Goldens.Check_Text ("widgets-link-stored", Docs.Stored (Item.Doc), Docs.Stored (Copy));
+      end;
+   end Links;
 
    procedure Versions is
       Item   : Fixture;

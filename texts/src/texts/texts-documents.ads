@@ -58,11 +58,13 @@ package Texts.Documents is
    function Inset (Item : Document; Para : Positive) return Paragraph_Inset
      with Pre => Para <= Count (Item);
 
-   type Format is (Bold, Underline, Italic, Strikethrough, Faded, Sized, Faced, Versioned);
+   type Format is (Bold, Underline, Italic, Strikethrough, Faded, Sized, Faced, Linked, Versioned);
    --  Faded is text drawn part see-through. Sized is text of its own size
    --  (a run's Choice is its points) and Faced text of its own family (its
    --  Name): runs of these are told apart by what they say, and never
-   --  overlap. Versioned is text that has several versions, one of which is
+   --  overlap. Linked text is a hyperlink to the address in the run's Name;
+   --  it too never overlaps, and what is typed beside it is not part of it.
+   --  Versioned is text that has several versions, one of which is
    --  the text (see Add_Version).
    type Format_Set is array (Format) of Boolean;
    No_Formats : constant Format_Set := [others => False];
@@ -78,7 +80,7 @@ package Texts.Documents is
       --  Of a Versioned run: the versions in order, and which is the text,
       --  whose place in Versions is not kept up to date while it is.
       Name     : Ada.Strings.Unbounded.Unbounded_String;
-      --  Of a Faced run: the family.
+      --  Of a Faced run: the family; of a Linked run: the address.
    end record;
 
    function Run_Count (Item : Document) return Natural;
@@ -88,7 +90,7 @@ package Texts.Documents is
      with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    procedure Set_Format (Item : in out Document; From, To : Position; Style : Format; Enabled : Boolean)
      with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then Style not in Sized | Faced | Versioned,
+                 and then Style not in Sized | Faced | Linked | Versioned,
           Post => Has_Format (Item, From, To, Style) = Enabled;
 
    Largest_Size : constant := 999;
@@ -110,6 +112,22 @@ package Texts.Documents is
                  and then (for all C of Name => C not in '"' | '<' | '>' | '&' | ASCII.LF | ASCII.CR);
    --  Make the text from From to To of that size, or family, over any other
    --  there; none (0 or "") to give it back its default. One step to undo.
+
+   Link_Capacity : constant := 2048;
+   --  Bytes of an address a person may link to, which the program bounds as it reads one.
+
+   function Link_At (Item : Document; From, To : Position) return String
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   --  The address the text at From links to, or, if From = To, the text
+   --  before it; "" if it links to none.
+
+   procedure Set_Link (Item : in out Document; From, To : Position; Address : String)
+     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
+                 and then Address'Length <= Link_Capacity
+                 and then (for all C of Address => C not in ASCII.LF | ASCII.CR),
+          Post => Link_At (Item, From, To) = Address;
+   --  Make the text from From to To a link to Address, over any link there;
+   --  none ("") to take the link away. One step to undo.
 
    --  Versions: a span of one paragraph's text can have several versions,
    --  as of a wording, of which one is the text and the others are kept.
@@ -152,7 +170,8 @@ package Texts.Documents is
    --  What is kept of a document, as markup: <version>1</version>, then a
    --  <p> for each paragraph, its text with & < > as &amp; &lt; &gt;, and
    --  <b>, <i>, <u>, <s> and <f> round the runs of bold, italic, underlined,
-   --  struck-through and faded text, <z n="14"> and <y n="Georgia"> round
+   --  struck-through and faded text, <a h="https://x.org"> (the address with & < > " as
+   --  entities) a link, <z n="14"> and <y n="Georgia"> round
    --  those of a size, in points, and a family, and <v sel="N"> the run of a text with
    --  versions, with the other versions, as markup of their own, in <o> in it before the text; N is
    --  which version, of them all, the text is. Text without a <version> is plain, a paragraph

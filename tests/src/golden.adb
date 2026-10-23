@@ -71,6 +71,7 @@ begin
    Run ("textarea-select-keys", Text_Area_Tests.Selecting_Keys'Access);
    Run ("textarea-select-all", Text_Area_Tests.Select_All_And_Type'Access);
    Run ("textarea-paste", Text_Area_Tests.Copy_And_Paste'Access);
+   Run ("textarea-links", Text_Area_Tests.Links'Access);
    Run ("textarea-cut-undo", Text_Area_Tests.Cut_And_Undo'Access);
    Run ("textarea-undo-typing", Text_Area_Tests.Undo_Typing'Access);
    Run ("textarea-words", Text_Area_Tests.Words'Access);
@@ -154,6 +155,7 @@ begin
    Run ("widgets-toolbar-tools", Widget_Tests.Toolbar_Tools'Access);
    Run ("widgets-toolbar-editing", Widget_Tests.Toolbar_Editing'Access);
    Run ("widgets-toolbar-fonts", Widget_Tests.Toolbar_Fonts'Access);
+   Run ("widgets-links", Widget_Tests.Links'Access);
    Run ("widgets-versions", Widget_Tests.Versions'Access);
    Run ("widgets-caret", Widget_Tests.Caret_Only'Access);
    Run ("widgets-hiding", Widget_Tests.Hiding'Access);

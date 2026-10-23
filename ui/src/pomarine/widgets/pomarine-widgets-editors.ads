@@ -6,6 +6,8 @@ with Texts.Documents;
 with Pomarine.Icons;
 with Pomarine.Text_Areas;
 with Pomarine.Widgets.Buttons;
+private with Ada.Containers.Vectors;
+private with Ada.Strings.Unbounded;
 private with Pomarine.Widgets.Labels;
 private with Pomarine.Widgets.Menus;
 private with Pomarine.Widgets.Panels;
@@ -83,8 +85,8 @@ package Pomarine.Widgets.Editors is
 
    function Has_Toolbar (Item : Editor) return Boolean;
 
-   type Edit_Action is (Bulleted, Numbered, Quoted, Outdent, Indent);
-   --  The toolbar's editing buttons.
+   type Edit_Action is (Bulleted, Numbered, Quoted, Outdent, Indent, Link);
+   --  The toolbar's editing buttons. Link is Begin_Link.
 
    procedure Set_Edit_Icon (Item : in out Editor; Action : Edit_Action; To : Pomarine.Icons.Icon);
    --  Show To on the button, in place of its text, where the tree has icons.
@@ -117,11 +119,11 @@ package Pomarine.Widgets.Editors is
      with Pre => Tool_Count (Item) < Tool_Capacity
                  and then Label'Length > 0
                  and then Label'Length <= Pomarine.Widgets.Buttons.Label_Capacity
-                 and then (Key = ASCII.NUL or else Key in 'a' .. 'z');
+                 and then (Key = ASCII.NUL or else (Key in 'a' .. 'z' and then Key /= 'k'));
    --  Give the toolbar a button, after a divider, with this label, in the
    --  order added; none to begin with. Its click, or Command and Key while
    --  the text has the focus, is a Use_Tool event whose Row is its number, from 1.
-   --  Hovering it shows its label and key. With Needs_Selection it is off
+   --  K is Begin_Link's. Hovering it shows its label and key. With Needs_Selection it is off
    --  while nothing is selected, and its key does nothing.
 
    procedure Begin_Version (Item : in out Editor)
@@ -146,6 +148,60 @@ package Pomarine.Widgets.Editors is
    --  one before and the one after, round the end; so do the left and
    --  right arrow keys, when the bar is shown or the pointer is over the
    --  text.
+
+   --  Text that links to an address is underlined in the accent colour.
+   --  Command-clicking a link is a Follow event: the application opens
+   --  Followed. The pointer is a hand over a link while Command is held.
+
+   procedure Begin_Link (Item : in out Editor)
+     with Pre => Has_Document (Item);
+   --  Ask for the address the selected text is to link to, by a bubble by
+   --  the selection (the toolbar's Link button, or Command+K, does this):
+   --  a field for the address, with its tick and cross, or Return and
+   --  Escape, to accept it or give it up. It is prefilled with the address
+   --  the text links to now; accepted blank, that link is taken away.
+   --  A tick is off while what is in the field is not an address (see
+   --  Pomarine.Text_Areas.Is_Address; one with no scheme, as example.org,
+   --  is made https://example.org). Nothing is done if nothing is selected,
+   --  or the text is read only or of one line.
+
+   --  The bubble may also offer addresses to choose from, as of the
+   --  application's sources: a list below the field, whose choice makes the
+   --  link at once. They are what the application has added since the
+   --  bubble was begun: Begin_Link forgets them and says Ask_Link, the
+   --  application answers with Add_Link_Choice, and the list is shown once
+   --  it has any.
+
+   procedure Clear_Link_Choices (Item : in out Editor);
+
+   procedure Add_Link_Choice (Item : in out Editor; Title, Address : String)
+     with Pre => Pomarine.Text_Areas.Is_Address (Address);
+   --  Offer Address, listed as Title (as Address, if Title is blank).
+
+   function Link_Choice_Count (Item : Editor) return Natural;
+
+   procedure Choose_Link (Item : in out Editor; Which : Positive)
+     with Pre => Is_Linking (Item) and then Which <= Link_Choice_Count (Item);
+   --  Make the selected text a link to the Which'th offered, as choosing it from the list does.
+
+   function Is_Linking (Item : Editor) return Boolean;
+
+   function Link_Address (Item : Editor) return String
+     with Pre => Is_Linking (Item);
+   --  What is in the field now.
+
+   procedure Set_Link_Address (Item : in out Editor; To : String)
+     with Pre => Is_Linking (Item);
+   --  Put To in the field, as if typed.
+
+   procedure Finish_Link (Item : in out Editor; Keep : Boolean)
+     with Pre => Is_Linking (Item), Post => not Is_Linking (Item);
+   --  Make the selected text a link to what is in the field, if Keep and it
+   --  is an address (or blank, to take the link away); if not, leave it as
+   --  it was.
+
+   function Followed (Item : Editor) return String;
+   --  The address of the link last Command-clicked.
 
    Assist_Capacity : constant := 16;
    --  Bytes of the label of the toolbar's button.
@@ -293,6 +349,14 @@ package Pomarine.Widgets.Editors is
 
 private
 
+   package Choice_Lists is new Ada.Containers.Vectors
+     (Positive, Ada.Strings.Unbounded.Unbounded_String, "=" => Ada.Strings.Unbounded."=");
+
+   type Link_Input;
+   type Link_Input_Access is access Link_Input;
+   --  The bubble's field, and the document in it: made when it is first
+   --  wanted (an editor holds one, and an editor cannot hold itself).
+
    type Format_Buttons is array (Texts.Documents.Format) of Pomarine.Widgets.Buttons.Button;
 
    subtype Tool_Number is Positive range 1 .. Tool_Capacity;
@@ -305,7 +369,7 @@ private
 
    type Edit_Buttons is array (Edit_Action) of Pomarine.Widgets.Buttons.Button;
 
-   type Choice is (Nothing, Pick_Family, Pick_Size, Pick_Style);
+   type Choice is (Nothing, Pick_Family, Pick_Size, Pick_Style, Pick_Source);
    --  Which of the font controls has its menu open.
 
    type Editor is new Widget and Listener with record
@@ -362,6 +426,26 @@ private
       --  version and the document named next.
       Assist_Version : Texts.Documents.Version := 0;
       Assist_Serial  : Natural := 0;
+      Shared      : Shared_Access := null;
+      Link_Owner  : access Editor := null;
+      --  Of the field in a link bubble, the editor it is for.
+      Link_Box    : Pomarine.Widgets.Panels.Panel;
+      Link_Accept, Link_Cancel : Pomarine.Widgets.Buttons.Button;
+      Link_Parts  : Link_Input_Access;
+      Link_Sources : Pomarine.Widgets.Selects.Select_Field;
+      --  Added to the bubble when it first has addresses to choose from.
+      Link_Titles, Link_Addresses : Choice_Lists.Vector;
+      Link_Tall   : Boolean := False;
+      --  Whether the bubble is tall enough for the list.
+      Linking     : Boolean := False;
+      Link_Had    : Boolean := False;
+      --  Whether the text already links to an address.
+      Link_From, Link_To : Texts.Position := (1, 1);
+      Link_Left, Link_Top : Integer := -1;
+      Followed_To : Ada.Strings.Unbounded.Unbounded_String;
+      Over_Link : Boolean := False;
+      --  Whether the pointer was last over a link.
+      --  The address of the link last Command-clicked.
       Pointer_In_Text : Boolean := True;
       Toolbar_On    : Boolean := False;
       Zoomed  : Float := 1.0;
@@ -381,6 +465,11 @@ private
       --  assistive technology was last told, to tell it when they move.
       --  Of the document, as of the last time it was drawn or seen to be
       --  changed.
+   end record;
+
+   type Link_Input is limited record
+      Doc   : aliased Texts.Documents.Document;
+      Field : aliased Editor;
    end record;
 
 end Pomarine.Widgets.Editors;

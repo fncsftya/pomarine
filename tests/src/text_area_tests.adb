@@ -465,6 +465,38 @@ package body Text_Area_Tests is
       Check (Item, "textarea-paste");
    end Copy_And_Paste;
 
+   procedure Links is
+      Item : Fixture;
+      Address : constant String := "https://example.org/skua";
+   begin
+      Open (Item, "Great skua" & ASCII.LF & "Bonxie");
+      Click (Item, 90.0, 35.0, Clicks => 2);  --  on "skua"
+      Check_Selection ("textarea-link-selected", Item, "skua");
+
+      --  Nothing makes a link but saying so: an address pasted over a selection is pasted, as text.
+      Item.Board.Set_Text (Address);
+      Press (Item, Events.Key_V, Command => True);
+      Check_Text ("textarea-link-paste-is-text", Item, "Great " & Address & ASCII.LF & "Bonxie");
+      Goldens.Check_Text ("textarea-link-paste-no-link", "", Text_Areas.Link_Here (Item.Area));
+      Press (Item, Events.Key_Z, Command => True);
+      Check_Text ("textarea-link-paste-undone", Item, "Great skua" & ASCII.LF & "Bonxie");
+
+      --  Set_Link links the selection; typing at its end does not extend it; undo takes it back.
+      Text_Areas.Select_Range (Item.Area, (1, 7), (1, 11));
+      Text_Areas.Set_Link (Item.Area, Address);
+      Goldens.Check_Text ("textarea-link-set", Address, Text_Areas.Link_Here (Item.Area));
+      Text_Areas.Select_Range (Item.Area, (2, 7), (2, 7));
+      Check (Item, "textarea-link");
+      Text_Areas.Select_Range (Item.Area, (1, 11), (1, 11));
+      Type_In (Item, "!");
+      Goldens.Check_Text ("textarea-link-not-extended", "", Text_Areas.Link_Here (Item.Area));
+      Text_Areas.Select_Range (Item.Area, (1, 7), (1, 11));
+      Text_Areas.Set_Link (Item.Area, "");
+      Goldens.Check_Text ("textarea-link-removed", "", Text_Areas.Link_Here (Item.Area));
+      Press (Item, Events.Key_Z, Command => True);
+      Goldens.Check_Text ("textarea-link-restored", Address, Text_Areas.Link_Here (Item.Area));
+   end Links;
+
    procedure Cut_And_Undo is
       Item : Fixture;
       Source : constant String :=

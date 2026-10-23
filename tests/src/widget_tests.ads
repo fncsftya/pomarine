@@ -19,6 +19,7 @@ package Widget_Tests is
    procedure Toolbar_Fonts;
    --  The buttons the application adds after the style buttons: off without a selection
    --  when they need one, their click or Command and their key a Use_Tool event.
+   procedure Links;
    procedure Versions;
    --  Writing another version of a selection, taking it or giving it up, and going
    --  through the versions of a text that has them, by the bar and by the arrow keys.

@@ -37,6 +37,7 @@ package SDL3.Events is
    Key_N         : constant Key_Code := 16#6E#;
    Key_P         : constant Key_Code := 16#70#;
    Key_I         : constant Key_Code := 16#69#;
+   Key_K         : constant Key_Code := 16#6B#;
    Key_U         : constant Key_Code := 16#75#;
    Key_C         : constant Key_Code := 16#63#;
    Key_S         : constant Key_Code := 16#73#;

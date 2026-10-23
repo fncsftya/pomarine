@@ -1239,6 +1239,29 @@ package body Pomarine.Text_Areas is
       then Ada.Strings.Unbounded.To_String (Item.Pending_Family)
       else Docs.Family_At (Item.Doc.all, Selection_First (Item), Selection_Last (Item)));
 
+   function Is_Address (Words : String) return Boolean is
+      function Starts (Prefix : String) return Boolean is
+        (Words'Length > Prefix'Length and then Words (Words'First .. Words'First + Prefix'Length - 1) = Prefix);
+   begin
+      return Words'Length <= Docs.Link_Capacity
+        and then (Starts ("http://") or else Starts ("https://") or else Starts ("mailto:"))
+        and then (for all C of Words => Standard.Character'Pos (C) > 32 and then Standard.Character'Pos (C) /= 127);
+   end Is_Address;
+
+   function Link_Here (Item : Text_Area) return String is
+     (Docs.Link_At (Item.Doc.all, Selection_First (Item), Selection_Last (Item)));
+
+   procedure Set_Link (Item : in out Text_Area; Address : String) is
+   begin
+      if Item.Single or else Item.Read_Only or else not Has_Selection (Item) then
+         return;
+      end if;
+      Finish_Composition (Item);
+      Docs.Set_Link (Item.Doc.all, Selection_First (Item), Selection_Last (Item), Address);
+      Catch_Up (Item);
+      Reveal (Item);
+   end Set_Link;
+
    procedure Start_Pending (Item : in out Text_Area) is
    begin
       if not Item.Explicit_Formats then
@@ -2390,6 +2413,9 @@ package body Pomarine.Text_Areas is
             if R.Style = Docs.Underline or else R.Style = Docs.Strikethrough then
                Draw_Range (Item, Target, R.From, R.To, First, Last, Colors (Themes.Foreground), True,
                            Rows_From, Rows_To, Strike => R.Style = Docs.Strikethrough);
+            elsif R.Style = Docs.Linked then
+               Draw_Range (Item, Target, R.From, R.To, First, Last, Colors (Themes.Accent), True,
+                           Rows_From, Rows_To);
             end if;
          end;
       end loop;

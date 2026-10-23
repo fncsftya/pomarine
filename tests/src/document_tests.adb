@@ -124,6 +124,31 @@ package body Document_Tests is
       Docs.Load_Stored (Loaded, Docs.Stored (Doc));
       pragma Assert (Docs.Has_Format (Loaded, (1, 6), (1, 8), Docs.Faded));
       pragma Assert (not Docs.Has_Format (Loaded, (1, 1), (1, 5), Docs.Faded));
+      --  A link is kept as <a h>, with its address escaped; typing beside it does not extend it.
+      Docs.Load (Doc, "see here now");
+      Docs.Set_Link (Doc, (1, 5), (1, 9), "https://x.org/?a=1&b=""2""");
+      Goldens.Check_Text
+        ("document-stored-link",
+         "<version>1</version><p>see <a h=""https://x.org/?a=1&amp;b=&quot;2&quot;"">here</a> now</p>",
+         Docs.Stored (Doc));
+      Docs.Load_Stored (Loaded, Docs.Stored (Doc));
+      Goldens.Check_Text ("document-link-reloaded", Docs.Stored (Doc), Docs.Stored (Loaded));
+      pragma Assert (Docs.Link_At (Loaded, (1, 6), (1, 6)) = "https://x.org/?a=1&b=""2""");
+      pragma Assert (Docs.Link_At (Loaded, (1, 1), (1, 2)) = "");
+      Docs.Replace (Doc, (1, 9), (1, 9), "!");
+      pragma Assert (Docs.Link_At (Doc, (1, 10), (1, 10)) = "");
+      Docs.Replace (Doc, (1, 6), (1, 6), "!");
+      pragma Assert (Docs.Link_At (Doc, (1, 7), (1, 8)) = "https://x.org/?a=1&b=""2""");
+      Docs.Set_Link (Doc, (1, 5), (1, 10), "");
+      pragma Assert (Docs.Link_At (Doc, (1, 6), (1, 6)) = "");
+      Docs.Undo (Doc, A, B);
+      pragma Assert (Docs.Link_At (Doc, (1, 6), (1, 6)) /= "");
+      begin
+         Docs.Load_Stored (Loaded, "<version>1</version><p><a h=""x&bad;"">y</a></p>");
+         raise Program_Error with "a link with an unknown entity was accepted";
+      exception
+         when Constraint_Error => null;
+      end;
       --  A text with versions is kept with its other versions, and which it is.
       Docs.Load (Doc, "say it plain");
       Docs.Set_Format (Doc, (1, 1), (1, 4), Docs.Bold, True);

@@ -26,6 +26,7 @@ package body Pomarine.Widgets.Editors is
    use type Texts.Position;
    use type Texts.Paragraph_Kind;
    use type System.Address;
+   use type Text_Areas.Shared_Access;
 
    procedure Update_Toolbar (Item : in out Editor);
    --  Show the toolbar's buttons if it is to have them, and hide them if not.
@@ -92,6 +93,7 @@ package body Pomarine.Widgets.Editors is
       Shared : not null Shared_Access) is
    begin
       Text_Areas.Set_Shared (Item.Text, Shared);
+      Item.Shared := Shared;
    end Set_Shared;
 
    procedure Attach
@@ -212,7 +214,9 @@ package body Pomarine.Widgets.Editors is
    Tool_Wide     : constant Float := 64.0;
    Edit_Left     : constant Float :=
      Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap + Divider_Gap + 1.0 + Divider_Gap;
-   Edit_End      : constant Float := Edit_Left + 5.0 * Button_Wide + 4.0 * Button_Gap;
+   Lists_End     : constant Float := Edit_Left + 5.0 * Button_Wide + 4.0 * Button_Gap;
+   Edit_End      : constant Float := Edit_Left + 6.0 * Button_Wide + 5.0 * Button_Gap;
+   --  The editing buttons but the last, Link, which is left out first when it is narrow.
    Family_Wide   : constant Float := 112.0;
    Family_Menu_Wide : constant Float := 240.0;
    --  The menu of families is wider than the select, to show more of their names.
@@ -325,7 +329,8 @@ package body Pomarine.Widgets.Editors is
    Quote_Label  : constant String := [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#9C#)];
    Arrow_Left   : constant String := [Character'Val (16#E2#), Character'Val (16#86#), Character'Val (16#90#)];
    Arrow_Right  : constant String := [Character'Val (16#E2#), Character'Val (16#86#), Character'Val (16#92#)];
-   --  U+2022, U+201C, U+2190 and U+2192 in UTF-8.
+   Arrow_Out    : constant String := [Character'Val (16#E2#), Character'Val (16#86#), Character'Val (16#97#)];
+   --  U+2022, U+201C, U+2190, U+2192 and U+2197 in UTF-8.
 
    function Family_Shown (Item : Editor) return String is
      (if Text_Areas.Family_Here (Item.Text) /= "" then Text_Areas.Family_Here (Item.Text) else Font_Family (Item));
@@ -366,7 +371,7 @@ package body Pomarine.Widgets.Editors is
                             when Docs.Bold => "B", when Docs.Italic => "I",
                             when Docs.Underline => "U", when Docs.Strikethrough => "S",
                             when Docs.Faded => "F", when Docs.Sized => "Z", when Docs.Faced => "Y",
-                            when Docs.Versioned => "V"));
+                            when Docs.Linked => "L", when Docs.Versioned => "V"));
                Buttons.Set_Label_Style
                  (Part, (case Style is
                             when Docs.Bold => Line_Texts.Serif_Bold,
@@ -379,7 +384,7 @@ package body Pomarine.Widgets.Editors is
                             when Docs.Underline => "Underline",
                             when Docs.Strikethrough => "Strikethrough",
                             when Docs.Faded => "Faded", when Docs.Sized => "Size", when Docs.Faced => "Family",
-                            when Docs.Versioned => "Versions"));
+                            when Docs.Linked => "Link", when Docs.Versioned => "Versions"));
                Buttons.Set_Enabled (Part, True);
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
@@ -401,12 +406,12 @@ package body Pomarine.Widgets.Editors is
                Buttons.Set_Label
                  (Part, (case Action is
                             when Bulleted => Bullet_Label, when Numbered => "1.", when Quoted => Quote_Label,
-                            when Outdent => Arrow_Left, when Indent => Arrow_Right));
+                            when Outdent => Arrow_Left, when Indent => Arrow_Right, when Link => Arrow_Out));
                Set_Accessible_Name
                  (Part, (case Action is
                             when Bulleted => "Bulleted list", when Numbered => "Numbered list",
                             when Quoted => "Quotation", when Outdent => "Decrease indent",
-                            when Indent => "Increase indent"));
+                            when Indent => "Increase indent", when Link => "Link"));
                Buttons.Set_Enabled (Part, True);
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
@@ -456,7 +461,8 @@ package body Pomarine.Widgets.Editors is
             Reserved : constant Float :=
               (if Item.Assist_Length > 0 then 8.0 + Assist_Wide + Assist_Right else Toolbar_Left);
             Fits     : constant Boolean := Width_Of (Item) >= (Tools_End (Item) + Reserved) * Density (Item);
-            Edits_Fit : constant Boolean := Width_Of (Item) >= (Edit_End + Reserved) * Density (Item);
+            Edits_Fit : constant Boolean := Width_Of (Item) >= (Lists_End + Reserved) * Density (Item);
+            Link_Fits : constant Boolean := Width_Of (Item) >= (Edit_End + Reserved) * Density (Item);
             Fonts_Fit : constant Boolean := Width_Of (Item) >= (Font_End + Reserved) * Density (Item);
 
             procedure Show (Part : in out Widget'Class; To : Boolean) is
@@ -474,7 +480,7 @@ package body Pomarine.Widgets.Editors is
             end Say;
          begin
             for Action in Edit_Action loop
-               Show (Item.Editing (Action), Edits_Fit);
+               Show (Item.Editing (Action), (if Action = Link then Link_Fits else Edits_Fit));
             end loop;
             if Has_Document (Item) then
                for Action in Bulleted .. Quoted loop
@@ -486,6 +492,10 @@ package body Pomarine.Widgets.Editors is
                                                    when others => Text_Areas.Quote)));
                end loop;
                Say (Item.Style_Box, Style_Name (Text_Areas.Paragraph_Style (Item.Text)));
+               Buttons.Set_Enabled
+                 (Item.Editing (Link),
+                  Text_Areas.Has_Selection (Item.Text) and then not Text_Areas.Is_Read_Only (Item.Text));
+               Buttons.Set_Selected (Item.Editing (Link), Text_Areas.Link_Here (Item.Text) /= "");
             end if;
             Show (Item.Family_Box, Fonts_Fit);
             Show (Item.Size_Box, Fonts_Fit);
@@ -700,47 +710,51 @@ package body Pomarine.Widgets.Editors is
       return Last;
    end Window_Height;
 
+   procedure Shape_Bubble (Item : in out Editor; Bubble : in out Panels.Panel; Wide : Float) is
+      Pixels : constant Float := Density (Item);
+   begin
+      Panels.Set_Fill (Bubble, Themes.Page);
+      Panels.Set_Border (Bubble, Themes.Border);
+      Panels.Set_Radius (Bubble, 6.0);
+      Add (Item, Bubble);
+      Yoga.Nodes.Set_Position_Type (Node (Bubble), Yoga.Absolute);
+      Yoga.Nodes.Set_Width (Node (Bubble), Wide * Pixels);
+      Yoga.Nodes.Set_Height (Node (Bubble), Bubble_High * Pixels);
+      Set_Visible (Bubble, False);
+   end Shape_Bubble;
+
+   procedure Put_Button
+     (Item : in out Editor; Bubble : in out Panels.Panel; Part : in out Buttons.Button;
+      Left, Wide : Float; Label, Name : String)
+   is
+      Pixels : constant Float := Density (Item);
+   begin
+      Buttons.Set_Label (Part, Label);
+      Set_Accessible_Name (Part, Name);
+      Buttons.Set_Enabled (Part, True);
+      Set_Listener (Part, Item'Unchecked_Access);
+      Add (Bubble, Part);
+      Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
+      Yoga.Nodes.Set_Position (Node (Part), Yoga.Left, Left * Pixels);
+      Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, (Bubble_High - Button_High) / 2.0 * Pixels);
+      Yoga.Nodes.Set_Width (Node (Part), Wide * Pixels);
+      Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
+   end Put_Button;
+
    procedure Build_Bubbles (Item : in out Editor) is
       Pixels : constant Float := Density (Item);
-
-      procedure Shape (Bubble : in out Panels.Panel; Wide : Float) is
-      begin
-         Panels.Set_Fill (Bubble, Themes.Page);
-         Panels.Set_Border (Bubble, Themes.Border);
-         Panels.Set_Radius (Bubble, 6.0);
-         Add (Item, Bubble);
-         Yoga.Nodes.Set_Position_Type (Node (Bubble), Yoga.Absolute);
-         Yoga.Nodes.Set_Width (Node (Bubble), Wide * Pixels);
-         Yoga.Nodes.Set_Height (Node (Bubble), Bubble_High * Pixels);
-         Set_Visible (Bubble, False);
-      end Shape;
-
-      procedure Put
-        (Bubble : in out Panels.Panel; Part : in out Buttons.Button; Left, Wide : Float; Label, Name : String) is
-      begin
-         Buttons.Set_Label (Part, Label);
-         Set_Accessible_Name (Part, Name);
-         Buttons.Set_Enabled (Part, True);
-         Set_Listener (Part, Item'Unchecked_Access);
-         Add (Bubble, Part);
-         Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
-         Yoga.Nodes.Set_Position (Node (Part), Yoga.Left, Left * Pixels);
-         Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, (Bubble_High - Button_High) / 2.0 * Pixels);
-         Yoga.Nodes.Set_Width (Node (Part), Wide * Pixels);
-         Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
-      end Put;
    begin
       if Is_Attached (Item.Confirm) then
          return;
       end if;
-      Shape (Item.Confirm, Confirm_Wide);
-      Put (Item.Confirm, Item.Accept_Button, Bubble_Pad, Button_Wide, "OK", "Accept");
+      Shape_Bubble (Item, Item.Confirm, Confirm_Wide);
+      Put_Button (Item, Item.Confirm, Item.Accept_Button, Bubble_Pad, Button_Wide, "OK", "Accept");
       Buttons.Set_Kind (Item.Accept_Button, Buttons.Primary);
       Buttons.Set_Icon (Item.Accept_Button, Pomarine.Icons.Check);
-      Put (Item.Confirm, Item.Cancel_Button, 2.0 * Bubble_Pad + Button_Wide, Button_Wide, "X", "Cancel");
+      Put_Button (Item, Item.Confirm, Item.Cancel_Button, 2.0 * Bubble_Pad + Button_Wide, Button_Wide, "X", "Cancel");
       Buttons.Set_Icon (Item.Cancel_Button, Pomarine.Icons.Close);
-      Shape (Item.Cycle, Cycle_Wide);
-      Put (Item.Cycle, Item.Back_Button, Bubble_Pad, Button_Wide, "<", "Previous version");
+      Shape_Bubble (Item, Item.Cycle, Cycle_Wide);
+      Put_Button (Item, Item.Cycle, Item.Back_Button, Bubble_Pad, Button_Wide, "<", "Previous version");
       Add (Item.Cycle, Item.Cycle_Count);
       Labels.Set_Centered (Item.Cycle_Count, True);
       Yoga.Nodes.Set_Position_Type (Node (Item.Cycle_Count), Yoga.Absolute);
@@ -748,14 +762,14 @@ package body Pomarine.Widgets.Editors is
       Yoga.Nodes.Set_Position (Node (Item.Cycle_Count), Yoga.Top, (Bubble_High - Button_High) / 2.0 * Pixels);
       Yoga.Nodes.Set_Width (Node (Item.Cycle_Count), Count_Wide * Pixels);
       Yoga.Nodes.Set_Height (Node (Item.Cycle_Count), Button_High * Pixels);
-      Put (Item.Cycle, Item.Next_Button, 3.0 * Bubble_Pad + Button_Wide + Count_Wide, Button_Wide, ">",
+      Put_Button (Item, Item.Cycle, Item.Next_Button, 3.0 * Bubble_Pad + Button_Wide + Count_Wide, Button_Wide, ">",
            "Next version");
       Request_Layout (Item);
    end Build_Bubbles;
 
    procedure Place_Bubble
      (Item : in out Editor; Bubble : in out Panels.Panel; Wide : Float; X, Top, Bottom : Float;
-      Left_Kept, Top_Kept : in out Integer)
+      Left_Kept, Top_Kept : in out Integer; High : Float := Bubble_High)
    is
       --  Under the caret, or over it if there is no room under it in the window.
       Pixels : constant Float := Density (Item);
@@ -763,9 +777,9 @@ package body Pomarine.Widgets.Editors is
       Left   : constant Float :=
         Float'Max (Edge, Float'Min (X - Left_Of (Item), Width_Of (Item) - Wide * Pixels - Edge));
       Below  : constant Float := Bottom + Bubble_Gap * Pixels;
-      Upper  : constant Boolean := Below + Bubble_High * Pixels > Window_Height (Item);
+      Upper  : constant Boolean := Below + High * Pixels > Window_Height (Item);
       Put_Top : constant Float :=
-        (if Upper then Top - Bubble_Gap * Pixels - Bubble_High * Pixels else Below) - Top_Of (Item);
+        (if Upper then Top - Bubble_Gap * Pixels - High * Pixels else Below) - Top_Of (Item);
    begin
       if Integer (Left) /= Left_Kept or else Integer (Put_Top) /= Top_Kept then
          Left_Kept := Integer (Left);
@@ -775,6 +789,131 @@ package body Pomarine.Widgets.Editors is
          Request_Layout (Item);
       end if;
    end Place_Bubble;
+
+   --  The bubble that asks for the address of a link
+
+   Link_Field_Wide : constant Float := 200.0;
+   Link_Wide       : constant Float := Link_Field_Wide + 2.0 * Button_Wide + 4.0 * Bubble_Pad;
+   Link_Longest    : constant Float := 100_000.0;
+   --  Layout units: wider than any address is typed.
+   Link_Text_Size  : constant Float := 13.0;
+   Link_Select_Top : constant Float := Bubble_High - 4.0;
+   Link_Tall_High  : constant Float := Link_Select_Top + Button_High + Bubble_Pad;
+   --  With the list of what may be chosen, a select of its own under the field.
+
+   function Trimmed (Words : String) return String is (Ada.Strings.Fixed.Trim (Words, Ada.Strings.Both));
+
+   function Address_Of (Words : String) return String is
+      --  What Words says to link to: itself if it is an address, https:// and it if it is a bare domain.
+      Said : constant String := Trimmed (Words);
+   begin
+      if Text_Areas.Is_Address (Said) then
+         return Said;
+      elsif Said'Length > 0 and then Said'Length + 8 <= Docs.Link_Capacity
+        and then (for some C of Said => C = '.') and then (for all C of Said => C /= ':')
+        and then Text_Areas.Is_Address ("https://" & Said)
+      then
+         return "https://" & Said;
+      end if;
+      return "";
+   end Address_Of;
+
+   function Link_Address (Item : Editor) return String is
+     (if Item.Link_Parts = null then "" else Docs.Whole (Item.Link_Parts.Doc));
+
+   function Link_Acceptable (Item : Editor) return Boolean is
+     (Address_Of (Link_Address (Item)) /= "" or else (Item.Link_Had and then Trimmed (Link_Address (Item)) = ""));
+
+   procedure Build_Link (Item : in out Editor) is
+      Pixels : constant Float := Density (Item);
+   begin
+      if Is_Attached (Item.Link_Box) then
+         return;
+      end if;
+      Item.Link_Parts := new Link_Input;
+      declare
+         Field : Editor renames Item.Link_Parts.Field;
+      begin
+         Field.Link_Owner := Item'Unchecked_Access;
+         if Item.Shared /= null then
+            Set_Shared (Field, Item.Shared);
+         end if;
+         Configure (Field, Line_Texts.Interface_Font, Link_Text_Size, Measure => Link_Longest);
+         Text_Areas.Set_Single_Line (Field.Text);
+         Attach (Field, Item.Link_Parts.Doc'Access);
+         Set_Placeholder (Field, "Address");
+         Set_Accessible_Name (Field, "Link address");
+         Set_Listener (Field, Item'Unchecked_Access);
+         Shape_Bubble (Item, Item.Link_Box, Link_Wide);
+         Add (Item.Link_Box, Field);
+         Yoga.Nodes.Set_Position_Type (Node (Field), Yoga.Absolute);
+         Yoga.Nodes.Set_Position (Node (Field), Yoga.Left, Bubble_Pad * Pixels);
+         Yoga.Nodes.Set_Position (Node (Field), Yoga.Top, (Bubble_High - Button_High) / 2.0 * Pixels);
+         Yoga.Nodes.Set_Width (Node (Field), Link_Field_Wide * Pixels);
+         Yoga.Nodes.Set_Height (Node (Field), Button_High * Pixels);
+      end;
+      Put_Button (Item, Item.Link_Box, Item.Link_Accept, Link_Field_Wide + 2.0 * Bubble_Pad, Button_Wide,
+                  "OK", "Accept");
+      Buttons.Set_Kind (Item.Link_Accept, Buttons.Primary);
+      Buttons.Set_Icon (Item.Link_Accept, Pomarine.Icons.Check);
+      Put_Button (Item, Item.Link_Box, Item.Link_Cancel, Link_Field_Wide + 3.0 * Bubble_Pad + Button_Wide,
+                  Button_Wide, "X", "Cancel");
+      Buttons.Set_Icon (Item.Link_Cancel, Pomarine.Icons.Close);
+      Request_Layout (Item);
+   end Build_Link;
+
+   procedure Show_Link_Sources (Item : in out Editor; Tall : Boolean) is
+      --  Make the bubble tall enough for the list of what may be chosen, with its select, or not.
+      Pixels : constant Float := Density (Item);
+   begin
+      if Tall and then not Is_Attached (Item.Link_Sources) then
+         Set_Accessible_Name (Item.Link_Sources, "Link to a source");
+         Set_Listener (Item.Link_Sources, Item'Unchecked_Access);
+         Selects.Set_Value (Item.Link_Sources, "Link to a source");
+         Add (Item.Link_Box, Item.Link_Sources);
+         Yoga.Nodes.Set_Position_Type (Node (Item.Link_Sources), Yoga.Absolute);
+         Yoga.Nodes.Set_Position (Node (Item.Link_Sources), Yoga.Left, Bubble_Pad * Pixels);
+         Yoga.Nodes.Set_Position (Node (Item.Link_Sources), Yoga.Top, Link_Select_Top * Pixels);
+         Yoga.Nodes.Set_Width (Node (Item.Link_Sources), (Link_Wide - 2.0 * Bubble_Pad) * Pixels);
+         Yoga.Nodes.Set_Height (Node (Item.Link_Sources), Button_High * Pixels);
+      end if;
+      Item.Link_Tall := Tall;
+      Yoga.Nodes.Set_Height (Node (Item.Link_Box), (if Tall then Link_Tall_High else Bubble_High) * Pixels);
+      if Is_Attached (Item.Link_Sources) then
+         Set_Visible (Item.Link_Sources, Tall);
+      end if;
+      if not Tall then
+         Close_Chooser (Item);
+      end if;
+      Request_Layout (Item);
+   end Show_Link_Sources;
+
+   procedure Refresh_Link (Item : in out Editor) is
+   begin
+      if not Is_Attached (Item.Link_Box) then
+         return;
+      end if;
+      if Item.Linking then
+         declare
+            X, Y, Wide, High : Float;
+            Fine : constant Boolean := Link_Acceptable (Item);
+            Tall : constant Boolean := not Item.Link_Addresses.Is_Empty;
+         begin
+            if Tall /= Item.Link_Tall then
+               Show_Link_Sources (Item, Tall);
+            end if;
+            Text_Areas.Caret_Box (Item.Text, X, Y, Wide, High);
+            Place_Bubble (Item, Item.Link_Box, Link_Wide, X, Y, Y + High, Item.Link_Left, Item.Link_Top,
+                          High => (if Tall then Link_Tall_High else Bubble_High));
+            if Buttons.Is_Enabled (Item.Link_Accept) /= Fine then
+               Buttons.Set_Enabled (Item.Link_Accept, Fine);
+            end if;
+         end;
+      end if;
+      if Is_Visible (Item.Link_Box) /= Item.Linking then
+         Set_Visible (Item.Link_Box, Item.Linking);
+      end if;
+   end Refresh_Link;
 
    function Pointer_Version (Item : in out Editor; X, Y : Float) return Natural is
       Doc : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
@@ -792,6 +931,33 @@ package body Pomarine.Widgets.Editors is
       end loop;
       return 0;
    end Pointer_Version;
+
+   function Followed (Item : Editor) return String is (Ada.Strings.Unbounded.To_String (Item.Followed_To));
+
+   function Pointer_Link (Item : in out Editor; X, Y : Float) return String is
+      Doc : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
+   begin
+      for I in 1 .. Docs.Run_Count (Doc.all) loop
+         declare
+            R : constant Docs.Format_Run := Docs.Run (Doc.all, I);
+         begin
+            if Docs."=" (R.Style, Docs.Linked) and then R.From < R.To
+              and then Text_Areas.Is_Over_Range (Item.Text, R.From, R.To, X, Y)
+            then
+               return Ada.Strings.Unbounded.To_String (R.Name);
+            end if;
+         end;
+      end loop;
+      return "";
+   end Pointer_Link;
+
+   function Link_Under (Item : in out Editor; Event : SDL3.Events.Event) return String is
+      Pixels : constant Float := Density (Item);
+      Where_X : constant Float := Event.Mouse_X * Pixels;
+      Where_Y : constant Float := Event.Mouse_Y * Pixels;
+   begin
+      return Pointer_Link (Item, Where_X, Where_Y);
+   end Link_Under;
 
    procedure Close_Cycle (Item : in out Editor) is
    begin
@@ -848,6 +1014,7 @@ package body Pomarine.Widgets.Editors is
          return;
       end if;
       Doc := Text_Areas.Document (Item.Text);
+      Refresh_Link (Item);
       if Item.Cycle_Open and then (Item.Writing or else Docs.Version_At (Doc.all, Item.Cycle_From) = 0) then
          Close_Cycle (Item);
       end if;
@@ -884,6 +1051,93 @@ package body Pomarine.Widgets.Editors is
    end Refresh_Bubbles;
 
    function Is_Writing_Version (Item : Editor) return Boolean is (Item.Writing);
+
+   function Is_Linking (Item : Editor) return Boolean is (Item.Linking);
+
+   procedure Set_Link_Address (Item : in out Editor; To : String) is
+   begin
+      Text_Areas.Select_All (Item.Link_Parts.Field.Text);
+      Text_Areas.Insert (Item.Link_Parts.Field.Text, To);
+      Text_Areas.Select_All (Item.Link_Parts.Field.Text);
+      Invalidate (Item.Link_Parts.Field);
+      Refresh_Link (Item);
+   end Set_Link_Address;
+
+   procedure Begin_Link (Item : in out Editor) is
+      First : Texts.Position := Text_Areas.Caret (Item.Text);
+      Last  : Texts.Position := Text_Areas.Mark (Item.Text);
+   begin
+      if Item.Linking or else Item.Writing or else not Is_Attached (Item)
+        or else not Text_Areas.Has_Selection (Item.Text) or else Text_Areas.Is_Read_Only (Item.Text)
+        or else Text_Areas.Is_Single_Line (Item.Text) or else Text_Areas.Is_Composing (Item.Text)
+      then
+         return;
+      end if;
+      if Last < First then
+         First := Last;
+         Last := Text_Areas.Caret (Item.Text);
+      end if;
+      Close_Cycle (Item);
+      Close_Chooser (Item);
+      Item.Link_From := First;
+      Item.Link_To := Last;
+      Item.Link_Had := Text_Areas.Link_Here (Item.Text) /= "";
+      Build_Link (Item);
+      Item.Link_Titles.Clear;
+      Item.Link_Addresses.Clear;
+      Item.Linking := True;
+      Set_Link_Address (Item, Text_Areas.Link_Here (Item.Text));
+      Refresh_Link (Item);
+      Focus (Item.Link_Parts.Field);
+      Notify (Item, Ask_Link);
+      Invalidate (Item);
+   end Begin_Link;
+
+   procedure Clear_Link_Choices (Item : in out Editor) is
+   begin
+      Item.Link_Titles.Clear;
+      Item.Link_Addresses.Clear;
+   end Clear_Link_Choices;
+
+   procedure Add_Link_Choice (Item : in out Editor; Title, Address : String) is
+   begin
+      Item.Link_Titles.Append
+        (Ada.Strings.Unbounded.To_Unbounded_String (if Trimmed (Title) = "" then Address else Title));
+      Item.Link_Addresses.Append (Ada.Strings.Unbounded.To_Unbounded_String (Address));
+      if Item.Linking then
+         Refresh_Link (Item);
+      end if;
+   end Add_Link_Choice;
+
+   function Link_Choice_Count (Item : Editor) return Natural is (Natural (Item.Link_Addresses.Length));
+
+   procedure Choose_Link (Item : in out Editor; Which : Positive) is
+   begin
+      Set_Link_Address (Item, Ada.Strings.Unbounded.To_String (Item.Link_Addresses (Which)));
+      Finish_Link (Item, True);
+   end Choose_Link;
+
+   procedure Finish_Link (Item : in out Editor; Keep : Boolean) is
+      Wanted : constant String := Address_Of (Link_Address (Item));
+      Fine   : constant Boolean := Link_Acceptable (Item);
+      Doc    : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
+   begin
+      Close_Chooser (Item);
+      Item.Linking := False;
+      if Keep and then Fine
+        and then Docs.Is_Position (Doc.all, Item.Link_From) and then Docs.Is_Position (Doc.all, Item.Link_To)
+      then
+         Text_Areas.Select_Range (Item.Text, Item.Link_From, Item.Link_To);
+         Text_Areas.Set_Link (Item.Text, Wanted);
+      end if;
+      Refresh_Link (Item);
+      if Accepts_Focus (Item) then
+         Focus (Item);
+      end if;
+      Update_Toolbar (Item);
+      Refresh_Toolbar (Item);
+      Invalidate (Item);
+   end Finish_Link;
 
    procedure Begin_Version (Item : in out Editor) is
       Doc   : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
@@ -955,6 +1209,11 @@ package body Pomarine.Widgets.Editors is
       Pixels : constant Float := Density (Item);
       Run    : Natural;
    begin
+      --  A link is followed with Command held: Cursor shows it, while it is.
+      if Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down | SDL3.Events.Mouse_Up then
+         Item.Over_Link := Item.Pointer_In_Text and then not Item.Writing
+           and then Pointer_Link (Item, Event.Mouse_X * Pixels, Event.Mouse_Y * Pixels) /= "";
+      end if;
       if Item.Writing then
          Item.Hovering := False;
       elsif Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down | SDL3.Events.Mouse_Up then
@@ -998,6 +1257,7 @@ package body Pomarine.Widgets.Editors is
          when Pick_Family  => Selects.Set_Open (Item.Family_Box, On);
          when Pick_Size    => Selects.Set_Open (Item.Size_Box, On);
          when Pick_Style   => Selects.Set_Open (Item.Style_Box, On);
+         when Pick_Source  => Selects.Set_Open (Item.Link_Sources, On);
          when Nothing => null;
       end case;
    end Mark_Open;
@@ -1016,10 +1276,13 @@ package body Pomarine.Widgets.Editors is
 
    procedure Open_Chooser (Item : in out Editor; Which : Choice) is
       Pixels : constant Float := Density (Item);
-      Left   : constant Float := (case Which is when Pick_Family => Font_Left, when Pick_Size => Size_Left,
-                                                 when others => Style_Left);
-      Wide   : constant Float := (case Which is when Pick_Family => Family_Wide, when Pick_Size => Size_Wide,
-                                                 when others => Style_Wide);
+      Left   : constant Float :=
+        (case Which is when Pick_Family => Font_Left, when Pick_Size => Size_Left,
+                       when Pick_Source => Float (Item.Link_Left) / Pixels, when others => Style_Left);
+      Wide   : constant Float :=
+        (case Which is when Pick_Family => Family_Wide, when Pick_Size => Size_Wide,
+                       when Pick_Source => Link_Wide - 2.0 * Bubble_Pad, when others => Style_Wide);
+      Top    : Float := Toolbar_Top + Button_High + Tip_Gap;
    begin
       if Item.Choosing = Which then
          Close_Chooser (Item);
@@ -1047,6 +1310,10 @@ package body Pomarine.Widgets.Editors is
                Menus.Add (Item.Chooser, Menus.Check, Size_Text (Float (Points)),
                           Checked => Float (Points) = Size_Shown (Item));
             end loop;
+         when Pick_Source =>
+            for Title of Item.Link_Titles loop
+               Menus.Add (Item.Chooser, Menus.Check, Ada.Strings.Unbounded.To_String (Title), Checked => False);
+            end loop;
          when others =>
             for Kind in Texts.Paragraph_Kind range 0 .. 3 loop
                Menus.Add (Item.Chooser, Menus.Check, Style_Name (Kind),
@@ -1060,8 +1327,14 @@ package body Pomarine.Widgets.Editors is
          end if;
       end loop;
       Yoga.Nodes.Set_Position (Node (Item.Chooser), Yoga.Left, Left * Pixels);
-      Yoga.Nodes.Set_Position
-        (Node (Item.Chooser), Yoga.Top, (Toolbar_Top + Button_High + Tip_Gap) * Pixels);
+      if Which = Pick_Source then
+         --  Under the bubble, or over its select if the window has not the room.
+         Top := Float (Item.Link_Top) / Pixels + Link_Tall_High + Tip_Gap;
+         if Top_Of (Item) + (Top + Menus.Shown_Height (Item.Chooser)) * Pixels > Window_Height (Item) then
+            Top := Float (Item.Link_Top) / Pixels + Link_Select_Top - Tip_Gap - Menus.Shown_Height (Item.Chooser);
+         end if;
+      end if;
+      Yoga.Nodes.Set_Position (Node (Item.Chooser), Yoga.Top, Top * Pixels);
       Yoga.Nodes.Set_Width
         (Node (Item.Chooser), Float'Max (Wide, (if Which = Pick_Family then Family_Menu_Wide else 120.0)) * Pixels);
       Yoga.Nodes.Set_Height (Node (Item.Chooser), Menus.Shown_Height (Item.Chooser) * Pixels);
@@ -1094,6 +1367,10 @@ package body Pomarine.Widgets.Editors is
             if Row <= 4 then
                Text_Areas.Set_Style (Item.Text, Texts.Paragraph_Kind (Row - 1));
             end if;
+         when Pick_Source =>
+            if Row <= Link_Choice_Count (Item) and then Item.Linking then
+               Choose_Link (Item, Row);
+            end if;
          when Nothing =>
             null;
       end case;
@@ -1116,6 +1393,10 @@ package body Pomarine.Widgets.Editors is
                Open_Chooser (Self, Pick_Family);
             elsif Is_Attached (Self.Size_Box) and then Source'Address = Self.Size_Box'Address then
                Open_Chooser (Self, Pick_Size);
+            elsif Is_Attached (Self.Link_Sources) and then Source'Address = Self.Link_Sources'Address then
+               if Self.Linking then
+                  Open_Chooser (Self, Pick_Source);
+               end if;
             elsif Is_Attached (Self.Style_Box) and then Source'Address = Self.Style_Box'Address then
                Open_Chooser (Self, Pick_Style);
             elsif (for some Action in Edit_Action => Is_Attached (Self.Editing (Action))
@@ -1129,11 +1410,20 @@ package body Pomarine.Widgets.Editors is
                         when Quoted   => Text_Areas.Toggle_Block (Self.Text, Text_Areas.Quote);
                         when Outdent  => Text_Areas.Shift_Indent (Self.Text, Outward => True);
                         when Indent   => Text_Areas.Shift_Indent (Self.Text, Outward => False);
+                        when Link     => Begin_Link (Self);
                      end case;
                   end if;
                end loop;
                Refresh_Toolbar (Self);
                Invalidate (Self);
+            elsif Is_Attached (Self.Link_Box) and then Source'Address = Self.Link_Accept'Address then
+               if Self.Linking and then Link_Acceptable (Self) then
+                  Finish_Link (Self, True);
+               end if;
+            elsif Is_Attached (Self.Link_Box) and then Source'Address = Self.Link_Cancel'Address then
+               if Self.Linking then
+                  Finish_Link (Self, False);
+               end if;
             elsif Is_Attached (Self.Confirm) and then Source'Address = Self.Accept_Button'Address then
                if Self.Writing then
                   Finish_Version (Self, True);
@@ -1167,6 +1457,12 @@ package body Pomarine.Widgets.Editors is
                      exit;
                   end if;
                end loop;
+            end if;
+         when Submit =>
+            if Self.Linking and then Self.Link_Parts /= null
+              and then Source'Address = Self.Link_Parts.Field'Address and then Link_Acceptable (Self)
+            then
+               Finish_Link (Self, True);
             end if;
          when others =>
             null;
@@ -1321,10 +1617,23 @@ package body Pomarine.Widgets.Editors is
          if Item.Choosing /= Nothing and then Event.Kind = SDL3.Events.Mouse_Down
            and then not Is_Hovered (Item.Chooser) and then not Is_Hovered (Item.Family_Box)
            and then not Is_Hovered (Item.Size_Box) and then not Is_Hovered (Item.Style_Box)
+           and then not Is_Hovered (Item.Link_Sources)
          then
             Close_Chooser (Item);
          end if;
-         if Item.Writing and then Event.Kind = SDL3.Events.Key_Down
+         if Item.Link_Owner /= null and then Item.Link_Owner.Linking and then Event.Kind = SDL3.Events.Key_Down
+           and then Event.Key = SDL3.Events.Key_Escape
+         then
+            Finish_Link (Item.Link_Owner.all, False);
+            Handled := True;
+         elsif Item.Link_Owner = null and then Event.Kind = SDL3.Events.Key_Down and then Event.Command
+           and then not Event.Option and then not Event.Shift and then Event.Key = SDL3.Events.Key_K
+           and then Has_Focus (Item) and then not Text_Areas.Is_Single_Line (Item.Text)
+           and then not Text_Areas.Is_Read_Only (Item.Text)
+         then
+            Begin_Link (Item);
+            Handled := True;
+         elsif Item.Writing and then Event.Kind = SDL3.Events.Key_Down
            and then Event.Key in SDL3.Events.Key_Return | SDL3.Events.Key_Escape
          then
             Finish_Version (Item, Event.Key = SDL3.Events.Key_Return);
@@ -1333,6 +1642,13 @@ package body Pomarine.Widgets.Editors is
            and then Event.Key = SDL3.Events.Key_Escape
          then
             Close_Cycle (Item);
+            Handled := True;
+         elsif Event.Kind = SDL3.Events.Mouse_Down and then Event.Button = 1 and then Event.Command
+           and then Item.Pointer_In_Text and then not Item.Writing
+           and then Link_Under (Item, Event) /= ""
+         then
+            Item.Followed_To := Ada.Strings.Unbounded.To_Unbounded_String (Link_Under (Item, Event));
+            Notify (Item, Follow);
             Handled := True;
          elsif Event.Kind = SDL3.Events.Key_Down and then not Event.Command and then not Event.Option
            and then not Event.Shift
@@ -1459,7 +1775,8 @@ package body Pomarine.Widgets.Editors is
 
    overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind is
      (if Item.Enabled and then (not Item.Toolbar_Shown or else Item.Pointer_In_Text)
-      then (if Item.Hovering and then not Item.Writing then SDL3.Cursors.Pointer else SDL3.Cursors.Text)
+      then (if not Item.Writing and then (Item.Hovering or else (Item.Over_Link and then SDL3.Events.Command_Held))
+           then SDL3.Cursors.Pointer else SDL3.Cursors.Text)
       else SDL3.Cursors.Default);
    --  A text with versions is clicked, to go through them.
 
@@ -1470,6 +1787,7 @@ package body Pomarine.Widgets.Editors is
          Text_Areas.Set_Hovered (Item.Text, Hovered);
          if not Hovered then
             Item.Hovering := False;
+            Item.Over_Link := False;
          end if;
          Refresh_Tip (Item);
          Invalidate (Item);

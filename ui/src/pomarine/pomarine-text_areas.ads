@@ -135,6 +135,22 @@ package Pomarine.Text_Areas is
      with Pre => Is_Attached (Item);
    --  The text at the start of the selection, or before the caret.
 
+   function Is_Address (Words : String) return Boolean;
+   --  Whether Words is one address to link to: http://, https:// or mailto:
+   --  and something after it, with no space or control character in it,
+   --  and no more than Texts.Documents.Link_Capacity bytes.
+
+   function Link_Here (Item : Text_Area) return String
+     with Pre => Is_Attached (Item);
+   --  The address the text at the start of the selection, or before the
+   --  caret, links to; "" if it links to none.
+
+   procedure Set_Link (Item : in out Text_Area; Address : String)
+     with Pre => Is_Attached (Item) and then (Address = "" or else Is_Address (Address));
+   --  Make the selected text a link to Address, one step to undo; none ("")
+   --  to take the link away. Nothing is done if nothing is selected, or the
+   --  text area is read only or for one line.
+
    --  Paragraphs: those the selection touches (the one the caret is in, if
    --  nothing is selected; the one a selection ends at the start of, not).
 
