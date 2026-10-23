@@ -118,6 +118,37 @@ package body SDL3.Dialogs is
          (if Extensions = "" then 0 else 1), System.Null_Address, C.C_bool (False));
    end Open_File;
 
+   procedure Show_Save
+     (Callback : System.Address;
+      User     : System.Address;
+      Over     : System.Address;
+      Filters  : System.Address;
+      Count    : C.int;
+      Where    : System.Address)
+     with Import, Convention => C, External_Name => "SDL_ShowSaveFileDialog";
+
+   Suggested_Text : aliased C.char_array (0 .. 255);
+
+   procedure Save_File
+     (Over       : SDL3.Windows.Window;
+      Name       : String;
+      Extensions : String;
+      Suggested  : String)
+   is
+      Used : C.size_t;
+   begin
+      Answer.Ask;
+      C.To_C (Name, Name_Text, Used);
+      C.To_C (Extensions, Pattern_Text, Used);
+      C.To_C (Suggested, Suggested_Text, Used);
+      The_Filter := (Name_Text'Address, Pattern_Text'Address);
+      Show_Save
+        (Answered'Address, System.Null_Address, SDL3.Windows.Raw_Handle (Over),
+         (if Extensions = "" then System.Null_Address else The_Filter'Address),
+         (if Extensions = "" then 0 else 1),
+         (if Suggested = "" then System.Null_Address else Suggested_Text'Address));
+   end Save_File;
+
    function State return States is (Answer.Current);
 
    function Path return String is (Answer.Chosen_Path);
