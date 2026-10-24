@@ -50,7 +50,8 @@ if Widgets.Needs_Paint (Tree) then
 end if;
 ```
 
-See the comment at the top of `Pomarine.Widgets` for the whole loop.
+See the comment at the top of `Pomarine.Widgets` for the whole loop, and
+`examples/src/hello_gui.adb` for a complete program (`cd examples && alr build && bin/hello_gui`).
 
 ## What is where
 
