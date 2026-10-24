@@ -31,6 +31,13 @@ package body SDL3.Windows.Renderers is
    function Window_Size (Item : Renderer) return Thin.IRect;
    --  Of the window the renderer is for, in pixels, whatever it draws to.
 
+   procedure Set_VSync (Item : in out Renderer; On : Boolean) is
+   begin
+      Errors.Check
+        (Thin.Set_Render_VSync (Item.Handle, (if On then 1 else 0)),
+         "SDL_SetRenderVSync");
+   end Set_VSync;
+
    procedure Create
      (Item       : in out Renderer;
       Target     : Window;

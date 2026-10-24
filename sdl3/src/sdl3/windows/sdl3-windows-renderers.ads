@@ -31,6 +31,10 @@ package SDL3.Windows.Renderers is
    --  again; see Keeps_Frame, Fit. Without, the window's own frames are
    --  swapped, and are not as they were left: draw each one all.
 
+   procedure Set_VSync (Item : in out Renderer; On : Boolean)
+     with Pre => not Is_Offscreen (Item);
+   --  Make Present wait for the display's refresh, or not, as Create's VSync.
+
    procedure Create_Offscreen
      (Item : in out Renderer; Width, Height : Positive)
      with Post => Is_Offscreen (Item);
