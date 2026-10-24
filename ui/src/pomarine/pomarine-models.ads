@@ -23,6 +23,10 @@ package Pomarine.Models is
       Danger      : Boolean := False;
    end record;
 
+   type Detail_Tone is (Plain, Good, Bad);
+   --  How a row's detail is coloured: faint, or in the theme's primary (green)
+   --  or danger (red) colour, to say how the row stands.
+
    type Action_Array is array (1 .. Max_Actions) of Row_Action;
 
    type Row_Content is record
@@ -30,6 +34,7 @@ package Pomarine.Models is
       Text_Length   : Natural range 0 .. Text_Capacity := 0;
       Detail        : String (1 .. Text_Capacity) := [others => ' '];
       Detail_Length : Natural range 0 .. Text_Capacity := 0;
+      Tone          : Detail_Tone := Plain;
       Dimmed        : Boolean := False;
       --  Drawn faint: for what is there but not in use (a hidden item).
       Actions       : Action_Array;

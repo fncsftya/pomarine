@@ -23,7 +23,10 @@ package body Pomarine.Windows is
       Item.System.Started := True;
       SDL3.Windows.Create (Item.Frame, Title, Width, Height, Resizable => Resizable, High_Density => True);
       SDL3.Windows.Renderers.Create (Item.Target, Item.Frame);
+      SDL3.Windows.Start_Text_Input (Item.Frame);  --  for fields; typing comes as text
       Widgets.Set_Density (Tree, SDL3.Windows.Pixel_Density (Item.Frame));
+      Widgets.Set_Clipboard (Tree, Item.Board);
+      Widgets.Set_Line_Texts (Tree, Item.Lines);
    end Open;
 
    function Is_Open (Item : Window) return Boolean is (SDL3.Windows.Is_Open (Item.Frame));
@@ -53,6 +56,7 @@ package body Pomarine.Windows is
          Widgets.Update (Tree, Events.Ticks);
 
          if Widgets.Needs_Paint (Tree) then
+            Pomarine.Line_Texts.Begin_Frame (Item.Lines);
             SDL3.Windows.Renderers.Fit (Item.Target, Resized);
             Widgets.Paint
               (Tree, Item.Target, Colors, Retained => SDL3.Windows.Renderers.Keeps_Frame (Item.Target));

@@ -265,6 +265,13 @@ package body Pomarine.Widgets.Lists is
                   end if;
                end;
                Handled := True;
+            elsif Event.Kind = Pomarine.Events.Mouse_Down
+              and then Event.Button = 1
+              and then Contains (Item, Event.Mouse_X * Pixels, Event.Mouse_Y * Pixels)
+            then
+               --  Below the last row: nothing is chosen any more.
+               Select_Row (Item, 0);
+               Handled := True;
             end if;
 
          when Pomarine.Events.Mouse_Wheel =>
@@ -398,7 +405,7 @@ package body Pomarine.Widgets.Lists is
       if Item.Model = null then
          return;
       end if;
-      for Row in First_Shown (Item) .. Last_Shown (Item) loop
+      for Row in Positive range Natural'Max (1, First_Shown (Item)) .. Last_Shown (Item) loop
          declare
             Top      : constant Float := Top_Of_Row (Item, Row);
             Chosen   : constant Boolean :=
@@ -406,8 +413,7 @@ package body Pomarine.Widgets.Lists is
             Hot      : constant Boolean := Row = Item.Over and then not Chosen;
             Content  : Pomarine.Models.Row_Content;
             Ink      : Themes.Color;
-            Faint    : constant Themes.Color :=
-              (if Chosen then Colors (Themes.On_Accent) else Colors (Themes.Muted));
+            Faint    : Themes.Color;
             Shown    : Natural;
          begin
             --  Of the rows, only those the part to draw touches.
@@ -417,6 +423,12 @@ package body Pomarine.Widgets.Lists is
                        elsif Content.Dimmed then Colors (Themes.Muted)
                        else Colors (Themes.Foreground));
                Shown := Present_Count (Content);
+               Faint :=
+                 (if Chosen then Colors (Themes.On_Accent)
+                  else (case Content.Tone is
+                           when Pomarine.Models.Plain    => Colors (Themes.Muted),
+                           when Pomarine.Models.Good => Colors (Themes.Primary_Ink),
+                           when Pomarine.Models.Bad => Colors (Themes.Danger_Ink)));
                if Chosen then
                   SDL3.Painters.Fill_Rect
                     (Target, Colors (Themes.Accent), Left_Of (Item), Top, Width_Of (Item), High);
@@ -548,7 +560,7 @@ package body Pomarine.Widgets.Lists is
       Found   : Natural := 0;
       Content : Pomarine.Models.Row_Content;
    begin
-      for Row in First_Shown (Item) .. Last_Shown (Item) loop
+      for Row in Positive range Natural'Max (1, First_Shown (Item)) .. Last_Shown (Item) loop
          Pomarine.Models.Describe_Row (Item.Model.all, Row, Content);
          Found := Found + Present_Count (Content);
       end loop;
@@ -568,7 +580,7 @@ package body Pomarine.Widgets.Lists is
       if Index <= Rows then
          return Pomarine.Models.Row_Id (Item.Model.all, First_Shown (Item) + Index - 1);
       end if;
-      for Row in First_Shown (Item) .. Last_Shown (Item) loop
+      for Row in Positive range Natural'Max (1, First_Shown (Item)) .. Last_Shown (Item) loop
          Pomarine.Models.Describe_Row (Item.Model.all, Row, Content);
          for Number in Content.Actions'Range loop
             if Content.Actions (Number).Present then

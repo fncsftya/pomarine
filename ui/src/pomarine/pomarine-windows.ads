@@ -1,4 +1,6 @@
 private with Ada.Finalization;
+private with Pomarine.Clipboards;
+private with Pomarine.Line_Texts;
 private with SDL3.Windows;
 private with SDL3.Windows.Renderers;
 with Pomarine.Themes;
@@ -28,7 +30,8 @@ package Pomarine.Windows is
       Resizable : Boolean := True)
      with Pre => not Is_Open (Item), Post => Is_Open (Item);
    --  Make the window, Width x Height points, and tell Tree the density of
-   --  its pixels.
+   --  its pixels to cut, copy and paste with the system's clipboard, and to draw
+   --  labels, buttons and rows in the system's interface font.
 
    function Is_Open (Item : Window) return Boolean;
 
@@ -53,6 +56,9 @@ private
       System : Platform;
       Frame  : SDL3.Windows.Window;
       Target : SDL3.Windows.Renderers.Renderer;
+      Board  : Pomarine.Clipboards.System_Clipboard;
+      Lines  : aliased Pomarine.Line_Texts.Drawer;
+      --  after Target, which it draws to
    end record;
 
 end Pomarine.Windows;

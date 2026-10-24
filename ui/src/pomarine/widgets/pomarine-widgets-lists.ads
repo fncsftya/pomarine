@@ -22,6 +22,8 @@ with Pomarine.Semantics;
 --  or Backspace the first that cannot be undone (see Row_Action). Each is a
 --  button of its own to an assistive technology.
 --
+--  A click on the list below its last rows chooses none (Select_Row 0), and says nothing.
+--
 --  It says Choose, with the Row, when a row is chosen by a click or the
 --  keys, and Click as well when it was a click (Selected says which row), so
 --  that what a click does need not be done for each arrow key; Double_Click
