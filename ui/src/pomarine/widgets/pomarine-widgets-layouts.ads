@@ -87,6 +87,17 @@ package Pomarine.Widgets.Layouts is
    --  one line:
    --     Layouts.Add (Footer, Summary, (Grow => 1.0, Height => 24.0, others => <>));
 
+   procedure Add_Before
+     (Parent : in out Widget'Class;
+      Child  : in out Widget'Class;
+      Before : Widget'Class;
+      Using  : Style)
+     with Pre  => Is_Attached (Parent) and then not Is_Attached (Child) and then Child_Count (Child) = 0
+                  and then Parent_Of (Before) /= null,
+          Post => Is_Attached (Child);
+   --  As Add, but just before Before, one of Parent's children (see
+   --  Pomarine.Widgets.Add_Before).
+
    procedure Set_Layout
      (Item     : in out Widget'Class;
       Width    : Float := Unset;

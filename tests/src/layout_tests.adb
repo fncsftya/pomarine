@@ -118,6 +118,19 @@ package body Layout_Tests is
       Buttons.Configure (Save, Buttons.Looks ("Edit"));
       Goldens.Check_Text ("buttons-configure-no-icon", "FALSE", Boolean'Image (Buttons.Has_Icon (Save)));
 
+      --  Added before another, and styled, it is first and has its size.
+      declare
+         First : aliased Panels.Panel;
+      begin
+         Layouts.Add_Before (Root, First, Title, (Width => 7.0, Height => 9.0, others => <>));
+         Widgets.Layout (Tree, Target);
+         Goldens.Check_Text
+           ("layouts-add-before", "7 9 0",
+            Image (Integer (Widgets.Width_Of (First))) & " " & Image (Integer (Widgets.Height_Of (First))) & " "
+            & Image (Integer (Widgets.Left_Of (First))));
+         Widgets.Remove (First);
+      end;
+
       --  A dropdown made plain is plain, a split one too.
       Buttons.Set_Dropdown (Menu, False);
       Goldens.Check_Text ("buttons-dropdown-off", "PLAIN", Buttons.Shape_Kind'Image (Buttons.Shape_Of (Menu)));

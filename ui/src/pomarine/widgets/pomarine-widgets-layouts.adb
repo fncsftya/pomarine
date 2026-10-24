@@ -156,6 +156,16 @@ package body Pomarine.Widgets.Layouts is
           Position => Position, Unit => Unit));
    end Set_Layout;
 
+   procedure Add_Before
+     (Parent : in out Widget'Class;
+      Child  : in out Widget'Class;
+      Before : Widget'Class;
+      Using  : Style) is
+   begin
+      Widgets.Add_Before (Parent, Child, Before);
+      Set_Layout (Child, Using);
+   end Add_Before;
+
    procedure Add (Parent : in out Widget'Class; Child : in out Widget'Class; Using : Style) is
    begin
       Widgets.Add (Parent, Child);
