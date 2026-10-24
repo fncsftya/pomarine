@@ -17,6 +17,7 @@ sdl3 = "*"
 
 [[pins]]
 pomarine_ui = { path = "../ui" }
+pomarine_vm = { path = "../vm" }
 coretext = { path = "../coretext" }
 sdl3 = { path = "../sdl3" }
 texts = { path = "../texts" }

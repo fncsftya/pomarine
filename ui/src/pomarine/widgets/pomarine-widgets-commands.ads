@@ -24,6 +24,11 @@ package Pomarine.Widgets.Commands is
    procedure Bind (Item : in out Widget'Class; Is_For : Command; Index : Natural := 0);
    --  Say what the widget is for, and which of many it is: as Set_Tag does.
 
+   procedure Trigger (Item : in out Widget'Class; Is_For : Command; Index : Natural := 0);
+   --  As Bind, for a widget that says the command but is not told what it
+   --  is for: a field that says Submit stays typeable while Submit is not
+   --  possible.
+
    function Is_Bound (Event : Widget_Event) return Boolean is
      (Event.Tag in 0 .. Command'Pos (Command'Last));
    --  Whether the widget that said it was given a command.

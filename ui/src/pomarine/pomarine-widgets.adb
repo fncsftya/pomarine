@@ -457,10 +457,15 @@ package body Pomarine.Widgets is
       Item.Own := Listener_Access (To);
    end Set_Listener;
 
-   procedure Set_Tag (Item : in out Widget'Class; Tag : Integer; Index : Natural := 0) is
+   procedure Set_Tag
+     (Item     : in out Widget'Class;
+      Tag      : Integer;
+      Index    : Natural := 0;
+      Reflects : Boolean := True) is
    begin
       Item.Tag := Tag;
       Item.Index := Index;
+      Item.Reflects := Reflects;
    end Set_Tag;
 
    function Tag_Of (Item : Widget'Class) return Integer is (Item.Tag);
@@ -1320,28 +1325,46 @@ package body Pomarine.Widgets is
 
    --  Commands
 
-   procedure Set_Validator (Item : in out Tree; To : Command_Validator) is
+   procedure Forget_Told_States (Item : in out Tree) is
    begin
-      Item.Validator := To;
       if Item.Nodes /= null then
          for Slot in 1 .. Item.Nodes.Fresh loop
             Item.Told_States (Slot) := Enabled;
          end loop;
       end if;
+   end Forget_Told_States;
+
+   procedure Set_Validator (Item : in out Tree; To : Command_Validator) is
+   begin
+      Item.Validator := To;
+      Item.Judge := null;
+      Forget_Told_States (Item);
    end Set_Validator;
+
+   procedure Set_Validator (Item : in out Tree; To : not null Validator_Access) is
+   begin
+      Item.Validator := null;
+      Item.Judge := To;
+      Forget_Told_States (Item);
+   end Set_Validator;
+
+   function Command_State_Of (Item : Tree; Tag : Integer) return Command_State is
+     (if Item.Judge /= null then Validate (Item.Judge.all, Tag)
+      elsif Item.Validator /= null then Item.Validator (Tag)
+      else Enabled);
 
    procedure Revalidate (Item : in out Tree) is
    begin
-      if Item.Validator = null or else Item.Nodes = null then
+      if (Item.Validator = null and then Item.Judge = null) or else Item.Nodes = null then
          return;
       end if;
       for Slot in 1 .. Item.Nodes.Fresh loop
          declare
             Mine : constant Widget_Access := Item.Nodes.Object (Slot);
          begin
-            if Mine /= null and then Mine.Tag /= No_Tag then
+            if Mine /= null and then Mine.Tag /= No_Tag and then Mine.Reflects then
                declare
-                  Now : constant Command_State := Item.Validator (Mine.Tag);
+                  Now : constant Command_State := Command_State_Of (Item, Mine.Tag);
                begin
                   if Now /= Item.Told_States (Slot) then
                      Item.Told_States (Slot) := Now;
@@ -1358,6 +1381,11 @@ package body Pomarine.Widgets is
             end if;
          end;
       end loop;
+   end Revalidate;
+
+   procedure Revalidate (Item : in out Widget'Class) is
+   begin
+      Revalidate (Item.Owner.all);
    end Revalidate;
 
    procedure Handle_Command

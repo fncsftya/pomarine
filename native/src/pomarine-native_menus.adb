@@ -172,21 +172,28 @@ package body Pomarine.Native_Menus is
       Add_Separator_Native (To.Handle);
    end Add_Separator;
 
+   procedure Show_State (Tag : Integer; State : Widgets.Command_State) is
+   begin
+      Set_State_Native
+        (Interfaces.Integer_32 (Tag),
+         Offered => (if State = Widgets.Not_Offered then 0 else 1),
+         Enabled => (if State in Widgets.Enabled | Widgets.Ticked then 1 else 0),
+         Ticked  => (if State = Widgets.Ticked then 1 else 0));
+   end Show_State;
+
    procedure Update_States
      (Item      : in out Menu_Bar;
       Validator : Widgets.Command_Validator) is
    begin
       for Tag of Item.Tags (1 .. Item.Tag_Count) loop
-         declare
-            State : constant Widgets.Command_State :=
-              (if Validator = null then Widgets.Enabled else Validator (Tag));
-         begin
-            Set_State_Native
-              (Interfaces.Integer_32 (Tag),
-               Offered => (if State = Widgets.Not_Offered then 0 else 1),
-               Enabled => (if State in Widgets.Enabled | Widgets.Ticked then 1 else 0),
-               Ticked  => (if State = Widgets.Ticked then 1 else 0));
-         end;
+         Show_State (Tag, (if Validator = null then Widgets.Enabled else Validator (Tag)));
+      end loop;
+   end Update_States;
+
+   procedure Update_States (Item : in out Menu_Bar; Tree : Widgets.Tree) is
+   begin
+      for Tag of Item.Tags (1 .. Item.Tag_Count) loop
+         Show_State (Tag, Widgets.Command_State_Of (Tree, Tag));
       end loop;
    end Update_States;
 

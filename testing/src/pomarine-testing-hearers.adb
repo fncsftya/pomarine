@@ -1,4 +1,4 @@
-package body Hearers is
+package body Pomarine.Testing.Hearers is
 
    use type System.Address;
    use type Pomarine.Widgets.Event_Kind;
@@ -87,4 +87,4 @@ package body Hearers is
       Self.Log.Clear;
    end Forget;
 
-end Hearers;
+end Pomarine.Testing.Hearers;

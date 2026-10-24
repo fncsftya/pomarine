@@ -20,10 +20,11 @@ stroke, branching after undo, and bounded path and undo storage). Tests
 also check text with `Goldens.Check_Text`, and documents and layouts
 without drawing (`document-*`, `layout-*`).
 
-Not pictures: `painters-*` (what a recording keeps, and that drawing it again
+Not pictures: `setters-*` (that the setters a binding calls change what they are given and do nothing for
+what the widget has already: no damage, no layout), `painters-*` (what a recording keeps, and that drawing it again
 is drawing it), `semantics-*` (the tree as an assistive technology is told it,
 and only what changed, and what its actions do), `commands-*` (a widget's own
-handlers, a validator, keys, and where a command goes), `lists-*` (that a list
+handlers, a validator, one that is an object, a widget that only triggers a command, keys, and where a command goes), `lists-*` (that a list
 asks for only the rows that show, how it is chosen from and described, and the
 buttons at the ends of its rows),
 `layout-*` (a label sized to its text, and what is placed again),
@@ -95,3 +96,11 @@ paragraph and another from the start of the next are joined when loaded.
 (`Upgraded` makes its markup), and rejects an unknown version or markup that is not
 well formed. Loading resets history; formatting edits participate in document
 state, change tracking, and undo just like text edits.
+
+## View-models
+
+`vm/tests` (`bin/vm_tests`, no SDL) checks the parts of `Pomarine.View_Models`: that counting changes goes round
+and does not overflow, that setting a property to what it has is not a change, that a `Watch` sees a version once,
+that text has no length it stops at, and that a command's precondition refuses what cannot be done. `Pomarine.Testing`
+(`testing/`) is what an application's tests of its views use; the example in `evo/mvvm/example` (`bin/view_test`)
+clicks by name and types into the field, and `bin/vm_test` is its view-model alone.

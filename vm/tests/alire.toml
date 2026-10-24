@@ -1,0 +1,23 @@
+name = "pomarine_vm_tests"
+description = "Tests of the view-model parts, which need no window"
+version = "0.1.0-dev"
+
+authors = ["Matt Rawcliffe"]
+licenses = "MIT"
+website = ""
+tags = []
+
+executables = ["vm_tests"]
+
+[[depends-on]]
+pomarine_vm = "*"
+
+[[pins]]
+pomarine_vm = { path = ".." }
+
+[build-switches]
+"*".ada_version = "Ada2022"
+"*".compile_checks = "Errors"
+"*".runtime_checks = "Everything"
+"*".style_checks = "Yes"
+"*".contracts = "Yes"

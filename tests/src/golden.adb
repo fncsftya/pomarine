@@ -14,6 +14,7 @@ with Painter_Tests;
 with Picture_Tests;
 with Platform_Tests;
 with Semantic_Tests;
+with Setter_Tests;
 with Sheet_Tests;
 with Text_Area_Tests;
 with Widget_Tests;
@@ -111,6 +112,8 @@ begin
    Run ("commands-canvas-handlers", Command_Tests.Canvas_Handlers'Access);
    Run ("commands-blur", Command_Tests.Losing_Focus'Access);
    Run ("commands-validated", Command_Tests.Validated'Access);
+   Run ("commands-validator-objects", Command_Tests.Validator_Objects'Access);
+   Run ("commands-trigger-only", Command_Tests.Triggers_Only'Access);
    Run ("commands-keys", Command_Tests.Keys'Access);
    Run ("commands-responders", Command_Tests.Responders'Access);
    Run ("commands-payloads", Command_Tests.Event_Payloads'Access);
@@ -173,6 +176,8 @@ begin
    Run ("listener-deferred", Listener_Tests.Deferred'Access);
    Run ("listener-controls", Listener_Tests.Controls'Access);
    Run ("layouts-helpers", Listener_Tests.Layout_Helpers'Access);
+
+   Run ("setters-idempotent", Setter_Tests.Idempotent'Access);
 
    Run ("sheet-board", Sheet_Tests.Board'Access);
    Run ("sheet-states", Sheet_Tests.States'Access);

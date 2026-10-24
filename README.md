@@ -59,6 +59,9 @@ See the comment at the top of `Pomarine.Widgets` for the whole loop, and
 | `Pomarine.Widgets.Layouts` | `Set_Layout`: a box's style, in points, one call. |
 | `Pomarine.Widgets.Commands` | The application's own enumeration, for what widgets are for. |
 | `Pomarine.Widgets.Callbacks` | A procedure of the application's own for what one widget says. |
+| `Pomarine.View_Models` (`vm/`, crate `pomarine_vm`) | The parts of a view-model, with no widget in them: a `Version` for change, properties, and the commands a screen can be asked (`Command_Models`). |
+| `Pomarine.Widgets.Bindings` | Ties a view to a view-model: the root that has the view sync, a field's text both ways, and (`For_Commands`) which widget triggers which command and what the tree asks the model. |
+| `Pomarine.Testing` (`testing/`, crate `pomarine_testing`) | A window to test offscreen as a person uses it: seen as an assistive technology is told, clicked and typed in by name; `Hearers` keep what widgets said. |
 | `Pomarine.Widgets.Lists`, `Pomarine.Models` | A list of rows read from a model: a screenful asked for, drawn and described. |
 | `Pomarine.Semantics` | What a widget is to someone who cannot see it: role, name, value, actions. |
 | `Pomarine.Accessibility` (`native/`) | The adapter that tells the system's accessibility (AccessKit, VoiceOver). |
@@ -148,12 +151,33 @@ as the other events, so it is heard after the event that caused it too.
 
 A command is what the application can be asked to do, by a button, a key, a
 menu or an assistive technology, and it is the same thing whichever asks. Give
-the tree a validator (`Set_Validator`) and every widget that has a command is
-told what it is for now: offered, possible, in force. Bind keys with
+the tree a validator (`Set_Validator`: a function, or an object that implements
+`Widgets.Validator`, as a view-model does) and every widget that has a command is
+told what it is for now: offered, possible, in force. A widget has two roles in a
+command: it triggers it (`Set_Tag`, `Commands.Bind`) and it reflects it (the validator
+turns it off, ticks or hides it). `Commands.Trigger`, or `Set_Tag (..., Reflects => False)`,
+is for one that only triggers, as a field that says Submit and must stay typeable while
+there is nothing to submit. `Revalidate (Widget)` asks again from a handler that holds
+no pointer to the tree. The setters that bindings call (`Set_Text`, `Set_Enabled`,
+`Set_Checked`, `Set_On`, `Set_Value`, `Select_Row`, `Set_Visible`) do nothing, and ask for no
+drawing, when given what the widget already has (tests `setters-*`). Bind keys with
 `Bind_Key`; the command goes to the widget with the focus and the widgets it is
 in (`Handle_Command`, as the edit commands do to a field), and last to the
 listener. With `Pomarine.Native_Menus` the same commands are in the system's
 menu bar, and the validator dims and ticks its items.
+
+## View-models
+
+For a form or a list, keep what the screen means apart from how it looks (Model-View-ViewModel). The
+view-model (`Pomarine.View_Models`, a crate of the standard library only) has properties, commands that say
+when they can be done (`Can_Execute`) and what they do (`Execute (What, Index)`, `Index` being which of many),
+and a `Version` that goes up when anything it shows changes. The view asks the version (a `Watch`) once a turn
+and after each event, and sets its widgets (their setters do nothing for what they have) when it has changed;
+nothing is observed, so nothing is allocated and no lifetime is shared. The widgets are tied to the commands
+with `Pomarine.Widgets.Bindings.For_Commands`; the tree's validator asks the model whether each is possible, and
+a widget that only says a command (a field's Return) is a `Trigger`, which is not turned off with it. A view-model
+is tested alone, and its view with `Pomarine.Testing`, which clicks by what a widget is called. Canvases,
+editors and gestures stay with the code that handles events.
 
 ## Nodes
 

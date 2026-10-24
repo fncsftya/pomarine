@@ -318,10 +318,21 @@ package Pomarine.Widgets is
    procedure Clear_Handler (Item : in out Widget'Class; Kind : Event_Kind);
    --  Back to the listener for Kind.
 
-   procedure Set_Tag (Item : in out Widget'Class; Tag : Integer; Index : Natural := 0);
+   procedure Set_Tag
+     (Item     : in out Widget'Class;
+      Tag      : Integer;
+      Index    : Natural := 0;
+      Reflects : Boolean := True);
    --  Say what the widget is for, and which of many it is: as it comes
    --  back in each event it says. Tag is the application's own number, as
    --  of a kind of command (see Pomarine.Widgets.Commands).
+   --
+   --  A widget has two roles in a command: it triggers it (its Tag is in
+   --  what it says) and it reflects it (a validator tells it what the
+   --  command is for, and it is turned off, ticked or hidden as that
+   --  says). Reflects is False for one that only triggers: a text field
+   --  that says Submit must stay typeable while there is nothing yet to
+   --  submit.
 
    function Tag_Of (Item : Widget'Class) return Integer;
    function Index_Of (Item : Widget'Class) return Natural;
@@ -415,16 +426,36 @@ package Pomarine.Widgets is
    --  possible, possible, or possible and in force (a ticked row).
 
    type Command_Validator is access function (Tag : Integer) return Command_State;
+   --  A validator with nothing to say which window or view-model it is for:
+   --  see Validator for one that has.
+
+   type Validator is limited interface;
+   --  What says what the commands are for, and knows of what: a
+   --  view-model, whose Validate is whether the command can be done.
+
+   function Validate (Self : Validator; Tag : Integer) return Command_State is abstract;
+
+   type Validator_Access is access all Validator'Class;
 
    procedure Set_Validator (Item : in out Tree; To : Command_Validator);
+   procedure Set_Validator (Item : in out Tree; To : not null Validator_Access);
    --  Have the tree say to every widget that has a command what the
    --  command is for (see Command_State_Changed), whenever Revalidate is
    --  called, and when it is time (Update). Without one, widgets are as
-   --  the application sets them.
+   --  the application sets them. The validator is kept, not copied: it
+   --  must be there as long as the tree is used. One replaces the other.
+
+   function Command_State_Of (Item : Tree; Tag : Integer) return Command_State;
+   --  What the validator says Tag is for; Enabled without one.
 
    procedure Revalidate (Item : in out Tree);
    --  Ask the validator about each widget's command, and tell those whose
    --  answer is not what it was.
+
+   procedure Revalidate (Item : in out Widget'Class)
+     with Pre => Is_Attached (Item);
+   --  As above, for the tree the widget is in, so that a handler need not
+   --  keep a pointer to it.
 
    procedure Command_State_Changed
      (Item : in out Widget; State : Command_State) is null;
@@ -1001,6 +1032,8 @@ private
       Slot  : Node_Index := 0;
       Tag   : Integer := No_Tag;
       Index : Natural := 0;
+      Reflects : Boolean := True;
+      --  Whether a validator tells it what its Tag is for.
       Own   : Listener_Access;
       Cold : Natural := 0;
       --  Where its seldom-used parts are kept (what the application has
@@ -1138,6 +1171,7 @@ private
       Moving    : Animation_Array;
       Running   : Natural := 0;
       Validator : Command_Validator;
+      Judge     : Validator_Access;
       Told_States : Told_State_Array;
       Keys      : Key_Table;
       Keys_Bound : Natural := 0;

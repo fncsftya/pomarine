@@ -5,6 +5,7 @@ with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Callbacks;
 with Pomarine.Widgets.Canvases.Callbacks;
 with Pomarine.Widgets.Checks;
+with Pomarine.Widgets.Commands;
 with Pomarine.Widgets.Panels;
 with Yoga.Nodes;
 
@@ -295,6 +296,93 @@ package body Command_Tests is
          & Widgets.Buttons.Is_Selected (Item.Second)'Image & " "
          & Widgets.Is_Visible (Item.Box)'Image);
    end Validated;
+
+   --  A validator that is an object, as a view-model is, so that two trees
+   --  can have two without one being a package's variable.
+
+   type Verdict is limited new Widgets.Validator with record
+      Says  : Widgets.Command_State := Widgets.Enabled;
+      Asked : Natural := 0;
+   end record;
+
+   overriding function Validate (Self : Verdict; Tag : Integer) return Widgets.Command_State;
+
+   overriding function Validate (Self : Verdict; Tag : Integer) return Widgets.Command_State is
+     (if Tag = Save_Tag then Self.Says else Widgets.Enabled);
+
+   procedure Validator_Objects is
+      Here, There : Fixture;
+      Yes   : aliased Verdict;
+      No    : aliased Verdict := (Says => Widgets.Disabled, others => <>);
+   begin
+      Open (Here);
+      Open (There);
+      Widgets.Set_Tag (Here.First, Save_Tag);
+      Widgets.Set_Tag (There.First, Save_Tag);
+      Widgets.Set_Validator (Here.Tree, Yes'Unchecked_Access);
+      Widgets.Set_Validator (There.Tree, No'Unchecked_Access);
+      Widgets.Update (Here.Tree, 0);
+      Widgets.Update (There.Tree, 0);
+      Goldens.Check_Text
+        ("commands-validator-objects", "TRUE FALSE",
+         Widgets.Buttons.Is_Enabled (Here.First)'Image & " " & Widgets.Buttons.Is_Enabled (There.First)'Image);
+      Goldens.Check_Text
+        ("commands-validator-asked", "ENABLED ENABLED",
+         Widgets.Command_State_Of (Here.Tree, Undo_Tag)'Image & " "
+         & Widgets.Command_State_Of (There.Tree, Undo_Tag)'Image);
+
+      --  Revalidate from a widget, when it is the answer that changed.
+      Yes.Says := Widgets.Disabled;
+      Widgets.Revalidate (Here.First);
+      Goldens.Check_Text
+        ("commands-revalidate-widget", "FALSE", Widgets.Buttons.Is_Enabled (Here.First)'Image);
+
+      --  The old kind replaces the new.
+      Offering := Widgets.Not_Offered;
+      Widgets.Set_Validator (Here.Tree, State_Of'Access);
+      Widgets.Revalidate (Here.First);
+      Goldens.Check_Text
+        ("commands-validator-replaced", "FALSE", Widgets.Is_Visible (Here.First)'Image);
+      Offering := Widgets.Enabled;
+   end Validator_Objects;
+
+   type Local_Command is (Other, Submit);
+   package Local is new Widgets.Commands (Local_Command);
+
+   procedure Triggers_Only is
+      Item : Fixture;
+      Says : aliased Verdict := (Says => Widgets.Disabled, others => <>);
+   begin
+      Open (Item);
+      Widgets.Set_Tag (Item.First, Save_Tag, Reflects => False);
+      Widgets.Set_Tag (Item.Second, Save_Tag);
+      Local.Trigger (Item.Box, Submit);
+      Widgets.Set_Validator (Item.Tree, Says'Unchecked_Access);
+      Widgets.Update (Item.Tree, 0);
+      Goldens.Check_Text
+        ("commands-trigger-only", "TRUE FALSE",
+         Widgets.Buttons.Is_Enabled (Item.First)'Image & " " & Widgets.Buttons.Is_Enabled (Item.Second)'Image);
+
+      --  It can have the focus, and says its command when clicked.
+      Widgets.Buttons.Set_Focusable (Item.First, True);
+      Widgets.Focus (Item.First);
+      Click_At (Item, 40.0);
+      Goldens.Check_Text
+        ("commands-trigger-says", "TRUE 1 TRUE",
+         Widgets.Has_Focus (Item.First)'Image & Item.Heard.Count'Image & " "
+         & Boolean'Image (Item.Heard.Last_Tag = Save_Tag));
+      declare
+         Said : constant Widgets.Widget_Event :=
+           (Kind => Widgets.Click, Tag => Widgets.Tag_Of (Item.Box), others => <>);
+      begin
+         Goldens.Check_Text
+           ("commands-trigger-bound", "TRUE",
+            Boolean'Image
+              (Local.Is_Bound (Said) and then Local.What (Said) = Submit and then Local.What (Said) /= Other));
+      end;
+      Goldens.Check_Text
+        ("commands-trigger-box", "TRUE", Boolean'Image (Widgets.Checks.Is_Enabled (Item.Box)));
+   end Triggers_Only;
 
    procedure Keys is
       Item    : Fixture;

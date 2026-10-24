@@ -61,6 +61,10 @@ package Pomarine.Native_Menus is
    --  Make each item as the validator says its command is: left out,
    --  dimmed, ticked, or as usual.
 
+   procedure Update_States (Item : in out Menu_Bar; Tree : Widgets.Tree)
+     with Pre => Is_Installed (Item);
+   --  As above, as the tree's own validator says (Widgets.Command_State_Of).
+
    function Is_Waiting (Item : Menu_Bar) return Boolean;
    --  Whether something has been chosen that Pump has not done.
 

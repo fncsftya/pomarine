@@ -8,6 +8,8 @@ package Command_Tests is
    procedure Canvas_Handlers;
    procedure Losing_Focus;
    procedure Validated;
+   procedure Validator_Objects;
+   procedure Triggers_Only;
    procedure Keys;
    procedure Responders;
    procedure Event_Payloads;
