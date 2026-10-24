@@ -135,6 +135,20 @@ package body Pomarine.Boxes is
                   Left.Start (I) = Right.Start (I) and then Left.Wide (I) = Right.Wide (I)
                   and then Left.Light (I) = Right.Light (I) and then Left.Shade (I) = Right.Shade (I)));
 
+   Far : constant := 2 ** 28;
+   --  A box is no more than this many pixels across: a larger one (or one
+   --  that is not a number) is drawn as if it were this, which is more than
+   --  any target shows, and its middle is one block however many rows.
+
+   function Whole_Pixels (Size : Float) return Natural
+   with Post => Whole_Pixels'Result <= Far;
+   --  The pixels that a Size covers whole, from none to Far.
+
+   function Whole_Pixels (Size : Float) return Natural is
+     (if Size /= Size or else Size < 1.0 then 0
+      elsif Size >= Float (Far) then Far
+      else Natural (Float'Floor (Size)));
+
    procedure Paint
      (Target  : SDL3.Painters.Painter'Class;
       Ink     : Themes.Color;
@@ -152,8 +166,8 @@ package body Pomarine.Boxes is
       --  over a fill takes it into account, so that the fill does not show
       --  at the rim: what is left of the pixel is the fill, none of what is
       --  behind it.
-      Wide    : constant Natural := Natural (Float'Floor (Width));
-      Rows    : constant Natural := Natural (Float'Floor (Height));
+      Wide    : constant Natural := Whole_Pixels (Width);
+      Rows    : constant Natural := Whole_Pixels (Height);
       Inner   : constant Radii :=
         (Less (Rd.Top_Left, Thick), Less (Rd.Top_Right, Thick),
          Less (Rd.Bottom_Right, Thick), Less (Rd.Bottom_Left, Thick));

@@ -15,14 +15,42 @@ package body Pomarine.Widgets is
 
    --  Boxes
 
-   function Around (Across, Down, Wide, High : Float) return Pixel_Box;
-   --  The pixels that any of the box touches.
+   Far : constant := 2 ** 28;
+   --  No pixel is further than this from the origin, so that sums and
+   --  differences of two of them stay in Integer.
+
+   function To_Pixel (Value : Float) return Integer
+   with Post => To_Pixel'Result in -Far .. Far;
+   --  Value as a pixel, kept within Far of the origin: a layout that has
+   --  gone wrong (not a number, infinite, or beyond any screen) must not
+   --  stop the application from drawing.
+
+   function To_Pixel (Value : Float) return Integer is
+     (if Value /= Value then 0
+      elsif Value <= -Float (Far) then -Far
+      elsif Value >= Float (Far) then Far
+      else Integer (Value));
+
+   function Around (Across, Down, Wide, High : Float) return Pixel_Box
+   with Post => Around'Result.Left in -Far .. Far
+                  and then Around'Result.Top in -Far .. Far
+                  and then Around'Result.Width in -2 * Far .. 2 * Far
+                  and then Around'Result.Height in -2 * Far .. 2 * Far
+                  and then (if Wide >= 0.0 and then High >= 0.0
+                            then Around'Result.Width >= 0 and then Around'Result.Height >= 0);
+   --  The pixels that any of the box touches. A position or size that is
+   --  not a number counts as zero, and one beyond Far as Far.
 
    function Around (Across, Down, Wide, High : Float) return Pixel_Box is
-      First  : constant Integer := Integer (Float'Floor (Across));
-      Above  : constant Integer := Integer (Float'Floor (Down));
-      Last   : constant Integer := Integer (Float'Ceiling (Across + Wide));
-      Below  : constant Integer := Integer (Float'Ceiling (Down + High));
+      function Number (Value : Float) return Float is
+        (if Value /= Value then 0.0 else Value);
+
+      First  : constant Integer := To_Pixel (Float'Floor (Number (Across)));
+      Above  : constant Integer := To_Pixel (Float'Floor (Number (Down)));
+      Last   : constant Integer :=
+        To_Pixel (Float'Ceiling (Number (Across) + Number (Wide)));
+      Below  : constant Integer :=
+        To_Pixel (Float'Ceiling (Number (Down) + Number (High)));
    begin
       return (First, Above, Last - First, Below - Above);
    end Around;

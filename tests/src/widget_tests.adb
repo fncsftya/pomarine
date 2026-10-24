@@ -242,6 +242,34 @@ package body Widget_Tests is
          Text_Of (Widgets.Damage (Item.Tree)));
    end Layout;
 
+   procedure Wild_Layout is
+      Item : Fixture;
+      Huge : constant Float := 1.0E12;
+   begin
+      Open (Item);
+      Paint (Item);
+
+      --  Beyond what an Integer holds: it was a Constraint_Error in placing.
+      Nodes.Set_Height (Widgets.Node (Item.First), Huge);
+      Widgets.Request_Layout (Item.First);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-wild-huge-damaged", True, Widgets.Needs_Paint (Item.Tree));
+      Check_Flag
+        ("widgets-wild-huge-kept", True,
+         Widgets.Damage (Item.Tree).Height in 1 .. 2 ** 29);
+
+      --  Wild in both ways, it is placed still.
+      Nodes.Set_Width (Widgets.Node (Item.Second), Huge);
+      Nodes.Set_Height (Widgets.Node (Item.Second), Huge);
+      Widgets.Request_Layout (Item.Second);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-wild-both-damaged", True, Widgets.Needs_Paint (Item.Tree));
+
+      --  And drawn, clipped to the window.
+      Paint (Item);
+      Check_Flag ("widgets-wild-painted", False, Widgets.Needs_Paint (Item.Tree));
+   end Wild_Layout;
+
    procedure Idle is
       Item : Fixture;
    begin

@@ -4,6 +4,8 @@ package Widget_Tests is
 
    procedure Layout;
    procedure Idle;
+   procedure Wild_Layout;
+   --  A layout that has gone wrong (a size beyond any screen) is still placed.
    procedure Buttons;
    procedure Focus;
    procedure Damage;

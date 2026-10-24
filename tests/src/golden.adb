@@ -144,6 +144,7 @@ begin
 
    Run ("widgets-layout", Widget_Tests.Layout'Access);
    Run ("widgets-idle", Widget_Tests.Idle'Access);
+   Run ("widgets-wild", Widget_Tests.Wild_Layout'Access);
    Run ("widgets-buttons", Widget_Tests.Buttons'Access);
    Run ("widgets-focus", Widget_Tests.Focus'Access);
    Run ("widgets-damage", Widget_Tests.Damage'Access);
