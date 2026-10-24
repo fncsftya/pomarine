@@ -2,11 +2,11 @@ with Ada.Strings.Fixed;
 with Pomarine.Boxes;
 package body Pomarine.Widgets.Sliders is
 
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Key_Code;
 
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
    use all type SDL3.Painters.Painter;
 
    Knob_Points  : constant Float := 9.0;
@@ -67,12 +67,12 @@ package body Pomarine.Widgets.Sliders is
 
    overriding procedure Handle
      (Item    : in out Slider;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean) is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1
               and then Contains
                          (Item, Event.Mouse_X * Density (Item),
@@ -82,30 +82,30 @@ package body Pomarine.Widgets.Sliders is
                Move_To (Item, Event.Mouse_X);
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Item.Held then
                Move_To (Item, Event.Mouse_X);
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Invalidate (Item);
                Handled := True;
             end if;
-         when SDL3.Events.Key_Down =>
+         when Pomarine.Events.Key_Down =>
             if Has_Focus (Item) and then not Event.Command then
-               if Event.Key = SDL3.Events.Key_Right_Arrow
-                 or else Event.Key = SDL3.Events.Key_Up_Arrow
+               if Event.Key = Pomarine.Events.Key_Right_Arrow
+                 or else Event.Key = Pomarine.Events.Key_Up_Arrow
                then
                   Perform (Item, (Doing => Semantics.Increment, others => <>), Handled);
-               elsif Event.Key = SDL3.Events.Key_Left_Arrow
-                 or else Event.Key = SDL3.Events.Key_Down_Arrow
+               elsif Event.Key = Pomarine.Events.Key_Left_Arrow
+                 or else Event.Key = Pomarine.Events.Key_Down_Arrow
                then
                   Perform (Item, (Doing => Semantics.Decrement, others => <>), Handled);
-               elsif Event.Key = SDL3.Events.Key_Home then
+               elsif Event.Key = Pomarine.Events.Key_Home then
                   Perform (Item, (Doing => Semantics.Set_Value, Number => 0.0, others => <>), Handled);
-               elsif Event.Key = SDL3.Events.Key_End then
+               elsif Event.Key = Pomarine.Events.Key_End then
                   Perform (Item, (Doing => Semantics.Set_Value, Number => 1.0, others => <>), Handled);
                end if;
             end if;

@@ -2,7 +2,7 @@ with Pomarine.Semantics;
 with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  A switch, on or off, with a label after it: a track, grey when off, in
 --  the theme's primary colour when on, and a knob in it, at the left when
@@ -43,7 +43,7 @@ package Pomarine.Widgets.Switches is
 
    overriding procedure Handle
      (Item    : in out Switch;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

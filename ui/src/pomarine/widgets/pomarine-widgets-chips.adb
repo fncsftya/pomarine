@@ -5,7 +5,7 @@ package body Pomarine.Widgets.Chips is
    use type Semantics.Action;
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
    use all type SDL3.Painters.Painter;
 
    --  In points
@@ -71,7 +71,7 @@ package body Pomarine.Widgets.Chips is
 
    overriding procedure Handle
      (Item    : in out Chip;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       X : constant Float := Event.Mouse_X * Density (Item);
@@ -80,18 +80,18 @@ package body Pomarine.Widgets.Chips is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Over /= Item.Over then
                Item.Over := Over;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1 and then Over then
                Item.Down := True;
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                Item.Closed := Over;

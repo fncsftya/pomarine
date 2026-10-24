@@ -8,7 +8,6 @@ package body Pomarine.Text_Areas is
    package Docs renames Texts.Documents;
    package Layouts renames Typeset.Layouts;
    package Views renames Typeset.Views;
-   package Events renames SDL3.Events;
 
    use type Events.Key_Code;
    use type Texts.Paragraph_Kind;
@@ -1725,12 +1724,12 @@ package body Pomarine.Text_Areas is
 
    procedure Tick
      (Item    : in out Text_Area;
-      Now     : SDL3.Events.Milliseconds;
+      Now     : Pomarine.Events.Milliseconds;
       Changed : out Boolean)
    is
       On : Boolean;
    begin
-      Item.Now := SDL3.Events.Milliseconds'Max (Item.Now, Now);
+      Item.Now := Pomarine.Events.Milliseconds'Max (Item.Now, Now);
       On := (Item.Now - Item.Since) / Blink_Period mod 2 = 0;
       Changed := Item.Caret_Visible and then Item.Focused and then On /= Item.Caret_On;
       Item.Caret_On := On;
@@ -1749,7 +1748,7 @@ package body Pomarine.Text_Areas is
    function Is_Caret_Shown (Item : Text_Area) return Boolean is
      (Item.Caret_Visible and then Item.Focused and then Item.Caret_On);
 
-   function Until_Blink (Item : Text_Area) return SDL3.Events.Milliseconds
+   function Until_Blink (Item : Text_Area) return Pomarine.Events.Milliseconds
    is (Blink_Period - (Item.Now - Item.Since) mod Blink_Period);
 
    --  Events
@@ -1974,7 +1973,7 @@ package body Pomarine.Text_Areas is
       Y : constant Float := Event.Mouse_Y * Item.Density;
    begin
       Catch_Up (Item);
-      Item.Now := SDL3.Events.Milliseconds'Max (Item.Now, Event.Time);
+      Item.Now := Pomarine.Events.Milliseconds'Max (Item.Now, Event.Time);
       Handled := False;
       if not Item.Single and then not Item.Grows
         and then Event.Kind in Events.Mouse_Down | Events.Mouse_Move

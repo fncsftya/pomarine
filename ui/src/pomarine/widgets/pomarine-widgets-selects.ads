@@ -2,7 +2,7 @@ with Pomarine.Semantics;
 with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  A field to choose a value in, from a menu: white, outlined, as a field
 --  to type in, with the value at the left and, at the right, a button
@@ -44,7 +44,7 @@ package Pomarine.Widgets.Selects is
 
    overriding procedure Handle
      (Item    : in out Select_Field;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

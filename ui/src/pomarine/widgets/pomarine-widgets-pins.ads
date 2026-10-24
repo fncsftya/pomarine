@@ -1,6 +1,6 @@
 with SDL3.Painters;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  A small round handle to start a line from, by pressing on it and
 --  dragging, and to end one on. It says when it is pressed and let go,
@@ -47,7 +47,7 @@ package Pomarine.Widgets.Pins is
 
    overriding procedure Handle
      (Item    : in out Pin;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

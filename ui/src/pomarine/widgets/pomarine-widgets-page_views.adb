@@ -14,8 +14,8 @@ package body Pomarine.Widgets.Page_Views is
    --  Milliseconds between frames while pages are still to be made.
 
    use type Semantics.Role;
-   use type SDL3.Events.Event_Kind;
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Event_Kind;
+   use type Pomarine.Events.Key_Code;
    use type Pomarine.Pages.Page_Access;
    use type Pomarine.Page_Builds.Result_Access;
 
@@ -558,7 +558,7 @@ package body Pomarine.Widgets.Page_Views is
 
    procedure Handle_Marking
      (Item    : in out Page_View;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       X : constant Float := Event.Mouse_X * Density (Item);
@@ -566,7 +566,7 @@ package body Pomarine.Widgets.Page_Views is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1 and then Contains (Item, X, Y)
               and then Item.Chosen = Pictures.Eraser
             then
@@ -598,13 +598,13 @@ package body Pomarine.Widgets.Page_Views is
                   Handled := True;
                end;
             end if;
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Item.Marking then
                Extend_Mark (Item, X, Y);
                Invalidate (Item);
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Item.Marking and then Event.Button = 1 then
                Item.Marking := False;
                Extend_Mark (Item, X, Y);
@@ -1093,7 +1093,7 @@ package body Pomarine.Widgets.Page_Views is
    end Draw;
 
    overriding procedure Update
-     (Item : in out Page_View; Now : SDL3.Events.Milliseconds)
+     (Item : in out Page_View; Now : Pomarine.Events.Milliseconds)
    is
       pragma Unreferenced (Now);
    begin
@@ -1115,7 +1115,7 @@ package body Pomarine.Widgets.Page_Views is
 
    procedure Handle_Bars
      (Item    : in out Page_View;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Moved, Changed, Other_Changed : Boolean;
@@ -1142,12 +1142,12 @@ package body Pomarine.Widgets.Page_Views is
 
    overriding procedure Handle
      (Item    : in out Page_View;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean) is
    begin
       Handled := False;
-      if Event.Kind = SDL3.Events.Key_Down and then Event.Command and then not Event.Option
-        and then Event.Key = SDL3.Events.Key_Z
+      if Event.Kind = Pomarine.Events.Key_Down and then Event.Command and then not Event.Option
+        and then Event.Key = Pomarine.Events.Key_Z
       then
          Handle_Command (Item, (if Event.Shift then Edit_Redo else Edit_Undo), Handled);
          return;
@@ -1155,7 +1155,7 @@ package body Pomarine.Widgets.Page_Views is
       if Count (Item) = 0 then
          return;
       end if;
-      if Event.Kind in SDL3.Events.Mouse_Down | SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Up
+      if Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up
       then
          Handle_Bars (Item, Event, Handled);
          if Handled then
@@ -1169,7 +1169,7 @@ package body Pomarine.Widgets.Page_Views is
          end if;
       end if;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1
               and then Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item))
             then
@@ -1197,7 +1197,7 @@ package body Pomarine.Widgets.Page_Views is
                   end if;
                end;
             end if;
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Item.Held and then Item.Sel_Page > 0 then
                declare
                   Under : constant Natural :=
@@ -1210,22 +1210,22 @@ package body Pomarine.Widgets.Page_Views is
                   Handled := True;
                end;
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Handled := True;
             end if;
-         when SDL3.Events.Key_Down =>
-            if Event.Command and then Event.Key = SDL3.Events.Key_C and then Has_Selection (Item)
+         when Pomarine.Events.Key_Down =>
+            if Event.Command and then Event.Key = Pomarine.Events.Key_C and then Has_Selection (Item)
               and then Clipboard (Item) /= null
             then
                Clipboard (Item).Set_Text (Selected_Text (Item));
                Handled := True;
-            elsif Event.Command and then Event.Key = SDL3.Events.Key_A then
+            elsif Event.Command and then Event.Key = Pomarine.Events.Key_A then
                Select_All (Item);
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Wheel =>
+         when Pomarine.Events.Mouse_Wheel =>
             if Item.Zoomed > 1.0 and then Event.Wheel_X /= 0.0 then
                Item.Across :=
                  Float'Min

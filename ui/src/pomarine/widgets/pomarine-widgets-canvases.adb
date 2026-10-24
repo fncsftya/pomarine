@@ -3,8 +3,8 @@ package body Pomarine.Widgets.Canvases is
 
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Event_Kind;
+   use type Pomarine.Events.Key_Code;
    use all type SDL3.Painters.Painter;
 
    Points_Per_Notch : constant Float := 24.0;
@@ -455,7 +455,7 @@ package body Pomarine.Widgets.Canvases is
 
    overriding procedure Handle
      (Item    : in out Canvas;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Pixels : constant Float := Density (Item);
@@ -467,7 +467,7 @@ package body Pomarine.Widgets.Canvases is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Mouse_Wheel =>
+         when Pomarine.Events.Mouse_Wheel =>
             if Event.Command then
                Zoom_By
                  (Item,
@@ -480,11 +480,11 @@ package body Pomarine.Widgets.Canvases is
             end if;
             Handled := True;
 
-         when SDL3.Events.Pinch =>
+         when Pomarine.Events.Pinch =>
             Zoom_By (Item, Event.Scale, X, Y);
             Handled := True;
 
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1
               and then Item.Owner /= null
               and then Hit (Item.Owner.all, Event.Mouse_X * Pixels,
@@ -515,7 +515,7 @@ package body Pomarine.Widgets.Canvases is
                Invalidate (Item);
             end if;
 
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Item.Panning then
                Pan_By
                  (Item, Event.Mouse_X - Item.Last_X,
@@ -525,22 +525,22 @@ package body Pomarine.Widgets.Canvases is
                Handled := True;
             end if;
 
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Item.Panning and then Event.Button = Middle_Button then
                Item.Panning := False;
                Handled := True;
             end if;
 
-         when SDL3.Events.Key_Down =>
+         when Pomarine.Events.Key_Down =>
             if not Event.Command and then Item.Chosen /= 0
-              and then (Event.Key = SDL3.Events.Key_Backspace
-                        or else Event.Key = SDL3.Events.Key_Delete)
+              and then (Event.Key = Pomarine.Events.Key_Backspace
+                        or else Event.Key = Pomarine.Events.Key_Delete)
             then
                Item.Delete_Asked := True;
                Notify (Item, Delete);
                Handled := True;
             elsif not Event.Command and then Item.Chosen /= 0
-              and then Event.Key = SDL3.Events.Key_Escape
+              and then Event.Key = Pomarine.Events.Key_Escape
             then
                Set_Selected (Item, 0);
                Item.Chosen_Changed := True;
@@ -548,11 +548,11 @@ package body Pomarine.Widgets.Canvases is
                Handled := True;
             elsif Event.Command then
                Handled := True;
-               if Event.Key = SDL3.Events.Key_Equals then
+               if Event.Key = Pomarine.Events.Key_Equals then
                   Zoom_By (Item, Zoom_Per_Notch, Wide / 2.0, High / 2.0);
-               elsif Event.Key = SDL3.Events.Key_Minus then
+               elsif Event.Key = Pomarine.Events.Key_Minus then
                   Zoom_By (Item, 1.0 / Zoom_Per_Notch, Wide / 2.0, High / 2.0);
-               elsif Event.Key = SDL3.Events.Key_0 then
+               elsif Event.Key = Pomarine.Events.Key_0 then
                   Zoom_By (Item, 1.0 / Item.Scale, Wide / 2.0, High / 2.0);
                else
                   Handled := False;

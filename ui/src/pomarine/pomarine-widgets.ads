@@ -5,7 +5,7 @@ with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with SDL3.Painters;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 with Pomarine.Clipboards;
 with Pomarine.Icons;
 with Pomarine.Line_Texts;
@@ -188,7 +188,7 @@ package Pomarine.Widgets is
 
    procedure Handle
      (Item    : in out Widget;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
    --  Take Event if it is for it, and say so. A widget that has changed
    --  how it looks says so with Invalidate. By default it takes none.
@@ -200,8 +200,8 @@ package Pomarine.Widgets is
    --  them take come to every widget in turn, as shortcuts.
 
    procedure Update
-     (Item : in out Widget; Now : SDL3.Events.Milliseconds) is null;
-   --  Say the time is Now, as SDL3.Events.Ticks, and that the models it
+     (Item : in out Widget; Now : Pomarine.Events.Milliseconds) is null;
+   --  Say the time is Now, as Pomarine.Events.Ticks, and that the models it
    --  shows may have changed: to blink a caret, to notice the document
    --  has changed. It says with Invalidate if it has to be drawn again.
 
@@ -392,7 +392,7 @@ package Pomarine.Widgets is
 
    procedure Bind_Key
      (Item    : in out Tree;
-      Key     : SDL3.Events.Key_Code;
+      Key     : Pomarine.Events.Key_Code;
       Command : Boolean := False;
       Shift   : Boolean := False;
       Tag     : Integer)
@@ -752,7 +752,7 @@ package Pomarine.Widgets is
 
    procedure Dispatch
      (Item    : in out Tree;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
    --  Give Event to the widgets, as Handle says. A click gives the focus
    --  to the widget it is on, or the one inside which it is, that
@@ -761,7 +761,7 @@ package Pomarine.Widgets is
    --  over for Hover_Changed. Events other than the mouse's, keys' and
    --  typing are left to the application.
 
-   procedure Update (Item : in out Tree; Now : SDL3.Events.Milliseconds);
+   procedure Update (Item : in out Tree; Now : Pomarine.Events.Milliseconds);
    --  Tell every widget the time.
 
    function Until_Update (Item : Tree) return Integer;
@@ -1045,7 +1045,7 @@ private
       Active   : Boolean := False;
       Who      : Node_Id;
       From, To : Float := 0.0;
-      Start    : SDL3.Events.Milliseconds := 0;
+      Start    : Pomarine.Events.Milliseconds := 0;
       Length   : Natural := 0;
       How      : Easing := Linear;
       Apply    : Animation_Setter;
@@ -1057,7 +1057,7 @@ private
    --  What each widget was last told its command was for.
 
    type Key_Binding is record
-      Key     : SDL3.Events.Key_Code := 0;
+      Key     : Pomarine.Events.Key_Code := 0;
       Command : Boolean := False;
       Shift   : Boolean := False;
       Tag     : Integer := No_Tag;
@@ -1081,7 +1081,7 @@ private
       Scope : Node_Id := No_Node;
       --  Tab is only for what is in it, if it is there: see Set_Focus_Scope.
       --  Whether the last input was a key: see Is_Focus_Visible.
-      Clock     : SDL3.Events.Milliseconds := 0;
+      Clock     : Pomarine.Events.Milliseconds := 0;
       --  The time at the last Update.
       Reduce_Motion : Boolean := False;
       Moving    : Animation_Array;
@@ -1105,7 +1105,7 @@ private
       --  The widget that took a press, and which button, until it is
       --  let go.
       Wheel_Taker : Node_Index := 0;
-      Wheel_Time  : SDL3.Events.Milliseconds := 0;
+      Wheel_Time  : Pomarine.Events.Milliseconds := 0;
       --  The widget that took the last wheel turn, and when. A turn soon
       --  after goes to it first, so a pan or a scroll under way is not
       --  taken over by what the pointer drifts across.

@@ -1,7 +1,7 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 with Texts.Documents;
 with Pomarine.Icons;
 with Pomarine.Text_Areas;
@@ -272,11 +272,11 @@ package Pomarine.Widgets.Editors is
 
    overriding procedure Handle
      (Item    : in out Editor;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Update
-     (Item : in out Editor; Now : SDL3.Events.Milliseconds);
+     (Item : in out Editor; Now : Pomarine.Events.Milliseconds);
 
    overriding function Until_Update (Item : Editor) return Integer;
 

@@ -3,7 +3,7 @@ with Ada.Float_Text_IO;
 with Ada.Real_Time;
 with Ada.Text_IO;
 with SDL3;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
@@ -21,14 +21,14 @@ with Yoga.Nodes;
 --  draw one frame, averaged over many, not counting presenting it: that
 --  waits for the display, even without vsync.
 procedure Widget_Bench is
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Widgets renames Pomarine.Widgets;
    package Docs renames Texts.Documents;
    package Nodes renames Yoga.Nodes;
 
    use Ada.Real_Time;
-   use type SDL3.Events.Milliseconds;
+   use type Pomarine.Events.Milliseconds;
    use Ada.Text_IO;
 
    Colors  : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
@@ -67,7 +67,7 @@ procedure Widget_Bench is
       Board  : Pomarine.Clipboards.Memory_Clipboard;
       Handled : Boolean;
       Start   : Time;
-      Now     : SDL3.Events.Milliseconds := 0;
+      Now     : Pomarine.Events.Milliseconds := 0;
 
       procedure Frame is
          Resized : Boolean;

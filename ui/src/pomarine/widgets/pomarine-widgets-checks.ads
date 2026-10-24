@@ -2,7 +2,7 @@ with Pomarine.Semantics;
 with SDL3.Painters;
 with Pomarine_Ui_Config;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  A box to tick, or one of a set to choose among (a radio): a small white
 --  square, outlined, with a label after it, and a square of
@@ -55,7 +55,7 @@ package Pomarine.Widgets.Checks is
 
    overriding procedure Handle
      (Item    : in out Check;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

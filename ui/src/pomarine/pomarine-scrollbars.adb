@@ -1,7 +1,7 @@
 with Pomarine.Boxes;
 package body Pomarine.Scrollbars is
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
    use all type SDL3.Painters.Painter;
 
    type Parts is record
@@ -156,7 +156,7 @@ package body Pomarine.Scrollbars is
 
    procedure Handle
      (Item    : in out Bar;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Within  : Metrics;
       Taken   : out Boolean;
       Moved   : out Boolean;
@@ -197,7 +197,7 @@ package body Pomarine.Scrollbars is
       Moved := False;
       To := 0.0;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1 and then Is_Over then
                Item.Pane := True;
                Taken := True;
@@ -226,7 +226,7 @@ package body Pomarine.Scrollbars is
                   end;
                end if;
             end if;
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Item.Grabbing then
                if Event.Left_Held then
                   Taken := True;
@@ -242,7 +242,7 @@ package body Pomarine.Scrollbars is
                   Item.Pressing := None;
                end if;
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Is_Held (Item) then
                Item.Grabbing := False;
                Item.Pressing := None;

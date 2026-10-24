@@ -3,7 +3,7 @@ package body Pomarine.Widgets.Scrollers is
 
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
 
    function Offset (Item : Scroller) return Float is (Item.Moved);
 
@@ -77,14 +77,14 @@ package body Pomarine.Widgets.Scrollers is
 
    overriding procedure Handle
      (Item    : in out Scroller;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean) is
    begin
       Handled := False;
       if Child_Count (Item) = 1
-        and then Event.Kind in SDL3.Events.Mouse_Down
-                             | SDL3.Events.Mouse_Move
-                             | SDL3.Events.Mouse_Up
+        and then Event.Kind in Pomarine.Events.Mouse_Down
+                             | Pomarine.Events.Mouse_Move
+                             | Pomarine.Events.Mouse_Up
       then
          declare
             Moved, Changed : Boolean;
@@ -104,7 +104,7 @@ package body Pomarine.Widgets.Scrollers is
             end if;
          end;
       end if;
-      if Event.Kind = SDL3.Events.Mouse_Wheel
+      if Event.Kind = Pomarine.Events.Mouse_Wheel
         and then Child_Count (Item) = 1
       then
          Scroll_To

@@ -2,7 +2,7 @@ with Ada.Containers.Vectors;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  An infinite two-dimensional canvas, seen through its box, which can be
 --  panned and zoomed. Things on it have places in canvas units, which are
@@ -119,7 +119,7 @@ package Pomarine.Widgets.Canvases is
 
    overriding procedure Handle
      (Item    : in out Canvas;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding function Cursor (Item : Canvas) return SDL3.Cursors.Kind;

@@ -1,7 +1,7 @@
 with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with SDL3.Windows;
 with SDL3;
@@ -20,7 +20,7 @@ with Yoga.Nodes;
 
 package body Widget_Tests is
 
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
    package Widgets renames Pomarine.Widgets;

@@ -1,5 +1,5 @@
 with Ada.Exceptions;
-with SDL3.Events;
+with Pomarine.Events;
 
 package body Pomarine.Application is
 
@@ -62,7 +62,7 @@ package body Pomarine.Application is
    begin
       Queue.Put (Run, Data, Kept);
       if Kept then
-         SDL3.Events.Wake;
+         Pomarine.Events.Wake;
       end if;
       return Kept;
    end Post;

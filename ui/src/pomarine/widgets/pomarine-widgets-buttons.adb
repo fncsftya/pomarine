@@ -7,8 +7,8 @@ package body Pomarine.Widgets.Buttons is
    use type Semantics.Action;
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Event_Kind;
+   use type Pomarine.Events.Key_Code;
    use SDL3.Windows.Renderers;
    use all type SDL3.Painters.Painter;
 
@@ -202,7 +202,7 @@ package body Pomarine.Widgets.Buttons is
 
    overriding procedure Handle
      (Item    : in out Button;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Over : constant Boolean :=
@@ -217,18 +217,18 @@ package body Pomarine.Widgets.Buttons is
       if not Item.Enabled then
          return;
       end if;
-      if Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down
+      if Event.Kind in Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Down
         and then On_Caret /= Item.Over_Caret
       then
          Item.Over_Caret := On_Caret;
          Invalidate (Item);
       end if;
       case Event.Kind is
-         when SDL3.Events.Key_Down =>
+         when Pomarine.Events.Key_Down =>
             --  Only with the focus: keys come to others as shortcuts.
             if Has_Focus (Item)
-              and then (Event.Key = SDL3.Events.Key_Return
-                        or else Event.Key = SDL3.Events.Key_Space)
+              and then (Event.Key = Pomarine.Events.Key_Return
+                        or else Event.Key = Pomarine.Events.Key_Space)
               and then not Event.Command
             then
                Item.Clicked := True;
@@ -236,14 +236,14 @@ package body Pomarine.Widgets.Buttons is
                Notify (Item, Click);
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1 and then Over then
                Item.Down := True;
                Item.Down_Caret := On_Caret;
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                Item.Clicked := Over;

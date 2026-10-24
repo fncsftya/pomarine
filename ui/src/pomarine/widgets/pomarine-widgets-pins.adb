@@ -1,6 +1,6 @@
 package body Pomarine.Widgets.Pins is
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
    use all type SDL3.Painters.Painter;
 
    Edge        : constant Float := 1.0;
@@ -57,12 +57,12 @@ package body Pomarine.Widgets.Pins is
 
    overriding procedure Handle
      (Item    : in out Pin;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean) is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1
               and then Contains
                          (Item, Event.Mouse_X * Density (Item),
@@ -76,13 +76,13 @@ package body Pomarine.Widgets.Pins is
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Item.Held then
                Item.Pointer_At_X := Event.Mouse_X;
                Item.Pointer_At_Y := Event.Mouse_Y;
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Item.Released := True;

@@ -13,8 +13,8 @@ package body Pomarine.Widgets.Editors is
      (Text_Areas.Highlight_Count (Item.Text));
 
    use type Semantics.Role;
-   use type SDL3.Events.Event_Kind;
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Event_Kind;
+   use type Pomarine.Events.Key_Code;
 
    package Docs renames Texts.Documents;
 
@@ -31,7 +31,7 @@ package body Pomarine.Widgets.Editors is
    procedure Update_Toolbar (Item : in out Editor);
    --  Show the toolbar's buttons if it is to have them, and hide them if not.
 
-   function Tool_For_Key (Item : Editor; Key : SDL3.Events.Key_Code) return Natural;
+   function Tool_For_Key (Item : Editor; Key : Pomarine.Events.Key_Code) return Natural;
    --  The number of the tool whose key it is; 0 if none.
 
    procedure Refresh_Tip (Item : in out Editor);
@@ -261,11 +261,11 @@ package body Pomarine.Widgets.Editors is
 
    function Tool_Count (Item : Editor) return Natural is (Item.Tool_Total);
 
-   function Tool_For_Key (Item : Editor; Key : SDL3.Events.Key_Code) return Natural is
+   function Tool_For_Key (Item : Editor; Key : Pomarine.Events.Key_Code) return Natural is
    begin
       for Tool in 1 .. Item.Tool_Total loop
          if Item.Keys (Tool) /= ASCII.NUL
-           and then Key = SDL3.Events.Key_Code (Character'Pos (Item.Keys (Tool)))
+           and then Key = Pomarine.Events.Key_Code (Character'Pos (Item.Keys (Tool)))
          then
             return Tool;
          end if;
@@ -847,7 +847,7 @@ package body Pomarine.Widgets.Editors is
       return "";
    end Pointer_Link;
 
-   function Link_Under (Item : in out Editor; Event : SDL3.Events.Event) return String is
+   function Link_Under (Item : in out Editor; Event : Pomarine.Events.Event) return String is
       Pixels : constant Float := Density (Item);
       Where_X : constant Float := Event.Mouse_X * Pixels;
       Where_Y : constant Float := Event.Mouse_Y * Pixels;
@@ -1101,25 +1101,25 @@ package body Pomarine.Widgets.Editors is
       Invalidate (Item);
    end Finish_Version;
 
-   procedure Track_Pointer (Item : in out Editor; Event : SDL3.Events.Event) is
+   procedure Track_Pointer (Item : in out Editor; Event : Pomarine.Events.Event) is
       Pixels : constant Float := Density (Item);
       Run    : Natural;
    begin
       --  A link is followed with Command held: Cursor shows it, while it is.
-      if Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down | SDL3.Events.Mouse_Up then
+      if Event.Kind in Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Up then
          Item.Over_Link := Item.Pointer_In_Text and then not Item.Writing
            and then Pointer_Link (Item, Event.Mouse_X * Pixels, Event.Mouse_Y * Pixels) /= "";
       end if;
       if Item.Writing then
          Item.Hovering := False;
-      elsif Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down | SDL3.Events.Mouse_Up then
+      elsif Event.Kind in Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Up then
          Run := (if Item.Pointer_In_Text then Pointer_Version (Item, Event.Mouse_X * Pixels, Event.Mouse_Y * Pixels)
                  else 0);
          Item.Hovering := Run /= 0;
          if Run /= 0 then
             Item.Hover_From := Docs.Run (Text_Areas.Document (Item.Text).all, Run).From;
          end if;
-         if Event.Kind = SDL3.Events.Mouse_Down and then Event.Button = 1 then
+         if Event.Kind = Pomarine.Events.Mouse_Down and then Event.Button = 1 then
             if Run /= 0 then
                Open_Cycle (Item, Run);
             else
@@ -1493,82 +1493,82 @@ package body Pomarine.Widgets.Editors is
 
    overriding procedure Handle
      (Item    : in out Editor;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean) is
    begin
       Handled := False;
       if Has_Document (Item) and then Item.Enabled then
-         if Event.Kind in SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Down
-           | SDL3.Events.Mouse_Up | SDL3.Events.Mouse_Wheel
+         if Event.Kind in Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Down
+           | Pomarine.Events.Mouse_Up | Pomarine.Events.Mouse_Wheel
          then
             Item.Pointer_In_Text :=
               not Item.Toolbar_Shown
               or else Event.Mouse_Y * Density (Item)
                       >= Top_Of (Item) + Text_Areas.Toolbar_Points * Density (Item);
          end if;
-         if Item.Choosing /= Nothing and then Event.Kind = SDL3.Events.Mouse_Down
+         if Item.Choosing /= Nothing and then Event.Kind = Pomarine.Events.Mouse_Down
            and then not Is_Hovered (Item.Chooser) and then not Is_Hovered (Item.Family_Box)
            and then not Is_Hovered (Item.Size_Box) and then not Is_Hovered (Item.Style_Box)
            and then not Is_Hovered (Item.Link_Sources)
          then
             Close_Chooser (Item);
          end if;
-         if Item.Linking and then Event.Kind = SDL3.Events.Mouse_Down
+         if Item.Linking and then Event.Kind = Pomarine.Events.Mouse_Down
            and then not Is_Hovered (Item.Link_Box) and then not Is_Hovered (Item.Link_Parts.Field)
            and then not Is_Hovered (Item.Link_Accept) and then not Is_Hovered (Item.Link_Cancel)
            and then not Is_Hovered (Item.Link_Sources) and then not Is_Hovered (Item.Chooser)
          then
             Finish_Link (Item, False);
          end if;
-         if Item.Link_Owner /= null and then Item.Link_Owner.Linking and then Event.Kind = SDL3.Events.Key_Down
-           and then Event.Key = SDL3.Events.Key_Escape
+         if Item.Link_Owner /= null and then Item.Link_Owner.Linking and then Event.Kind = Pomarine.Events.Key_Down
+           and then Event.Key = Pomarine.Events.Key_Escape
          then
             Finish_Link (Item.Link_Owner.all, False);
             Handled := True;
-         elsif Item.Link_Owner = null and then Event.Kind = SDL3.Events.Key_Down and then Event.Command
-           and then not Event.Option and then not Event.Shift and then Event.Key = SDL3.Events.Key_K
+         elsif Item.Link_Owner = null and then Event.Kind = Pomarine.Events.Key_Down and then Event.Command
+           and then not Event.Option and then not Event.Shift and then Event.Key = Pomarine.Events.Key_K
            and then Has_Focus (Item) and then not Text_Areas.Is_Single_Line (Item.Text)
            and then not Text_Areas.Is_Read_Only (Item.Text)
          then
             Begin_Link (Item);
             Handled := True;
-         elsif Item.Writing and then Event.Kind = SDL3.Events.Key_Down
-           and then Event.Key in SDL3.Events.Key_Return | SDL3.Events.Key_Escape
+         elsif Item.Writing and then Event.Kind = Pomarine.Events.Key_Down
+           and then Event.Key in Pomarine.Events.Key_Return | Pomarine.Events.Key_Escape
          then
-            Finish_Version (Item, Event.Key = SDL3.Events.Key_Return);
+            Finish_Version (Item, Event.Key = Pomarine.Events.Key_Return);
             Handled := True;
-         elsif Item.Cycle_Open and then Event.Kind = SDL3.Events.Key_Down
-           and then Event.Key = SDL3.Events.Key_Escape
+         elsif Item.Cycle_Open and then Event.Kind = Pomarine.Events.Key_Down
+           and then Event.Key = Pomarine.Events.Key_Escape
          then
             Close_Cycle (Item);
             Handled := True;
-         elsif Event.Kind = SDL3.Events.Mouse_Down and then Event.Button = 1 and then Event.Command
+         elsif Event.Kind = Pomarine.Events.Mouse_Down and then Event.Button = 1 and then Event.Command
            and then Item.Pointer_In_Text and then not Item.Writing
            and then Link_Under (Item, Event) /= ""
          then
             Item.Followed_To := Ada.Strings.Unbounded.To_Unbounded_String (Link_Under (Item, Event));
             Notify (Item, Follow);
             Handled := True;
-         elsif Event.Kind = SDL3.Events.Key_Down and then not Event.Command and then not Event.Option
+         elsif Event.Kind = Pomarine.Events.Key_Down and then not Event.Command and then not Event.Option
            and then not Event.Shift
-           and then Event.Key in SDL3.Events.Key_Left_Arrow | SDL3.Events.Key_Right_Arrow
+           and then Event.Key in Pomarine.Events.Key_Left_Arrow | Pomarine.Events.Key_Right_Arrow
            and then Cycling_From (Item, Item.Cycle_Target)
          then
-            Cycle_Version (Item, Item.Cycle_Target, (if Event.Key = SDL3.Events.Key_Right_Arrow then 1 else -1));
+            Cycle_Version (Item, Item.Cycle_Target, (if Event.Key = Pomarine.Events.Key_Right_Arrow then 1 else -1));
             Handled := True;
          elsif Item.Toolbar_On and then Has_Focus (Item)
-           and then Event.Kind = SDL3.Events.Key_Down
+           and then Event.Kind = Pomarine.Events.Key_Down
            and then Event.Command and then not Event.Option and then not Event.Shift
-           and then Event.Key in SDL3.Events.Key_B | SDL3.Events.Key_U | SDL3.Events.Key_I
+           and then Event.Key in Pomarine.Events.Key_B | Pomarine.Events.Key_U | Pomarine.Events.Key_I
          then
             Text_Areas.Toggle_Format
               (Item.Text,
-               (if Event.Key = SDL3.Events.Key_B then Docs.Bold
-                elsif Event.Key = SDL3.Events.Key_U then Docs.Underline
+               (if Event.Key = Pomarine.Events.Key_B then Docs.Bold
+                elsif Event.Key = Pomarine.Events.Key_U then Docs.Underline
                 else Docs.Italic));
             Handled := True;
          elsif Item.Toolbar_On and then Has_Focus (Item)
-           and then Event.Kind = SDL3.Events.Key_Down
+           and then Event.Kind = Pomarine.Events.Key_Down
            and then Event.Command and then not Event.Option and then not Event.Shift
            and then Tool_For_Key (Item, Event.Key) /= 0
          then
@@ -1587,13 +1587,13 @@ package body Pomarine.Widgets.Editors is
          --  application to offer what it is for (a file's name, to choose
          --  another).
          if Handled and then Text_Areas.Is_Read_Only (Item.Text)
-           and then SDL3.Events."=" (Event.Kind, SDL3.Events.Mouse_Down)
+           and then Pomarine.Events."=" (Event.Kind, Pomarine.Events.Mouse_Down)
          then
             Notify (Item, Click);
          end if;
          if Text_Areas.Return_Pending (Item.Text)
-           and then Event.Kind in SDL3.Events.Key_Down
-           and then Event.Key in SDL3.Events.Key_Return
+           and then Event.Kind in Pomarine.Events.Key_Down
+           and then Event.Key in Pomarine.Events.Key_Return
          then
             Notify (Item, Submit);
          end if;
@@ -1619,7 +1619,7 @@ package body Pomarine.Widgets.Editors is
    end Handle;
 
    overriding procedure Update
-     (Item : in out Editor; Now : SDL3.Events.Milliseconds)
+     (Item : in out Editor; Now : Pomarine.Events.Milliseconds)
    is
       Blinked : Boolean;
    begin
@@ -1674,7 +1674,7 @@ package body Pomarine.Widgets.Editors is
 
    overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind is
      (if Item.Enabled and then (not Item.Toolbar_Shown or else Item.Pointer_In_Text)
-      then (if not Item.Writing and then (Item.Hovering or else (Item.Over_Link and then SDL3.Events.Command_Held))
+      then (if not Item.Writing and then (Item.Hovering or else (Item.Over_Link and then Pomarine.Events.Command_Held))
            then SDL3.Cursors.Pointer else SDL3.Cursors.Text)
       else SDL3.Cursors.Default);
    --  A text with versions is clicked, to go through them.

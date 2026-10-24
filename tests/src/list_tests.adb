@@ -1,6 +1,6 @@
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with Goldens;
 with Pomarine.Icons;
@@ -18,7 +18,7 @@ package body List_Tests is
    package Lists renames Pomarine.Widgets.Lists;
    package Models renames Pomarine.Models;
    package Semantics renames Pomarine.Semantics;
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
    package Nodes renames Yoga.Nodes;

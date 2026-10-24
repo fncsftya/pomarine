@@ -5,7 +5,7 @@ package body Pomarine.Widgets.Menus is
    use type Semantics.Action;
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
    use all type SDL3.Painters.Painter;
 
    --  In points
@@ -250,7 +250,7 @@ package body Pomarine.Widgets.Menus is
 
    overriding procedure Handle
      (Item    : in out Menu;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Under : constant Natural :=
@@ -259,12 +259,12 @@ package body Pomarine.Widgets.Menus is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Under /= Item.Over then
                Item.Over := Under;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1
               and then Contains (Item, Event.Mouse_X * Density (Item),
                                  Event.Mouse_Y * Density (Item))
@@ -275,7 +275,7 @@ package body Pomarine.Widgets.Menus is
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 then
                if Item.Pressed /= 0 and then Under = Item.Pressed then
                   Item.Chosen := Under;
@@ -285,7 +285,7 @@ package body Pomarine.Widgets.Menus is
                Item.Pressed := 0;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Wheel =>
+         when Pomarine.Events.Mouse_Wheel =>
             if Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item)) then
                declare
                   To : constant Float :=

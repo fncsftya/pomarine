@@ -7,7 +7,7 @@ with Pomarine.Scrollbars;
 with Pomarine.Semantics;
 with Pomarine.Widgets.Pictures;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Painters;
 with SDL3.Windows.Renderers.Textures;
 
@@ -186,7 +186,7 @@ package Pomarine.Widgets.Page_Views is
       Colors : Themes.Theme);
 
    overriding procedure Update
-     (Item : in out Page_View; Now : SDL3.Events.Milliseconds);
+     (Item : in out Page_View; Now : Pomarine.Events.Milliseconds);
 
    overriding function Until_Update (Item : Page_View) return Integer;
 
@@ -195,7 +195,7 @@ package Pomarine.Widgets.Page_Views is
 
    overriding procedure Handle
      (Item    : in out Page_View;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding function Cursor (Item : Page_View) return SDL3.Cursors.Kind;

@@ -3,7 +3,7 @@ with Pomarine.Pages;
 with Pomarine.Page_Builds;
 with Pomarine.Widgets.Page_Views;
 with Pomarine.Mark_Paths;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Pictures.Jobs;
 with SDL3.Windows.Renderers;
 with Goldens;
@@ -16,7 +16,7 @@ with Yoga.Nodes;
 
 package body Picture_Tests is
 
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
    package Widgets renames Pomarine.Widgets;

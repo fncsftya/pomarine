@@ -5,7 +5,7 @@ package body Pomarine.Widgets.Selects is
    use type Semantics.Action;
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
 
    Pad        : constant Float := 8.0;   --  in points, before the value
    Inner      : constant Float := 2.0;   --  round the button, in points
@@ -73,7 +73,7 @@ package body Pomarine.Widgets.Selects is
 
    overriding procedure Handle
      (Item    : in out Select_Field;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Over : constant Boolean :=
@@ -85,13 +85,13 @@ package body Pomarine.Widgets.Selects is
          return;
       end if;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1 and then Over then
                Item.Down := True;
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                Item.Clicked := Over;

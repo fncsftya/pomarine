@@ -1,5 +1,5 @@
 with SDL3.Painters;
-with SDL3.Events;
+with Pomarine.Events;
 with Pomarine.Themes;
 
 --  The bar that shows how much of something taller (or wider) than its box
@@ -56,7 +56,7 @@ package Pomarine.Scrollbars is
 
    procedure Handle
      (Item    : in out Bar;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Within  : Metrics;
       Taken   : out Boolean;
       Moved   : out Boolean;

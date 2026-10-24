@@ -2,8 +2,8 @@ package body Pomarine.Widgets.Grips is
 
    use type Themes.Slot;
 
-   use type SDL3.Events.Event_Kind;
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Event_Kind;
+   use type Pomarine.Events.Key_Code;
    use type Semantics.Role;
    use all type SDL3.Painters.Painter;
 
@@ -225,21 +225,21 @@ package body Pomarine.Widgets.Grips is
 
    overriding procedure Handle
      (Item    : in out Grip;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean) is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Key_Down =>
+         when Pomarine.Events.Key_Down =>
             --  Only with the focus: keys come to others as shortcuts.
             if Item.Focusable and then Has_Focus (Item) and then not Event.Command
-              and then (Event.Key = SDL3.Events.Key_Return or else Event.Key = SDL3.Events.Key_Space)
+              and then (Event.Key = Pomarine.Events.Key_Return or else Event.Key = Pomarine.Events.Key_Space)
             then
                Item.Clicked := True;
                Notify (Item, Click);
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1
               and then Contains
                          (Item, Event.Mouse_X * Density (Item),
@@ -254,7 +254,7 @@ package body Pomarine.Widgets.Grips is
                Item.Last_Y := Event.Mouse_Y;
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Move =>
+         when Pomarine.Events.Mouse_Move =>
             if Item.Held then
                Item.Across := Item.Across + Event.Mouse_X - Item.Last_X;
                Item.Down := Item.Down + Event.Mouse_Y - Item.Last_Y;
@@ -265,7 +265,7 @@ package body Pomarine.Widgets.Grips is
                Item.Last_Y := Event.Mouse_Y;
                Handled := True;
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Notify (Item, Release);

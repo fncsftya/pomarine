@@ -1,6 +1,6 @@
 with SDL3.Painters;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Goldens;
@@ -11,7 +11,7 @@ with Pomarine.Themes;
 
 package body Text_Area_Tests is
 
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Images renames Goldens.Images;
    package Text_Areas renames Pomarine.Text_Areas;

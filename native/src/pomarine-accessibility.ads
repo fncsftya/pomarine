@@ -44,7 +44,7 @@ package Pomarine.Accessibility is
    function Is_Waiting (Item : Adapter) return Boolean;
    --  Whether there is something for Update to do: the technology has just
    --  asked for the tree, or for something to be done. Set from the thread
-   --  of the system's request; the loop is woken (SDL3.Events.Wake).
+   --  of the system's request; the loop is woken (Pomarine.Events.Wake).
 
    procedure Update (Item : in out Adapter; Tree : in out Widgets.Tree)
      with Pre => Is_Attached (Item) and then Widgets.Has_Root (Tree);

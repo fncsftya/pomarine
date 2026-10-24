@@ -1,7 +1,7 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
 with Pomarine_Ui_Config;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  A chip: a small white box, outlined, that names a thing (a square of
 --  its colour, if it is given one, and its name) and has a small button
@@ -28,7 +28,7 @@ package Pomarine.Widgets.Chips is
 
    overriding procedure Handle
      (Item    : in out Chip;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

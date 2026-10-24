@@ -1,7 +1,7 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
 with Pomarine_Ui_Config;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  A toast: a short message that something has been done, on a white box,
 --  outlined, casting a solid shadow, with a bar of the theme's primary
@@ -37,7 +37,7 @@ package Pomarine.Widgets.Toasts is
 
    overriding procedure Handle
      (Item    : in out Toast;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

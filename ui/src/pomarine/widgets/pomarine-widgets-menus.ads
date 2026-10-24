@@ -2,7 +2,7 @@ with Ada.Containers.Vectors;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 with Pomarine.Icons;
 
 --  A menu, as of a dropdown or a context menu: a column of rows on a white
@@ -108,7 +108,7 @@ package Pomarine.Widgets.Menus is
 
    overriding procedure Handle
      (Item    : in out Menu;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

@@ -1,5 +1,5 @@
 with Ada.Strings.Fixed;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with Goldens;
 with Pomarine.Semantics;
@@ -14,7 +14,7 @@ with Yoga.Nodes;
 package body Keyboard_Tests is
 
    package Widgets renames Pomarine.Widgets;
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Nodes renames Yoga.Nodes;
 
@@ -255,7 +255,7 @@ package body Keyboard_Tests is
    procedure Ring_By_Keyboard_Only is
       Item : Fixture;
       Handled : Boolean;
-      Pressed : constant SDL3.Events.Event :=
+      Pressed : constant Pomarine.Events.Event :=
         (Kind => Events.Mouse_Down, Mouse_X => 10.0, Mouse_Y => 10.0, others => <>);
    begin
       Open (Item);

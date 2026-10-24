@@ -4,7 +4,7 @@ with Ada.Float_Text_IO;
 with Ada.Real_Time;
 with Ada.Text_IO;
 with SDL3;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
@@ -18,7 +18,7 @@ with Pomarine.Themes;
 --  itself (the model) and with the frame drawn after it, into a hidden
 --  window on the GPU.
 procedure Text_Area_Bench is
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Text_Areas renames Pomarine.Text_Areas;
    package Docs renames Texts.Documents;

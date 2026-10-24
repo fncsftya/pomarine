@@ -1,6 +1,6 @@
 with Ada.Unchecked_Conversion;
 with Interfaces.C;
-with SDL3.Events;
+with Pomarine.Events;
 
 package body Pomarine.Accessibility is
 
@@ -147,7 +147,7 @@ package body Pomarine.Accessibility is
    procedure Activated (User : System.Address) is
    begin
       Owner_Of (User).Mail.Activated;
-      SDL3.Events.Wake;
+      Pomarine.Events.Wake;
    end Activated;
 
    procedure Acted
@@ -183,7 +183,7 @@ package body Pomarine.Accessibility is
       Request.Focus_Part := Widgets.Part_Number_Of (Widgets.From_Unsigned_64 (Focus_Node));
       Request.Focus := Natural (Focus_Chars);
       Owner_Of (User).Mail.Put (Widgets.From_Unsigned_64 (Node), Request);
-      SDL3.Events.Wake;
+      Pomarine.Events.Wake;
    end Acted;
 
    protected body Mailbox is

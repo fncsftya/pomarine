@@ -1,12 +1,12 @@
 with Pomarine.Boxes;
 package body Pomarine.Widgets.Switches is
 
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Key_Code;
 
    use type Semantics.Action;
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
 
    Gap  : constant Float := 8.0;  --  in points, before the label
    Room : constant Float := 2.0;  --  in points, round the knob in the track
@@ -62,7 +62,7 @@ package body Pomarine.Widgets.Switches is
 
    overriding procedure Handle
      (Item    : in out Switch;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Over : constant Boolean :=
@@ -74,13 +74,13 @@ package body Pomarine.Widgets.Switches is
          return;
       end if;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1 and then Over then
                Item.Down := True;
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                if Over then
@@ -91,8 +91,8 @@ package body Pomarine.Widgets.Switches is
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Key_Down =>
-            if Has_Focus (Item) and then Event.Key = SDL3.Events.Key_Space
+         when Pomarine.Events.Key_Down =>
+            if Has_Focus (Item) and then Event.Key = Pomarine.Events.Key_Space
               and then not Event.Command
             then
                Perform (Item, (Doing => Semantics.Click, others => <>), Handled);

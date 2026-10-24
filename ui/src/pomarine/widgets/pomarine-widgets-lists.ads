@@ -1,5 +1,5 @@
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Painters;
 with Pomarine.Models;
 with Pomarine.Scrollbars;
@@ -83,11 +83,11 @@ package Pomarine.Widgets.Lists is
 
    overriding procedure Handle
      (Item    : in out List;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Update
-     (Item : in out List; Now : SDL3.Events.Milliseconds);
+     (Item : in out List; Now : Pomarine.Events.Milliseconds);
 
    overriding procedure Hover_Changed (Item : in out List; Hovered : Boolean);
 

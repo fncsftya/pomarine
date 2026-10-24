@@ -4,10 +4,10 @@ package body Pomarine.Widgets is
 
    package Renderers renames SDL3.Windows.Renderers;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
    use type Interfaces.Unsigned_64;
    use type Interfaces.Unsigned_32;
-   use type SDL3.Events.Milliseconds;
+   use type Pomarine.Events.Milliseconds;
    use type Semantics.Role;
 
    No_Yoga : Yoga.Nodes.Node;
@@ -374,7 +374,7 @@ package body Pomarine.Widgets is
 
    procedure Handle
      (Item    : in out Widget;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       pragma Unreferenced (Item, Event);
@@ -1342,7 +1342,7 @@ package body Pomarine.Widgets is
 
    procedure Bind_Key
      (Item    : in out Tree;
-      Key     : SDL3.Events.Key_Code;
+      Key     : Pomarine.Events.Key_Code;
       Command : Boolean := False;
       Shift   : Boolean := False;
       Tag     : Integer) is
@@ -1559,14 +1559,14 @@ package body Pomarine.Widgets is
    procedure Bubble
      (Home    : Tree;
       From    : Node_Index;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Taker   : out Node_Index);
    --  Offer Event to From, and then its parents, until one takes it.
 
    procedure Bubble
      (Home    : Tree;
       From    : Node_Index;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Taker   : out Node_Index)
    is
       Offered : Node_Index := From;
@@ -1597,18 +1597,18 @@ package body Pomarine.Widgets is
       return Climbing;
    end Accepting;
 
-   Wheel_Stickiness : constant SDL3.Events.Milliseconds := 300;
+   Wheel_Stickiness : constant Pomarine.Events.Milliseconds := 300;
    --  How soon after a wheel turn the next still goes to the same widget.
 
    procedure Dispatch_Press
      (Item    : in out Tree;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Over    : Node_Index;
       Handled : out Boolean);
 
    procedure Dispatch_Press
      (Item    : in out Tree;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Over    : Node_Index;
       Handled : out Boolean)
    is
@@ -1646,23 +1646,23 @@ package body Pomarine.Widgets is
 
    procedure Dispatch_Keys
      (Item    : in out Tree;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    procedure Dispatch_Keys
      (Item    : in out Tree;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Taker   : Node_Index;
       Offered : Node_Index;
    begin
-      if Event.Kind = SDL3.Events.Key_Down then
+      if Event.Kind = Pomarine.Events.Key_Down then
          Set_Input_Source (Item, Keyboard => True);
       end if;
       Bubble (Item, Item.Focus, Event, Taker);
       Handled := Taker /= 0;
-      if not Handled and then Event.Kind = SDL3.Events.Key_Down then
+      if not Handled and then Event.Kind = Pomarine.Events.Key_Down then
          Offered := Item.Root;
          while Offered /= 0 and then not Handled loop
             if Item.Nodes.Spot (Offered).Visible then
@@ -1672,15 +1672,15 @@ package body Pomarine.Widgets is
          end loop;
       end if;
       --  Tab, when the tree is to move the focus by it.
-      if not Handled and then Item.Tab_Moves and then Event.Kind = SDL3.Events.Key_Down
-        and then Event.Key = SDL3.Events.Key_Tab and then not Event.Command
+      if not Handled and then Item.Tab_Moves and then Event.Kind = Pomarine.Events.Key_Down
+        and then Event.Key = Pomarine.Events.Key_Tab and then not Event.Command
       then
          Focus_Next (Item, Backwards => Event.Shift);
          Handled := True;
       end if;
       --  Keys that none of the widgets took, that the application has
       --  bound to commands.
-      if not Handled and then Event.Kind = SDL3.Events.Key_Down then
+      if not Handled and then Event.Kind = Pomarine.Events.Key_Down then
          for Each of Item.Keys (1 .. Item.Keys_Bound) loop
             if Each.Key = Event.Key and then Each.Command = Event.Command
               and then Each.Shift = Event.Shift
@@ -1694,7 +1694,7 @@ package body Pomarine.Widgets is
 
    procedure Dispatch
      (Item    : in out Tree;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Over  : Node_Index;
@@ -1702,23 +1702,23 @@ package body Pomarine.Widgets is
    begin
       Handled := False;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             Set_Input_Source (Item, Keyboard => False);
             Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
                               Event.Mouse_Y * Item.Density);
             Dispatch_Press (Item, Event, Over, Handled);
 
-         when SDL3.Events.Mouse_Move | SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up =>
             Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
                               Event.Mouse_Y * Item.Density);
             Set_Hover (Item, Over);
             if Item.Capture /= 0 then
                Handle (Item.Nodes.Object (Item.Capture).all, Event, Handled);
-               if Event.Kind = SDL3.Events.Mouse_Up
+               if Event.Kind = Pomarine.Events.Mouse_Up
                  and then Event.Button = Item.Capture_Button
                then
                   Item.Capture := 0;
-               elsif Event.Kind = SDL3.Events.Mouse_Move
+               elsif Event.Kind = Pomarine.Events.Mouse_Move
                  and then Item.Capture_Button = 1
                  and then not Event.Left_Held
                then
@@ -1729,10 +1729,10 @@ package body Pomarine.Widgets is
                Handled := Taker /= 0;
             end if;
 
-         when SDL3.Events.Mouse_Wheel | SDL3.Events.Pinch =>
+         when Pomarine.Events.Mouse_Wheel | Pomarine.Events.Pinch =>
             Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
                               Event.Mouse_Y * Item.Density);
-            if Event.Kind = SDL3.Events.Mouse_Wheel
+            if Event.Kind = Pomarine.Events.Mouse_Wheel
               and then Item.Wheel_Taker /= 0
               and then Event.Time > 0
               and then Event.Time >= Item.Wheel_Time
@@ -1743,17 +1743,17 @@ package body Pomarine.Widgets is
             end if;
             Bubble (Item, Over, Event, Taker);
             Handled := Taker /= 0;
-            if Event.Kind = SDL3.Events.Mouse_Wheel then
+            if Event.Kind = Pomarine.Events.Mouse_Wheel then
                Item.Wheel_Taker := Taker;
                Item.Wheel_Time := Event.Time;
             end if;
 
-         when SDL3.Events.Key_Down | SDL3.Events.Text_Input
-            | SDL3.Events.Text_Editing =>
+         when Pomarine.Events.Key_Down | Pomarine.Events.Text_Input
+            | Pomarine.Events.Text_Editing =>
             Dispatch_Keys (Item, Event, Handled);
 
-         when SDL3.Events.Quit | SDL3.Events.Redraw
-            | SDL3.Events.Theme_Changed | SDL3.Events.Other =>
+         when Pomarine.Events.Quit | Pomarine.Events.Redraw
+            | Pomarine.Events.Theme_Changed | Pomarine.Events.Other =>
             null;
       end case;
       Deliver (Item);
@@ -2117,7 +2117,7 @@ package body Pomarine.Widgets is
       end loop;
    end Stop_Animations;
 
-   procedure Step_Animations (Item : in out Tree; Now : SDL3.Events.Milliseconds) is
+   procedure Step_Animations (Item : in out Tree; Now : Pomarine.Events.Milliseconds) is
    begin
       Item.Clock := Now;
       if Item.Running = 0 then
@@ -2152,7 +2152,7 @@ package body Pomarine.Widgets is
 
    --  Time
 
-   procedure Update (Item : in out Tree; Now : SDL3.Events.Milliseconds) is
+   procedure Update (Item : in out Tree; Now : Pomarine.Events.Milliseconds) is
       Updating : Node_Index := Item.Root;
    begin
       Step_Animations (Item, Now);

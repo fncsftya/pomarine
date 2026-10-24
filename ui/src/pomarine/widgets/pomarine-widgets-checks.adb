@@ -2,12 +2,12 @@ with Pomarine.Boxes;
 with Pomarine.Icons;
 package body Pomarine.Widgets.Checks is
 
-   use type SDL3.Events.Key_Code;
+   use type Pomarine.Events.Key_Code;
 
    use type Semantics.Action;
    use type Semantics.Role;
 
-   use type SDL3.Events.Event_Kind;
+   use type Pomarine.Events.Event_Kind;
    use all type SDL3.Painters.Painter;
 
    Gap         : constant Float := 7.0;
@@ -85,7 +85,7 @@ package body Pomarine.Widgets.Checks is
 
    overriding procedure Handle
      (Item    : in out Check;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean)
    is
       Over : constant Boolean :=
@@ -97,13 +97,13 @@ package body Pomarine.Widgets.Checks is
          return;
       end if;
       case Event.Kind is
-         when SDL3.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down =>
             if Event.Button = 1 and then Over then
                Item.Down := True;
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Mouse_Up =>
+         when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
                --  A radio that is chosen stays so.
@@ -116,8 +116,8 @@ package body Pomarine.Widgets.Checks is
                Handled := True;
                Invalidate (Item);
             end if;
-         when SDL3.Events.Key_Down =>
-            if Has_Focus (Item) and then Event.Key = SDL3.Events.Key_Space
+         when Pomarine.Events.Key_Down =>
+            if Has_Focus (Item) and then Event.Key = Pomarine.Events.Key_Space
               and then not Event.Command
             then
                Perform (Item, (Doing => Semantics.Click, others => <>), Handled);

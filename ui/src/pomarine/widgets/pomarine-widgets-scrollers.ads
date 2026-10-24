@@ -1,6 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
-with SDL3.Events;
+with Pomarine.Events;
 with Pomarine.Scrollbars;
 
 --  A box that shows part of what is taller than it is, to scroll with the
@@ -49,7 +49,7 @@ package Pomarine.Widgets.Scrollers is
 
    overriding procedure Handle
      (Item    : in out Scroller;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Describe

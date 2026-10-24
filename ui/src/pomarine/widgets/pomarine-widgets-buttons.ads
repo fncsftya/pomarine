@@ -3,7 +3,7 @@ with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
 with Pomarine_Ui_Config;
-with SDL3.Events;
+with Pomarine.Events;
 with Pomarine.Icons;
 
 --  A button to click, with a short label.
@@ -111,7 +111,7 @@ package Pomarine.Widgets.Buttons is
 
    overriding procedure Handle
      (Item    : in out Button;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

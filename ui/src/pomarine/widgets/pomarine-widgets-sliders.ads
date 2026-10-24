@@ -1,7 +1,7 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 
 --  A slider to drag: a track with a knob on it, whose place along the
 --  track is a value from 0.0, at the left, to 1.0, at the right. The
@@ -35,7 +35,7 @@ package Pomarine.Widgets.Sliders is
 
    overriding procedure Handle
      (Item    : in out Slider;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding procedure Draw

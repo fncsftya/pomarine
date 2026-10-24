@@ -1,7 +1,7 @@
 with Ada.Unchecked_Conversion;
 with Interfaces;
 with Interfaces.C;
-with SDL3.Events;
+with Pomarine.Events;
 
 package body Pomarine.Native_Menus is
 
@@ -114,7 +114,7 @@ package body Pomarine.Native_Menus is
    procedure Chosen (User : System.Address; Tag : Interfaces.Integer_32) is
    begin
       To_Bar (User).Mail.Put (Integer (Tag));
-      SDL3.Events.Wake;
+      Pomarine.Events.Wake;
    end Chosen;
 
    procedure Install (Item : in out Menu_Bar) is

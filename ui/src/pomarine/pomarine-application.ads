@@ -6,7 +6,7 @@ with System;
 --  another thread does is to Post a procedure, which the window's thread
 --  runs, between its events, when it next turns (Run_Posted).
 --
---  Posting wakes the loop (SDL3.Events.Wake), so a window that waits for
+--  Posting wakes the loop (Pomarine.Events.Wake), so a window that waits for
 --  events is not left waiting.
 package Pomarine.Application is
 

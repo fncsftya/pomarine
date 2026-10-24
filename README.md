@@ -51,7 +51,7 @@ end if;
 ```
 
 See the comment at the top of `Pomarine.Widgets` for the whole loop, and
-`examples/src/hello_gui.adb` for a complete program (`cd examples && alr build && bin/hello_gui`).
+`examples/` for a complete program (`Pomarine.Windows` opens the window and runs the loop; the button is given its procedure with `Callbacks.On`) (`cd examples && alr build && bin/hello_gui`).
 
 ## What is where
 
@@ -67,6 +67,8 @@ See the comment at the top of `Pomarine.Widgets` for the whole loop, and
 | `Pomarine.Native_Menus` (`native/`) | The menu bar, and the keys that choose from it. |
 | `Pomarine.System_Settings` (`native/`) | Less motion, more contrast: what the person asked of every application. |
 | `Pomarine.Application` | Work from other threads, run by the window's. |
+| `Pomarine.Windows` | A window for a tree, and the loop that runs it: an application need not touch SDL. |
+| `Pomarine.Events` | The events (keys, mouse, text) widgets are given, and the clock; the only form of SDL's events an application sees. |
 | `SDL3.Painters` | What widgets draw with: a renderer's painter, and a recorder that keeps and replays. |
 | `Pomarine.Widgets.*` | Buttons, labels, panels, grips, checks, switches, sliders, fields, menus, scrollers, frames and the rest. |
 | `Pomarine.Themes` | Colours: a palette made into a theme; the application's own slots. |

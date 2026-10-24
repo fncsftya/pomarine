@@ -1,6 +1,6 @@
 with Pomarine.Searches;
 with SDL3.Painters;
-with SDL3.Events;
+with Pomarine.Events;
 with Texts.Documents;
 with Pomarine.Clipboards;
 with Pomarine.Scrollbars;
@@ -458,9 +458,9 @@ package Pomarine.Text_Areas is
 
    procedure Tick
      (Item    : in out Text_Area;
-      Now     : SDL3.Events.Milliseconds;
+      Now     : Pomarine.Events.Milliseconds;
       Changed : out Boolean);
-   --  Say the time is Now, as SDL3.Events.Ticks; events tell it too.
+   --  Say the time is Now, as Pomarine.Events.Ticks; events tell it too.
    --  Changed says whether the caret has shown or hidden since the time
    --  was last said.
 
@@ -475,7 +475,7 @@ package Pomarine.Text_Areas is
    --  Allow drawing the caret (on by default). Focus, navigation and
    --  text selection still work when the caret is hidden.
 
-   function Until_Blink (Item : Text_Area) return SDL3.Events.Milliseconds
+   function Until_Blink (Item : Text_Area) return Pomarine.Events.Milliseconds
      with Post => Until_Blink'Result in 1 .. Blink_Period;
    --  How long after the time last said it shows or hides.
 
@@ -507,7 +507,7 @@ package Pomarine.Text_Areas is
 
    procedure Handle
      (Item    : in out Text_Area;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Board   : in out Clipboards.Clipboard'Class;
       Handled : out Boolean)
      with Pre => Is_Attached (Item);
@@ -561,7 +561,7 @@ package Pomarine.Text_Areas is
 
 private
 
-   use type SDL3.Events.Milliseconds;
+   use type Pomarine.Events.Milliseconds;
 
    type Highlight is record
       From, To : Position;
@@ -647,8 +647,8 @@ private
       --  units, which take shaping to find, as of the position, document
       --  and width of lines in the other fields.
 
-      Now      : SDL3.Events.Milliseconds := 0;
-      Since    : SDL3.Events.Milliseconds := 0;
+      Now      : Pomarine.Events.Milliseconds := 0;
+      Since    : Pomarine.Events.Milliseconds := 0;
       --  When the caret last moved, or the text was edited.
       Caret_On : Boolean := True;
       Caret_Visible : Boolean := True;

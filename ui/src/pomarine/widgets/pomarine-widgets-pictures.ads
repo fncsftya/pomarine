@@ -3,7 +3,7 @@ with Pomarine.Marks;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows.Renderers.Textures;
 with Pomarine.Scrollbars;
 with Pomarine.Words;
@@ -180,7 +180,7 @@ package Pomarine.Widgets.Pictures is
       Colors : Themes.Theme);
 
    overriding procedure Update
-     (Item : in out Picture; Now : SDL3.Events.Milliseconds);
+     (Item : in out Picture; Now : Pomarine.Events.Milliseconds);
 
    overriding function Until_Update (Item : Picture) return Integer;
 
@@ -189,7 +189,7 @@ package Pomarine.Widgets.Pictures is
 
    overriding procedure Handle
      (Item    : in out Picture;
-      Event   : SDL3.Events.Event;
+      Event   : Pomarine.Events.Event;
       Handled : out Boolean);
 
    overriding function Cursor (Item : Picture) return SDL3.Cursors.Kind;

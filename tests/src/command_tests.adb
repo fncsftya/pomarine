@@ -1,4 +1,4 @@
-with SDL3.Events;
+with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with Goldens;
 with Pomarine.Widgets.Buttons;
@@ -10,7 +10,7 @@ with Yoga.Nodes;
 package body Command_Tests is
 
    package Widgets renames Pomarine.Widgets;
-   package Events renames SDL3.Events;
+   package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
    package Nodes renames Yoga.Nodes;
 
