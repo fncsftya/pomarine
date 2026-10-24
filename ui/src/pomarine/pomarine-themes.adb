@@ -3,21 +3,28 @@ package body Pomarine.Themes is
    function Fixed (Value : Color) return Slot is
      (Slot (-1 - Integer (Value.Red) * 65536 - Integer (Value.Green) * 256 - Integer (Value.Blue)));
 
+   Black : constant Color := (0, 0, 0, 255);
+
    function Resolve (Item : Theme; Which : Slot) return Color is
       subtype Byte is SDL3.Windows.Renderers.Color_Component;
       RGB : constant Natural := (if Which < 0 then Natural (-Which - 1) else 0);
    begin
-      if Which > 0 then
+      if Which in Core_Slot then
          return Item.Slots (Which);
+      elsif Which > Core_Count then
+         declare
+            Index : constant Positive := Positive (Which - Core_Count);
+         begin
+            return (if Index <= Natural (Item.Custom.Length) then Item.Custom (Index) else Black);
+         end;
       end if;
       return (Byte (RGB / 65536), Byte ((RGB / 256) mod 256), Byte (RGB mod 256), 255);
    end Resolve;
 
-   Black : constant Color := (0, 0, 0, 255);
-
    function Make (From : Palette) return Theme is
       Result : Theme :=
         (Slots => [others => Black],
+         Custom => Custom_Vectors.Empty_Vector,
          Tones => [others => [others => Black]],
          Bevelled => True);
 
@@ -130,13 +137,20 @@ package body Pomarine.Themes is
    function With_Slot (Item : Theme; Which : Slot; To : Color) return Theme is
    begin
       return Result : Theme := Item do
-         Result.Slots (Which) := To;
+         if Which in Core_Slot then
+            Result.Slots (Which) := To;
+         else
+            Set_Custom (Result, Natural (Which - Core_Count - 1), To);
+         end if;
       end return;
    end With_Slot;
 
    procedure Set_Custom (Item : in out Theme; Offset : Natural; To : Color) is
    begin
-      Item.Slots (Custom (Offset)) := To;
+      while Natural (Item.Custom.Length) <= Offset loop
+         Item.Custom.Append (Black);
+      end loop;
+      Item.Custom (Offset + 1) := To;
    end Set_Custom;
 
 end Pomarine.Themes;

@@ -101,8 +101,7 @@ take it as a value, and the call with named parameters is the same thing.
 ### Handlers of a widget's own
 
 A widget can have a procedure of the application's own for each kind of event
-it says, called with an object of the application's (a widget keeps eight kinds,
-`Hook_Capacity`):
+it says, called with an object of the application's (one for each kind):
 
 ```ada
 package Mixer_Callbacks is new Pomarine.Widgets.Callbacks (Mixer);
@@ -224,13 +223,15 @@ on, unless given other files.
 
 ## Sizes
 
-The room for text, icons, menu rows and the application's colours is fixed, to
-allocate nothing while it runs. Each is a configuration variable of the
-`pomarine_ui` crate (see `ui/alire.toml`): `Label_Capacity`, `Button_Label`,
-`Icon_Capacity`, `Menu_Rows`, `Custom_Colors`, `Node_Capacity` (widgets in a
-tree), `Semantic_Text` and `Semantic_Value` (characters of a name and of a
-value an assistive technology is told); set them in the application's
-`alire.toml` under `[configuration.values]`.
+What a person types or makes has no limit: the text of a label, a button or a
+menu row, the widgets in a tree, the rows of a menu and the application's own
+colours (`Themes.Custom`) all grow as they are given. A widget has one handler
+for each kind of event, so there is no number of them to run out of. What
+remains is fixed because something outside bounds it, and is a configuration
+variable of the `pomarine_ui` crate (see `ui/alire.toml`), set in the
+application's `alire.toml` under `[configuration.values]`: `Icon_Capacity`
+(icons a library holds), `Semantic_Text` and `Semantic_Value` (characters of a
+name and of a value an assistive technology is told).
 
 ## Testing and measuring
 

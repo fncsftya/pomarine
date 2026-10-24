@@ -32,14 +32,13 @@ package body Pomarine.Widgets.Selects is
    procedure Set_Value (Item : in out Select_Field; Text : String) is
    begin
       if Text /= Value (Item) then
-         Item.Length := Text'Length;
-         Item.Text (1 .. Item.Length) := Text;
+         Item.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
          Changed_Look (Item);
       end if;
    end Set_Value;
 
    function Value (Item : Select_Field) return String is
-     (Item.Text (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Text));
 
    procedure Set_Open (Item : in out Select_Field; To : Boolean) is
    begin
@@ -172,7 +171,7 @@ package body Pomarine.Widgets.Selects is
                Size, Drawn);
          end;
       end if;
-      if Item.Length > 0 and then Text_Lines (Item) /= null then
+      if Ada.Strings.Unbounded.Length (Item.Text) > 0 and then Text_Lines (Item) /= null then
          declare
             Face : constant String := (if Item.Faced then Value (Item) else "");
             Start : constant Float := Left + Pad * Pixels;

@@ -24,14 +24,13 @@ package body Pomarine.Widgets.Switches is
    procedure Set_Label (Item : in out Switch; Text : String) is
    begin
       if Text /= Label (Item) then
-         Item.Length := Text'Length;
-         Item.Text (1 .. Item.Length) := Text;
+         Item.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
          Changed_Look (Item);
       end if;
    end Set_Label;
 
    function Label (Item : Switch) return String is
-     (Item.Text (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Text));
 
    procedure Set_On (Item : in out Switch; To : Boolean) is
    begin
@@ -207,7 +206,7 @@ package body Pomarine.Widgets.Switches is
             X, Top + Inner, Knob_Wide, Knob_High, Pixels,
             Bevelled => Item.Enabled, Sunken => Pressed, Radius => Themes.Small_Radius - 1.0);
       end;
-      if Item.Length > 0 and then Text_Lines (Item) /= null then
+      if Ada.Strings.Unbounded.Length (Item.Text) > 0 and then Text_Lines (Item) /= null then
          Draw_Label;
       end if;
    end Draw;

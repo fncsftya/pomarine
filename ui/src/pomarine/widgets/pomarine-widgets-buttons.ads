@@ -2,7 +2,7 @@ with Pomarine.Line_Texts;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 with Pomarine.Events;
 with Pomarine.Icons;
 with Pomarine.Widgets.Layouts;
@@ -22,9 +22,6 @@ with Pomarine.Widgets.Layouts;
 --  not take it from what is being typed into; with the focus, it has a
 --  ring in the theme's focus colour, and Return or Space clicks it.
 package Pomarine.Widgets.Buttons is
-
-   Label_Capacity : constant := Pomarine_Ui_Config.Button_Label;
-   --  Characters of label.
 
    type Button is new Widget with private;
 
@@ -58,7 +55,7 @@ package Pomarine.Widgets.Buttons is
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
       Underlined  : Boolean := False;
       Struck      : Boolean := False) return Settings
-     with Pre => Caption'Length <= Label_Capacity and then Icon_Points >= 0.0;
+     with Pre => Icon_Points >= 0.0;
    --  What is not named is what a new button has. Icon_Points is in points,
    --  0.0 the usual. Captioned shows the label after the icon.
    --     Looks ("Save", Primary)
@@ -84,8 +81,7 @@ package Pomarine.Widgets.Buttons is
 
    function Kind_Of (Item : Button) return Kind;
 
-   procedure Set_Label (Item : in out Button; Text : String)
-     with Pre => Text'Length <= Label_Capacity;
+   procedure Set_Label (Item : in out Button; Text : String);
    --  Show Text, in the debug font of SDL3.Windows.Renderers, scaled to
    --  the density, in the middle.
 
@@ -190,8 +186,7 @@ package Pomarine.Widgets.Buttons is
 private
 
    type Settings is record
-      Text        : String (1 .. Label_Capacity) := [others => ' '];
-      Length      : Natural range 0 .. Label_Capacity := 0;
+      Text : Ada.Strings.Unbounded.Unbounded_String;
       Style       : Kind := Normal;
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
       Underlined  : Boolean := False;
@@ -204,8 +199,7 @@ private
    end record;
 
    type Button is new Widget with record
-      Text    : String (1 .. Label_Capacity) := [others => ' '];
-      Length  : Natural range 0 .. Label_Capacity := 0;
+      Text : Ada.Strings.Unbounded.Unbounded_String;
       Style   : Kind := Normal;
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
       Underlined : Boolean := False;

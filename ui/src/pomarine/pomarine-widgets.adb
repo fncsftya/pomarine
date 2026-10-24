@@ -473,46 +473,30 @@ package body Pomarine.Widgets is
       Run  : not null Hook_Runner;
       Self, Proc : System.Address) is
    begin
-      Clear_Hook (Item, Kind);
-      for Each of Block (Cold (Item)).all.Hooks loop
-         if not Each.Used then
-            Each := (Used => True, Kind => Kind, Run => Run, Self => Self, Proc => Proc);
-            return;
-         end if;
-      end loop;
-      raise Program_Error with "a widget has handlers for more kinds of event than it can keep";
+      Block (Cold (Item)).all.Hooks (Kind) := (Used => True, Run => Run, Self => Self, Proc => Proc);
    end Set_Hook;
 
    procedure Clear_Hook (Item : in out Widget'Class; Kind : Event_Kind) is
    begin
-      if Item.Cold = 0 then
-         return;
+      if Item.Cold /= 0 then
+         Block (Item.Cold).all.Hooks (Kind) := (others => <>);
       end if;
-      for Each of Block (Item.Cold).all.Hooks loop
-         if Each.Used and then Each.Kind = Kind then
-            Each := (others => <>);
-         end if;
-      end loop;
    end Clear_Hook;
 
    function Has_Hook (Item : Widget'Class; Kind : Event_Kind) return Boolean is
-     (Item.Cold /= 0
-      and then (for some Each of Block (Item.Cold).all.Hooks =>
-                  Each.Used and then Each.Kind = Kind));
+     (Item.Cold /= 0 and then Block (Item.Cold).all.Hooks (Kind).Used);
 
    function Run_Hooks (Item : in out Widget'Class; Event : Widget_Event) return Boolean is
-      Ran : Boolean := False;
    begin
-      if Item.Cold = 0 then
+      if Item.Cold = 0 or else not Block (Item.Cold).all.Hooks (Event.Kind).Used then
          return False;
       end if;
-      for Each of Block (Item.Cold).all.Hooks loop
-         if Each.Used and then Each.Kind = Event.Kind then
-            Each.Run (Each.Self, Each.Proc, Item, Event);
-            Ran := True;
-         end if;
-      end loop;
-      return Ran;
+      declare
+         Each : constant Hook := Block (Item.Cold).all.Hooks (Event.Kind);
+      begin
+         Each.Run (Each.Self, Each.Proc, Item, Event);
+      end;
+      return True;
    end Run_Hooks;
    --  Whether any handler of the widget's own took the event.
 

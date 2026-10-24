@@ -1,4 +1,5 @@
 with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
 with Pomarine.Semantics;
 with SDL3.Painters;
 with SDL3.Cursors;
@@ -22,9 +23,6 @@ with Pomarine.Icons;
 --  is there, and hides it.
 package Pomarine.Widgets.Menus is
 
-   Text_Capacity : constant := 256;
-   --  Bytes of the text of a row: room for complete replacement text; drawing ellipsizes long rows.
-
    type Row_Kind is (Heading, Action, Check, Separator, Note);
 
    type Tone is (Plain, Primary, Danger);
@@ -40,8 +38,7 @@ package Pomarine.Widgets.Menus is
       Text    : String := "";
       Shade   : Tone := Plain;
       Checked : Boolean := False)
-     with Pre  => Text'Length <= Text_Capacity,
-          Post => Row_Count (Item) = Row_Count (Item)'Old + 1;
+     with Post => Row_Count (Item) = Row_Count (Item)'Old + 1;
    --  Add a row after the others.
 
    function Row_Count (Item : Menu) return Natural;
@@ -143,8 +140,7 @@ private
 
    type Line is record
       Kind     : Row_Kind := Note;
-      Text     : String (1 .. Text_Capacity) := [others => ' '];
-      Length   : Natural range 0 .. Text_Capacity := 0;
+      Text     : Ada.Strings.Unbounded.Unbounded_String;
       Shade    : Tone := Plain;
       Checked  : Boolean := False;
       Enabled  : Boolean := True;

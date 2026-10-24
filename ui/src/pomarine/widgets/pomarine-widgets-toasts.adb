@@ -26,26 +26,24 @@ package body Pomarine.Widgets.Toasts is
    procedure Set_Message (Item : in out Toast; Text : String) is
    begin
       if Text /= Message (Item) then
-         Item.Length := Text'Length;
-         Item.Text (1 .. Item.Length) := Text;
+         Item.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
          Changed_Look (Item);
       end if;
    end Set_Message;
 
    function Message (Item : Toast) return String is
-     (Item.Text (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Text));
 
    procedure Set_Action (Item : in out Toast; Label : String) is
    begin
       if Label /= Action (Item) then
-         Item.Label_Length := Label'Length;
-         Item.Label (1 .. Label'Length) := Label;
+         Item.Label := Ada.Strings.Unbounded.To_Unbounded_String (Label);
          Changed_Look (Item);
       end if;
    end Set_Action;
 
    function Action (Item : Toast) return String is
-     (Item.Label (1 .. Item.Label_Length));
+     (Ada.Strings.Unbounded.To_String (Item.Label));
 
    procedure Take_Action (Item : in out Toast; Clicked : out Boolean) is
    begin
@@ -68,7 +66,7 @@ package body Pomarine.Widgets.Toasts is
    begin
       Wide := 0.0;
       High := Float'Rounding (Button_High * Pixels);
-      if Item.Label_Length > 0 and then Text_Lines (Item) /= null then
+      if Ada.Strings.Unbounded.Length (Item.Label) > 0 and then Text_Lines (Item) /= null then
          Wide := Float'Rounding
            (Pomarine.Line_Texts.Width
               (Text_Lines (Item).all, Action (Item), Pixels,
@@ -159,7 +157,7 @@ package body Pomarine.Widgets.Toasts is
       Fill_Rect
         (Target, Colors (Themes.Primary), Left_Of (Item), Top_Of (Item),
          Float'Rounding (Bar_Width * Pixels), Face_Height (Item));
-      if Item.Length > 0 and then Text_Lines (Item) /= null then
+      if Ada.Strings.Unbounded.Length (Item.Text) > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw
            (Text_Lines (Item).all, Target, Colors (Themes.Foreground), Message (Item),
             Left_Of (Item) + (Bar_Width + Pad) * Pixels, Middle, Pixels);
@@ -194,7 +192,7 @@ package body Pomarine.Widgets.Toasts is
    end Describe;
 
    overriding function Part_Count (Item : Toast) return Natural is
-     (if Item.Label_Length > 0 then 1 else 0);
+     (if Ada.Strings.Unbounded.Length (Item.Label) > 0 then 1 else 0);
 
    overriding procedure Describe_Part
      (Item   : Toast;

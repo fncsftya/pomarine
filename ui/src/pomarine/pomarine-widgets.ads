@@ -928,9 +928,6 @@ private
    --  hook is run with whatever it was given, which only the package that
    --  made it knows how to use.
 
-   Hook_Capacity : constant := 12;
-   --  How many kinds of event one widget has its own handlers for.
-
    type Hook_Runner is access procedure
      (Self, Proc : System.Address;
       Source     : in out Widget'Class;
@@ -938,13 +935,14 @@ private
 
    type Hook is record
       Used : Boolean := False;
-      Kind : Event_Kind := Click;
       Run  : Hook_Runner;
       Self : System.Address := System.Null_Address;
       Proc : System.Address := System.Null_Address;
    end record;
 
-   type Hook_Array is array (1 .. Hook_Capacity) of Hook;
+   type Hook_Array is array (Event_Kind) of Hook;
+   --  A widget has one handler for each kind of event, so there is no
+   --  number of them to run out of.
 
    --  A widget keeps what is its own, and what the application may say
    --  before it is in a tree; the tree's table keeps the rest.
@@ -972,7 +970,7 @@ private
       Run  : not null Hook_Runner;
       Self, Proc : System.Address);
    --  Run Run with Self and Proc when Item says Kind, in place of its
-   --  listener. Replaces one for the same kind.
+   --  listener. Replaces the one for the same kind.
 
    procedure Clear_Hook (Item : in out Widget'Class; Kind : Event_Kind);
 

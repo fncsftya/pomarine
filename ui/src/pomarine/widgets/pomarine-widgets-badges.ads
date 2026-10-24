@@ -1,15 +1,12 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 
 --  A small mark to say something of a thing, beside it: a count, white
 --  in a dark square (as how many there are of what a button opens); or a
 --  tag, faint small text in a tinted box, outlined (as when a source's
 --  picture was taken). It takes no events.
 package Pomarine.Widgets.Badges is
-
-   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
-   --  Bytes of a tag's text.
 
    type Kind is (Number, Tag);
 
@@ -23,8 +20,7 @@ package Pomarine.Widgets.Badges is
 
    function Count_Of (Item : Badge) return Natural;
 
-   procedure Set_Text (Item : in out Badge; Value : String)
-     with Pre => Value'Length <= Text_Capacity;
+   procedure Set_Text (Item : in out Badge; Value : String);
    --  Of a tag: what it says.
 
    function Text (Item : Badge) return String;
@@ -52,8 +48,7 @@ private
    type Badge is new Widget with record
       Form    : Kind := Number;
       Value   : Natural := 0;
-      Content : String (1 .. Text_Capacity) := [others => ' '];
-      Length  : Natural range 0 .. Text_Capacity := 0;
+      Content : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
 end Pomarine.Widgets.Badges;

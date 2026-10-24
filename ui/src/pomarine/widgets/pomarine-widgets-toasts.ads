@@ -1,6 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 with Pomarine.Events;
 
 --  A toast: a short message that something has been done, on a white box,
@@ -11,19 +11,13 @@ with Pomarine.Events;
 --  hides it when it has been shown long enough.
 package Pomarine.Widgets.Toasts is
 
-   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
-   Action_Capacity : constant := 16;
-   --  Bytes, of the message and of the button's label.
-
    type Toast is new Widget with private;
 
-   procedure Set_Message (Item : in out Toast; Text : String)
-     with Pre => Text'Length <= Text_Capacity;
+   procedure Set_Message (Item : in out Toast; Text : String);
 
    function Message (Item : Toast) return String;
 
-   procedure Set_Action (Item : in out Toast; Label : String)
-     with Pre => Label'Length <= Action_Capacity;
+   procedure Set_Action (Item : in out Toast; Label : String);
    --  The label of the button; none ("") to have no button.
 
    function Action (Item : Toast) return String;
@@ -69,10 +63,8 @@ package Pomarine.Widgets.Toasts is
 private
 
    type Toast is new Widget with record
-      Text    : String (1 .. Text_Capacity) := [others => ' '];
-      Length  : Natural range 0 .. Text_Capacity := 0;
-      Label   : String (1 .. Action_Capacity) := [others => ' '];
-      Label_Length : Natural range 0 .. Action_Capacity := 0;
+      Text : Ada.Strings.Unbounded.Unbounded_String;
+      Label   : Ada.Strings.Unbounded.Unbounded_String;
       Over    : Boolean := False;  --  the pointer is over the button
       Down    : Boolean := False;  --  pressed on the button
       Clicked : Boolean := False;

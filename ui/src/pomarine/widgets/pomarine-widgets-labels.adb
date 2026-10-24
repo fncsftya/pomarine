@@ -4,11 +4,10 @@ package body Pomarine.Widgets.Labels is
 
    use type Semantics.Role;
 
-   function Fitted (Value : String) return String is
-     (Value (Value'First ..
-             Value'First - 1 + Natural'Min (Value'Length, Text_Capacity)));
-
    use type Themes.Slot;
+
+   function Text_Length (Item : Label) return Natural is
+     (Ada.Strings.Unbounded.Length (Item.Content));
 
    use SDL3.Windows.Renderers;
 
@@ -25,8 +24,7 @@ package body Pomarine.Widgets.Labels is
    procedure Set_Text (Item : in out Label; Value : String) is
    begin
       if Value /= Text (Item) then
-         Item.Length := Value'Length;
-         Item.Content (1 .. Item.Length) := Value;
+         Item.Content := Ada.Strings.Unbounded.To_Unbounded_String (Value);
          Item.Fit_Width := -1.0;
          Item.Measure_Valid := False;
          Content_Changed (Item);
@@ -86,12 +84,12 @@ package body Pomarine.Widgets.Labels is
          Item.Measure_Pixels := Density (Item);
          if Text_Lines (Item) /= null then
             Item.Measure_Wide :=
-              (if Item.Length = 0 then 0.0
+              (if Text_Length (Item) = 0 then 0.0
                else Line_Texts.Width (Text_Lines (Item).all, Text (Item), Pixels, Item.Using))
               + Icon_Room (Item);
             Item.Measure_High := Line_Texts.Height (Text_Lines (Item).all, Pixels, Item.Using);
          else
-            Item.Measure_Wide := Float (Item.Length * Debug_Text_Size) * Pixels;
+            Item.Measure_Wide := Float (Text_Length (Item) * Debug_Text_Size) * Pixels;
             Item.Measure_High := Float (Debug_Text_Size) * Pixels;
          end if;
          Item.Measure_Valid := True;
@@ -146,7 +144,7 @@ package body Pomarine.Widgets.Labels is
    function Style (Item : Label) return Line_Texts.Style is (Item.Using);
 
    function Text (Item : Label) return String is
-     (Item.Content (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Content));
 
    Ellipsis : constant String :=
      [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A6#)];
@@ -158,29 +156,31 @@ package body Pomarine.Widgets.Labels is
    procedure Fit (Item : in out Label) is
       Scale : constant Float := Density (Item) * Item.Scaled;
       Room  : constant Float := Width_Of (Item) - Icon_Room (Item);
+      Whole : constant String := Text (Item);
+      Item_Length : constant Natural := Whole'Length;
 
       function Wide (Length : Natural; Cut : Boolean) return Float is
         (Line_Texts.Width
            (Text_Lines (Item).all,
-            Item.Content (1 .. Length) & (if Cut then Ellipsis else ""),
+            Whole (1 .. Length) & (if Cut then Ellipsis else ""),
             Scale, Item.Using));
 
       function Starts_Character (Index : Positive) return Boolean is
-        (Character'Pos (Item.Content (Index)) not in 16#80# .. 16#BF#);
+        (Character'Pos (Whole (Index)) not in 16#80# .. 16#BF#);
       --  Not a continuation byte of UTF-8: a place to cut before.
 
       Fits, Over : Natural;
    begin
       Item.Fit_Width := Width_Of (Item);
-      Item.Fit_Length := Item.Length;
+      Item.Fit_Length := Item_Length;
       Item.Fit_Cut := False;
-      if Wide (Item.Length, Cut => False) <= Room then
+      if Wide (Item_Length, Cut => False) <= Room then
          return;
       end if;
       --  The longest that fits, with the ellipsis: by halves, in bytes,
       --  and then back to where a character starts.
       Fits := 0;
-      Over := Item.Length;
+      Over := Item_Length;
       while Over - Fits > 1 loop
          declare
             Middle : constant Natural := (Fits + Over) / 2;
@@ -192,12 +192,12 @@ package body Pomarine.Widgets.Labels is
             end if;
          end;
       end loop;
-      while Fits > 0 and then Fits < Item.Length
+      while Fits > 0 and then Fits < Item_Length
         and then not Starts_Character (Fits + 1)
       loop
          Fits := Fits - 1;
       end loop;
-      while Fits > 0 and then Item.Content (Fits) = ' ' loop
+      while Fits > 0 and then Whole (Fits) = ' ' loop
          Fits := Fits - 1;
       end loop;
       Item.Fit_Length := Fits;
@@ -216,13 +216,13 @@ package body Pomarine.Widgets.Labels is
         (if Item.Inked then Themes.Resolve (Colors, Item.Ink)
          else Colors (Themes.Foreground));
    begin
-      if Item.Length > 0 and then Text_Lines (Item) /= null then
+      if Text_Length (Item) > 0 and then Text_Lines (Item) /= null then
          if Item.Fit_Width /= Width_Of (Item) then
             Fit (Item);
          end if;
          declare
             Shown : constant String :=
-              Item.Content (1 .. Item.Fit_Length)
+              Text (Item) (1 .. Item.Fit_Length)
               & (if Item.Fit_Cut then Ellipsis else "");
             Room : constant Float :=
               (if Item.Centered or else Item.Trailing
@@ -259,7 +259,7 @@ package body Pomarine.Widgets.Labels is
                Top_Of (Item) + Height_Of (Item) / 2.0,
                Density (Item) * Item.Scaled, Item.Using);
          end;
-      elsif Item.Length > 0 then
+      elsif Text_Length (Item) > 0 then
          Draw_Text
            (Target, Ink,
             Float'Rounding (Left_Of (Item)),

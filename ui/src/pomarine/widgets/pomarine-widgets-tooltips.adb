@@ -9,8 +9,7 @@ package body Pomarine.Widgets.Tooltips is
    procedure Set_Text (Item : in out Tooltip; Value : String) is
    begin
       if Value /= Text (Item) then
-         Item.Length := Value'Length;
-         Item.Content (1 .. Item.Length) := Value;
+         Item.Content := Ada.Strings.Unbounded.To_Unbounded_String (Value);
          if Is_Attached (Item) then
             Invalidate (Item);
          end if;
@@ -18,7 +17,7 @@ package body Pomarine.Widgets.Tooltips is
    end Set_Text;
 
    function Text (Item : Tooltip) return String is
-     (Item.Content (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Content));
 
    function Natural_Width (Item : Tooltip) return Float is
      (2.0 * Pad
@@ -37,7 +36,7 @@ package body Pomarine.Widgets.Tooltips is
       Fill_Rect
         (Target, Colors (Themes.Bar), Left_Of (Item), Top_Of (Item), Width_Of (Item),
          Height_Of (Item));
-      if Item.Length > 0 and then Text_Lines (Item) /= null then
+      if Ada.Strings.Unbounded.Length (Item.Content) > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw
            (Text_Lines (Item).all, Target, Themes.Soft_White, Text (Item),
             Left_Of (Item)

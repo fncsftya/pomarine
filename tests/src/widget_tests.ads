@@ -27,4 +27,7 @@ package Widget_Tests is
    procedure Removing;
    procedure Window_Frame;
 
+   procedure No_Caps;
+   --  A label, a button and a theme take as much as they are given.
+
 end Widget_Tests;

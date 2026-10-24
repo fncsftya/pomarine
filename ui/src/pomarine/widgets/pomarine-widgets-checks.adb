@@ -40,14 +40,13 @@ package body Pomarine.Widgets.Checks is
    procedure Set_Label (Item : in out Check; Text : String) is
    begin
       if Text /= Label (Item) then
-         Item.Length := Text'Length;
-         Item.Text (1 .. Item.Length) := Text;
+         Item.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
          Changed_Look (Item);
       end if;
    end Set_Label;
 
    function Label (Item : Check) return String is
-     (Item.Text (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Text));
 
    procedure Set_Checked (Item : in out Check; To : Boolean) is
    begin
@@ -213,7 +212,7 @@ package body Pomarine.Widgets.Checks is
             After := After + Square + Gap * Pixels;
          end;
       end if;
-      if Item.Length > 0 and then Text_Lines (Item) /= null then
+      if Ada.Strings.Unbounded.Length (Item.Text) > 0 and then Text_Lines (Item) /= null then
          Pomarine.Line_Texts.Draw
            (Text_Lines (Item).all, Target, Ink, Label (Item), After,
             Top_Of (Item) + Height_Of (Item) / 2.0, Pixels);

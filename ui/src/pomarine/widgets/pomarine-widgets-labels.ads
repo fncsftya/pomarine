@@ -1,27 +1,19 @@
 with Yoga.Nodes;
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 with Pomarine.Icons;
 
 --  A line of text to read, on the left of its box, in the middle of its
 --  height. It takes no events.
 package Pomarine.Widgets.Labels is
 
-   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
-   --  Characters.
-
    type Label is new Widget with private;
 
-   procedure Set_Text (Item : in out Label; Value : String)
-     with Pre => Value'Length <= Text_Capacity;
+   procedure Set_Text (Item : in out Label; Value : String);
    --  Show Value, in the debug font of SDL3.Windows.Renderers, scaled to
    --  the density; in the system font, cut short, with an ellipsis, if it
    --  is wider than the box.
-
-   function Fitted (Value : String) return String
-     with Post => Fitted'Result'Length <= Text_Capacity;
-   --  As much of Value as a label takes.
 
    function Text (Item : Label) return String;
 
@@ -76,8 +68,7 @@ package Pomarine.Widgets.Labels is
 private
 
    type Label is new Widget with record
-      Content : String (1 .. Text_Capacity) := [others => ' '];
-      Length  : Natural range 0 .. Text_Capacity := 0;
+      Content : Ada.Strings.Unbounded.Unbounded_String;
       Using   : Line_Texts.Style := Line_Texts.Regular;
       Inked   : Boolean := False;
       Centered : Boolean := False;
@@ -87,7 +78,7 @@ private
       Iconed  : Boolean := False;
       Which   : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
       Fit_Width  : Float := -1.0;
-      Fit_Length : Natural range 0 .. Text_Capacity := 0;
+      Fit_Length : Natural := 0;
       Fit_Cut    : Boolean := False;
       Measure_Valid : Boolean := False;
       Measure_Wide, Measure_High : Float := 0.0;

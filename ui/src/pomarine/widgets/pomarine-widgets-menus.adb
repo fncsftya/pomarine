@@ -61,8 +61,7 @@ package body Pomarine.Widgets.Menus is
       Made : Line;
    begin
       Made.Kind := Kind;
-      Made.Length := Text'Length;
-      Made.Text (1 .. Text'Length) := Text;
+      Made.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
       Made.Shade := Shade;
       Made.Checked := Checked;
       Item.Used := Item.Used + 1;
@@ -120,7 +119,7 @@ package body Pomarine.Widgets.Menus is
      (Item.Rows (Row).Kind);
 
    function Text_Of (Item : Menu; Row : Positive) return String is
-     (Item.Rows (Row).Text (1 .. Item.Rows (Row).Length));
+     (Ada.Strings.Unbounded.To_String (Item.Rows (Row).Text));
 
    procedure Set_Enabled (Item : in out Menu; Row : Positive; To : Boolean) is
    begin
@@ -451,17 +450,18 @@ package body Pomarine.Widgets.Menus is
                    else Themes.Mix (Themes.Resolve (Colors, Each.Swatch), Colors (Themes.Page), 0.6)));
                After := After + (Swatch_Size + Gap) * Pixels;
             end if;
-            if Each.Length > 0 and then Text_Lines (Item) /= null
+            if Ada.Strings.Unbounded.Length (Each.Text) > 0 and then Text_Lines (Item) /= null
               and then Top + High > Rows_Top (Item) and then Top < Rows_Bottom (Item)
             then
                declare
                   Face : constant String :=
-                    (if Item.Faced and then Each.Kind in Action | Check then Each.Text (1 .. Each.Length) else "");
+                    (if Item.Faced and then Each.Kind in Action | Check
+                     then Ada.Strings.Unbounded.To_String (Each.Text) else "");
                begin
                   Pomarine.Line_Texts.Draw
                     (Text_Lines (Item).all, Target, Ink,
                      Pomarine.Line_Texts.Fitted
-                       (Text_Lines (Item).all, Each.Text (1 .. Each.Length),
+                       (Text_Lines (Item).all, Ada.Strings.Unbounded.To_String (Each.Text),
                         Inner_Left + Inner_Width - Reserve - Inset * Pixels - After, Pixels, Using, Face),
                      After, Middle, Pixels, Using, Face);
                end;
@@ -531,7 +531,7 @@ package body Pomarine.Widgets.Menus is
          when Note =>
             Facts.Kind := Semantics.Label;
       end case;
-      Semantics.Name_As (Facts, Row.Text (1 .. Row.Length));
+      Semantics.Name_As (Facts, Ada.Strings.Unbounded.To_String (Row.Text));
    end Describe_Part;
 
    overriding procedure Perform_Part

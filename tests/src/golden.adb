@@ -162,6 +162,7 @@ begin
    Run ("widgets-hiding", Widget_Tests.Hiding'Access);
    Run ("widgets-removing", Widget_Tests.Removing'Access);
    Run ("widgets-window", Widget_Tests.Window_Frame'Access);
+   Run ("widgets-no-caps", Widget_Tests.No_Caps'Access);
 
    Run ("listener-click", Listener_Tests.Click'Access);
    Run ("listener-grip", Listener_Tests.Grip_Release'Access);

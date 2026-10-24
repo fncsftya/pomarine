@@ -1,6 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 with SDL3.Cursors;
 with Pomarine.Events;
 
@@ -17,9 +17,6 @@ with Pomarine.Events;
 --  of radios. Turned off (Set_Enabled), it is faint and takes nothing.
 package Pomarine.Widgets.Checks is
 
-   Label_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
-   --  Bytes of label.
-
    type Kind is (Box, Radio);
 
    type Check is new Widget with private;
@@ -28,8 +25,7 @@ package Pomarine.Widgets.Checks is
 
    function Kind_Of (Item : Check) return Kind;
 
-   procedure Set_Label (Item : in out Check; Text : String)
-     with Pre => Text'Length <= Label_Capacity;
+   procedure Set_Label (Item : in out Check; Text : String);
 
    function Label (Item : Check) return String;
 
@@ -102,8 +98,7 @@ private
 
    type Check is new Widget with record
       Form     : Kind := Box;
-      Text     : String (1 .. Label_Capacity) := [others => ' '];
-      Length   : Natural range 0 .. Label_Capacity := 0;
+      Text : Ada.Strings.Unbounded.Unbounded_String;
       Checked  : Boolean := False;
       Swatched : Boolean := False;
       Swatch   : Themes.Slot := Themes.Primary;

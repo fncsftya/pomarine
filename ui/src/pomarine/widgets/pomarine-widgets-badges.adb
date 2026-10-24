@@ -15,7 +15,7 @@ package body Pomarine.Widgets.Badges is
    function Shown (Item : Badge) return String is
      (case Item.Form is
          when Number => Figures (Item),
-         when Tag   => Item.Content (1 .. Item.Length));
+         when Tag   => Ada.Strings.Unbounded.To_String (Item.Content));
 
    function Style_Of (Item : Badge) return Pomarine.Line_Texts.Style is
      (case Item.Form is
@@ -52,14 +52,13 @@ package body Pomarine.Widgets.Badges is
    procedure Set_Text (Item : in out Badge; Value : String) is
    begin
       if Value /= Text (Item) then
-         Item.Length := Value'Length;
-         Item.Content (1 .. Item.Length) := Value;
+         Item.Content := Ada.Strings.Unbounded.To_Unbounded_String (Value);
          Changed_Look (Item);
       end if;
    end Set_Text;
 
    function Text (Item : Badge) return String is
-     (Item.Content (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Content));
 
    function Natural_Width (Item : Badge) return Float is
       Span : constant Float :=
@@ -129,7 +128,7 @@ package body Pomarine.Widgets.Badges is
         (Facts,
          (if Item.Form = Number
           then Ada.Strings.Fixed.Trim (Natural'Image (Item.Value), Ada.Strings.Left)
-          else Item.Content (1 .. Item.Length)));
+          else Ada.Strings.Unbounded.To_String (Item.Content)));
    end Describe;
 
 end Pomarine.Widgets.Badges;

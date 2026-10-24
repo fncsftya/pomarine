@@ -113,7 +113,6 @@ package Pomarine.Widgets.Editors is
       Needs_Selection : Boolean := False)
      with Pre => Tool_Count (Item) < Tool_Capacity
                  and then Label'Length > 0
-                 and then Label'Length <= Pomarine.Widgets.Buttons.Label_Capacity
                  and then (Key = ASCII.NUL or else (Key in 'a' .. 'z' and then Key /= 'k'));
    --  Give the toolbar a button, after a divider, with this label, in the
    --  order added; none to begin with. Its click, or Command and Key while

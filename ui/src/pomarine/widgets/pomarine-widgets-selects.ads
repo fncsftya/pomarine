@@ -1,6 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 with SDL3.Cursors;
 with Pomarine.Events;
 
@@ -16,13 +16,9 @@ with Pomarine.Events;
 --  faint, and takes nothing.
 package Pomarine.Widgets.Selects is
 
-   Value_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
-   --  Bytes of value.
-
    type Select_Field is new Widget with private;
 
-   procedure Set_Value (Item : in out Select_Field; Text : String)
-     with Pre => Text'Length <= Value_Capacity;
+   procedure Set_Value (Item : in out Select_Field; Text : String);
 
    function Value (Item : Select_Field) return String;
 
@@ -72,8 +68,7 @@ package Pomarine.Widgets.Selects is
 private
 
    type Select_Field is new Widget with record
-      Text    : String (1 .. Value_Capacity) := [others => ' '];
-      Length  : Natural range 0 .. Value_Capacity := 0;
+      Text : Ada.Strings.Unbounded.Unbounded_String;
       Open    : Boolean := False;
       Enabled : Boolean := True;
       Down    : Boolean := False;

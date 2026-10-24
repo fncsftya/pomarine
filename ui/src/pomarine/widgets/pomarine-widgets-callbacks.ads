@@ -10,7 +10,7 @@
 --  A widget that has a handler for a kind of event does not say it to its
 --  listener as well. Like the listener's, it is called after the event
 --  that caused it, so that it may change the tree, the widget it is for
---  too. A widget keeps a few (Hook_Capacity), of different kinds.
+--  too. A widget keeps one for each kind of event.
 --
 --  Where the listener (see Pomarine.Widgets.Commands) says everything to
 --  one place, this says each thing where it is wanted; use whichever is

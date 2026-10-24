@@ -15,6 +15,7 @@ with Pomarine.Themes;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Callbacks;
 with Pomarine.Widgets.Editors;
+with Pomarine.Widgets.Labels;
 with Pomarine.Widgets.Panels;
 with Yoga.Nodes;
 
@@ -29,6 +30,7 @@ package body Widget_Tests is
    package Nodes renames Yoga.Nodes;
 
    use type Widgets.Widget_Access;
+   use type Renderers.Color;
 
    Colors : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
 
@@ -1452,5 +1454,25 @@ package body Widget_Tests is
       Check_Frame ("widgets-window-resized");
       Check_Box ("widgets-window-main", "100,0 200x150", Main);
    end In_Window;
+
+   procedure No_Caps is
+      Long   : constant String := [1 .. 5000 => 'x'];
+      Label  : Pomarine.Widgets.Labels.Label;
+      Button : Pomarine.Widgets.Buttons.Button;
+      Look   : Pomarine.Themes.Theme := Colors;
+      Pink   : constant Renderers.Color := (255, 105, 180, 255);
+   begin
+      Pomarine.Widgets.Labels.Set_Text (Label, Long);
+      Goldens.Check_Text ("no-caps-label", "5000", Image (Pomarine.Widgets.Labels.Text (Label)'Length));
+      Pomarine.Widgets.Buttons.Set_Label (Button, Long);
+      Goldens.Check_Text ("no-caps-button", "5000", Image (Pomarine.Widgets.Buttons.Label (Button)'Length));
+      Pomarine.Themes.Set_Custom (Look, 1000, Pink);
+      Goldens.Check_Text
+        ("no-caps-colours", "TRUE",
+         Boolean'Image (Pomarine.Themes.Resolve (Look, Pomarine.Themes.Custom (1000)) = Pink));
+      Goldens.Check_Text
+        ("no-caps-colours-between", "TRUE",
+         Boolean'Image (Pomarine.Themes.Resolve (Look, Pomarine.Themes.Custom (999)) = (0, 0, 0, 255)));
+   end No_Caps;
 
 end Widget_Tests;

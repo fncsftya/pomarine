@@ -267,10 +267,10 @@ package body Pomarine.Widgets.Frames is
 
    procedure Set_Title (Item : in out Frame; To : String) is
    begin
-      Labels.Set_Text (Item.Title_Label, Labels.Fitted (To));
+      Labels.Set_Text (Item.Title_Label, To);
       Set_Accessible_Name (Item.Outline_Panel, To);
       if Item.Docked then
-         Labels.Set_Text (Item.Mini_Title, Labels.Fitted (Shortened (To)));
+         Labels.Set_Text (Item.Mini_Title, Shortened (To));
       end if;
    end Set_Title;
 

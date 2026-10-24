@@ -1,6 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 
 --  A tooltip: a short name for what is under the pointer, white on the
 --  dark bars' colour, in the middle of its box. The application shows it
@@ -9,13 +9,9 @@ with Pomarine_Ui_Config;
 --  no events.
 package Pomarine.Widgets.Tooltips is
 
-   Text_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
-   --  Bytes.
-
    type Tooltip is new Widget with private;
 
-   procedure Set_Text (Item : in out Tooltip; Value : String)
-     with Pre => Value'Length <= Text_Capacity;
+   procedure Set_Text (Item : in out Tooltip; Value : String);
 
    function Text (Item : Tooltip) return String;
 
@@ -38,8 +34,7 @@ package Pomarine.Widgets.Tooltips is
 private
 
    type Tooltip is new Widget with record
-      Content : String (1 .. Text_Capacity) := [others => ' '];
-      Length  : Natural range 0 .. Text_Capacity := 0;
+      Content : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
 end Pomarine.Widgets.Tooltips;

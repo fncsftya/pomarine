@@ -25,8 +25,7 @@ package body Pomarine.Widgets.Buttons is
    procedure Set_Label (Item : in out Button; Text : String) is
    begin
       if Text /= Label (Item) then
-         Item.Length := Text'Length;
-         Item.Text (1 .. Item.Length) := Text;
+         Item.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
          if Is_Attached (Item) then
             Invalidate (Item);
          end if;
@@ -59,8 +58,7 @@ package body Pomarine.Widgets.Buttons is
    is
    begin
       return Result : Settings do
-         Result.Length := Caption'Length;
-         Result.Text (1 .. Caption'Length) := Caption;
+         Result.Text := Ada.Strings.Unbounded.To_Unbounded_String (Caption);
          Result.Style := Of_Kind;
          Result.Label_Style := Label_Style;
          Result.Underlined := Underlined;
@@ -76,7 +74,7 @@ package body Pomarine.Widgets.Buttons is
    procedure Configure (Item : in out Button; Using : Settings) is
       use type Pomarine.Icons.Optional;
    begin
-      Set_Label (Item, Using.Text (1 .. Using.Length));
+      Set_Label (Item, Ada.Strings.Unbounded.To_String (Using.Text));
       Set_Kind (Item, Using.Style);
       Set_Label_Style (Item, Using.Label_Style, Using.Underlined, Using.Struck);
       if Using.Icon = Pomarine.Icons.No_Icon then
@@ -250,7 +248,7 @@ package body Pomarine.Widgets.Buttons is
    function Kind_Of (Item : Button) return Kind is (Item.Style);
 
    function Label (Item : Button) return String is
-     (Item.Text (1 .. Item.Length));
+     (Ada.Strings.Unbounded.To_String (Item.Text));
 
    procedure Take_Click (Item : in out Button; Clicked : out Boolean) is
    begin
@@ -338,7 +336,7 @@ package body Pomarine.Widgets.Buttons is
    --  button's label has, whatever else is on the button.
 
    function Label_Span (Item : Button; Wide : Float) return Float is
-     (if Item.Length = 0 then 0.0
+     (if Ada.Strings.Unbounded.Length (Item.Text) = 0 then 0.0
       elsif Text_Lines (Item) /= null
       then Pomarine.Line_Texts.Width
              (Text_Lines (Item).all, Label (Item), Density (Item),
@@ -396,13 +394,13 @@ package body Pomarine.Widgets.Buttons is
       Scale : constant Positive :=
         Positive (Float'Max (1.0, Float'Rounding (Pixels)));
       Wide  : constant Float :=
-        Float (Item.Length * Debug_Text_Size * Scale);
+        Float (Ada.Strings.Unbounded.Length (Item.Text) * Debug_Text_Size * Scale);
       High  : constant Float := Float (Debug_Text_Size * Scale);
       Span  : constant Float := Label_Span (Item, Wide);
       Together : constant Boolean :=
-        Item.Picture and then Item.Captioned and then Item.Length > 0;
+        Item.Picture and then Item.Captioned and then Ada.Strings.Unbounded.Length (Item.Text) > 0;
       Badged : constant Boolean :=
-        Item.Badge > 0 and then Item.Length > 0
+        Item.Badge > 0 and then Ada.Strings.Unbounded.Length (Item.Text) > 0
         and then Text_Lines (Item) /= null;
       Badge_Room : constant Float :=
         (if Badged then (Badge_Gap + Badge_Size) * Pixels else 0.0);
@@ -513,7 +511,7 @@ package body Pomarine.Widgets.Buttons is
                  Group_Left + (Points + Caption_Gap) * Pixels);
          end;
       end if;
-      if Item.Length > 0 and then (Together or else not Icon_Drawn) then
+      if Ada.Strings.Unbounded.Length (Item.Text) > 0 and then (Together or else not Icon_Drawn) then
          if not (Together and then Icon_Drawn) then
             Text_Left := Left + (Wide_Box - Span - Badge_Room) / 2.0;
          end if;
@@ -594,7 +592,7 @@ package body Pomarine.Widgets.Buttons is
       if Facts.Kind = Semantics.Unknown then
          Facts.Kind := Semantics.Button;
       end if;
-      if Item.Length > 0 then
+      if Ada.Strings.Unbounded.Length (Item.Text) > 0 then
          Semantics.Name_As (Facts, Label (Item));
       elsif Item.Picture then
          Semantics.Name_As (Facts, Icon_Words (Item));

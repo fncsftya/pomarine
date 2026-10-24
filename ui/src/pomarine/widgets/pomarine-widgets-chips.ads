@@ -1,6 +1,6 @@
 with Pomarine.Semantics;
 with SDL3.Painters;
-with Pomarine_Ui_Config;
+with Ada.Strings.Unbounded;
 with Pomarine.Events;
 
 --  A chip: a small white box, outlined, that names a thing (a square of
@@ -9,13 +9,9 @@ with Pomarine.Events;
 --  click on the cross is the application's to take, as a button's.
 package Pomarine.Widgets.Chips is
 
-   Label_Capacity : constant := Pomarine_Ui_Config.Label_Capacity;
-   --  Bytes of label.
-
    type Chip is new Widget with private;
 
-   procedure Set_Label (Item : in out Chip; Text : String)
-     with Pre => Text'Length <= Label_Capacity;
+   procedure Set_Label (Item : in out Chip; Text : String);
 
    function Label (Item : Chip) return String;
 
@@ -60,8 +56,7 @@ package Pomarine.Widgets.Chips is
 private
 
    type Chip is new Widget with record
-      Text     : String (1 .. Label_Capacity) := [others => ' '];
-      Length   : Natural range 0 .. Label_Capacity := 0;
+      Text : Ada.Strings.Unbounded.Unbounded_String;
       Swatched : Boolean := False;
       Swatch   : Themes.Slot := Themes.Primary;
       Down     : Boolean := False;  --  pressed on the cross

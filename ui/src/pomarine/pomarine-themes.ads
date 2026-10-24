@@ -1,5 +1,5 @@
+with Ada.Containers.Vectors;
 with SDL3.Windows.Renderers;
-with Pomarine_Ui_Config;
 
 --  The colours components are drawn in.
 --
@@ -19,13 +19,12 @@ package Pomarine.Themes is
    subtype Color is SDL3.Windows.Renderers.Color;
    use type SDL3.Windows.Renderers.Color_Component;
 
-   Custom_Capacity : constant := Pomarine_Ui_Config.Custom_Colors;
-   --  Slots an application may have of its own.
-
    Core_Count : constant := 25;
+   --  Slots the library's own widgets use.
 
-   type Slot is range -16#1000000# .. Core_Count + Custom_Capacity;
+   type Slot is range -16#1000000# .. 16#1000000#;
    subtype Theme_Slot is Slot range 1 .. Slot'Last;
+   subtype Core_Slot is Slot range 1 .. Core_Count;
    --  Positive slots follow the theme. Negative slots hold an opaque RGB colour,
    --  allowing user colours without allocating or limiting the number of colours.
 
@@ -60,8 +59,9 @@ package Pomarine.Themes is
 
    function Custom (Offset : Natural) return Slot is
      (Slot (Core_Count + 1 + Offset))
-     with Pre => Offset < Custom_Capacity;
-   --  The application's own slots start at 0.
+     with Pre => Offset < Natural (Slot'Last) - Core_Count;
+   --  The application's own slots start at 0. A theme keeps as many as the
+   --  application sets.
 
    --  How a control looks in each state.
 
@@ -92,10 +92,15 @@ package Pomarine.Themes is
 
    type Tone_Array is array (Tone, Shade) of Color;
 
-   type Color_Array is array (Theme_Slot) of Color;
+   type Color_Array is array (Core_Slot) of Color;
+
+   package Custom_Vectors is new Ada.Containers.Vectors
+     (Positive, Color, "=" => SDL3.Windows.Renderers."=");
 
    type Theme is tagged record
       Slots    : Color_Array;
+      Custom   : Custom_Vectors.Vector;
+      --  The application's: Custom (0) is the first.
       Tones    : Tone_Array;
       Bevelled : Boolean := True;
       --  Whether a control has a bevel: a line of light along its top and
@@ -153,9 +158,9 @@ package Pomarine.Themes is
    --  inside it in other colours (as a field, on its paper).
 
    procedure Set_Custom (Item : in out Theme; Offset : Natural; To : Color)
-     with Pre => Offset < Custom_Capacity;
+     with Pre => Offset < Natural (Slot'Last) - Core_Count;
    --  Give the application's slot Custom (Offset) the colour To in Item. A
-   --  theme made has them all black.
+   --  slot that is not set is black.
 
    function Resolve (Item : Theme; Which : Slot) return Color
      with Pre => Which /= 0;
