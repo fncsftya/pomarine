@@ -98,6 +98,10 @@ private
      (Line_Key, Kept, Hash, "=");
 
    subtype Slab is CoreText.Shaping.Glyph_Array (1 .. Glyphs_Kept);
+   pragma Suppress_Initialization (Slab);
+   --  Only the front, up to Filled, is ever read: not giving the rest
+   --  its defaults leaves its pages untouched, so that a view takes the
+   --  memory of the glyphs it keeps and not of the glyphs it could.
    type Slab_Access is access Slab;
    type Slab_Index is mod 2;
    type Slab_Pair is array (Slab_Index) of Slab_Access;
