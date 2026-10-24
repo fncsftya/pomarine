@@ -27,13 +27,12 @@ package Pomarine.Widgets.Buttons is
 
    type Button is new Widget with private;
 
-   type Kind is (Normal, Primary, Danger, Quiet, AI, Warning);
+   type Kind is (Normal, Primary, Danger, Quiet, Warning);
    --  Warning uses amber for something that needs attention.
    --  Normal has the theme's face, grey, for most things; Primary is in
    --  the theme's primary colour, green, for the main action; Danger in
    --  its danger colour, red, for what cannot be undone. Quiet has no
-   --  face, only its icon and label, in a light ink, for a dark bar. AI is
-   --  purple, for what a language model will do.
+   --  face, only its icon and label, in a light ink, for a dark bar.
 
    procedure Set_Kind (Item : in out Button; To : Kind);
 

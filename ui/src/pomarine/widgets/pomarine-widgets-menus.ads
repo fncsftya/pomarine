@@ -46,13 +46,6 @@ package Pomarine.Widgets.Menus is
 
    function Row_Count (Item : Menu) return Natural;
 
-   procedure Set_Accented (Item : in out Menu; To : Boolean);
-   --  Draw it in the theme's AI purple: a purple outline, a pale purple
-   --  box, and the row under the pointer in purple with white text; for
-   --  what a language model is asked to do.
-
-   function Is_Accented (Item : Menu) return Boolean;
-
    procedure Set_Faced (Item : in out Menu; To : Boolean);
    --  Draw the text of each action and box in the font it names, as of a
    --  menu of fonts.
@@ -175,7 +168,6 @@ private
       --  The most height, in points; 0.0 for none.
       Scrolled : Float := 0.0;
       --  How far the rows are scrolled up, in pixels.
-      Accented : Boolean := False;
       Faced    : Boolean := False;
    end record;
 

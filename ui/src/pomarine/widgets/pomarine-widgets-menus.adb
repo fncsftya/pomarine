@@ -201,16 +201,6 @@ package body Pomarine.Widgets.Menus is
       end;
    end Reveal;
 
-   procedure Set_Accented (Item : in out Menu; To : Boolean) is
-   begin
-      if To /= Item.Accented then
-         Item.Accented := To;
-         Invalidate (Item);
-      end if;
-   end Set_Accented;
-
-   function Is_Accented (Item : Menu) return Boolean is (Item.Accented);
-
    function Hovered_Row (Item : Menu) return Natural is (Item.Over);
 
    procedure Take_Choice (Item : in out Menu; Chosen : out Natural) is
@@ -335,13 +325,11 @@ package body Pomarine.Widgets.Menus is
    is
       Pixels : constant Float := Density (Item);
       Edge   : constant Float := Pomarine.Boxes.Edge (Pixels);
-      Purple : constant Themes.Color := Colors.Edge_For (Themes.AI_Tone);
       Look   : constant Pomarine.Boxes.Look :=
         (Filled   => True,
-         Fill     => (if Item.Accented then Themes.Mix (Colors (Themes.Page), Purple, 0.1)
-                      else Colors (Themes.Page)),
+         Fill     => Colors (Themes.Page),
          Bordered => True,
-         Border   => (if Item.Accented then Purple else Colors (Themes.Border)),
+         Border   => Colors (Themes.Border),
          Dashed   => False,
          Shadowed => True,
          Shadow   => Colors (Themes.Drop_Shadow),
@@ -372,12 +360,9 @@ package body Pomarine.Widgets.Menus is
             Middle : constant Float := Top + High / 2.0;
             Ink    : constant Themes.Color :=
               (case Each.Kind is
-                  when Heading | Note =>
-                    (if Item.Accented then Purple else Colors (Themes.Muted)),
+                  when Heading | Note => Colors (Themes.Muted),
                   when others =>
                     (if not Each.Enabled then Colors (Themes.Muted)
-                     elsif Item.Accented and then Index = Item.Over
-                     then Colors.Ink_For (Themes.AI_Tone, Hovered => False)
                      else
                      (case Each.Shade is
                          when Plain   => Colors (Themes.Foreground),
@@ -417,9 +402,7 @@ package body Pomarine.Widgets.Menus is
             if Can_Click (Each.Kind) and then Index = Item.Over then
                Fill_Rect
                  (Target,
-                  (if Item.Accented
-                   then Colors.Face_For (Themes.AI_Tone, Hovered => Index /= Item.Pressed, Held => Index = Item.Pressed)
-                   elsif Index = Item.Pressed then Colors (Themes.Face)
+                  (if Index = Item.Pressed then Colors (Themes.Face)
                    else Colors (Themes.Background)),
                   Inner_Left, Top, Inner_Width, High);
             end if;

@@ -11,9 +11,6 @@ package Widget_Tests is
    procedure Resized;
    procedure Tree_Walk;
    procedure Toolbar;
-   procedure Toolbar_Assist;
-   --  The button at the right of the toolbar: off until allowed and while the
-   --  text is blank, its click an Assist event, left out when it is not wanted.
    procedure Toolbar_Tools;
    procedure Toolbar_Editing;
    procedure Toolbar_Fonts;
