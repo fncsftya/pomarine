@@ -55,20 +55,12 @@ package body Pomarine.Widgets.Selects is
       if To /= Item.Enabled then
          Item.Enabled := To;
          Item.Down := False;
-         Item.Clicked := False;
          Changed_Look (Item);
       end if;
    end Set_Enabled;
 
    function Is_Enabled (Item : Select_Field) return Boolean is
      (Item.Enabled);
-
-   procedure Take_Click (Item : in out Select_Field; Clicked : out Boolean)
-   is
-   begin
-      Clicked := Item.Clicked;
-      Item.Clicked := False;
-   end Take_Click;
 
    overriding procedure Handle
      (Item    : in out Select_Field;
@@ -93,7 +85,6 @@ package body Pomarine.Widgets.Selects is
          when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
-               Item.Clicked := Over;
                if Over then
                   Notify (Item, Click);
                end if;
@@ -206,7 +197,6 @@ package body Pomarine.Widgets.Selects is
    begin
       Done := False;
       if Request.Doing = Semantics.Click and then Item.Enabled then
-         Item.Clicked := True;
          Notify (Item, Click);
          Invalidate (Item);
          Done := True;

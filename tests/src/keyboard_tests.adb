@@ -2,6 +2,7 @@ with Ada.Strings.Fixed;
 with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with Goldens;
+with Hearers;
 with Pomarine.Semantics;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Checks;
@@ -29,11 +30,13 @@ package body Keyboard_Tests is
       Wrap   : aliased Widgets.Checks.Check;
       Power  : aliased Widgets.Switches.Switch;
       Volume : aliased Widgets.Sliders.Slider;
+      Ears   : aliased Hearers.Hearer;
    end record;
 
    procedure Open (Item : in out Fixture) is
    begin
       Renderers.Create_Offscreen (Item.Target, 400, 50);
+      Widgets.Set_Listener (Item.Tree, Item.Ears'Unchecked_Access);
       Widgets.Set_Root (Item.Tree, Item.Root);
       Widgets.Add (Item.Root, Item.Save, Item.Skip, Item.Wrap, Item.Power, Item.Volume);
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Root), Yoga.Row);
@@ -132,7 +135,7 @@ package body Keyboard_Tests is
       declare
          Clicked : Boolean;
       begin
-         Widgets.Buttons.Take_Click (Item.Save, Clicked);
+         Hearers.Take (Item.Ears, Item.Save, Widgets.Click, Clicked);
          Goldens.Check_Text ("keyboard-button", "TRUE", Clicked'Image);
       end;
    end Operating_Widgets;
@@ -171,7 +174,7 @@ package body Keyboard_Tests is
       declare
          Clicked : Boolean;
       begin
-         Widgets.Buttons.Take_Click (Item.Save, Clicked);
+         Hearers.Take (Item.Ears, Item.Save, Widgets.Click, Clicked);
          Goldens.Check_Text
            ("keyboard-click-keeps-focus", "TRUE wrap", Clicked'Image & " " & Who (Item));
       end;
@@ -187,11 +190,13 @@ package body Keyboard_Tests is
       Root    : aliased Widgets.Panels.Panel;
       Card    : aliased Widgets.Grips.Grip;
       Plain   : aliased Widgets.Grips.Grip;
+      Ears    : aliased Hearers.Hearer;
       Clicked : Boolean;
       Handled : Boolean;
       Done    : Boolean;
    begin
       Renderers.Create_Offscreen (Target, 200, 50);
+      Widgets.Set_Listener (Tree, Ears'Unchecked_Access);
       Widgets.Set_Root (Tree, Root);
       Widgets.Add (Root, Plain, Card);
       Nodes.Set_Flex_Direction (Widgets.Node (Root), Yoga.Row);
@@ -209,13 +214,13 @@ package body Keyboard_Tests is
       Goldens.Check_Text
         ("grip-tab", "TRUE", Widgets.Has_Focus (Card)'Image);
       Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, others => <>), Handled);
-      Widgets.Grips.Take_Click (Card, Clicked);
+      Hearers.Take (Ears, Card, Widgets.Click, Clicked);
       Goldens.Check_Text ("grip-return-clicks", "TRUE", Clicked'Image);
       Goldens.Check_Text
         ("grip-ring", "TRUE", Widgets.Is_Focus_Visible (Card)'Image);
       --  To an assistive technology it is a button that can be pressed.
       Widgets.Act (Tree, Widgets.Id_Of (Card), (Doing => Pomarine.Semantics.Click, others => <>), Done);
-      Widgets.Grips.Take_Click (Card, Clicked);
+      Hearers.Take (Ears, Card, Widgets.Click, Clicked);
       Goldens.Check_Text ("grip-pressed", "TRUE TRUE", Done'Image & " " & Clicked'Image);
    end Grip_Keys;
 

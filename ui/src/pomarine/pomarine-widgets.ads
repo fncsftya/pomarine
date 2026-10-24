@@ -37,9 +37,9 @@ with Yoga.Nodes;
 --  a layout. Setting something to what it was damages nothing, so a
 --  frame with no damage needs no drawing. Data flows down, from the
 --  application's models to widgets' setters, and what widgets have to say
---  comes back as events: to a Listener the application gives the tree (or
---  a widget), or as plain values, taken with a procedure (as a Button's
---  Take_Click), as the application likes. See Event_Kind.
+--  comes back as events: to the handlers of a widget (see
+--  Pomarine.Widgets.Callbacks) or to a Listener the application gives the
+--  tree (or a widget). See Event_Kind.
 --
 --  A loop looks like this:
 --
@@ -68,13 +68,12 @@ package Pomarine.Widgets is
       Restore,
       Press,         --  a pin
       Release,       --  a pin, or a grip, let go (before its Click, if it says one)
-      Select_Tag,    --  a canvas's line selected (Row, its Tag; 0 for none)
-      Delete,        --  Backspace or Delete with a line selected on a canvas
       Act,           --  a button at the end of a list's row (Row, Action)
-      Blur,          --  the widget has lost the focus (only said if it has a handler)
-      Use_Tool,      --  one of an editor's tools added by the application (Row, its number)
-      Follow,        --  Command-click on a link in an editor (see Followed there)
-      Ask_Link);     --  an editor has begun to ask for a link's address (see Add_Link_Choice there)
+      Blur);         --  the widget has lost the focus (only said if it has a handler)
+   --  What many kinds of widget say. What only one kind says (a canvas's
+   --  selected line, an editor's tool or link) is its own package's, heard
+   --  with that package's Callbacks, so that this does not grow with every
+   --  new widget.
 
    No_Tag : constant Integer := -1;
 
@@ -84,9 +83,9 @@ package Pomarine.Widgets is
       Index  : Natural := 0;
       --  Which of many like it, as the application said.
       case Kind is
-         when Choose | Select_Tag | Act | Use_Tool =>
+         when Choose | Act =>
             Row : Natural := 0;
-            --  Of a menu's or a list's rows, the tag of a canvas's line, or an editor's tool.
+            --  Of a menu's or a list's rows.
             case Kind is
                when Act =>
                   Action : Natural := 0;
@@ -103,7 +102,7 @@ package Pomarine.Widgets is
       end case;
    end record;
    --  What a widget says. Only what a kind of event has to say is in it:
-   --  a Row is of a Choose and a Select_Tag, an Across and a Down of a
+   --  a Row is of a Choose and an Act, an Across and a Down of a
    --  Drag, a Move and a Resize.
 
    type Widget_Event_Array is array (Positive range <>) of Widget_Event;
@@ -284,9 +283,9 @@ package Pomarine.Widgets is
       Done    : out Boolean);
    --  Do what is asked of Part. By default none can be.
 
-   --  Hearing: events go to the widget's own listener if it has one, and
-   --  otherwise to the tree's; to none, if neither has. A widget's polled
-   --  values (as Take_Click) are kept whichever.
+   --  Hearing: events go to the widget's own handler for their kind, if it
+   --  has one; and otherwise to its own listener, if it has one, and
+   --  otherwise to the tree's; to none, if neither has.
 
    procedure Set_Listener (Item : in out Tree; To : not null access Listener'Class);
    --  Say where the events of the tree's widgets go. It must be there as
@@ -295,6 +294,29 @@ package Pomarine.Widgets is
    procedure Set_Listener (Item : in out Widget'Class; To : access Listener'Class);
    --  Where this widget's events go, rather than to the tree's; null for
    --  the tree's again.
+
+   type Plain_Handler is access procedure
+     (Source : in out Widget'Class;
+      Event  : Widget_Event);
+
+   procedure Set_Handler
+     (Item    : in out Widget'Class;
+      Kind    : Event_Kind;
+      Do_This : not null Plain_Handler);
+   --  When Item says Kind, call Do_This, in place of its listener. For a
+   --  handler that needs nothing of its own but the widget (and its Tag
+   --  and Index, which Event has): a library-level procedure. One that
+   --  works on an object of the application's has Pomarine.Widgets.Callbacks,
+   --  which needs a package for each kind of object. Replaces a handler for
+   --  that kind.
+
+   procedure On_Click
+     (Item    : in out Widget'Class;
+      Do_This : not null Plain_Handler);
+   --  As Set_Handler (Item, Click, Do_This).
+
+   procedure Clear_Handler (Item : in out Widget'Class; Kind : Event_Kind);
+   --  Back to the listener for Kind.
 
    procedure Set_Tag (Item : in out Widget'Class; Tag : Integer; Index : Natural := 0);
    --  Say what the widget is for, and which of many it is: as it comes
@@ -337,6 +359,33 @@ package Pomarine.Widgets is
    --  For a kind of widget to say that it has been clicked, and so on. It
    --  is kept, to be delivered, if the widget is in a tree that has
    --  somewhere to deliver it.
+
+   type Posted_Runner is access procedure
+     (Self, Proc : System.Address;
+      Source     : in out Widget'Class;
+      Code, Value : Natural);
+   --  What a kind of widget has made to call the handler the application
+   --  gave it (see Post): Proc is the handler, called with Self, which
+   --  only the package that made the runner knows how to use.
+
+   type Posted_Hook is record
+      Run  : Posted_Runner;
+      Self : System.Address := System.Null_Address;
+      Proc : System.Address := System.Null_Address;
+   end record;
+   --  A handler for what only this kind of widget says, kept in the widget
+   --  (see Pomarine.Widgets.Editors.Callbacks): none if Run is null.
+
+   procedure Post
+     (Item  : in out Widget'Class;
+      Using : Posted_Hook;
+      Code  : Natural := 0;
+      Value : Natural := 0);
+   --  For a kind of widget to say what only it says, as Notify does what
+   --  many say: Using is called, with Code and Value as the widget likes,
+   --  after the event or the time that caused it, in the order of the
+   --  events Notify keeps. Nothing is kept if Using has no handler, or the
+   --  widget is not in a tree.
 
    procedure Deliver (Item : in out Tree);
    --  Give the listeners the events kept, as Dispatch and Update do when
@@ -983,6 +1032,10 @@ private
       Source : Node_Id;
       Target : Listener_Access;
       Event  : Widget_Event;
+      Posted : Posted_Hook;
+      --  If it has a handler, this is what a widget has posted, and Event
+      --  is not.
+      Code, Value : Natural := 0;
    end record;
 
    type Event_Queue is array (1 .. Queue_Capacity) of Queued_Event;

@@ -85,14 +85,9 @@ package Pomarine.Widgets.Canvases is
 
    procedure Set_Selected (Item : in out Canvas; Tag : Natural);
 
-   procedure Take_Selection
-     (Item : in out Canvas; Changed : out Boolean; Tag : out Natural);
-   --  Say whether a press or Escape has changed which line is selected
-   --  since this was last called, and which it is now, and forget it.
-
-   procedure Take_Delete (Item : in out Canvas; Asked : out Boolean);
-   --  Say whether Backspace or Delete was pressed while a line was
-   --  selected since this was last called, and forget it.
+   --  What the canvas says of a line selected by a press or Escape, and of
+   --  Backspace or Delete with one selected, is heard with
+   --  Pomarine.Widgets.Canvases.Callbacks.
 
    procedure Set_Ghost
      (Item : in out Canvas; From_X, From_Y : Float; To_X, To_Y : Float);
@@ -144,8 +139,8 @@ private
       --  Where the pointer was, in points, while it pans.
       Lines      : Line_Vectors.Vector;
       Chosen     : Natural := 0;
-      Chosen_Changed : Boolean := False;
-      Delete_Asked   : Boolean := False;
+      Select_Hook : Posted_Hook;
+      Delete_Hook : Posted_Hook;
       Ghosted    : Boolean := False;
       Ghost_From : Line;
       --  The ghost: From_X, From_Y are in canvas units, To_X, To_Y in

@@ -437,48 +437,6 @@ package body Pomarine.Widgets.Frames is
       end case;
    end Handle_Event;
 
-   procedure Take_Move (Item : in out Frame; Across, Down : out Float) is
-      Area_Across, Area_Down : Float := 0.0;
-   begin
-      Grips.Take_Drag (Item.Title_Bar, Across, Down);
-      if Item.Editable then
-         Grips.Take_Drag (Item.Title_Area, Area_Across, Area_Down);
-      end if;
-      Across := Across + Area_Across;
-      Down := Down + Area_Down;
-   end Take_Move;
-
-   procedure Take_Size (Item : in out Frame; Across, Down : out Float) is
-   begin
-      Grips.Take_Drag (Item.Corner, Across, Down);
-   end Take_Size;
-
-   procedure Take_Close (Item : in out Frame; Clicked : out Boolean) is
-      Docked : Boolean := False;
-   begin
-      Buttons.Take_Click (Item.Close_Button, Clicked);
-      if Item.Docked then
-         Buttons.Take_Click (Item.Mini_Close, Docked);
-      end if;
-      Clicked := Clicked or else Docked;
-   end Take_Close;
-
-   procedure Take_Minimize (Item : in out Frame; Clicked : out Boolean) is
-   begin
-      Clicked := False;
-      if Item.Docked then
-         Buttons.Take_Click (Item.Minimize_Button, Clicked);
-      end if;
-   end Take_Minimize;
-
-   procedure Take_Restore (Item : in out Frame; Clicked : out Boolean) is
-   begin
-      Clicked := False;
-      if Item.Docked then
-         Grips.Take_Click (Item.Mini_Area, Clicked);
-      end if;
-   end Take_Restore;
-
    procedure Attach_Title
      (Item : in out Frame; Doc : not null Texts.Documents.Document_Access) is
    begin
@@ -527,19 +485,5 @@ package body Pomarine.Widgets.Frames is
          Set_Visible (Item.Title_Field, False);
       end if;
    end Reset_Title_Edit;
-
-   procedure Take_Title_Double_Click
-     (Item : in out Frame; Doubled : out Boolean) is
-   begin
-      Doubled := False;
-      if Item.Editable then
-         Grips.Take_Double_Click (Item.Title_Area, Doubled);
-      end if;
-   end Take_Title_Double_Click;
-
-   procedure Take_Title_Return (Item : in out Frame; Entered : out Boolean) is
-   begin
-      Text_Fields.Take_Return (Item.Title_Field, Entered);
-   end Take_Title_Return;
 
 end Pomarine.Widgets.Frames;

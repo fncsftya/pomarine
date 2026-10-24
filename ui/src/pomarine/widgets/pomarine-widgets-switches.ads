@@ -29,10 +29,6 @@ package Pomarine.Widgets.Switches is
 
    function Is_Enabled (Item : Switch) return Boolean;
 
-   procedure Take_Change (Item : in out Switch; Changed : out Boolean);
-   --  Say whether it has been turned over by a click since this was last
-   --  called, and forget it.
-
    Track_Width  : constant Float := 32.0;
    Track_Height : constant Float := 16.0;
    --  In points.
@@ -89,7 +85,7 @@ private
       On      : Boolean := False;
       Enabled : Boolean := True;
       Down    : Boolean := False;
-      Changed : Boolean := False;
+
       By_Command : Boolean := False;
       Focusable : Boolean := False;
    end record;

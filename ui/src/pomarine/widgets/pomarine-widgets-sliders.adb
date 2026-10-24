@@ -43,12 +43,6 @@ package body Pomarine.Widgets.Sliders is
       end if;
    end Set_Value;
 
-   procedure Take_Change (Item : in out Slider; Changed : out Boolean) is
-   begin
-      Changed := Item.Moved;
-      Item.Moved := False;
-   end Take_Change;
-
    function Is_Dragging (Item : Slider) return Boolean is (Item.Held);
 
    procedure Move_To (Item : in out Slider; X : Float);
@@ -59,7 +53,6 @@ package body Pomarine.Widgets.Sliders is
    begin
       if To /= Item.Fraction then
          Item.Fraction := To;
-         Item.Moved := True;
          Notify (Item, Change);
          Invalidate (Item);
       end if;
@@ -202,7 +195,6 @@ package body Pomarine.Widgets.Sliders is
          To := Float'Max (0.0, Float'Min (1.0, To));
          if To /= Item.Fraction then
             Item.Fraction := To;
-            Item.Moved := True;
             Notify (Item, Change);
             Invalidate (Item);
          end if;

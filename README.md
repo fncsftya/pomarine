@@ -83,9 +83,8 @@ from too. Give a widget a command with `Commands.Bind (Widget, What, Index)`
 and take it back with `Commands.What (Event)`; `Event.Index` says which of
 many it was.
 
-A widget's `Take_...` (`Buttons.Take_Click` and the like) says the same, to be
-asked for rather than told; the handlers below are the way to use, and bonxie
-uses nothing else.
+There is one way to hear a widget: a handler, below, or the listener when it
+has none. A widget does not keep what it said to be asked for later.
 
 ### What a widget is, and what it is now
 
@@ -108,6 +107,15 @@ package Mixer_Callbacks is new Pomarine.Widgets.Callbacks (Mixer);
 Mixer_Callbacks.On (Volume, Change, Mixer'Access, Louder'Access);
 ```
 
+When the handler needs nothing but the widget (and its `Tag` and `Index`, which
+the event has), a library-level procedure does, with no package to make:
+
+```ada
+Widgets.On_Click (Quit, Quit_Clicked'Access);
+Widgets.Set_Handler (Volume, Widgets.Change, Volume_Changed'Access);
+Widgets.Clear_Handler (Volume, Widgets.Change);
+```
+
 A widget that has a handler for a kind of event does not say it to the listener
 as well. An event carries only what its kind has to say: a `Row` of a `Choose`,
 an `Across` and a `Down` of a `Drag`, a `Row` and an `Action` of an `Act`.
@@ -116,6 +124,25 @@ or a grip: the end of a drag, said before its click), `Submit` (Return in a
 field) and `Blur` (the widget lost the focus, said only to a handler of its own).
 A frame says what its parts do with `Frames.Handlers`, and a `Blur` is of its
 title's field.
+
+What only one kind of widget says is not in `Event_Kind`, which would grow with
+every new widget, but is heard with a `Callbacks` of that widget's package, whose
+handlers are given what the event says as parameters:
+
+```ada
+package Board_Callbacks is new Pomarine.Widgets.Canvases.Callbacks (Board);
+Board_Callbacks.On_Select (View, Board'Access, Line_Selected'Access);  --  Tag
+Board_Callbacks.On_Delete (View, Board'Access, Line_Deleted'Access);
+
+package Page_Callbacks is new Pomarine.Widgets.Editors.Callbacks (Page);
+Page_Callbacks.On_Tool (Text, Page'Access, Tool_Used'Access);          --  its number
+Page_Callbacks.On_Follow (Text, Page'Access, Link_Followed'Access);
+Page_Callbacks.On_Ask_Link (Text, Page'Access, Link_Asked'Access);
+```
+
+A new kind of widget does the same with `Posted_Hook` and `Post`: it keeps the
+handler the application gave it, and says what it has to through the same queue
+as the other events, so it is heard after the event that caused it too.
 
 ### Commands, keys and menus
 

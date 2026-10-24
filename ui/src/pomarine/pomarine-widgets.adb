@@ -483,6 +483,44 @@ package body Pomarine.Widgets is
       end if;
    end Clear_Hook;
 
+   function To_Plain is new Ada.Unchecked_Conversion (System.Address, Plain_Handler);
+   function To_Address is new Ada.Unchecked_Conversion (Plain_Handler, System.Address);
+
+   procedure Run_Plain
+     (Self, Proc : System.Address;
+      Source     : in out Widget'Class;
+      Event      : Widget_Event);
+
+   procedure Run_Plain
+     (Self, Proc : System.Address;
+      Source     : in out Widget'Class;
+      Event      : Widget_Event)
+   is
+      pragma Unreferenced (Self);
+   begin
+      To_Plain (Proc) (Source, Event);
+   end Run_Plain;
+
+   procedure Set_Handler
+     (Item    : in out Widget'Class;
+      Kind    : Event_Kind;
+      Do_This : not null Plain_Handler) is
+   begin
+      Set_Hook (Item, Kind, Run_Plain'Access, System.Null_Address, To_Address (Do_This));
+   end Set_Handler;
+
+   procedure On_Click
+     (Item    : in out Widget'Class;
+      Do_This : not null Plain_Handler) is
+   begin
+      Set_Handler (Item, Click, Do_This);
+   end On_Click;
+
+   procedure Clear_Handler (Item : in out Widget'Class; Kind : Event_Kind) is
+   begin
+      Clear_Hook (Item, Kind);
+   end Clear_Handler;
+
    function Has_Hook (Item : Widget'Class; Kind : Event_Kind) return Boolean is
      (Item.Cold /= 0 and then Block (Item.Cold).all.Hooks (Kind).Used);
 
@@ -515,9 +553,11 @@ package body Pomarine.Widgets is
             Item.Queued := Item.Queued - 1;
             --  Taken out of the tree since it spoke: nobody to answer.
             From := Resolve (Item, Next.Source);
-            if From /= null and then not Run_Hooks (From.all, Next.Event)
-              and then Next.Target /= null
-            then
+            if From = null then
+               null;
+            elsif Next.Posted.Run /= null then
+               Next.Posted.Run (Next.Posted.Self, Next.Posted.Proc, From.all, Next.Code, Next.Value);
+            elsif not Run_Hooks (From.all, Next.Event) and then Next.Target /= null then
                Handle_Event (Next.Target.all, From.all, Next.Event);
             end if;
          end;
@@ -542,7 +582,7 @@ package body Pomarine.Widgets is
       Result.Tag := Tag;
       Result.Index := Index;
       case Kind is
-         when Choose | Select_Tag | Use_Tool =>
+         when Choose =>
             Result.Row := Row;
          when Act =>
             Result.Row := Row;
@@ -583,10 +623,38 @@ package body Pomarine.Widgets is
          Home.Queue ((Home.Queue_First + Home.Queued - 1) mod Queue_Capacity + 1) :=
            (Source => Id_Of (Item),
             Target => Target,
-            Event  => Made_Event (Kind, Item.Tag, Item.Index, Row, Across, Down, Action));
+            Event  => Made_Event (Kind, Item.Tag, Item.Index, Row, Across, Down, Action),
+            Posted => <>,
+            Code   => 0,
+            Value  => 0);
          Home.Queued := Home.Queued + 1;
       end;
    end Notify;
+
+   procedure Post
+     (Item  : in out Widget'Class;
+      Using : Posted_Hook;
+      Code  : Natural := 0;
+      Value : Natural := 0)
+   is
+      Home : constant Tree_Access := Item.Owner;
+   begin
+      if Home = null or else Using.Run = null then
+         return;
+      end if;
+      if Home.Queued = Queue_Capacity and then not Home.Delivering then
+         Deliver (Home.all);
+      end if;
+      pragma Assert (Home.Queued < Queue_Capacity, "more events than the tree can keep");
+      Home.Queue ((Home.Queue_First + Home.Queued - 1) mod Queue_Capacity + 1) :=
+        (Source => Id_Of (Item),
+         Target => null,
+         Event  => Made_Event (Click, Item.Tag, Item.Index, 0, 0.0, 0.0, 0),
+         Posted => Using,
+         Code   => Code,
+         Value  => Value);
+      Home.Queued := Home.Queued + 1;
+   end Post;
 
    procedure Take_Slot
      (Home : in out Tree; Item : in out Widget'Class; Slot : out Node_Index)
@@ -1318,7 +1386,10 @@ package body Pomarine.Widgets is
          Item.Queue ((Item.Queue_First + Item.Queued - 1) mod Queue_Capacity + 1) :=
            (Source => Id_Of_Slot (Item, Item.Root),
             Target => Item.Hearer,
-            Event  => Made_Event (Click, Tag, 0, 0, 0.0, 0.0, 0));
+            Event  => Made_Event (Click, Tag, 0, 0, 0.0, 0.0, 0),
+            Posted => <>,
+            Code   => 0,
+            Value  => 0);
          Item.Queued := Item.Queued + 1;
          Done := True;
       end if;

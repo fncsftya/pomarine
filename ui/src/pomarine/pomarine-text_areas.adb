@@ -326,11 +326,10 @@ package body Pomarine.Text_Areas is
 
    function Return_Pending (Item : Text_Area) return Boolean is (Item.Returned);
 
-   procedure Take_Return (Item : in out Text_Area; Pressed : out Boolean) is
+   procedure Clear_Return (Item : in out Text_Area) is
    begin
-      Pressed := Item.Returned;
       Item.Returned := False;
-   end Take_Return;
+   end Clear_Return;
 
    procedure Attach (Item : in out Text_Area; Doc : not null Document_Access)
    is

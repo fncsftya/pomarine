@@ -18,9 +18,4 @@ package body Pomarine.Widgets.Text_Fields is
       Text_Areas.Set_Single_Line (Text_Area_Of (Item).all);
    end Configure;
 
-   procedure Take_Return (Item : in out Text_Field; Pressed : out Boolean) is
-   begin
-      Text_Areas.Take_Return (Text_Area_Of (Item).all, Pressed);
-   end Take_Return;
-
 end Pomarine.Widgets.Text_Fields;

@@ -15,8 +15,8 @@ with Pomarine.Icons;
 --  primary or danger colour, as of what it does.
 --
 --  The row under the pointer, of those that can be clicked, is shaded.
---  A click on one is the application's to take (Take_Choice), as a
---  button's; it says back how the rows are to be, as by ticking one.
+--  A click on one is a Choose event with its Row, as a
+--  button's is a Click; the application says back how the rows are to be, as by ticking one.
 --
 --  It is as tall as its rows (and sets its own node's height, so), and as
 --  wide as the application makes it. The application shows it, over what
@@ -99,10 +99,6 @@ package Pomarine.Widgets.Menus is
    function Hovered_Row (Item : Menu) return Natural;
    --  The row that can be clicked under the pointer; 0 if none.
 
-   procedure Take_Choice (Item : in out Menu; Chosen : out Natural);
-   --  The row clicked since this was last called, 0 if none, and forget
-   --  it.
-
    overriding procedure Handle
      (Item    : in out Menu;
       Event   : Pomarine.Events.Event;
@@ -159,7 +155,7 @@ private
       Over    : Natural := 0;
       --  The row that can be clicked under the pointer.
       Pressed : Natural := 0;
-      Chosen  : Natural := 0;
+
       Max_High : Float := 0.0;
       --  The most height, in points; 0.0 for none.
       Scrolled : Float := 0.0;

@@ -51,7 +51,7 @@ package Pomarine.Text_Areas is
      with Pre => Is_Configured (Item);
    --  Make it a field for one line: the text is not wrapped, but scrolls
    --  across to keep the caret in view; the padding is less; Return
-   --  does not break the paragraph, but is kept for Take_Return; line
+   --  does not break the paragraph, but is kept for Return_Pending; line
    --  feeds typed or pasted become spaces. Use Measure enough for the
    --  longest line wanted. Do it before the text area is placed.
 
@@ -96,12 +96,11 @@ package Pomarine.Text_Areas is
    --  last placed at, in points: every paragraph is laid out.
 
    function Return_Pending (Item : Text_Area) return Boolean;
-   --  Whether Return has been pressed in it, as one line, and not yet
-   --  taken: Take_Return takes it.
+   --  Whether Return has been pressed in it, as one line, since its
+   --  owner last looked: the Editor says Submit and clears it (Clear_Return).
 
-   procedure Take_Return (Item : in out Text_Area; Pressed : out Boolean);
-   --  Say whether Return has been pressed in it, if it is for one line,
-   --  since this was last called, and forget it.
+   procedure Clear_Return (Item : in out Text_Area);
+   --  Forget that Return was pressed.
 
    subtype Document_Access is Texts.Documents.Document_Access;
 

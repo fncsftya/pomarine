@@ -4,6 +4,8 @@
 package Command_Tests is
 
    procedure Own_Handlers;
+   procedure Plain_Handlers;
+   procedure Canvas_Handlers;
    procedure Losing_Focus;
    procedure Validated;
    procedure Keys;

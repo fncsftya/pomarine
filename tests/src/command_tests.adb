@@ -3,6 +3,7 @@ with SDL3.Windows.Renderers;
 with Goldens;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Callbacks;
+with Pomarine.Widgets.Canvases.Callbacks;
 with Pomarine.Widgets.Checks;
 with Pomarine.Widgets.Panels;
 with Yoga.Nodes;
@@ -128,6 +129,100 @@ package body Command_Tests is
       Goldens.Check_Text ("commands-handler-off", "2 listener 2",
                           Mine.Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
    end Own_Handlers;
+
+   Plain_Clicks : Natural := 0;
+
+   procedure Plain_Clicked (Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event);
+
+   procedure Plain_Clicked (Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
+      pragma Unreferenced (Source, Event);
+   begin
+      Plain_Clicks := Plain_Clicks + 1;
+   end Plain_Clicked;
+
+   procedure Plain_Handlers is
+      Item : Fixture;
+   begin
+      Plain_Clicks := 0;
+      Open (Item);
+      Widgets.On_Click (Item.First, Plain_Clicked'Access);
+      Click_At (Item, 40.0);
+      Click_At (Item, 120.0);
+      Goldens.Check_Text
+        ("commands-plain-handler", "1 listener 1",
+         Plain_Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
+
+      Widgets.Clear_Handler (Item.First, Widgets.Click);
+      Click_At (Item, 40.0);
+      Goldens.Check_Text
+        ("commands-plain-handler-off", "1 listener 2",
+         Plain_Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
+   end Plain_Handlers;
+
+   type Board is limited record
+      Selected : Integer := -1;
+      Deleted  : Natural := 0;
+   end record;
+
+   procedure Selected (Self : in out Board; Source : in out Widgets.Canvases.Canvas'Class; Tag : Natural);
+
+   procedure Selected (Self : in out Board; Source : in out Widgets.Canvases.Canvas'Class; Tag : Natural) is
+      pragma Unreferenced (Source);
+   begin
+      Self.Selected := Tag;
+   end Selected;
+
+   procedure Deleted (Self : in out Board; Source : in out Widgets.Canvases.Canvas'Class);
+
+   procedure Deleted (Self : in out Board; Source : in out Widgets.Canvases.Canvas'Class) is
+      pragma Unreferenced (Source);
+   begin
+      Self.Deleted := Self.Deleted + 1;
+   end Deleted;
+
+   package Board_Callbacks is new Widgets.Canvases.Callbacks (Board);
+
+   procedure Canvas_Handlers is
+      Tree    : Widgets.Tree;
+      Target  : Renderers.Renderer;
+      Root    : aliased Widgets.Panels.Panel;
+      View    : aliased Widgets.Canvases.Canvas;
+      Mine    : aliased Board;
+      Handled : Boolean;
+
+      procedure Press (Key : Events.Key_Code) is
+      begin
+         Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Key, others => <>), Handled);
+      end Press;
+   begin
+      Renderers.Create_Offscreen (Target, 200, 100);
+      Widgets.Set_Root (Tree, Root);
+      Widgets.Add (Root, View);
+      Widgets.Layout (Tree, Target);
+      Board_Callbacks.On_Select (View, Mine'Unchecked_Access, Selected'Access);
+      Board_Callbacks.On_Delete (View, Mine'Unchecked_Access, Deleted'Access);
+
+      --  Nothing is selected: Delete and Escape say nothing.
+      Press (Events.Key_Delete);
+      Press (Events.Key_Escape);
+      Goldens.Check_Text
+        ("commands-canvas-nothing", "-1 0", Mine.Selected'Image & Mine.Deleted'Image);
+
+      --  The application's selection is not said back; Escape gives it up, and Delete asks.
+      Widgets.Canvases.Set_Selected (View, 5);
+      Press (Events.Key_Delete);
+      Goldens.Check_Text
+        ("commands-canvas-delete", "-1 1", Mine.Selected'Image & Mine.Deleted'Image);
+      Press (Events.Key_Escape);
+      Goldens.Check_Text
+        ("commands-canvas-escape", " 0 1", Mine.Selected'Image & Mine.Deleted'Image);
+
+      Board_Callbacks.Off_Delete (View);
+      Widgets.Canvases.Set_Selected (View, 5);
+      Press (Events.Key_Delete);
+      Goldens.Check_Text
+        ("commands-canvas-delete-off", " 0 1", Mine.Selected'Image & Mine.Deleted'Image);
+   end Canvas_Handlers;
 
    procedure Losing_Focus is
       Item : Fixture;

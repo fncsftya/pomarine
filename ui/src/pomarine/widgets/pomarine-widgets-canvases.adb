@@ -223,20 +223,6 @@ package body Pomarine.Widgets.Canvases is
       end if;
    end Set_Selected;
 
-   procedure Take_Selection
-     (Item : in out Canvas; Changed : out Boolean; Tag : out Natural) is
-   begin
-      Changed := Item.Chosen_Changed;
-      Tag := Item.Chosen;
-      Item.Chosen_Changed := False;
-   end Take_Selection;
-
-   procedure Take_Delete (Item : in out Canvas; Asked : out Boolean) is
-   begin
-      Asked := Item.Delete_Asked;
-      Item.Delete_Asked := False;
-   end Take_Delete;
-
    function Line_At (Item : Canvas; X, Y : Float) return Natural;
    --  The Tag of the line within reach of the pixel X, Y, the nearest, if
    --  any; 0 if none.
@@ -499,8 +485,7 @@ package body Pomarine.Widgets.Canvases is
                begin
                   if Tag /= Item.Chosen then
                      Set_Selected (Item, Tag);
-                     Item.Chosen_Changed := True;
-                     Notify (Item, Select_Tag, Row => Tag);
+                     Post (Item, Item.Select_Hook, Value => Tag);
                   end if;
                   Handled := Tag /= 0;
                end;
@@ -536,15 +521,13 @@ package body Pomarine.Widgets.Canvases is
               and then (Event.Key = Pomarine.Events.Key_Backspace
                         or else Event.Key = Pomarine.Events.Key_Delete)
             then
-               Item.Delete_Asked := True;
-               Notify (Item, Delete);
+               Post (Item, Item.Delete_Hook);
                Handled := True;
             elsif not Event.Command and then Item.Chosen /= 0
               and then Event.Key = Pomarine.Events.Key_Escape
             then
                Set_Selected (Item, 0);
-               Item.Chosen_Changed := True;
-               Notify (Item, Select_Tag, Row => 0);
+               Post (Item, Item.Select_Hook, Value => 0);
                Handled := True;
             elsif Event.Command then
                Handled := True;

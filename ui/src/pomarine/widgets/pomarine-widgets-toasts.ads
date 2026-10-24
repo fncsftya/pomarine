@@ -22,10 +22,6 @@ package Pomarine.Widgets.Toasts is
 
    function Action (Item : Toast) return String;
 
-   procedure Take_Action (Item : in out Toast; Clicked : out Boolean);
-   --  Say whether the button has been clicked since this was last called,
-   --  and forget it.
-
    Height : constant Float := 36.0;
    --  In points, to make it, with its shadow.
 
@@ -67,7 +63,7 @@ private
       Label   : Ada.Strings.Unbounded.Unbounded_String;
       Over    : Boolean := False;  --  the pointer is over the button
       Down    : Boolean := False;  --  pressed on the button
-      Clicked : Boolean := False;
+
    end record;
 
 end Pomarine.Widgets.Toasts;

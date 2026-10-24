@@ -17,9 +17,9 @@ with Pomarine.Widgets.Text_Fields;
 --  application, which adds that where it belongs (Add_Content,
 --  Add_Status_Item, ...), styles it, and says where the window is (Place).
 --  It keeps nothing of what the window is for: it says how far the title
---  bar and the corner have been dragged, and which buttons were clicked, as
---  a button says it was (Take_Close), and the application moves and sizes
---  the window.
+--  bar and the corner have been dragged (Move, Resize), and which buttons
+--  were clicked (Close, Minimize, Restore), as events, and the application
+--  moves and sizes the window.
 package Pomarine.Widgets.Frames is
 
    --  In points
@@ -146,28 +146,11 @@ package Pomarine.Widgets.Frames is
 
    function Is_Hovered (Item : Frame) return Boolean;
 
-   --  Taking what was done
-
+   --  How it is being used
    function Is_Dragging (Item : Frame) return Boolean;
    --  Whether the window is being moved or sized.
 
    function Is_Sizing (Item : Frame) return Boolean;
-
-   procedure Take_Move (Item : in out Frame; Across, Down : out Float);
-   --  How far the title bar has been dragged, in points to the right and
-   --  down, since this was last called.
-
-   procedure Take_Size (Item : in out Frame; Across, Down : out Float);
-   --  How far the corner has been.
-
-   procedure Take_Close (Item : in out Frame; Clicked : out Boolean);
-   --  Whether the button to close it, in the window or the bar in the
-   --  dock, was clicked.
-
-   procedure Take_Minimize (Item : in out Frame; Clicked : out Boolean);
-
-   procedure Take_Restore (Item : in out Frame; Clicked : out Boolean);
-   --  Whether the bar in the dock was clicked, to bring the window back.
 
    --  The title, edited in place
 
@@ -196,12 +179,6 @@ package Pomarine.Widgets.Frames is
    procedure Reset_Title_Edit (Item : in out Frame);
    --  As End_Title_Edit, but nothing is shown of the title: for when the
    --  window is given another.
-
-   procedure Take_Title_Double_Click
-     (Item : in out Frame; Doubled : out Boolean);
-
-   procedure Take_Title_Return (Item : in out Frame; Entered : out Boolean);
-   --  Whether Return was pressed in the field.
 
 private
 

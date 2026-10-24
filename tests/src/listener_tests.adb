@@ -74,7 +74,7 @@ package body Listener_Tests is
          Add (Widgets.Event_Kind'Image (Item.Seen (K).Kind)
               & " tag" & Image (Item.Seen (K).Tag)
               & " index" & Image (Item.Seen (K).Index)
-              & (if Item.Seen (K).Kind in Widgets.Choose | Widgets.Select_Tag
+              & (if Item.Seen (K).Kind in Widgets.Choose
                       and then Item.Seen (K).Row > 0
                  then " row" & Image (Item.Seen (K).Row) else "")
               & "; ");
@@ -164,8 +164,7 @@ package body Listener_Tests is
    --  The tests
 
    procedure Click is
-      Item    : Fixture;
-      Clicked : Boolean;
+      Item : Fixture;
    begin
       Open (Item);
       Widgets.Set_Tag (Item.First, 7, Index => 3);
@@ -174,8 +173,6 @@ package body Listener_Tests is
       Goldens.Check_Text ("listener-nothing-before-release", "", Heard (Item.Ears));
       Release (Item, Middle_X (Item.First), Middle_Y (Item.First));
       Goldens.Check_Text ("listener-click", "CLICK tag7 index3; ", Heard (Item.Ears));
-      Buttons.Take_Click (Item.First, Clicked);
-      Goldens.Check_Text ("listener-click-still-polled", "TRUE", Boolean'Image (Clicked));
 
       --  Let go elsewhere: no click, and nothing said.
       Item.Ears.Count := 0;

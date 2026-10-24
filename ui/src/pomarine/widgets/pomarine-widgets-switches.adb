@@ -53,12 +53,6 @@ package body Pomarine.Widgets.Switches is
 
    function Is_Enabled (Item : Switch) return Boolean is (Item.Enabled);
 
-   procedure Take_Change (Item : in out Switch; Changed : out Boolean) is
-   begin
-      Changed := Item.Changed;
-      Item.Changed := False;
-   end Take_Change;
-
    overriding procedure Handle
      (Item    : in out Switch;
       Event   : Pomarine.Events.Event;
@@ -84,7 +78,6 @@ package body Pomarine.Widgets.Switches is
                Item.Down := False;
                if Over then
                   Item.On := not Item.On;
-                  Item.Changed := True;
                   Notify (Item, Change);
                end if;
                Handled := True;
@@ -232,7 +225,6 @@ package body Pomarine.Widgets.Switches is
       Done := False;
       if Request.Doing = Semantics.Click and then Item.Enabled then
          Item.On := not Item.On;
-         Item.Changed := True;
          Notify (Item, Change);
          Invalidate (Item);
          Done := True;

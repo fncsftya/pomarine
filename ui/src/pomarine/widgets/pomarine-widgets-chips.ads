@@ -18,10 +18,6 @@ package Pomarine.Widgets.Chips is
    procedure Set_Swatch (Item : in out Chip; To : Themes.Slot);
    --  Show a square of the colour before the label.
 
-   procedure Take_Close (Item : in out Chip; Closed : out Boolean);
-   --  Say whether its cross has been clicked since this was last called,
-   --  and forget it.
-
    overriding procedure Handle
      (Item    : in out Chip;
       Event   : Pomarine.Events.Event;
@@ -61,7 +57,7 @@ private
       Swatch   : Themes.Slot := Themes.Primary;
       Down     : Boolean := False;  --  pressed on the cross
       Over     : Boolean := False;  --  the pointer is over the cross
-      Closed   : Boolean := False;
+
    end record;
 
 end Pomarine.Widgets.Chips;

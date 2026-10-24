@@ -120,8 +120,6 @@ procedure UI_Bench is
 
    Handled : Boolean;
    Start   : Time;
-   Clicked : Boolean;
-   Seen    : Natural := 0;
 begin
    SDL3.Initialize;
    SDL3.Windows.Create (Win, "bench", 1000, 800, High_Density => True, Hidden => True);
@@ -162,23 +160,6 @@ begin
       Widgets.Dispatch (Tree, Over (1 + K mod 2), Handled);
    end loop;
    Report ("pointer between two buttons (no paint)", Micros_Of (Clock - Start, Rounds * 100));
-
-   Start := Clock;
-   for K in 1 .. Rounds * 100 loop
-      Widgets.Dispatch (Tree, Over (3), Handled);
-      Widgets.Dispatch (Tree, Press (3, Events.Mouse_Down), Handled);
-      Widgets.Dispatch (Tree, Press (3, Events.Mouse_Up), Handled);
-      for P of Pushes loop
-         Buttons.Take_Click (P, Clicked);
-         if Clicked then
-            Seen := Seen + 1;
-         end if;
-      end loop;
-   end loop;
-   Report ("move, press, release, ask every button", Micros_Of (Clock - Start, Rounds * 100));
-   if Seen /= Rounds * 100 then
-      Put_Line ("  clicks counted:" & Seen'Image & " (expected" & Natural'Image (Rounds * 100) & ")");
-   end if;
 
    Widgets.Set_Listener (Tree, Hearer'Unchecked_Access);
    Start := Clock;

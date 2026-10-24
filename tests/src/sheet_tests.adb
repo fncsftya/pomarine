@@ -2,6 +2,7 @@ with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Goldens;
+with Hearers;
 with Test_Icons;
 with Pomarine.Clipboards;
 with Pomarine.Icons;
@@ -59,6 +60,7 @@ package body Sheet_Tests is
       Icons  : aliased Pomarine.Icons.Library;
       Board  : Pomarine.Clipboards.Memory_Clipboard;
       Root   : aliased Panels.Panel;
+      Ears   : aliased Hearers.Hearer;
       --  after Target
    end record;
 
@@ -69,6 +71,7 @@ package body Sheet_Tests is
          Positive (Float (Wide) * Density), Positive (Float (High) * Density));
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
+      Widgets.Set_Listener (Item.Tree, Item.Ears'Unchecked_Access);
       Widgets.Set_Line_Texts (Item.Tree, Item.Lines);
       Test_Icons.Install (Item.Icons);
       Widgets.Set_Icons (Item.Tree, Item.Icons);
@@ -466,21 +469,21 @@ package body Sheet_Tests is
 
       --  A button turned off takes no click.
       Click_On (Tree, Item.Kinds (4));
-      Buttons.Take_Click (Item.Kinds (4), Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Kinds (4), Widgets.Click, Clicked);
       Check_Flag ("sheet-disabled-click", False, Clicked);
       Click_On (Tree, Item.Kinds (1));
-      Buttons.Take_Click (Item.Kinds (1), Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Kinds (1), Widgets.Click, Clicked);
       Check_Flag ("sheet-enabled-click", True, Clicked);
 
       --  A button that can have the focus (by Tab) is clicked by Return
       --  and Space, but not by keys while it does not have it. Clicking it
       --  does not give it the focus.
       Send (Tree, Key (Events.Key_Return));
-      Buttons.Take_Click (Item.Kinds (2), Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Kinds (2), Widgets.Click, Clicked);
       Check_Flag ("sheet-key-unfocused", False, Clicked);
       Buttons.Set_Focusable (Item.Kinds (2), True);
       Click_On (Tree, Item.Kinds (2));
-      Buttons.Take_Click (Item.Kinds (2), Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Kinds (2), Widgets.Click, Clicked);
       Check_Flag ("sheet-focus-click", True, Clicked);
       Check_Flag ("sheet-focus-not-taken-by-click", False,
                   Widgets.Has_Focus (Item.Kinds (2)));
@@ -488,10 +491,10 @@ package body Sheet_Tests is
       Check_Flag ("sheet-focus-taken", True,
                   Widgets.Has_Focus (Item.Kinds (2)));
       Send (Tree, Key (Events.Key_Return));
-      Buttons.Take_Click (Item.Kinds (2), Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Kinds (2), Widgets.Click, Clicked);
       Check_Flag ("sheet-key-return", True, Clicked);
       Send (Tree, Key (Events.Key_Space));
-      Buttons.Take_Click (Item.Kinds (2), Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Kinds (2), Widgets.Click, Clicked);
       Check_Flag ("sheet-key-space", True, Clicked);
       Buttons.Set_Enabled (Item.Kinds (2), False);
       Check_Flag ("sheet-focus-lost", False,
@@ -499,7 +502,7 @@ package body Sheet_Tests is
 
       --  A box turns over; a radio is only chosen; one turned off stays.
       Click_On (Tree, Item.Boxes (1));
-      Checks.Take_Change (Item.Boxes (1), Changed);
+      Hearers.Take (Item.Common.Ears, Item.Boxes (1), Widgets.Change, Changed);
       Check_Flag ("sheet-box-changed", True, Changed);
       Check_Flag ("sheet-box-ticked", True,
                   Checks.Is_Checked (Item.Boxes (1)));
@@ -507,36 +510,36 @@ package body Sheet_Tests is
       Check_Flag ("sheet-box-unticked", False,
                   Checks.Is_Checked (Item.Boxes (2)));
       Click_On (Tree, Item.Boxes (3));
-      Checks.Take_Change (Item.Boxes (3), Changed);
+      Hearers.Take (Item.Common.Ears, Item.Boxes (3), Widgets.Change, Changed);
       Check_Flag ("sheet-box-disabled", False, Changed);
       Click_On (Tree, Item.Boxes (4));
-      Checks.Take_Change (Item.Boxes (4), Changed);
+      Hearers.Take (Item.Common.Ears, Item.Boxes (4), Widgets.Change, Changed);
       Check_Flag ("sheet-radio-stays", False, Changed);
       Click_On (Tree, Item.Boxes (5));
-      Checks.Take_Change (Item.Boxes (5), Changed);
+      Hearers.Take (Item.Common.Ears, Item.Boxes (5), Widgets.Change, Changed);
       Check_Flag ("sheet-radio-chosen", True,
                   Changed and then Checks.Is_Checked (Item.Boxes (5)));
 
       --  A switch turns over.
       Click_On (Tree, Item.Flips);
-      Pomarine.Widgets.Switches.Take_Change (Item.Flips, Changed);
+      Hearers.Take (Item.Common.Ears, Item.Flips, Widgets.Change, Changed);
       Check_Flag ("sheet-switch", True,
                   Changed and then Pomarine.Widgets.Switches.Is_On (Item.Flips));
 
       --  A select field is clicked, as a button is.
       Click_On (Tree, Item.Choice);
-      Pomarine.Widgets.Selects.Take_Click (Item.Choice, Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Choice, Widgets.Click, Clicked);
       Check_Flag ("sheet-select", True, Clicked);
 
       --  A menu's rows: a heading and a line are not to choose.
       Click (Tree, Middle_X (Item.Drop_Menu),
              Widgets.Top_Of (Item.Drop_Menu) / Density + 10.0);
-      Menus.Take_Choice (Item.Drop_Menu, Chosen);
+      Hearers.Take_Row (Item.Common.Ears, Item.Drop_Menu, Widgets.Choose, Chosen);
       Goldens.Check_Text ("sheet-menu-heading", "0", Chosen'Image (2 .. 2));
       Click (Tree, Middle_X (Item.Drop_Menu),
              Widgets.Top_Of (Item.Drop_Menu) / Density + 4.0 + 24.0 + 26.0
              + 13.0);
-      Menus.Take_Choice (Item.Drop_Menu, Chosen);
+      Hearers.Take_Row (Item.Common.Ears, Item.Drop_Menu, Widgets.Choose, Chosen);
       Goldens.Check_Text ("sheet-menu-check", "3", Chosen'Image (2 .. 2));
       Goldens.Check_Text
         ("sheet-menu-height", "122",
@@ -547,16 +550,16 @@ package body Sheet_Tests is
              (Widgets.Left_Of (Item.Chip_A) + Widgets.Width_Of (Item.Chip_A))
              / Density - 10.0,
              Middle_Y (Item.Chip_A));
-      Pomarine.Widgets.Chips.Take_Close (Item.Chip_A, Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Chip_A, Widgets.Close, Clicked);
       Check_Flag ("sheet-chip-close", True, Clicked);
       Click_On (Tree, Item.Chip_B);
-      Pomarine.Widgets.Chips.Take_Close (Item.Chip_B, Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Chip_B, Widgets.Close, Clicked);
       Check_Flag ("sheet-chip-label", False, Clicked);
       Click (Tree,
              (Widgets.Left_Of (Item.Toast) + Widgets.Width_Of (Item.Toast))
              / Density - 24.0,
              Middle_Y (Item.Toast) - 1.0);
-      Pomarine.Widgets.Toasts.Take_Action (Item.Toast, Clicked);
+      Hearers.Take (Item.Common.Ears, Item.Toast, Widgets.Click, Clicked);
       Check_Flag ("sheet-toast-action", True, Clicked);
 
       --  The arrows of a scroll bar scroll a step.

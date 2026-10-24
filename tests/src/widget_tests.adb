@@ -10,11 +10,12 @@ with Pomarine.Line_Texts;
 with Texts;
 with Texts.Documents;
 with Goldens;
+with Hearers;
 with Pomarine.Clipboards;
 with Pomarine.Themes;
 with Pomarine.Widgets.Buttons;
-with Pomarine.Widgets.Callbacks;
 with Pomarine.Widgets.Editors;
+with Pomarine.Widgets.Editors.Callbacks;
 with Pomarine.Widgets.Labels;
 with Pomarine.Widgets.Panels;
 with Yoga.Nodes;
@@ -56,6 +57,7 @@ package body Widget_Tests is
       Second : aliased Pomarine.Widgets.Buttons.Button;
       Third  : aliased Pomarine.Widgets.Buttons.Button;
       Page   : aliased Pomarine.Widgets.Editors.Editor;
+      Ears   : aliased Hearers.Hearer;
       --  after Target and Doc
    end record;
 
@@ -71,6 +73,7 @@ package body Widget_Tests is
       Docs.Load (Item.Doc, Content);
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
+      Widgets.Set_Listener (Item.Tree, Item.Ears'Unchecked_Access);
 
       Widgets.Set_Root (Item.Tree, Item.Root);
       Widgets.Add (Item.Root, Item.Bar);
@@ -167,9 +170,9 @@ package body Widget_Tests is
       Result : Boolean;
    begin
       case Which is
-         when 1 => Pomarine.Widgets.Buttons.Take_Click (Item.First, Result);
-         when 2 => Pomarine.Widgets.Buttons.Take_Click (Item.Second, Result);
-         when others => Pomarine.Widgets.Buttons.Take_Click (Item.Third, Result);
+         when 1 => Hearers.Take (Item.Ears, Item.First, Widgets.Click, Result);
+         when 2 => Hearers.Take (Item.Ears, Item.Second, Widgets.Click, Result);
+         when others => Hearers.Take (Item.Ears, Item.Third, Widgets.Click, Result);
       end case;
       return Result;
    end Clicked;
@@ -624,12 +627,12 @@ package body Widget_Tests is
       Count : Natural := 0;
    end record;
 
-   package Counting is new Pomarine.Widgets.Callbacks (Taps);
+   package Asking is new Pomarine.Widgets.Editors.Callbacks (Taps);
 
-   procedure Tapped
-     (Item : in out Taps; From : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
-   is
-      pragma Unreferenced (From, Event);
+   procedure Tapped (Item : in out Taps; From : in out Pomarine.Widgets.Editors.Editor'Class);
+
+   procedure Tapped (Item : in out Taps; From : in out Pomarine.Widgets.Editors.Editor'Class) is
+      pragma Unreferenced (From);
    begin
       Item.Count := Item.Count + 1;
    end Tapped;
@@ -639,22 +642,21 @@ package body Widget_Tests is
       Last  : Natural := 0;
    end record;
 
-   package Using_Tools is new Pomarine.Widgets.Callbacks (Uses);
+   package Using_Tools is new Pomarine.Widgets.Editors.Callbacks (Uses);
 
-   procedure Used
-     (Item : in out Uses; From : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
-   is
+   procedure Used (Item : in out Uses; From : in out Pomarine.Widgets.Editors.Editor'Class; Tool : Positive);
+
+   procedure Used (Item : in out Uses; From : in out Pomarine.Widgets.Editors.Editor'Class; Tool : Positive) is
       pragma Unreferenced (From);
    begin
       Item.Count := Item.Count + 1;
-      Item.Last := Event.Row;
+      Item.Last := Tool;
    end Used;
 
    function Key (Which : Events.Key_Code; Command : Boolean := False) return Events.Event is
      ((Kind => Events.Key_Down, Key => Which, Command => Command, others => <>));
 
    procedure Toolbar_Tools is
-      use all type Widgets.Event_Kind;
       Item   : Fixture;
       Lines  : aliased Pomarine.Line_Texts.Drawer;
       Heard  : aliased Uses;
@@ -663,7 +665,7 @@ package body Widget_Tests is
    begin
       Open (Item, "Great skua");
       Widgets.Set_Line_Texts (Item.Tree, Lines);
-      Using_Tools.On (Item.Page, Use_Tool, Heard'Unrestricted_Access, Used'Access);
+      Using_Tools.On_Tool (Item.Page, Heard'Unrestricted_Access, Used'Access);
       Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
       Pomarine.Widgets.Editors.Add_Tool (Item.Page, "Plain", Key => 'p');
       Pomarine.Widgets.Editors.Add_Tool (Item.Page, "Picky", Key => 'j', Needs_Selection => True);
@@ -928,7 +930,6 @@ package body Widget_Tests is
    end Toolbar_Fonts;
 
    procedure Links is
-      use all type Widgets.Event_Kind;
       Item    : Fixture;
       Asked   : aliased Taps;
       Before  : Natural;
@@ -952,7 +953,7 @@ package body Widget_Tests is
    begin
       Open (Item, "see here now", Wide => 760);
       Widgets.Set_Line_Texts (Item.Tree, Lines);
-      Counting.On (Item.Page, Ask_Link, Asked'Unrestricted_Access, Tapped'Access);
+      Asking.On_Ask_Link (Item.Page, Asked'Unrestricted_Access, Tapped'Access);
       Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
 

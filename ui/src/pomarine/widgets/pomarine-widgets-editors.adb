@@ -985,7 +985,7 @@ package body Pomarine.Widgets.Editors is
       Set_Link_Address (Item, Text_Areas.Link_Here (Item.Text));
       Refresh_Link (Item);
       Focus (Item.Link_Parts.Field);
-      Notify (Item, Ask_Link);
+      Post (Item, Item.Link_Hook);
       Invalidate (Item);
    end Begin_Link;
 
@@ -1337,7 +1337,7 @@ package body Pomarine.Widgets.Editors is
             elsif (for some Tool in 1 .. Self.Tool_Total => Source'Address = Self.Tools (Tool)'Address) then
                for Tool in 1 .. Self.Tool_Total loop
                   if Source'Address = Self.Tools (Tool)'Address and then Buttons.Is_Enabled (Self.Tools (Tool)) then
-                     Notify (Self, Use_Tool, Row => Tool);
+                     Post (Self, Self.Tool_Hook, Value => Tool);
                   end if;
                end loop;
             elsif Has_Document (Self) then
@@ -1547,7 +1547,7 @@ package body Pomarine.Widgets.Editors is
            and then Link_Under (Item, Event) /= ""
          then
             Item.Followed_To := Ada.Strings.Unbounded.To_Unbounded_String (Link_Under (Item, Event));
-            Notify (Item, Follow);
+            Post (Item, Item.Follow_Hook);
             Handled := True;
          elsif Event.Kind = Pomarine.Events.Key_Down and then not Event.Command and then not Event.Option
            and then not Event.Shift
@@ -1576,7 +1576,7 @@ package body Pomarine.Widgets.Editors is
                Tool : constant Tool_Number := Tool_For_Key (Item, Event.Key);
             begin
                if not Item.Selective (Tool) or else Text_Areas.Has_Selection (Item.Text) then
-                  Notify (Item, Use_Tool, Row => Tool);
+                  Post (Item, Item.Tool_Hook, Value => Tool);
                end if;
             end;
             Handled := True;
@@ -1595,6 +1595,7 @@ package body Pomarine.Widgets.Editors is
            and then Event.Kind in Pomarine.Events.Key_Down
            and then Event.Key in Pomarine.Events.Key_Return
          then
+            Text_Areas.Clear_Return (Item.Text);
             Notify (Item, Submit);
          end if;
          declare

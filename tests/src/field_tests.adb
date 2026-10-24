@@ -2,6 +2,7 @@ with Pomarine.Events;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Goldens;
+with Hearers;
 with Pomarine.Clipboards;
 with Pomarine.Themes;
 with Pomarine.Widgets.Panels;
@@ -40,6 +41,7 @@ package body Field_Tests is
       Board  : Pomarine.Clipboards.Memory_Clipboard;
       Root   : aliased Pomarine.Widgets.Panels.Panel;
       Field  : aliased Pomarine.Widgets.Text_Fields.Text_Field;
+      Ears   : aliased Hearers.Hearer;
       --  after Target and Doc
    end record;
 
@@ -52,6 +54,7 @@ package body Field_Tests is
       Docs.Load (Item.Doc, Content);
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
+      Widgets.Set_Listener (Item.Tree, Item.Ears'Unchecked_Access);
 
       Widgets.Set_Root (Item.Tree, Item.Root);
       Widgets.Add (Item.Root, Item.Field);
@@ -121,7 +124,7 @@ package body Field_Tests is
    function Returned (Item : in out Fixture) return Boolean is
       Result : Boolean;
    begin
-      Pomarine.Widgets.Text_Fields.Take_Return (Item.Field, Result);
+      Hearers.Take (Item.Ears, Item.Field, Widgets.Submit, Result);
       return Result;
    end Returned;
 

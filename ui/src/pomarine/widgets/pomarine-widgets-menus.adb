@@ -47,7 +47,6 @@ package body Pomarine.Widgets.Menus is
       Item.Scrolled := 0.0;
       Item.Over := 0;
       Item.Pressed := 0;
-      Item.Chosen := 0;
       Fit (Item);
    end Clear;
 
@@ -202,12 +201,6 @@ package body Pomarine.Widgets.Menus is
 
    function Hovered_Row (Item : Menu) return Natural is (Item.Over);
 
-   procedure Take_Choice (Item : in out Menu; Chosen : out Natural) is
-   begin
-      Chosen := Item.Chosen;
-      Item.Chosen := 0;
-   end Take_Choice;
-
    function First_Top (Item : Menu) return Float is
      (Top_Of (Item) + Pomarine.Boxes.Edge (Density (Item))
       + Float'Rounding (Pad * Density (Item)) - Item.Scrolled);
@@ -277,7 +270,6 @@ package body Pomarine.Widgets.Menus is
          when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 then
                if Item.Pressed /= 0 and then Under = Item.Pressed then
-                  Item.Chosen := Under;
                   Notify (Item, Choose, Row => Under);
                end if;
                Handled := Item.Pressed /= 0;
@@ -543,7 +535,6 @@ package body Pomarine.Widgets.Menus is
       Done := Request.Doing = Semantics.Click and then Part <= Item.Used
         and then Can_Click (Item.Rows (Part).Kind) and then Item.Rows (Part).Enabled;
       if Done then
-         Item.Chosen := Part;
          Notify (Item, Choose, Row => Part);
          Invalidate (Item);
       end if;

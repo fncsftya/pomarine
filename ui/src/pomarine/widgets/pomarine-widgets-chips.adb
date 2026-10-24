@@ -43,12 +43,6 @@ package body Pomarine.Widgets.Chips is
       Changed_Look (Item);
    end Set_Swatch;
 
-   procedure Take_Close (Item : in out Chip; Closed : out Boolean) is
-   begin
-      Closed := Item.Closed;
-      Item.Closed := False;
-   end Take_Close;
-
    procedure Cross_Box (Item : Chip; Left, Top, Side : out Float);
    --  Where the cross's button is, in pixels, with its shadow.
 
@@ -93,7 +87,6 @@ package body Pomarine.Widgets.Chips is
          when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
-               Item.Closed := Over;
                if Over then
                   Notify (Item, Close);
                end if;
@@ -207,7 +200,6 @@ package body Pomarine.Widgets.Chips is
    begin
       Done := Request.Doing = Semantics.Click;
       if Done then
-         Item.Closed := True;
          Notify (Item, Close);
          Invalidate (Item);
       end if;

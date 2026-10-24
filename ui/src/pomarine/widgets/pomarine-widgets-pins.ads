@@ -24,14 +24,6 @@ package Pomarine.Widgets.Pins is
 
    function Is_Accepting (Item : Pin) return Boolean;
 
-   procedure Take_Press (Item : in out Pin; Pressed : out Boolean);
-   --  Say whether the button has been pressed on it since this was last
-   --  called, and forget it.
-
-   procedure Take_Release (Item : in out Pin; Released : out Boolean);
-   --  Say whether the button has been let go after a press on it since
-   --  this was last called, and forget it.
-
    function Is_Held (Item : Pin) return Boolean;
    --  Whether the button is down from a press on it.
 
@@ -64,8 +56,7 @@ private
    type Pin is new Widget with record
       Accepting : Boolean := False;
       Held      : Boolean := False;
-      Pressed   : Boolean := False;
-      Released  : Boolean := False;
+
       Pointer_At_X, Pointer_At_Y : Float := 0.0;
    end record;
 

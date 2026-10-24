@@ -34,10 +34,6 @@ package Pomarine.Widgets.Selects is
 
    function Is_Enabled (Item : Select_Field) return Boolean;
 
-   procedure Take_Click (Item : in out Select_Field; Clicked : out Boolean);
-   --  Say whether it has been clicked since this was last called, and
-   --  forget it.
-
    overriding procedure Handle
      (Item    : in out Select_Field;
       Event   : Pomarine.Events.Event;
@@ -72,7 +68,7 @@ private
       Open    : Boolean := False;
       Enabled : Boolean := True;
       Down    : Boolean := False;
-      Clicked : Boolean := False;
+
       Faced   : Boolean := False;
    end record;
 

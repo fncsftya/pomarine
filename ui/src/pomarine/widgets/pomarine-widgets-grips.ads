@@ -68,18 +68,6 @@ package Pomarine.Widgets.Grips is
    --  it when it has the focus by a key. A click does not give it the
    --  focus.
 
-   procedure Take_Click (Item : in out Grip; Clicked : out Boolean);
-   --  Say whether the button has been let go over it, after a press on
-   --  it, since this was last called, and forget it.
-
-   procedure Take_Double_Click (Item : in out Grip; Doubled : out Boolean);
-   --  Say whether it has been pressed twice in quick succession since
-   --  this was last called, and forget it.
-
-   procedure Take_Drag (Item : in out Grip; Across, Down : out Float);
-   --  How far the pointer has gone, in points to the right and down,
-   --  since this was last called, and forget it.
-
    procedure Pointer (Item : Grip; X, Y : out Float);
    --  Where the pointer was, in points of the window, at the last press on
    --  it or move of the pointer while it was held.
@@ -135,14 +123,10 @@ private
       Outline_Color : Themes.Slot := Themes.Border;
       Hover_Filled  : Boolean := False;
       Hover_Fill    : Themes.Slot := Themes.Face;
-      Clicked : Boolean := False;
-      Doubled : Boolean := False;
       Held    : Boolean := False;
       Focusable : Boolean := False;
       Last_X, Last_Y : Float := 0.0;
       --  Where the pointer was, in points.
-      Across, Down : Float := 0.0;
-      --  How far it has gone since it was taken.
    end record;
 
 end Pomarine.Widgets.Grips;

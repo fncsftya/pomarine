@@ -167,23 +167,10 @@ package body Pomarine.Widgets.Grips is
    begin
       Done := False;
       if Item.Focusable and then Semantics."=" (Request.Doing, Semantics.Click) then
-         Item.Clicked := True;
          Notify (Item, Click);
          Done := True;
       end if;
    end Perform;
-
-   procedure Take_Click (Item : in out Grip; Clicked : out Boolean) is
-   begin
-      Clicked := Item.Clicked;
-      Item.Clicked := False;
-   end Take_Click;
-
-   procedure Take_Double_Click (Item : in out Grip; Doubled : out Boolean) is
-   begin
-      Doubled := Item.Doubled;
-      Item.Doubled := False;
-   end Take_Double_Click;
 
    overriding procedure Hover_Changed
      (Item : in out Grip; Hovered : Boolean)
@@ -200,14 +187,6 @@ package body Pomarine.Widgets.Grips is
       Item.Wanted := To;
    end Set_Wanted_Cursor;
 
-   procedure Take_Drag (Item : in out Grip; Across, Down : out Float) is
-   begin
-      Across := Item.Across;
-      Down := Item.Down;
-      Item.Across := 0.0;
-      Item.Down := 0.0;
-   end Take_Drag;
-
    function Is_Dragging (Item : Grip) return Boolean is (Item.Held);
 
    procedure Pointer (Item : Grip; X, Y : out Float) is
@@ -219,8 +198,6 @@ package body Pomarine.Widgets.Grips is
    procedure Cancel_Drag (Item : in out Grip) is
    begin
       Item.Held := False;
-      Item.Across := 0.0;
-      Item.Down := 0.0;
    end Cancel_Drag;
 
    overriding procedure Handle
@@ -235,7 +212,6 @@ package body Pomarine.Widgets.Grips is
             if Item.Focusable and then Has_Focus (Item) and then not Event.Command
               and then (Event.Key = Pomarine.Events.Key_Return or else Event.Key = Pomarine.Events.Key_Space)
             then
-               Item.Clicked := True;
                Notify (Item, Click);
                Handled := True;
             end if;
@@ -246,7 +222,7 @@ package body Pomarine.Widgets.Grips is
                           Event.Mouse_Y * Density (Item))
             then
                Item.Held := True;
-               Item.Doubled := Item.Doubled or else Event.Clicks >= 2;
+
                if Event.Clicks >= 2 then
                   Notify (Item, Double_Click);
                end if;
@@ -256,8 +232,6 @@ package body Pomarine.Widgets.Grips is
             end if;
          when Pomarine.Events.Mouse_Move =>
             if Item.Held then
-               Item.Across := Item.Across + Event.Mouse_X - Item.Last_X;
-               Item.Down := Item.Down + Event.Mouse_Y - Item.Last_Y;
                Notify
                  (Item, Drag, Across => Event.Mouse_X - Item.Last_X,
                   Down => Event.Mouse_Y - Item.Last_Y);
@@ -269,11 +243,10 @@ package body Pomarine.Widgets.Grips is
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Notify (Item, Release);
-               Item.Clicked :=
-                 Contains
-                   (Item, Event.Mouse_X * Density (Item),
-                    Event.Mouse_Y * Density (Item));
-               if Item.Clicked then
+               if Contains
+                    (Item, Event.Mouse_X * Density (Item),
+                     Event.Mouse_Y * Density (Item))
+               then
                   Notify (Item, Click);
                end if;
                Handled := True;

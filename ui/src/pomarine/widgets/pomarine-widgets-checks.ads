@@ -42,10 +42,6 @@ package Pomarine.Widgets.Checks is
 
    function Is_Enabled (Item : Check) return Boolean;
 
-   procedure Take_Change (Item : in out Check; Changed : out Boolean);
-   --  Say whether it has been clicked, and so changed, since this was last
-   --  called, and forget it.
-
    Box_Size : constant Float := 14.0;
    --  In points, a side of the box.
 
@@ -104,7 +100,7 @@ private
       Swatch   : Themes.Slot := Themes.Primary;
       Enabled  : Boolean := True;
       Down     : Boolean := False;
-      Changed  : Boolean := False;
+
       By_Command : Boolean := False;
       Focusable : Boolean := False;
    end record;

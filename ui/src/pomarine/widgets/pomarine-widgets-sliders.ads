@@ -19,16 +19,12 @@ package Pomarine.Widgets.Sliders is
    procedure Set_Value (Item : in out Slider; To : Float)
      with Pre  => To in 0.0 .. 1.0,
           Post => Is_Dragging (Item) or else Value (Item) = To;
-   --  Put the knob there, as the application's model has it. It does not
-   --  count as a change to take, and is ignored while the knob is held, which
+   --  Put the knob there, as the application's model has it. It says no
+   --  Change, and is ignored while the knob is held, which
    --  the pointer moves.
 
    function Value (Item : Slider) return Float
      with Post => Value'Result in 0.0 .. 1.0;
-
-   procedure Take_Change (Item : in out Slider; Changed : out Boolean);
-   --  Say whether the knob has been moved by the pointer since this was
-   --  last called, and forget it.
 
    function Is_Dragging (Item : Slider) return Boolean;
    --  Whether the button is down from a press on it.
@@ -77,7 +73,7 @@ private
    type Slider is new Widget with record
       Fraction : Float := 0.0;
       Held     : Boolean := False;
-      Moved    : Boolean := False;
+
       Focusable : Boolean := False;
    end record;
 

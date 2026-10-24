@@ -45,12 +45,6 @@ package body Pomarine.Widgets.Toasts is
    function Action (Item : Toast) return String is
      (Ada.Strings.Unbounded.To_String (Item.Label));
 
-   procedure Take_Action (Item : in out Toast; Clicked : out Boolean) is
-   begin
-      Clicked := Item.Clicked;
-      Item.Clicked := False;
-   end Take_Action;
-
    function Face_Width (Item : Toast) return Float is
      (Width_Of (Item) - Pomarine.Boxes.Offset (Density (Item)));
 
@@ -112,7 +106,6 @@ package body Pomarine.Widgets.Toasts is
          when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
-               Item.Clicked := Over;
                if Over then
                   Notify (Item, Click);
                end if;
@@ -222,7 +215,6 @@ package body Pomarine.Widgets.Toasts is
    begin
       Done := Request.Doing = Semantics.Click;
       if Done then
-         Item.Clicked := True;
          Notify (Item, Click);
          Invalidate (Item);
       end if;

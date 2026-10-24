@@ -20,25 +20,11 @@ package body Pomarine.Widgets.Pins is
 
    function Is_Accepting (Item : Pin) return Boolean is (Item.Accepting);
 
-   procedure Take_Press (Item : in out Pin; Pressed : out Boolean) is
-   begin
-      Pressed := Item.Pressed;
-      Item.Pressed := False;
-   end Take_Press;
-
-   procedure Take_Release (Item : in out Pin; Released : out Boolean) is
-   begin
-      Released := Item.Released;
-      Item.Released := False;
-   end Take_Release;
-
    function Is_Held (Item : Pin) return Boolean is (Item.Held);
 
    procedure Cancel (Item : in out Pin) is
    begin
       Item.Held := False;
-      Item.Pressed := False;
-      Item.Released := False;
       if Is_Attached (Item) then
          Invalidate (Item);
       end if;
@@ -69,7 +55,6 @@ package body Pomarine.Widgets.Pins is
                           Event.Mouse_Y * Density (Item))
             then
                Item.Held := True;
-               Item.Pressed := True;
                Notify (Item, Press);
                Item.Pointer_At_X := Event.Mouse_X;
                Item.Pointer_At_Y := Event.Mouse_Y;
@@ -85,7 +70,6 @@ package body Pomarine.Widgets.Pins is
          when Pomarine.Events.Mouse_Up =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
-               Item.Released := True;
                Notify (Item, Release);
                Item.Pointer_At_X := Event.Mouse_X;
                Item.Pointer_At_Y := Event.Mouse_Y;

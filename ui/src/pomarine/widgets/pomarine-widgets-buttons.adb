@@ -213,7 +213,6 @@ package body Pomarine.Widgets.Buttons is
          Item.Enabled := To;
          if not To then
             Item.Down := False;
-            Item.Clicked := False;
             if Is_Attached (Item) and then Has_Focus (Item) then
                Release_Focus (Item);
             end if;
@@ -250,12 +249,6 @@ package body Pomarine.Widgets.Buttons is
    function Label (Item : Button) return String is
      (Ada.Strings.Unbounded.To_String (Item.Text));
 
-   procedure Take_Click (Item : in out Button; Clicked : out Boolean) is
-   begin
-      Clicked := Item.Clicked;
-      Item.Clicked := False;
-   end Take_Click;
-
    function Is_Pressed (Item : Button) return Boolean is
      (Item.Down and then Is_Hovered (Item));
 
@@ -290,7 +283,6 @@ package body Pomarine.Widgets.Buttons is
                         or else Event.Key = Pomarine.Events.Key_Space)
               and then not Event.Command
             then
-               Item.Clicked := True;
                Item.Last_Caret := False;
                Notify (Item, Click);
                Handled := True;
@@ -305,7 +297,6 @@ package body Pomarine.Widgets.Buttons is
          when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Down then
                Item.Down := False;
-               Item.Clicked := Over;
                if Over then
                   Item.Last_Caret := Item.Down_Caret and then On_Caret;
                   Notify (Item, Click);
@@ -619,7 +610,6 @@ package body Pomarine.Widgets.Buttons is
    begin
       Done := False;
       if Request.Doing = Semantics.Click and then Item.Enabled then
-         Item.Clicked := True;
          Item.Last_Caret := False;
          Notify (Item, Click);
          Invalidate (Item);

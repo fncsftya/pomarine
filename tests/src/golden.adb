@@ -107,6 +107,8 @@ begin
    Run ("semantics-menu", Semantic_Tests.Menu_Parts'Access);
 
    Run ("commands-handlers", Command_Tests.Own_Handlers'Access);
+   Run ("commands-plain-handlers", Command_Tests.Plain_Handlers'Access);
+   Run ("commands-canvas-handlers", Command_Tests.Canvas_Handlers'Access);
    Run ("commands-blur", Command_Tests.Losing_Focus'Access);
    Run ("commands-validated", Command_Tests.Validated'Access);
    Run ("commands-keys", Command_Tests.Keys'Access);

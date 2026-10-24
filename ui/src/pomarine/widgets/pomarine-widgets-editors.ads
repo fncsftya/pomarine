@@ -116,7 +116,7 @@ package Pomarine.Widgets.Editors is
                  and then (Key = ASCII.NUL or else (Key in 'a' .. 'z' and then Key /= 'k'));
    --  Give the toolbar a button, after a divider, with this label, in the
    --  order added; none to begin with. Its click, or Command and Key while
-   --  the text has the focus, is a Use_Tool event whose Row is its number, from 1.
+   --  the text has the focus, is heard with Callbacks.On_Tool, with its number, from 1.
    --  K is Begin_Link's. Hovering it shows its label and key. With Needs_Selection it is off
    --  while nothing is selected, and its key does nothing.
 
@@ -144,7 +144,7 @@ package Pomarine.Widgets.Editors is
    --  text.
 
    --  Text that links to an address is underlined in the accent colour.
-   --  Command-clicking a link is a Follow event: the application opens
+   --  Command-clicking a link is heard with Callbacks.On_Follow: the application opens
    --  Followed. The pointer is a hand over a link while Command is held.
 
    procedure Begin_Link (Item : in out Editor)
@@ -162,7 +162,7 @@ package Pomarine.Widgets.Editors is
    --  The bubble may also offer addresses to choose from, as of the
    --  application's sources: a list below the field, whose choice makes the
    --  link at once. They are what the application has added since the
-   --  bubble was begun: Begin_Link forgets them and says Ask_Link, the
+   --  bubble was begun: Begin_Link forgets them and says it (Callbacks.On_Ask_Link), the
    --  application answers with Add_Link_Choice, and the list is shown once
    --  it has any.
 
@@ -344,6 +344,11 @@ private
 
    type Editor is new Widget and Listener with record
       Text    : aliased Pomarine.Text_Areas.Text_Area;
+      Tool_Hook   : Posted_Hook;
+      Follow_Hook : Posted_Hook;
+      Link_Hook   : Posted_Hook;
+      --  What the application has had it do when a tool is used, a link
+      --  is followed, or an address is asked for (see Callbacks).
       Toolbar : Format_Buttons;
       --  Added to the tree when first wanted; shown while the text area
       --  has a toolbar.

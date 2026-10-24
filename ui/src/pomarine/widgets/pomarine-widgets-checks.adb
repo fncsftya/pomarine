@@ -76,12 +76,6 @@ package body Pomarine.Widgets.Checks is
 
    function Is_Enabled (Item : Check) return Boolean is (Item.Enabled);
 
-   procedure Take_Change (Item : in out Check; Changed : out Boolean) is
-   begin
-      Changed := Item.Changed;
-      Item.Changed := False;
-   end Take_Change;
-
    overriding procedure Handle
      (Item    : in out Check;
       Event   : Pomarine.Events.Event;
@@ -109,7 +103,6 @@ package body Pomarine.Widgets.Checks is
                if Over and then not (Item.Form = Radio and then Item.Checked)
                then
                   Item.Checked := not Item.Checked;
-                  Item.Changed := True;
                   Notify (Item, Change);
                end if;
                Handled := True;
@@ -244,7 +237,6 @@ package body Pomarine.Widgets.Checks is
          --  A radio that is chosen stays so.
          if not (Item.Form = Radio and then Item.Checked) then
             Item.Checked := not Item.Checked;
-            Item.Changed := True;
             Notify (Item, Change);
             Invalidate (Item);
          end if;

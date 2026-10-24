@@ -2,6 +2,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with SDL3.Windows.Renderers;
 with Goldens;
+with Hearers;
 with Pomarine.Semantics;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Checks;
@@ -92,6 +93,7 @@ package body Semantic_Tests is
 
    type Fixture is limited record
       Tree   : Widgets.Tree;
+      Ears   : aliased Hearers.Hearer;
       Target : Renderers.Renderer;
       Root   : aliased Widgets.Panels.Panel;
       Bar    : aliased Widgets.Panels.Panel;
@@ -106,6 +108,7 @@ package body Semantic_Tests is
    begin
       Renderers.Create_Offscreen (Item.Target, 300, 200);
       Widgets.Set_Density (Item.Tree, Density);
+      Widgets.Set_Listener (Item.Tree, Item.Ears'Unchecked_Access);
       Widgets.Set_Root (Item.Tree, Item.Root);
       Widgets.Add (Item.Root, Item.Title, Item.Bar);
       Widgets.Add (Item.Bar, Item.Save, Item.Wrap, Item.Volume);
@@ -213,19 +216,17 @@ package body Semantic_Tests is
       Heard   : Notes;
       Done    : Boolean;
       Clicked : Boolean;
-      Changed : Boolean;
    begin
       Open (Item);
       Widgets.Describe_Changes (Item.Tree, Heard);
 
       Widgets.Act (Item.Tree, Widgets.Id_Of (Item.Save), (Doing => Semantics.Click, others => <>), Done);
-      Widgets.Buttons.Take_Click (Item.Save, Clicked);
+      Hearers.Take (Item.Ears, Item.Save, Widgets.Click, Clicked);
       Goldens.Check_Text ("semantics-click", "TRUE TRUE", Done'Image & " " & Clicked'Image);
 
       Widgets.Act (Item.Tree, Widgets.Id_Of (Item.Wrap), (Doing => Semantics.Click, others => <>), Done);
       Goldens.Check_Text ("semantics-toggled", "TRUE TRUE",
                           Done'Image & " " & Widgets.Checks.Is_Checked (Item.Wrap)'Image);
-      Widgets.Checks.Take_Change (Item.Wrap, Changed);
 
       Widgets.Act (Item.Tree, Widgets.Id_Of (Item.Volume),
                    (Doing => Semantics.Increment, others => <>), Done);
@@ -293,7 +294,7 @@ package body Semantic_Tests is
 
       Widgets.Act (Item.Tree, Widgets.Part_Id (Item.Pop, 2),
                    (Doing => Semantics.Click, others => <>), Done);
-      Widgets.Menus.Take_Choice (Item.Pop, Chosen);
+      Hearers.Take_Row (Item.Ears, Item.Pop, Widgets.Choose, Chosen);
       Goldens.Check_Text ("semantics-menu-choice", "TRUE 2",
                           Done'Image & Natural'Image (Chosen));
    end Menu_Parts;

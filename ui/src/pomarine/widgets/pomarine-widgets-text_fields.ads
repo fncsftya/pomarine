@@ -19,8 +19,4 @@ package Pomarine.Widgets.Text_Fields is
    --  field should be as high as a line and its padding: about
    --  2.5 x Size, in points. Do it before the layout.
 
-   procedure Take_Return (Item : in out Text_Field; Pressed : out Boolean);
-   --  Say whether Return has been pressed in it since this was last
-   --  called, and forget it.
-
 end Pomarine.Widgets.Text_Fields;

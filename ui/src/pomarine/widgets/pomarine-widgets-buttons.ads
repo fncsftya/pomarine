@@ -17,7 +17,7 @@ with Pomarine.Widgets.Layouts;
 --
 --  It is pressed by the left button over it, and clicked by that button
 --  let go over it, which it says to the tree's listener (see
---  Pomarine.Widgets.Listener) as a Click, and keeps for Take_Click. It does not take the
+--  Pomarine.Widgets.Listener) as a Click. It does not take the
 --  focus, unless it is made to (Set_Focusable), so that clicking it does
 --  not take it from what is being typed into; with the focus, it has a
 --  ring in the theme's focus colour, and Return or Space clicks it.
@@ -142,10 +142,6 @@ package Pomarine.Widgets.Buttons is
 
    function Label (Item : Button) return String;
 
-   procedure Take_Click (Item : in out Button; Clicked : out Boolean);
-   --  Say whether it has been clicked since this was last called, and
-   --  forget it.
-
    function Is_Pressed (Item : Button) return Boolean;
    --  Whether the button is down, and over it.
 
@@ -216,7 +212,6 @@ private
       Enabled   : Boolean := True;
       Focusable : Boolean := False;
       Down    : Boolean := False;  --  pressed, and not yet let go
-      Clicked : Boolean := False;
       By_Command : Boolean := False;  --  selected as a command in force
       Over_Caret : Boolean := False;  --  the pointer is over it
       Down_Caret : Boolean := False;  --  the press was on it
