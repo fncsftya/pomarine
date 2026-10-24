@@ -10,6 +10,7 @@ package Command_Tests is
    procedure Validated;
    procedure Validator_Objects;
    procedure Triggers_Only;
+   procedure Put_Back;
    procedure Keys;
    procedure Responders;
    procedure Event_Payloads;

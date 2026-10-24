@@ -119,7 +119,8 @@ package body Pomarine.Testing is
    --  The first of what was just looked at that is called Name.
 
    function Find
-     (Item : Session; Name : String; Role : Semantics.Role) return Node_Vectors.Extended_Index is
+     (Item : Session; Name : String; Role : Semantics.Role; Nth : Positive) return Node_Vectors.Extended_Index is
+      Seen : Natural := 0;
    begin
       for Each in 1 .. Item.Heard.Nodes.Last_Index loop
          declare
@@ -129,31 +130,38 @@ package body Pomarine.Testing is
               and then Semantics.Is_Named (Facts)
               and then Semantics.To_String (Facts.Name) = Name
             then
-               return Each;
+               Seen := Seen + 1;
+               if Seen = Nth then
+                  return Each;
+               end if;
             end if;
          end;
       end loop;
       return Node_Vectors.No_Index;
    end Find;
 
-   function Exists (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown) return Boolean is
+   function Exists
+     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown; Nth : Positive := 1)
+      return Boolean is
    begin
       Look (Item);
-      return Find (Item, Name, Role) /= Node_Vectors.No_Index;
+      return Find (Item, Name, Role, Nth) /= Node_Vectors.No_Index;
    end Exists;
 
    function Is_Disabled
-     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown) return Boolean is
+     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown; Nth : Positive := 1)
+      return Boolean is
    begin
       Look (Item);
-      return Item.Heard.Nodes (Find (Item, Name, Role)).Facts.Disabled;
+      return Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Facts.Disabled;
    end Is_Disabled;
 
    function Value_Of
-     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown) return String is
+     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown; Nth : Positive := 1)
+      return String is
    begin
       Look (Item);
-      return Semantics.To_String (Item.Heard.Nodes (Find (Item, Name, Role)).Facts.Value);
+      return Semantics.To_String (Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Facts.Value);
    end Value_Of;
 
    procedure Click_At (Item : in out Session; X, Y : Float) is
@@ -167,11 +175,12 @@ package body Pomarine.Testing is
       Settle (Item);
    end Click_At;
 
-   procedure Click_On (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown) is
+   procedure Click_On
+     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown; Nth : Positive := 1) is
    begin
       Look (Item);
       declare
-         Bounds : constant Semantics.Rectangle := Item.Heard.Nodes (Find (Item, Name, Role)).Bounds;
+         Bounds : constant Semantics.Rectangle := Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Bounds;
       begin
          Click_At (Item, (Bounds.Left + Bounds.Right) / 2.0, (Bounds.Top + Bounds.Bottom) / 2.0);
       end;
@@ -195,9 +204,11 @@ package body Pomarine.Testing is
       Settle (Item);
    end Type_Text;
 
-   procedure Press (Item : in out Session; Key : Pomarine.Events.Key_Code) is
+   procedure Press
+     (Item : in out Session; Key : Pomarine.Events.Key_Code; Command : Boolean := False; Shift : Boolean := False) is
    begin
-      Take (Item.Uses.all, (Kind => Pomarine.Events.Key_Down, Key => Key, others => <>));
+      Take (Item.Uses.all,
+            (Kind => Pomarine.Events.Key_Down, Key => Key, Command => Command, Shift => Shift, others => <>));
       Settle (Item);
    end Press;
 

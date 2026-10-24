@@ -158,7 +158,8 @@ command: it triggers it (`Set_Tag`, `Commands.Bind`) and it reflects it (the val
 turns it off, ticks or hides it). `Commands.Trigger`, or `Set_Tag (..., Reflects => False)`,
 is for one that only triggers, as a field that says Submit and must stay typeable while
 there is nothing to submit. `Revalidate (Widget)` asks again from a handler that holds
-no pointer to the tree. The setters that bindings call (`Set_Text`, `Set_Enabled`,
+no pointer to the tree. The validator is asked with the widget's `Index` too (`Validate (Tag, Index)`, and the
+model's `Can_Execute (What, Index)`), so that the buttons of a row can be on while another's are off. The setters that bindings call (`Set_Text`, `Set_Enabled`,
 `Set_Checked`, `Set_On`, `Set_Value`, `Select_Row`, `Set_Visible`) do nothing, and ask for no
 drawing, when given what the widget already has (tests `setters-*`). Bind keys with
 `Bind_Key`; the command goes to the widget with the focus and the widgets it is

@@ -433,7 +433,9 @@ package Pomarine.Widgets is
    --  What says what the commands are for, and knows of what: a
    --  view-model, whose Validate is whether the command can be done.
 
-   function Validate (Self : Validator; Tag : Integer) return Command_State is abstract;
+   function Validate (Self : Validator; Tag : Integer; Index : Natural) return Command_State is abstract;
+   --  Index is which of many the widget is (Set_Tag), 0 if it is not one of many: a row's own button
+   --  can be on while another's is off.
 
    type Validator_Access is access all Validator'Class;
 
@@ -445,7 +447,7 @@ package Pomarine.Widgets is
    --  the application sets them. The validator is kept, not copied: it
    --  must be there as long as the tree is used. One replaces the other.
 
-   function Command_State_Of (Item : Tree; Tag : Integer) return Command_State;
+   function Command_State_Of (Item : Tree; Tag : Integer; Index : Natural := 0) return Command_State;
    --  What the validator says Tag is for; Enabled without one.
 
    procedure Revalidate (Item : in out Tree);
@@ -1043,6 +1045,8 @@ private
       Said_Role : Semantics.Role := Semantics.Unknown;
       Hidden_From_AT : Boolean := False;
       Hid_By_Command : Boolean := False;
+      Was_Told : Boolean := False;
+      --  Whether a validator has told it what its command is for.
       Measured : Boolean := False;
    end record;
 
@@ -1140,6 +1144,10 @@ private
    type Told_State_Array is array (Slots) of Command_State;
    --  What each widget was last told its command was for.
 
+   type Retell_Array is array (Slots) of Boolean;
+   --  Whether a widget is to be told again whatever it was told: it was taken out of the tree and put
+   --  back, and kept the state it was in.
+
    type Key_Binding is record
       Key     : Pomarine.Events.Key_Code := 0;
       Command : Boolean := False;
@@ -1173,6 +1181,7 @@ private
       Validator : Command_Validator;
       Judge     : Validator_Access;
       Told_States : Told_State_Array;
+      Retell      : Retell_Array := [others => False];
       Keys      : Key_Table;
       Keys_Bound : Natural := 0;
       Whole_Next : Boolean := True;

@@ -70,21 +70,25 @@ package Pomarine.Testing is
    function Exists
      (Item : in out Session;
       Name : String;
-      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown) return Boolean;
+      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
+      Nth  : Positive := 1) return Boolean;
    --  Whether a widget is shown that is called Name (and, if Role is not
-   --  Unknown, has that role).
+   --  Unknown, has that role). Nth: the Nth of those called so, in the
+   --  order of the tree, as of the cards that each have a "Delete".
 
    function Is_Disabled
      (Item : in out Session;
       Name : String;
-      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown) return Boolean
-     with Pre => Exists (Item, Name, Role);
+      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
+      Nth  : Positive := 1) return Boolean
+     with Pre => Exists (Item, Name, Role, Nth);
 
    function Value_Of
      (Item : in out Session;
       Name : String;
-      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown) return String
-     with Pre => Exists (Item, Name, Role);
+      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
+      Nth  : Positive := 1) return String
+     with Pre => Exists (Item, Name, Role, Nth);
    --  What the first widget called Name holds: a field's text, a slider's reading.
 
    --  Doing: what a person does
@@ -92,8 +96,9 @@ package Pomarine.Testing is
    procedure Click_On
      (Item : in out Session;
       Name : String;
-      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown)
-     with Pre => Exists (Item, Name, Role);
+      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
+      Nth  : Positive := 1)
+     with Pre => Exists (Item, Name, Role, Nth);
    --  Move the pointer to the middle of the first widget called Name, press
    --  the left button and let it go. A disabled widget is clicked all the
    --  same: what it does about that is what is tested.
@@ -105,8 +110,9 @@ package Pomarine.Testing is
    procedure Type_Text (Item : in out Session; Text : String);
    --  Type Text, as an input method would, into the widget with the focus.
 
-   procedure Press (Item : in out Session; Key : Pomarine.Events.Key_Code);
-   --  A key goes down, to the widget with the focus.
+   procedure Press
+     (Item : in out Session; Key : Pomarine.Events.Key_Code; Command : Boolean := False; Shift : Boolean := False);
+   --  A key goes down, to the widget with the focus, with Command and Shift held if they are asked.
 
 private
 

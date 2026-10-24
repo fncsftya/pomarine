@@ -56,9 +56,9 @@ package Pomarine.Widgets.Bindings.For_Commands is
    --  As Attach, to be asked by a validator of the window's own, that gives
    --  the tags that Is_Mine to this Judge's Validate.
 
-   overriding function Validate (Self : Judge; Tag : Integer) return Command_State;
-   --  Disabled if the command cannot be done now; Not_Offered if Tag is no
-   --  command of the model.
+   overriding function Validate (Self : Judge; Tag : Integer; Index : Natural) return Command_State;
+   --  Disabled if the command cannot be done now (with this Index: see Can_Execute); Not_Offered if Tag
+   --  is no command of the model.
 
    function Perform (Model : in out Models.Model'Class; Event : Widget_Event) return Boolean;
    --  If Event is a Click or Submit of a widget that has a command, do the

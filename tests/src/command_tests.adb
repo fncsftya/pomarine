@@ -305,10 +305,10 @@ package body Command_Tests is
       Asked : Natural := 0;
    end record;
 
-   overriding function Validate (Self : Verdict; Tag : Integer) return Widgets.Command_State;
+   overriding function Validate (Self : Verdict; Tag : Integer; Index : Natural) return Widgets.Command_State;
 
-   overriding function Validate (Self : Verdict; Tag : Integer) return Widgets.Command_State is
-     (if Tag = Save_Tag then Self.Says else Widgets.Enabled);
+   overriding function Validate (Self : Verdict; Tag : Integer; Index : Natural) return Widgets.Command_State is
+     (if Tag = Save_Tag and then Index /= 9 then Self.Says else Widgets.Enabled);
 
    procedure Validator_Objects is
       Here, There : Fixture;
@@ -330,6 +330,17 @@ package body Command_Tests is
         ("commands-validator-asked", "ENABLED ENABLED",
          Widgets.Command_State_Of (Here.Tree, Undo_Tag)'Image & " "
          & Widgets.Command_State_Of (There.Tree, Undo_Tag)'Image);
+
+      --  The answer is for the widget's Index too: one of many is on while another is not.
+      Widgets.Set_Tag (Here.Second, Save_Tag, Index => 9);
+      Yes.Says := Widgets.Disabled;
+      Widgets.Revalidate (Here.First);
+      Goldens.Check_Text
+        ("commands-validator-index", "FALSE TRUE",
+         Widgets.Buttons.Is_Enabled (Here.First)'Image & " " & Widgets.Buttons.Is_Enabled (Here.Second)'Image);
+      Widgets.Set_Tag (Here.Second, Widgets.No_Tag);
+      Yes.Says := Widgets.Enabled;
+      Widgets.Revalidate (Here.First);
 
       --  Revalidate from a widget, when it is the answer that changed.
       Yes.Says := Widgets.Disabled;
@@ -383,6 +394,24 @@ package body Command_Tests is
       Goldens.Check_Text
         ("commands-trigger-box", "TRUE", Boolean'Image (Widgets.Checks.Is_Enabled (Item.Box)));
    end Triggers_Only;
+
+   --  A widget taken out of the tree and put back keeps the state it was in, and is told again what its
+   --  command is for, whatever it was told before.
+   procedure Put_Back is
+      Item : Fixture;
+      Says : aliased Verdict := (Says => Widgets.Disabled, others => <>);
+   begin
+      Open (Item);
+      Widgets.Set_Tag (Item.First, Save_Tag);
+      Widgets.Set_Validator (Item.Tree, Says'Unchecked_Access);
+      Widgets.Update (Item.Tree, 0);
+      Goldens.Check_Text ("commands-put-back-off", "FALSE", Widgets.Buttons.Is_Enabled (Item.First)'Image);
+      Widgets.Remove (Item.First);
+      Says.Says := Widgets.Enabled;
+      Widgets.Add (Item.Root, Item.First);
+      Widgets.Update (Item.Tree, 0);
+      Goldens.Check_Text ("commands-put-back-on", "TRUE", Widgets.Buttons.Is_Enabled (Item.First)'Image);
+   end Put_Back;
 
    procedure Keys is
       Item    : Fixture;

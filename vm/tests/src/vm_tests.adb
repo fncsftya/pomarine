@@ -85,8 +85,9 @@ procedure VM_Tests is
 
    overriding function Version (Self : Door) return VM.Version_Number is (VM.Value (Self.Count));
 
-   overriding function Can_Execute (Self : Door; What : Verb) return Boolean is
-     (case What is when Open => not Self.Is_Open, when Close => Self.Is_Open);
+   overriding function Can_Execute (Self : Door; What : Verb; Index : Natural := 0) return Boolean is
+     (Index < 10
+      and then (case What is when Open => not Self.Is_Open, when Close => Self.Is_Open));
 
    overriding procedure Execute (Self : in out Door; What : Verb; Index : Natural := 0);
 
@@ -106,6 +107,9 @@ procedure VM_Tests is
       Verbs.Execute (Model, Open, Index => 3);
       Check (Gate.Is_Open and then Gate.Index = 3 and then Model.Version = 1, "opened, with its index");
       Check (not Model.Can_Execute (Open) and then Model.Can_Execute (Close), "now it can be shut");
+
+      --  Which of many is part of whether: there are ten doors.
+      Check (Model.Can_Execute (Close, 9) and then not Model.Can_Execute (Close, 10), "the index is asked too");
 
       --  Doing what is not possible is a mistake of the caller's.
       begin

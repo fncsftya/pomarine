@@ -114,6 +114,7 @@ begin
    Run ("commands-validated", Command_Tests.Validated'Access);
    Run ("commands-validator-objects", Command_Tests.Validator_Objects'Access);
    Run ("commands-trigger-only", Command_Tests.Triggers_Only'Access);
+   Run ("commands-put-back", Command_Tests.Put_Back'Access);
    Run ("commands-keys", Command_Tests.Keys'Access);
    Run ("commands-responders", Command_Tests.Responders'Access);
    Run ("commands-payloads", Command_Tests.Event_Payloads'Access);

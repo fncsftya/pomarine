@@ -694,6 +694,7 @@ package body Pomarine.Widgets is
       Table.Spot (Slot).Visible := True;
       Table.Known (Slot) := False;
       Home.Told_States (Slot) := Enabled;
+      Home.Retell (Slot) := Item.Was_Told;
       Table.Layout_Dirty (Slot) := True;
       Table.Paint_Dirty (Slot) := True;
       Table.Semantics_Dirty (Slot) := True;
@@ -1348,8 +1349,8 @@ package body Pomarine.Widgets is
       Forget_Told_States (Item);
    end Set_Validator;
 
-   function Command_State_Of (Item : Tree; Tag : Integer) return Command_State is
-     (if Item.Judge /= null then Validate (Item.Judge.all, Tag)
+   function Command_State_Of (Item : Tree; Tag : Integer; Index : Natural := 0) return Command_State is
+     (if Item.Judge /= null then Validate (Item.Judge.all, Tag, Index)
       elsif Item.Validator /= null then Item.Validator (Tag)
       else Enabled);
 
@@ -1364,10 +1365,12 @@ package body Pomarine.Widgets is
          begin
             if Mine /= null and then Mine.Tag /= No_Tag and then Mine.Reflects then
                declare
-                  Now : constant Command_State := Command_State_Of (Item, Mine.Tag);
+                  Now : constant Command_State := Command_State_Of (Item, Mine.Tag, Mine.Index);
                begin
-                  if Now /= Item.Told_States (Slot) then
+                  if Now /= Item.Told_States (Slot) or else Item.Retell (Slot) then
                      Item.Told_States (Slot) := Now;
+                     Item.Retell (Slot) := False;
+                     Mine.Was_Told := True;
                      if Now = Not_Offered then
                         Mine.Hid_By_Command := True;
                         Set_Visible (Mine.all, False);

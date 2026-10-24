@@ -26,15 +26,15 @@ package body Pomarine.Widgets.Bindings.For_Commands is
       Set_Validator (Within, Item'Unchecked_Access);
    end Attach;
 
-   overriding function Validate (Self : Judge; Tag : Integer) return Command_State is
+   overriding function Validate (Self : Judge; Tag : Integer; Index : Natural) return Command_State is
      (if Self.Asked = null or else not Is_Mine (Tag) then Not_Offered
-      elsif Models.Can_Execute (Self.Asked.all, Models.Command'Val (Tag - Tag_Base)) then Enabled
+      elsif Models.Can_Execute (Self.Asked.all, Models.Command'Val (Tag - Tag_Base), Index) then Enabled
       else Disabled);
 
    function Perform (Model : in out Models.Model'Class; Event : Widget_Event) return Boolean is
    begin
       if Event.Kind in Click | Submit and then Is_Bound (Event) then
-         if Models.Can_Execute (Model, What (Event)) then
+         if Models.Can_Execute (Model, What (Event), Event.Index) then
             Models.Execute (Model, What (Event), Event.Index);
          end if;
          return True;

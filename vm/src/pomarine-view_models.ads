@@ -105,12 +105,13 @@ package Pomarine.View_Models is
       function Version (Self : Model) return Version_Number is abstract;
       --  Different whenever anything the model shows is.
 
-      function Can_Execute (Self : Model; What : Command) return Boolean is abstract;
+      function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean is abstract;
       --  Whether What is possible now: it feeds the tree's validator, which
-      --  turns the widgets that trigger it on and off.
+      --  turns the widgets that trigger it on and off. Index is which of many, as for Execute, so that
+      --  one row's button can be on and another's off; 0 asks whether it is for some (or for none).
 
       procedure Execute (Self : in out Model; What : Command; Index : Natural := 0) is abstract
-        with Pre'Class => Can_Execute (Self, What);
+        with Pre'Class => Can_Execute (Self, What, Index);
       --  Do it. Index is which of many, as the widget said (Event.Index): a
       --  row to open, a choice to take. 0 if it is not one of many.
 
