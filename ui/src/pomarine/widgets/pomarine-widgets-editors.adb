@@ -543,6 +543,16 @@ package body Pomarine.Widgets.Editors is
    --  In points: how wide the text area is to be, for the button to have
    --  room beside the style buttons.
 
+   function Has_Words (Doc : Docs.Document) return Boolean is
+   begin
+      for Para in 1 .. Docs.Count (Doc) loop
+         if (for some C of Docs.Text (Doc, Para) => C > ' ') then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Words;
+
    procedure Refresh_Assist (Item : in out Editor) is
    begin
       if Item.Assist_Length = 0 or else not Has_Document (Item) then
@@ -552,9 +562,17 @@ package body Pomarine.Widgets.Editors is
          return;
       end if;
       declare
+         Doc    : constant not null access constant Docs.Document := Document (Item);
          Wanted : constant Boolean :=
            Item.Toolbar_Shown and then Width_Of (Item) >= Assist_Room * Density (Item);
+         Filled : Boolean;
       begin
+         if Docs.Current (Doc.all) /= Item.Assist_Version or else Docs.Serial (Doc.all) /= Item.Assist_Serial then
+            Item.Assist_Version := Docs.Current (Doc.all);
+            Item.Assist_Serial := Docs.Serial (Doc.all);
+            Item.Assist_Filled := Has_Words (Doc.all);
+         end if;
+         Filled := Item.Assist_Filled;
          if Wanted and then not Is_Attached (Item.Assist) then
             declare
                Pixels : constant Float := Density (Item);
@@ -577,8 +595,8 @@ package body Pomarine.Widgets.Editors is
             if Is_Visible (Item.Assist) /= Wanted then
                Set_Visible (Item.Assist, Wanted);
             end if;
-            if Buttons.Is_Enabled (Item.Assist) /= Item.Assist_Allowed then
-               Buttons.Set_Enabled (Item.Assist, Item.Assist_Allowed);
+            if Buttons.Is_Enabled (Item.Assist) /= (Item.Assist_Allowed and then Filled) then
+               Buttons.Set_Enabled (Item.Assist, Item.Assist_Allowed and then Filled);
             end if;
          end if;
       end;
@@ -660,7 +678,7 @@ package body Pomarine.Widgets.Editors is
    end Assist_Center;
 
    function Assist_Is_Enabled (Item : Editor) return Boolean is
-     (Item.Assist_Allowed and then Item.Assist_Length > 0);
+     (Item.Assist_Allowed and then Item.Assist_Filled and then Item.Assist_Length > 0);
 
    procedure Set_Indent (Item : in out Editor; Points : Float) is
    begin

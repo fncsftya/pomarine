@@ -41,7 +41,7 @@ private with Pomarine.Widgets.Tooltips;
 --  (Set_Assist), in the colour of what a language model
 --  does, to offer something the application does of the text; a click is
 --  an Assist event. It can be clicked while the application allows it
---  (Set_Assist_Allowed), whatever the text, and it is left out when
+--  (Set_Assist_Allowed) and the text is not blank, and it is left out when
 --  the text area is too narrow for it.
 --
 --  Declare it after the renderer it is drawn to, and after the document
@@ -215,7 +215,7 @@ package Pomarine.Widgets.Editors is
 
    procedure Set_Assist_Allowed (Item : in out Editor; To : Boolean);
    --  Say whether the application can do what the button is for: if not it
-   --  is off. It is not allowed to begin with.
+   --  is off, whatever the text. It is not allowed to begin with.
 
    function Assist_Is_Allowed (Item : Editor) return Boolean;
 
@@ -224,8 +224,8 @@ package Pomarine.Widgets.Editors is
    --  the top left of the window: for a test to click it.
 
    function Assist_Is_Enabled (Item : Editor) return Boolean;
-   --  Whether the button, if it is shown, can be clicked: allowed. As of the last time the
-   --  toolbar was brought up to date.
+   --  Whether the button, if it is shown, can be clicked: allowed, and the
+   --  text not blank. As of the last time the toolbar was brought up to date.
 
    procedure Set_Indent (Item : in out Editor; Points : Float)
      with Pre => Points >= 0.0;
@@ -421,6 +421,11 @@ private
       Assist_Text   : String (1 .. Assist_Capacity) := [others => ' '];
       Assist_Length : Natural range 0 .. Assist_Capacity := 0;
       Assist_Allowed : Boolean := False;
+      Assist_Filled  : Boolean := False;
+      --  Whether the text has something in it other than spaces, as of the
+      --  version and the document named next.
+      Assist_Version : Texts.Documents.Version := 0;
+      Assist_Serial  : Natural := 0;
       Shared      : Shared_Access := null;
       Link_Owner  : access Editor := null;
       --  Of the field in a link bubble, the editor it is for.

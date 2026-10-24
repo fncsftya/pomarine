@@ -660,13 +660,13 @@ package body Widget_Tests is
       Widgets.Deliver (Item.Tree);
       Check_Flag ("widgets-assist-click", True, Heard.Count = 1);
 
-      --  Blank text makes no difference: it is on.
+      --  Blank text, it is off; some again, it is on.
       Docs.Load (Item.Doc, "  " & ASCII.LF & ASCII.HT);
       Widgets.Update (Item.Tree, 200);
-      Check_Flag ("widgets-assist-blank", True, Pomarine.Widgets.Editors.Assist_Is_Enabled (Item.Page));
+      Check_Flag ("widgets-assist-blank", False, Pomarine.Widgets.Editors.Assist_Is_Enabled (Item.Page));
       Tap;
       Widgets.Deliver (Item.Tree);
-      Check_Flag ("widgets-assist-blank-click", True, Heard.Count = 2);
+      Check_Flag ("widgets-assist-blank-click", True, Heard.Count = 1);
       Docs.Load (Item.Doc, "Bonxie");
       Widgets.Update (Item.Tree, 300);
       Check_Flag ("widgets-assist-filled", True, Pomarine.Widgets.Editors.Assist_Is_Enabled (Item.Page));
