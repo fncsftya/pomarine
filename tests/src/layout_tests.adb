@@ -1,13 +1,18 @@
 with Ada.Strings.Fixed;
 with SDL3.Windows.Renderers;
 with Goldens;
+with Pomarine.Icons;
+with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Labels;
+with Pomarine.Widgets.Layouts;
 with Pomarine.Widgets.Panels;
 with Yoga.Nodes;
 
 package body Layout_Tests is
 
    package Widgets renames Pomarine.Widgets;
+   package Buttons renames Pomarine.Widgets.Buttons;
+   package Layouts renames Pomarine.Widgets.Layouts;
    package Labels renames Pomarine.Widgets.Labels;
    package Panels renames Pomarine.Widgets.Panels;
    package Renderers renames SDL3.Windows.Renderers;
@@ -70,6 +75,53 @@ package body Layout_Tests is
       Widgets.Layout (Tree, Target);
       Goldens.Check_Text ("layout-intrinsic-style-wins", "200", Image (Integer (Widgets.Width_Of (Short))));
    end Intrinsic_Labels;
+
+   procedure Declarative_Building is
+      use type Buttons.Kind;
+      use type Buttons.Shape_Kind;
+      Tree   : Widgets.Tree;
+      Target : Renderers.Renderer;
+      Root   : aliased Panels.Panel;
+      Title  : aliased Labels.Label;
+      Save   : aliased Buttons.Button;
+      Menu   : aliased Buttons.Button;
+   begin
+      Renderers.Create_Offscreen (Target, 400, 100);
+      Widgets.Set_Root (Tree, Root);
+      Layouts.Set_Layout (Root, (Flow => Layouts.Row, Align => Layouts.Start, others => <>));
+      Layouts.Add (Root, Title, (Width => 50.0, Height => 10.0, others => <>));
+      Buttons.Add
+        (Root, Save, Buttons.Looks ("Save", Buttons.Primary, Focusable => True),
+         (Width => 60.0, Height => 20.0, others => <>));
+      Buttons.Add (Root, Menu, Buttons.Looks ("More", Shape => Buttons.Split_Dropdown));
+      Widgets.Layout (Tree, Target);
+
+      Goldens.Check_Text ("layouts-add", "50 10", Image (Integer (Widgets.Width_Of (Title))) & " "
+                          & Image (Integer (Widgets.Height_Of (Title))));
+      Goldens.Check_Text ("layouts-add-button", "60 20 Save", Image (Integer (Widgets.Width_Of (Save))) & " "
+                          & Image (Integer (Widgets.Height_Of (Save))) & " " & Buttons.Label (Save));
+      Goldens.Check_Text
+        ("buttons-looks", "TRUE TRUE TRUE",
+         Boolean'Image (Buttons.Kind_Of (Save) = Buttons.Primary and then Buttons.Shape_Of (Save) = Buttons.Plain)
+         & " " & Boolean'Image (Buttons.Is_Dropdown (Menu)) & " "
+         & Boolean'Image (Buttons.Shape_Of (Menu) = Buttons.Split_Dropdown));
+
+      --  Configure says all of it: what is not named goes back; the state stays.
+      Buttons.Set_Selected (Save, True);
+      Buttons.Configure
+        (Save, Buttons.Looks ("Edit", Icon => Pomarine.Icons.Shown (Pomarine.Icons.Check), Captioned => True));
+      Goldens.Check_Text
+        ("buttons-configure", "Edit NORMAL TRUE TRUE FALSE",
+         Buttons.Label (Save) & " " & Buttons.Kind'Image (Buttons.Kind_Of (Save)) & " "
+         & Boolean'Image (Buttons.Has_Icon (Save)) & " " & Boolean'Image (Buttons.Is_Selected (Save)) & " "
+         & Boolean'Image (Buttons.Is_Dropdown (Save)));
+      Buttons.Configure (Save, Buttons.Looks ("Edit"));
+      Goldens.Check_Text ("buttons-configure-no-icon", "FALSE", Boolean'Image (Buttons.Has_Icon (Save)));
+
+      --  A dropdown made plain is plain, a split one too.
+      Buttons.Set_Dropdown (Menu, False);
+      Goldens.Check_Text ("buttons-dropdown-off", "PLAIN", Buttons.Shape_Kind'Image (Buttons.Shape_Of (Menu)));
+   end Declarative_Building;
 
    procedure Only_What_Changed is
       Tree   : Widgets.Tree;

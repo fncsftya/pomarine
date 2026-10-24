@@ -64,27 +64,25 @@ package body Todo is
    procedure Build (Item : aliased in out Page; Tree : in out Widgets.Tree) is
    begin
       Widgets.Set_Root (Tree, Item.Root);
-      Widgets.Add (Item.Root, Item.Entry_Box, Item.List, Item.Footer);
-      Widgets.Add (Item.Footer, Item.Summary, Item.Toggle, Item.Remove, Item.Sweep);
+      Layouts.Set_Layout (Item.Root, (Flow => Layouts.Column, Padding => (others => 12.0), Gap => 8.0, others => <>));
+      Layouts.Add (Item.Root, Item.Entry_Box, (Height => 38.0, others => <>));
+      Layouts.Add (Item.Root, Item.List, (Grow => 1.0, others => <>));
+      Layouts.Add
+        (Item.Root, Item.Footer,
+         (Flow => Layouts.Row, Align => Layouts.Center, Height => 32.0, Gap => 8.0, others => <>));
+      Layouts.Add (Item.Footer, Item.Summary, (Grow => 1.0, Height => 24.0, others => <>));
+      Buttons.Add
+        (Item.Footer, Item.Toggle, Buttons.Looks ("Done"), (Width => 70.0, Height => 32.0, others => <>));
+      Buttons.Add
+        (Item.Footer, Item.Remove, Buttons.Looks ("Delete", Buttons.Danger),
+         (Width => 70.0, Height => 32.0, others => <>));
+      Buttons.Add
+        (Item.Footer, Item.Sweep, Buttons.Looks ("Clear done"), (Width => 100.0, Height => 32.0, others => <>));
 
       Pomarine.Widgets.Text_Fields.Configure (Item.Entry_Box, Pomarine.Line_Texts.Interface_Font, 15.0);
       Pomarine.Widgets.Text_Fields.Attach (Item.Entry_Box, Item.Typed'Unchecked_Access);
       Pomarine.Widgets.Text_Fields.Set_Placeholder (Item.Entry_Box, "What needs doing? Press Return");
       Pomarine.Widgets.Lists.Set_Model (Item.List, Item.Items'Unchecked_Access);
-
-      Layouts.Set_Layout (Item.Root, Flow => Layouts.Column, Padding => (others => 12.0), Gap => 8.0);
-      Layouts.Set_Layout (Item.Entry_Box, Height => 38.0);
-      Layouts.Set_Layout (Item.List, Grow => 1.0);
-      Layouts.Set_Layout (Item.Footer, Flow => Layouts.Row, Align => Layouts.Center, Height => 32.0, Gap => 8.0);
-      Layouts.Set_Layout (Item.Summary, Grow => 1.0, Height => 24.0);
-      Layouts.Set_Layout (Item.Toggle, Width => 70.0, Height => 32.0);
-      Layouts.Set_Layout (Item.Remove, Width => 70.0, Height => 32.0);
-      Layouts.Set_Layout (Item.Sweep, Width => 100.0, Height => 32.0);
-
-      Buttons.Set_Label (Item.Toggle, "Done");
-      Buttons.Set_Label (Item.Remove, "Delete");
-      Buttons.Set_Kind (Item.Remove, Buttons.Danger);
-      Buttons.Set_Label (Item.Sweep, "Clear done");
 
       Handlers.On (Item.Entry_Box, Widgets.Submit, Item'Access, Add_Task'Access);
       Handlers.On (Item.Toggle, Widgets.Click, Item'Access, Toggle_Chosen'Access);

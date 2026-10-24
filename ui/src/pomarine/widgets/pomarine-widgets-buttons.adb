@@ -45,6 +45,72 @@ package body Pomarine.Widgets.Buttons is
       end if;
    end Set_Label_Style;
 
+   function Looks
+     (Caption     : String := "";
+      Of_Kind     : Kind := Normal;
+      Icon        : Pomarine.Icons.Optional := Pomarine.Icons.No_Icon;
+      Icon_Points : Float := 0.0;
+      Captioned   : Boolean := False;
+      Shape       : Shape_Kind := Plain;
+      Focusable   : Boolean := False;
+      Label_Style : Line_Texts.Style := Line_Texts.Strong;
+      Underlined  : Boolean := False;
+      Struck      : Boolean := False) return Settings
+   is
+   begin
+      return Result : Settings do
+         Result.Length := Caption'Length;
+         Result.Text (1 .. Caption'Length) := Caption;
+         Result.Style := Of_Kind;
+         Result.Label_Style := Label_Style;
+         Result.Underlined := Underlined;
+         Result.Struck := Struck;
+         Result.Icon := Icon;
+         Result.Icon_Points := Icon_Points;
+         Result.Captioned := Captioned;
+         Result.Shape := Shape;
+         Result.Focusable := Focusable;
+      end return;
+   end Looks;
+
+   procedure Configure (Item : in out Button; Using : Settings) is
+      use type Pomarine.Icons.Optional;
+   begin
+      Set_Label (Item, Using.Text (1 .. Using.Length));
+      Set_Kind (Item, Using.Style);
+      Set_Label_Style (Item, Using.Label_Style, Using.Underlined, Using.Struck);
+      if Using.Icon = Pomarine.Icons.No_Icon then
+         if Item.Picture then
+            Item.Picture := False;
+            if Is_Attached (Item) then
+               Invalidate (Item);
+            end if;
+         end if;
+      else
+         Set_Icon (Item, Pomarine.Icons.Icon_Of (Using.Icon));
+      end if;
+      if Item.Icon_Points /= Using.Icon_Points then
+         Item.Icon_Points := Using.Icon_Points;
+         if Is_Attached (Item) then
+            Invalidate (Item);
+         end if;
+      end if;
+      Set_Captioned (Item, Using.Captioned);
+      Set_Shape (Item, Using.Shape);
+      Set_Focusable (Item, Using.Focusable);
+   end Configure;
+
+   procedure Add
+     (Parent : in out Widget'Class;
+      Item   : in out Button;
+      Using  : Settings;
+      Box    : Layouts.Style := (others => <>))
+   is
+   begin
+      Layouts.Add (Parent, Item, Box);
+      Configure (Item, Using);
+   end Add;
+
    procedure Set_Kind (Item : in out Button; To : Kind) is
    begin
       if To /= Item.Style then
@@ -120,31 +186,26 @@ package body Pomarine.Widgets.Buttons is
 
    function Is_Selected (Item : Button) return Boolean is (Item.Selected);
 
-   procedure Set_Dropdown (Item : in out Button; To : Boolean) is
+   procedure Set_Shape (Item : in out Button; To : Shape_Kind) is
    begin
-      if To /= Item.Dropdown then
-         Item.Dropdown := To;
-         if Is_Attached (Item) then
-            Invalidate (Item);
-         end if;
-      end if;
-   end Set_Dropdown;
-
-   function Is_Dropdown (Item : Button) return Boolean is (Item.Dropdown);
-
-   procedure Set_Split (Item : in out Button; To : Boolean) is
-   begin
-      if To /= Item.Split then
-         Item.Split := To;
+      if To /= Item.Shape then
+         Item.Shape := To;
          Item.Over_Caret := False;
          Item.Down_Caret := False;
          if Is_Attached (Item) then
             Invalidate (Item);
          end if;
       end if;
-   end Set_Split;
+   end Set_Shape;
 
-   function Is_Split (Item : Button) return Boolean is (Item.Split);
+   function Shape_Of (Item : Button) return Shape_Kind is (Item.Shape);
+
+   procedure Set_Dropdown (Item : in out Button; To : Boolean) is
+   begin
+      Set_Shape (Item, (if To then Dropdown else Plain));
+   end Set_Dropdown;
+
+   function Is_Dropdown (Item : Button) return Boolean is (Item.Shape /= Plain);
 
    function Caret_Clicked (Item : Button) return Boolean is (Item.Last_Caret);
 
@@ -209,7 +270,7 @@ package body Pomarine.Widgets.Buttons is
         Contains (Item, Event.Mouse_X * Density (Item),
                   Event.Mouse_Y * Density (Item));
       On_Caret : constant Boolean :=
-        Item.Split and then Item.Dropdown and then Over
+        Item.Shape = Split_Dropdown and then Over
         and then Event.Mouse_X * Density (Item) >= Left_Of (Item) + Width_Of (Item)
                                                      - Float'Rounding (Height_Of (Item));
    begin
@@ -291,7 +352,7 @@ package body Pomarine.Widgets.Buttons is
    is
       Pixels  : constant Float := Density (Item);
       Edge    : constant Float := Pomarine.Boxes.Edge (Pixels);
-      Apart   : constant Boolean := Item.Split and then Item.Dropdown and then Item.Style /= Quiet;
+      Apart   : constant Boolean := Item.Shape = Split_Dropdown and then Item.Style /= Quiet;
       --  The caret is a button of its own: it and the rest are each pressed or hovered.
       Pressed_All : constant Boolean := Item.Enabled and then Is_Pressed (Item);
       Hovered_All : constant Boolean := Item.Enabled and then Is_Hovered (Item);
@@ -299,7 +360,7 @@ package body Pomarine.Widgets.Buttons is
       Hovered : constant Boolean := Hovered_All and then not (Apart and then Item.Over_Caret);
       Caret_Pressed : constant Boolean := Apart and then Pressed_All and then Item.Down_Caret;
       Caret_Hovered : constant Boolean := Apart and then Hovered_All and then Item.Over_Caret;
-      Toggled : constant Boolean := Item.Selected and then not Item.Dropdown;
+      Toggled : constant Boolean := Item.Selected and then Item.Shape = Plain;
       --  Pressed in, in the accent; an open dropdown is in its own face.
       Tone  : constant Themes.Tone :=
         (case Item.Style is
@@ -380,7 +441,7 @@ package body Pomarine.Widgets.Buttons is
 
       --  A dropdown's caret, in a square of its own at the right, a groove
       --  between it and the rest; up while it is open.
-      if Item.Dropdown and then Item.Style /= Quiet then
+      if Item.Shape /= Plain and then Item.Style /= Quiet then
          Caret_Room := Float'Rounding (High_Box);
          declare
             Line : constant Float := Left + Wide_Box - Caret_Room;
@@ -545,7 +606,7 @@ package body Pomarine.Widgets.Buttons is
       Facts.Disabled := not Item.Enabled;
       Facts.Selected := Item.Selected;
       Facts.Focusable := Item.Focusable and then Item.Enabled;
-      if Item.Dropdown then
+      if Item.Shape /= Plain then
          Facts.Has_Expanded := True;
          Facts.Expanded := Item.Selected;
       end if;

@@ -2,26 +2,24 @@ with Pomarine.Boxes;
 with Yoga.Nodes;
 package body Pomarine.Widgets.Layouts is
 
-   procedure Set_Layout
-     (Item     : in out Widget'Class;
-      Width    : Float := Unset;
-      Height   : Float := Unset;
-      Grow     : Float := Unset;
-      Shrink   : Float := Unset;
-      Padding  : Sides := (others => <>);
-      Outlined : Boolean := False;
-      Shadowed : Boolean := False;
-      Margin   : Sides := (others => <>);
-      Gap      : Float := Unset;
-      Flow     : Flow_Kind := As_Is;
-      Align    : Align_Kind := As_Is;
-      Align_Self : Align_Kind := As_Is;
-      Spread   : Spread_Kind := As_Is;
-      Wrap     : Boolean := False;
-      Place    : Place_Kind := As_Is;
-      Position : Sides := (others => <>);
-      Unit     : Unit_Kind := Points)
-   is
+   procedure Set_Layout (Item : in out Widget'Class; Using : Style) is
+      Width      : Float renames Using.Width;
+      Height     : Float renames Using.Height;
+      Grow       : Float renames Using.Grow;
+      Shrink     : Float renames Using.Shrink;
+      Padding    : Sides renames Using.Padding;
+      Outlined   : Boolean renames Using.Outlined;
+      Shadowed   : Boolean renames Using.Shadowed;
+      Margin     : Sides renames Using.Margin;
+      Gap        : Float renames Using.Gap;
+      Flow       : Flow_Kind renames Using.Flow;
+      Align      : Align_Kind renames Using.Align;
+      Align_Self : Align_Kind renames Using.Align_Self;
+      Spread     : Spread_Kind renames Using.Spread;
+      Wrap       : Boolean renames Using.Wrap;
+      Place      : Place_Kind renames Using.Place;
+      Position   : Sides renames Using.Position;
+      Unit       : Unit_Kind renames Using.Unit;
       Box    : constant Yoga.Nodes.Node := Node (Item);
       Pixels : constant Float := (if Unit = Points then Density (Item) else 1.0);
       --  What a point of this call is, in pixels.
@@ -129,5 +127,39 @@ package body Pomarine.Widgets.Layouts is
       Edges (Position, Put'Access);
       Request_Layout (Item);
    end Set_Layout;
+
+   procedure Set_Layout
+     (Item     : in out Widget'Class;
+      Width    : Float := Unset;
+      Height   : Float := Unset;
+      Grow     : Float := Unset;
+      Shrink   : Float := Unset;
+      Padding  : Sides := (others => <>);
+      Outlined : Boolean := False;
+      Shadowed : Boolean := False;
+      Margin   : Sides := (others => <>);
+      Gap      : Float := Unset;
+      Flow     : Flow_Kind := As_Is;
+      Align    : Align_Kind := As_Is;
+      Align_Self : Align_Kind := As_Is;
+      Spread   : Spread_Kind := As_Is;
+      Wrap     : Boolean := False;
+      Place    : Place_Kind := As_Is;
+      Position : Sides := (others => <>);
+      Unit     : Unit_Kind := Points) is
+   begin
+      Set_Layout
+        (Item,
+         (Width => Width, Height => Height, Grow => Grow, Shrink => Shrink, Padding => Padding,
+          Outlined => Outlined, Shadowed => Shadowed, Margin => Margin, Gap => Gap, Flow => Flow,
+          Align => Align, Align_Self => Align_Self, Spread => Spread, Wrap => Wrap, Place => Place,
+          Position => Position, Unit => Unit));
+   end Set_Layout;
+
+   procedure Add (Parent : in out Widget'Class; Child : in out Widget'Class; Using : Style) is
+   begin
+      Widgets.Add (Parent, Child);
+      Set_Layout (Child, Using);
+   end Add;
 
 end Pomarine.Widgets.Layouts;

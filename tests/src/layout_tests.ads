@@ -5,5 +5,7 @@ package Layout_Tests is
 
    procedure Intrinsic_Labels;
    procedure Only_What_Changed;
+   procedure Declarative_Building;
+   --  Layouts.Add, Buttons.Looks, Configure and Buttons.Add.
 
 end Layout_Tests;

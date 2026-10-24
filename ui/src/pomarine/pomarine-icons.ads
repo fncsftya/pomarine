@@ -24,6 +24,17 @@ package Pomarine.Icons is
 
    type Icon is range 1 .. Capacity;
 
+   type Optional is range 0 .. Capacity;
+   --  An Icon or none, for what may have no picture.
+
+   No_Icon : constant Optional := 0;
+
+   function Shown (Which : Icon) return Optional is (Optional (Which))
+     with Post => Shown'Result /= No_Icon;
+
+   function Icon_Of (Item : Optional) return Icon is (Icon (Item))
+     with Pre => Item /= No_Icon;
+
    Check        : constant Icon := 1;
    Close        : constant Icon := 2;
    Minimize     : constant Icon := 3;

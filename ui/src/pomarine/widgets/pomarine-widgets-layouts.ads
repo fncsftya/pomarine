@@ -52,6 +52,41 @@ package Pomarine.Widgets.Layouts is
    --  Flowing takes its place among its siblings; Absolute takes no room
    --  there, and is put by its edges (Position) from its parent's.
 
+   type Style is record
+      Width      : Float := Unset;
+      Height     : Float := Unset;
+      Grow       : Float := Unset;
+      Shrink     : Float := Unset;
+      Padding    : Sides := (others => <>);
+      Outlined   : Boolean := False;
+      Shadowed   : Boolean := False;
+      Margin     : Sides := (others => <>);
+      Gap        : Float := Unset;
+      Flow       : Flow_Kind := As_Is;
+      Align      : Align_Kind := As_Is;
+      Align_Self : Align_Kind := As_Is;
+      Spread     : Spread_Kind := As_Is;
+      Wrap       : Boolean := False;
+      Place      : Place_Kind := As_Is;
+      Position   : Sides := (others => <>);
+      Unit       : Unit_Kind := Points;
+   end record;
+   --  What a call of Set_Layout says, as a value, to be given with a widget
+   --  when it is added (see Add), kept, or made once and used for many. Only
+   --  what is named is changed; the others are left as they are.
+   --     (Width => 120.0, Height => 32.0, others => <>)
+
+   procedure Set_Layout (Item : in out Widget'Class; Using : Style)
+     with Pre => Is_Attached (Item);
+   --  As the call below, with the style as a value.
+
+   procedure Add (Parent : in out Widget'Class; Child : in out Widget'Class; Using : Style)
+     with Pre => Is_Attached (Parent) and then not Is_Attached (Child) and then Child_Count (Child) = 0,
+          Post => Is_Attached (Child);
+   --  Add Child to Parent (see Pomarine.Widgets.Add) and style its box, in
+   --  one line:
+   --     Layouts.Add (Footer, Summary, (Grow => 1.0, Height => 24.0, others => <>));
+
    procedure Set_Layout
      (Item     : in out Widget'Class;
       Width    : Float := Unset;

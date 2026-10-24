@@ -29,16 +29,14 @@ end Handle_Event;
 Widgets.Set_Density (Tree, Pixels_Per_Point);
 Widgets.Set_Listener (Tree, Me'Access);
 Widgets.Set_Root (Tree, Root);
-Widgets.Add (Root, Bar, Page);                    --  in order
-Widgets.Add (Bar, Save_Button, Quit_Button);
-
 Layouts.Set_Layout (Root, Flow => Column);        --  in points; the tree knows the density
                                                   --  (Unit => Device_Pixels for pixels)
-Layouts.Set_Layout (Bar, Flow => Row, Height => 32.0, Padding => (others => 4.0), Gap => 4.0);
-Layouts.Set_Layout (Page, Grow => 1.0);
+Layouts.Add (Root, Bar, (Flow => Row, Height => 32.0, Padding => (others => 4.0), Gap => 4.0, others => <>));
+Layouts.Add (Root, Page, (Grow => 1.0, others => <>));    --  added, in order, and styled
 
-Buttons.Set_Label (Save_Button, "Save");
-Buttons.Set_Kind (Save_Button, Buttons.Primary);
+--  A button is added, looks as said and sits as said, in one line:
+Buttons.Add (Bar, Save_Button, Buttons.Looks ("Save", Buttons.Primary), (Width => 70.0, others => <>));
+Buttons.Add (Bar, Quit_Button, Buttons.Looks ("Quit"));
 Commands.Bind (Save_Button, Save);
 
 --  Running:
@@ -88,6 +86,17 @@ many it was.
 A widget's `Take_...` (`Buttons.Take_Click` and the like) says the same, to be
 asked for rather than told; the handlers below are the way to use, and bonxie
 uses nothing else.
+
+### What a widget is, and what it is now
+
+`Buttons.Looks (...)` says what a button is (label, kind, icon, caption,
+shape, focusable) and `Configure` or `Add` gives it all of it: what is not
+named goes back to what a new button has. What it is at the moment
+(`Set_Selected`, `Set_Enabled`, `Set_Badge`) is set on its own. A button's
+`Shape` (`Plain`, `Dropdown`, `Split_Dropdown`) is one choice, so a split
+button without a caret cannot be asked for. `Layouts.Style` is the same
+for the box: `Set_Layout (Item, Style)` and `Layouts.Add (Parent, Child, Style)`
+take it as a value, and the call with named parameters is the same thing.
 
 ### Handlers of a widget's own
 

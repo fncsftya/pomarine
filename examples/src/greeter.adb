@@ -19,18 +19,15 @@ package body Greeter is
    procedure Build (Item : aliased in out Greeting; Tree : in out Widgets.Tree) is
    begin
       Widgets.Set_Root (Tree, Item.Page);
-      Widgets.Add (Item.Page, Item.Text, Item.Greet);
-
       Layouts.Set_Layout
-        (Item.Page, Flow => Layouts.Column, Align => Layouts.Center, Spread => Layouts.Center,
-         Padding => (others => 16.0), Gap => 12.0);
-      Layouts.Set_Layout (Item.Text, Width => 200.0, Height => 24.0);
-      Layouts.Set_Layout (Item.Greet, Width => 120.0, Height => 32.0);
-
+        (Item.Page, (Flow => Layouts.Column, Align => Layouts.Center, Spread => Layouts.Center,
+                     Padding => (others => 16.0), Gap => 12.0, others => <>));
+      Layouts.Add (Item.Page, Item.Text, (Width => 200.0, Height => 24.0, others => <>));
+      Buttons.Add
+        (Item.Page, Item.Greet, Buttons.Looks ("Say hello", Buttons.Primary),
+         (Width => 120.0, Height => 32.0, others => <>));
       Labels.Set_Text (Item.Text, "Hello, world!");
       Labels.Set_Centered (Item.Text, True);
-      Buttons.Set_Label (Item.Greet, "Say hello");
-      Buttons.Set_Kind (Item.Greet, Buttons.Primary);
       Handlers.On (Item.Greet, Widgets.Click, Item'Access, Say_Hello'Access);
    end Build;
 

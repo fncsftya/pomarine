@@ -5,6 +5,7 @@ with SDL3.Cursors;
 with Pomarine_Ui_Config;
 with Pomarine.Events;
 with Pomarine.Icons;
+with Pomarine.Widgets.Layouts;
 
 --  A button to click, with a short label.
 --
@@ -33,6 +34,51 @@ package Pomarine.Widgets.Buttons is
    --  the theme's primary colour, green, for the main action; Danger in
    --  its danger colour, red, for what cannot be undone. Quiet has no
    --  face, only its icon and label, in a light ink, for a dark bar.
+
+   type Shape_Kind is (Plain, Dropdown, Split_Dropdown);
+   --  Plain is a button. A Dropdown has a caret at its right, in a part of
+   --  its own, a line between it and the label: as of a button that opens
+   --  a menu. A Split_Dropdown has the caret a button of its own: the two
+   --  parts are under the pointer, pressed and clicked each on its own.
+   --  Both say Click; Caret_Clicked tells which it was.
+
+   type Settings is private;
+   --  What a button is, as against what it is now (Set_Selected,
+   --  Set_Enabled, Set_Badge and Set_Swatch): its label and look, made
+   --  with Looks, and given to Configure or to Add.
+
+   function Looks
+     (Caption     : String := "";
+      Of_Kind     : Kind := Normal;
+      Icon        : Pomarine.Icons.Optional := Pomarine.Icons.No_Icon;
+      Icon_Points : Float := 0.0;
+      Captioned   : Boolean := False;
+      Shape       : Shape_Kind := Plain;
+      Focusable   : Boolean := False;
+      Label_Style : Line_Texts.Style := Line_Texts.Strong;
+      Underlined  : Boolean := False;
+      Struck      : Boolean := False) return Settings
+     with Pre => Caption'Length <= Label_Capacity and then Icon_Points >= 0.0;
+   --  What is not named is what a new button has. Icon_Points is in points,
+   --  0.0 the usual. Captioned shows the label after the icon.
+   --     Looks ("Save", Primary)
+   --     Looks ("Edit", Icon => Icons.Shown (Edit), Captioned => True)
+
+   procedure Configure (Item : in out Button; Using : Settings);
+   --  Make it as Using says, all of it: what Using does not name goes back
+   --  to what a new button has. Whether it is selected, enabled, badged or
+   --  swatched is left as it was. Damages nothing if it is as it was.
+
+   procedure Add
+     (Parent : in out Widget'Class;
+      Item   : in out Button;
+      Using  : Settings;
+      Box    : Layouts.Style := (others => <>))
+     with Pre  => Is_Attached (Parent) and then not Is_Attached (Item),
+          Post => Is_Attached (Item);
+   --  Add Item to Parent, as it looks and where it sits, in one line:
+   --     Buttons.Add
+   --       (Footer, Save, Buttons.Looks ("Save", Buttons.Primary), (Width => 70.0, Height => 32.0, others => <>));
 
    procedure Set_Kind (Item : in out Button; To : Kind);
 
@@ -74,18 +120,16 @@ package Pomarine.Widgets.Buttons is
 
    function Is_Selected (Item : Button) return Boolean;
 
-   procedure Set_Dropdown (Item : in out Button; To : Boolean);
-   --  Show a caret at its right, in a part of its own, a line between it
-   --  and the label: as of a button that opens a menu.
+   procedure Set_Shape (Item : in out Button; To : Shape_Kind);
+
+   function Shape_Of (Item : Button) return Shape_Kind;
+
+   procedure Set_Dropdown (Item : in out Button; To : Boolean)
+     with Post => Is_Dropdown (Item) = To;
+   --  Set_Shape (Dropdown) or (Plain). It makes a split dropdown plain.
 
    function Is_Dropdown (Item : Button) return Boolean;
-
-   procedure Set_Split (Item : in out Button; To : Boolean);
-   --  Of a dropdown, make its caret a button of its own: the two parts are
-   --  under the pointer, pressed and clicked each on its own. Both say
-   --  Click; Caret_Clicked tells which it was.
-
-   function Is_Split (Item : Button) return Boolean;
+   --  Whether it has a caret, split or not.
 
    function Caret_Clicked (Item : Button) return Boolean;
    --  Whether the last click, by the pointer, was on the caret of a split
@@ -145,6 +189,20 @@ package Pomarine.Widgets.Buttons is
 
 private
 
+   type Settings is record
+      Text        : String (1 .. Label_Capacity) := [others => ' '];
+      Length      : Natural range 0 .. Label_Capacity := 0;
+      Style       : Kind := Normal;
+      Label_Style : Line_Texts.Style := Line_Texts.Strong;
+      Underlined  : Boolean := False;
+      Struck      : Boolean := False;
+      Icon        : Pomarine.Icons.Optional := Pomarine.Icons.No_Icon;
+      Icon_Points : Float := 0.0;
+      Captioned   : Boolean := False;
+      Shape       : Shape_Kind := Plain;
+      Focusable   : Boolean := False;
+   end record;
+
    type Button is new Widget with record
       Text    : String (1 .. Label_Capacity) := [others => ' '];
       Length  : Natural range 0 .. Label_Capacity := 0;
@@ -160,13 +218,12 @@ private
       Captioned : Boolean := False;
       Badge     : Natural := 0;
       Selected  : Boolean := False;
-      Dropdown  : Boolean := False;
+      Shape     : Shape_Kind := Plain;
       Enabled   : Boolean := True;
       Focusable : Boolean := False;
       Down    : Boolean := False;  --  pressed, and not yet let go
       Clicked : Boolean := False;
       By_Command : Boolean := False;  --  selected as a command in force
-      Split      : Boolean := False;  --  the caret of a dropdown is a button of its own
       Over_Caret : Boolean := False;  --  the pointer is over it
       Down_Caret : Boolean := False;  --  the press was on it
       Last_Caret : Boolean := False;  --  the last click was on it
