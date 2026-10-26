@@ -173,6 +173,9 @@ refreshes everything before the screen can be used. Later changes of the model a
 * **Watches.** Each binding has its own `Version` (an adapter says which: a text's own, or the model's whole by
   default), so a change of one is not a refresh of the others. A setter given what the model has is no change (the
   view-models' `Set` says so), and a widget given what it shows does nothing.
+* **Button captions.** `Bound.Caption_From (Button, Text_Property, Index => ...)` makes an owned or borrowed
+  button's label follow a versioned text adapter, including its accessible name when no explicit name was set.
+  It retains the button's command and validates the handle's view and lifetime.
 * **Feedback.** What the view shows is never heard back as an edit: the field remembers the document's state and
   the text it last agreed with the model on, and the list the id it last agreed on.
 * **Reentrancy.** A turn that is going on is completed first. Events that come while it does (from a model that
@@ -263,14 +266,27 @@ A borrowed widget that is in a tree already is an `Attachment_Conflict`.
   Slider events synchronize edits without dispatching the borrowed widget's existing command tag.
 * `On_Event (Widget_Handle, Kind, Command, Index)` binds a borrowed widget event beside its declaration,
   without changing its tag. `On_Event (UI.Any (Typed_Handle), ...)` also binds events on typed controls,
-  such as a field's blur, without borrowing the widget again. `Index_From_Event => True` uses the chosen row for `Choose` and `Act`, and the
+  such as a field's blur, without borrowing the widget again. `Index_From_Event => True` uses the chosen row for
+  `Choose` and `Act`, the selected row for a list's `Click` and `Submit` (ignoring no selection), and the
   event index otherwise. Commands use the usual edit-before-command ordering and `Can_Execute` check.
   The control and event binding must belong to the same construction scope. Duplicate bindings for one
   widget/event pair are rejected; teardown removes the handler before reclaiming its binding record.
+* `On_List_Actions (Widget_Handle, [First_Command, Second_Command])` binds a borrowed list's numbered row
+  actions. Each command receives the event's row, independent of selection. Unmapped action numbers are ignored;
+  the model rejects unavailable rows or commands. Binding twice is refused, and teardown detaches the handler.
 * `On_Frame_Event (Frame, Kind, Command)` binds discrete frame actions (title double-click, submit, blur,
   minimize, restore and close). The app-owned frame must outlive the binding. Move and resize remain
   view gestures; they are rejected by this command API. Both event APIs exclusively own their event handler
   while the binding lives; do not replace that handler from application code.
+* `On_Editor_Event (Widget_Handle, Tool_Used | Link_Followed | Link_Asked, Command, Index, Index_From_Event)`
+  binds what an editor says that no other widget does (the `Editors.Callbacks` hooks) to a command. With
+  `Index_From_Event` a used tool's command index says the tool as well as the editor's `Index`: build it with
+  `Tool_Index (Index, Tool)`, take it apart with `Editor_Of` and `Tool_Of`. Each hook of an editor is bound once;
+  the binding clears the hook when its scope goes. What the command does with the editor (a tool of the text,
+  a link opened, link choices offered) is the application's effect, not the model's.
+* `On_Canvas_Event (Widget_Handle, Line_Selected | Line_Deleted, Command, Index, Index_From_Event)` does the
+  same for a canvas's lines (`Canvases.Callbacks`): with `Index_From_Event`, `Line_Selected`'s command index is the
+  tag of the line, 0 for none.
 
 * `Show_When (UI.Any (Handle), Flag)` puts a control in or out of its layout (`Set_Visible`) as a flag says.
 * `Borrow_Widget` places a widget of the application's of any kind (`Widget_Handle`): the view lays it out and

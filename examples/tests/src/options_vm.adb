@@ -25,6 +25,7 @@ package body Options_VM is
       VM.Bump (Self.Changes);
    end Execute;
 
+   function Caption (Self : Model) return String is (if Self.Is_Dark then "Dark command" else "Light command");
    function Dark (Self : Model) return Boolean is (Self.Is_Dark);
    function Light (Self : Model) return Boolean is (not Self.Is_Dark);
    function Sync (Self : Model) return Boolean is (Self.Synced);

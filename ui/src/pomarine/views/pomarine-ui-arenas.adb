@@ -66,7 +66,8 @@ package body Pomarine.UI.Arenas is
       Home  : constant not null access Arena := Home_Of (Subpool);
       Align : constant Storage_Count := Storage_Count'Max (Alignment, 1);
    begin
-      if Home.Blocks /= null then
+      --  The next byte has no array index when the block is exactly full.
+      if Home.Blocks /= null and then Home.Blocks.Used < Home.Blocks.Data'Length then
          declare
             Top   : Block renames Home.Blocks.all;
             Skip  : constant Storage_Count := Aligned (Top.Data (Top.Data'First + Top.Used)'Address, Align);

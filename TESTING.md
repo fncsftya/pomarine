@@ -180,6 +180,8 @@ for t in todo_vm_test todo_view_test example_views_test ui_slice_test ui_ownersh
   states, grow to 2,048 rows with 700-character labels, and accept an empty replacement. Replacing content
   during a press cancels that press: releasing it does not choose a row from the replacement.
 
+  Button captions follow versioned text adapters for owned and borrowed buttons, retain their commands,
+  accept indexed text, reject foreign/stale handles and detach with their view.
 * `ui_reentry_test`: an event that comes while the view is in the middle of a pass is kept and run as a turn
   of its own when the pass is done (`Queued_Events`), and not inside it; a model that raises leaves the view able to
   go on; the person and the model changing a text in one turn.

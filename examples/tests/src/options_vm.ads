@@ -14,6 +14,7 @@ package Options_VM is
    overriding function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
    overriding procedure Execute (Self : in out Model; What : Command; Index : Natural := 0);
 
+   function Caption (Self : Model) return String;
    function Dark (Self : Model) return Boolean;
    function Light (Self : Model) return Boolean;
    function Sync (Self : Model) return Boolean;

@@ -2,7 +2,9 @@ with Ada.Strings.Unbounded;
 with Pomarine.Text_Areas;
 with Pomarine.UI.Arenas;
 with Pomarine.UI.Syncing;
-with Pomarine.Widgets.Editors;
+with Pomarine.Widgets.Canvases;
+with Pomarine.Widgets.Canvases.Callbacks;
+with Pomarine.Widgets.Editors.Callbacks;
 with Pomarine.Widgets.Bindings;
 with Pomarine.Widgets.Callbacks;
 with Pomarine.Widgets.Frames.Handlers;
@@ -97,7 +99,8 @@ package body Pomarine.UI.Contexts is
    --  handles of the widgets, which it checks before it uses them: a record of a
    --  scope outlives nothing, but it does not take it on trust.
 
-   type Label_Binding is new Pomarine.UI.Binding with record
+   type Text_Binding is new Pomarine.UI.Binding with record
+      Kind : Control_Kind := Label_Control;
       Index  : Natural := 0;
       Handle : Handle_Data;
       Text   : Text_Adapter_Ref;
@@ -105,7 +108,7 @@ package body Pomarine.UI.Contexts is
       Seen   : VM.Watch;
    end record;
 
-   overriding procedure Refresh (Item : in out Label_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding procedure Refresh (Item : in out Text_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Field_Binding is new Pomarine.UI.Binding with record
       Index  : Natural := 0;
@@ -137,6 +140,7 @@ package body Pomarine.UI.Contexts is
    overriding function Key (Item : Command_Binding) return Command_Key;
    overriding function Is_Command (Item : Command_Binding) return Boolean;
 
+   type Action_Tags is array (1 .. Pomarine.Models.Max_Actions) of Integer;
    type Frame_Ref is access all Widgets.Frames.Frame;
    type Event_Command_Binding is new Command_Binding with record
       Home : View_Ref;
@@ -145,28 +149,108 @@ package body Pomarine.UI.Contexts is
       Kind : Widgets.Event_Kind := Widgets.Click;
       Index : Natural := 0;
       Index_From_Event : Boolean := False;
+      Row_Actions : Boolean := False;
+      Tags : Action_Tags := [others => 0];
+      Hooked : Boolean := False;
+      --  The binding is of an editor's or a canvas's hook, not of its Kind of event.
+      Canvased : Boolean := False;
+      --  Of a canvas's: Line_Hook is the hook, not Hook.
+      Hook : Editor_Hook := Tool_Used;
+      Line_Hook : Canvas_Hook := Line_Selected;
    end record;
    overriding procedure Detach (Item : in out Event_Command_Binding; Within : in out View'Class);
    package Event_Callbacks is new Widgets.Callbacks (Event_Command_Binding);
    package Frame_Callbacks is new Widgets.Frames.Handlers (Event_Command_Binding);
+   package Editor_Callbacks is new Widgets.Editors.Callbacks (Event_Command_Binding);
+   package Canvas_Callbacks is new Widgets.Canvases.Callbacks (Event_Command_Binding);
    type Event_Command_Store is access Event_Command_Binding;
    for Event_Command_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
 
    procedure Event_Heard
      (Self : in out Event_Command_Binding; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
    is
+      Tag : Integer := Self.Tag;
+      Index : Natural := Self.Index;
+   begin
+      if Self.Row_Actions then
+         if Event.Action not in Self.Tags'Range or else Self.Tags (Event.Action) = 0 or else Event.Row = 0 then
+            return;
+         end if;
+         Tag := Self.Tags (Event.Action);
+         Index := Event.Row;
+      elsif Self.Index_From_Event then
+         if Source in Lists.List'Class and then Event.Kind in Widgets.Click | Widgets.Submit then
+            Index := Lists.Selected (Lists.List (Source));
+            if Index = 0 then
+               return;
+            end if;
+         else
+            Index := (if Event.Kind in Widgets.Choose | Widgets.Act then Event.Row else Event.Index);
+         end if;
+      end if;
+      Syncing.Hear (Self.Home.all, (Kind => Widgets.Click, Tag => Tag, Index => Index));
+   end Event_Heard;
+
+   procedure Tool_Heard
+     (Self : in out Event_Command_Binding; Source : in out Widgets.Editors.Editor'Class; Tool : Positive)
+   is
       pragma Unreferenced (Source);
    begin
       Syncing.Hear
-        (Self.Home.all, (Kind => Widgets.Click, Tag => Self.Tag,
-                         Index => (if not Self.Index_From_Event then Self.Index
-                                   elsif Event.Kind in Widgets.Choose | Widgets.Act then Event.Row
-                                   else Event.Index)));
-   end Event_Heard;
+        (Self.Home.all,
+         (Kind => Widgets.Click, Tag => Self.Tag,
+          Index => (if Self.Index_From_Event then Tool_Index (Self.Index, Tool) else Self.Index)));
+   end Tool_Heard;
+
+   procedure Line_Selected_Heard
+     (Self : in out Event_Command_Binding; Source : in out Widgets.Canvases.Canvas'Class; Tag : Natural)
+   is
+      pragma Unreferenced (Source);
+   begin
+      Syncing.Hear
+        (Self.Home.all,
+         (Kind => Widgets.Click, Tag => Self.Tag, Index => (if Self.Index_From_Event then Tag else Self.Index)));
+   end Line_Selected_Heard;
+
+   procedure Line_Deleted_Heard (Self : in out Event_Command_Binding; Source : in out Widgets.Canvases.Canvas'Class) is
+      pragma Unreferenced (Source);
+   begin
+      Syncing.Hear (Self.Home.all, (Kind => Widgets.Click, Tag => Self.Tag, Index => Self.Index));
+   end Line_Deleted_Heard;
+
+   procedure Link_Heard (Self : in out Event_Command_Binding; Source : in out Widgets.Editors.Editor'Class) is
+      pragma Unreferenced (Source);
+   begin
+      Syncing.Hear (Self.Home.all, (Kind => Widgets.Click, Tag => Self.Tag, Index => Self.Index));
+   end Link_Heard;
 
    overriding procedure Detach (Item : in out Event_Command_Binding; Within : in out View'Class) is
       pragma Unreferenced (Within);
    begin
+      if Item.Canvased and then Item.Target /= null then
+         declare
+            Hooked : Widgets.Canvases.Canvas'Class renames Widgets.Canvases.Canvas'Class (Item.Target.all);
+         begin
+            case Item.Line_Hook is
+               when Line_Selected => Canvas_Callbacks.Off_Select (Hooked);
+               when Line_Deleted  => Canvas_Callbacks.Off_Delete (Hooked);
+            end case;
+         end;
+         Item.Target := null;
+         return;
+      elsif Item.Hooked and then Item.Target /= null then
+         declare
+            Hooked : Widgets.Editors.Editor'Class renames Widgets.Editors.Editor'Class (Item.Target.all);
+         begin
+            case Item.Hook is
+               when Tool_Used     => Editor_Callbacks.Off_Tool (Hooked);
+               when Link_Followed => Editor_Callbacks.Off_Follow (Hooked);
+               when Link_Asked    => Editor_Callbacks.Off_Ask_Link (Hooked);
+            end case;
+         end;
+         Item.Target := null;
+         return;
+      end if;
       if Item.Frame /= null then
          Frame_Callbacks.Off (Item.Frame.all, Item.Kind);
          Item.Frame := null;
@@ -274,8 +358,8 @@ package body Pomarine.UI.Contexts is
    type Progress_Store is access Progress_Binding;
    for Progress_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
 
-   type Label_Store is access Label_Binding;
-   for Label_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+   type Text_Store is access Text_Binding;
+   for Text_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
    type Field_Store is access Field_Binding;
    for Field_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
    type Command_Store is access Command_Binding;
@@ -285,21 +369,29 @@ package body Pomarine.UI.Contexts is
    type Reveal_Store is access Reveal_Binding;
    for Reveal_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
 
-   --  Label
+   --  Labels and button captions share the same versioned text adapter.
 
-   overriding procedure Refresh (Item : in out Label_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding procedure Refresh (Item : in out Text_Binding; Within : in out View'Class; Forced : Boolean) is
       Changed : constant Boolean := VM.Changed (Item.Seen, Stamp (Item.Text.all, Item.Data.all, Item.Index));
-      Found   : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Label_Control);
+      Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Item.Kind);
    begin
       if Found /= null and then (Forced or else Changed) then
          declare
-            Shown : Labels.Label renames Labels.Label (Found.all);
-            Now   : constant String := Current (Item.Text.all, Item.Data.all, Item.Index);
+            Now : constant String := Current (Item.Text.all, Item.Data.all, Item.Index);
          begin
-            if Labels.Text (Shown) /= Now then
-               Labels.Set_Text (Shown, Now);
-               Within.Touched := True;
-            end if;
+            case Item.Kind is
+               when Label_Control =>
+                  if Labels.Text (Labels.Label (Found.all)) /= Now then
+                     Labels.Set_Text (Labels.Label (Found.all), Now);
+                     Within.Touched := True;
+                  end if;
+               when Button_Control =>
+                  if Buttons.Label (Buttons.Button (Found.all)) /= Now then
+                     Buttons.Set_Label (Buttons.Button (Found.all), Now);
+                     Within.Touched := True;
+                  end if;
+               when others => raise Program_Error with "a text binding needs a label or button";
+            end case;
          end;
       end if;
    end Refresh;
@@ -716,7 +808,7 @@ package body Pomarine.UI.Contexts is
       Index : Natural := 0)
    is
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home, Self.Scope);
-      Made : constant Label_Store := new (Where) Label_Binding;
+      Made : constant Text_Store := new (Where) Text_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
       Made.Text := Text.Adapter;
@@ -1127,6 +1219,25 @@ package body Pomarine.UI.Contexts is
       return Handle;
    end Borrow_Button;
 
+   procedure Caption_From
+     (Self : Context; Target : Pomarine.UI.Button_Handle; Text : Text_Property; Index : Natural := 0)
+   is
+      Home : constant not null View_Ref := View_Of (Self);
+   begin
+      Require_Handle (Home.all, Handle_Data (Target), Button_Control);
+      declare
+         Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
+         Made : constant Text_Store := new (Where) Text_Binding;
+      begin
+         Made.Kind := Button_Control;
+         Made.Handle := Handle_Data (Target);
+         Made.Text := Text.Adapter;
+         Made.Data := Self.Data;
+         Made.Index := Index;
+         Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
+      end;
+   end Caption_From;
+
    function Borrow_Field
      (Self      : Context;
       Existing  : in out Text_Fields.Text_Field;
@@ -1189,9 +1300,11 @@ package body Pomarine.UI.Contexts is
       On_Event (Self, Pomarine.UI.Any (Target), Kind, Command, Index, Index_From_Event);
    end On_Event;
 
-   procedure On_Event
+   function Bind_Event
      (Self : Context; Target : Pomarine.UI.Control_Ref; Kind : Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False;
+      Hooked : Boolean := False; Hook : Editor_Hook := Tool_Used;
+      Canvased : Boolean := False; Line_Hook : Canvas_Hook := Line_Selected) return Event_Command_Store
    is
       Home : constant not null View_Ref := View_Of (Self);
       Handle : constant Handle_Data := Data_Of (Target);
@@ -1215,7 +1328,10 @@ package body Pomarine.UI.Contexts is
                   Other : Event_Command_Binding renames Event_Command_Binding (Binding.all);
                   use type Widgets.Event_Kind;
                begin
-                  if Other.Target = Found and then Other.Kind = Kind then
+                  if Other.Target = Found and then Other.Hooked = Hooked and then Other.Canvased = Canvased
+                    and then (if Canvased then Other.Line_Hook = Line_Hook
+                              elsif Hooked then Other.Hook = Hook else Other.Kind = Kind)
+                  then
                      raise Program_Error with "widget event already bound";
                   end if;
                end;
@@ -1233,11 +1349,100 @@ package body Pomarine.UI.Contexts is
             Made.Kind := Kind;
             Made.Index := Index;
             Made.Index_From_Event := Index_From_Event;
+            Made.Hooked := Hooked;
+            Made.Canvased := Canvased;
+            Made.Hook := Hook;
+            Made.Line_Hook := Line_Hook;
             Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
-            Event_Callbacks.On (Found.all, Kind, Made.all'Unchecked_Access, Event_Heard'Access);
+            if not Hooked and then not Canvased then
+               Event_Callbacks.On (Found.all, Kind, Made.all'Unchecked_Access, Event_Heard'Access);
+            end if;
+            return Made;
          end;
       end;
+   end Bind_Event;
+
+   procedure On_Event
+     (Self : Context; Target : Pomarine.UI.Control_Ref; Kind : Widgets.Event_Kind;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+   is
+      Made : constant Event_Command_Store := Bind_Event (Self, Target, Kind, Command, Index, Index_From_Event);
+      pragma Unreferenced (Made);
+   begin
+      null;
    end On_Event;
+
+   procedure On_Editor_Event
+     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Editor_Hook;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+   is
+      Home : constant not null View_Ref := View_Of (Self);
+   begin
+      if Widget_Of (Home.all, Target).all not in Widgets.Editors.Editor'Class then
+         raise Program_Error with "editor hooks require an editor";
+      end if;
+      declare
+         Made : constant Event_Command_Store :=
+           Bind_Event (Self, Pomarine.UI.Any (Target), Widgets.Click, Command, Index, Index_From_Event,
+                       Hooked => True, Hook => Hook);
+         Editor : Widgets.Editors.Editor'Class renames Widgets.Editors.Editor'Class (Made.Target.all);
+      begin
+         case Hook is
+            when Tool_Used     => Editor_Callbacks.On_Tool (Editor, Made, Tool_Heard'Access);
+            when Link_Followed => Editor_Callbacks.On_Follow (Editor, Made, Link_Heard'Access);
+            when Link_Asked    => Editor_Callbacks.On_Ask_Link (Editor, Made, Link_Heard'Access);
+         end case;
+      end;
+   end On_Editor_Event;
+
+   procedure On_Canvas_Event
+     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Canvas_Hook;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+   is
+      Home : constant not null View_Ref := View_Of (Self);
+   begin
+      if Widget_Of (Home.all, Target).all not in Widgets.Canvases.Canvas'Class then
+         raise Program_Error with "canvas hooks require a canvas";
+      end if;
+      declare
+         Made : constant Event_Command_Store :=
+           Bind_Event (Self, Pomarine.UI.Any (Target), Widgets.Click, Command, Index, Index_From_Event,
+                       Canvased => True, Line_Hook => Hook);
+         Canvas : Widgets.Canvases.Canvas'Class renames Widgets.Canvases.Canvas'Class (Made.Target.all);
+      begin
+         case Hook is
+            when Line_Selected => Canvas_Callbacks.On_Select (Canvas, Made, Line_Selected_Heard'Access);
+            when Line_Deleted  => Canvas_Callbacks.On_Delete (Canvas, Made, Line_Deleted_Heard'Access);
+         end case;
+      end;
+   end On_Canvas_Event;
+
+   procedure On_List_Actions (Self : Context; Target : Pomarine.UI.Widget_Handle; Actions : List_Actions) is
+      Home : constant not null View_Ref := View_Of (Self);
+   begin
+      if Widget_Of (Home.all, Target).all not in Lists.List'Class then
+         raise Program_Error with "row actions require a list";
+      end if;
+      --  Validate the scope and duplicate event through the normal discrete binding path.
+      declare
+         Made : constant Event_Command_Store :=
+           Bind_Event (Self, Pomarine.UI.Any (Target), Widgets.Act, Actions (1));
+         Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
+      begin
+         Made.Row_Actions := True;
+         for Number in Actions'Range loop
+            declare
+               Action : constant Command_Store := new (Where) Command_Binding;
+            begin
+               Action.Which := Commands.Command'Pos (Actions (Number));
+               Action.Data := Self.Data;
+               Action.Tag := Command_Tag (Home.all);
+               Add_Binding (Home.all, Self.Scope, Action.all'Unchecked_Access);
+               Made.Tags (Number) := Action.Tag;
+            end;
+         end loop;
+      end;
+   end On_List_Actions;
 
    function Borrow_Slider
      (Self : Context; Existing : in out Widgets.Sliders.Slider; Value : Fraction_Property)

@@ -5,6 +5,7 @@ with Pomarine.Models;
 with Pomarine.View_Models;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Checks;
+with Pomarine.Widgets.Editors;
 with Pomarine.Widgets.Labels;
 with Pomarine.Widgets.Lists;
 with Pomarine.Widgets.Text_Fields;
@@ -492,6 +493,10 @@ package Pomarine.UI.Contexts is
       Index    : Natural := 0;
       Reflect  : Boolean := True) return Pomarine.UI.Button_Handle;
 
+   procedure Caption_From
+     (Self : Context; Target : Pomarine.UI.Button_Handle; Text : Text_Property; Index : Natural := 0);
+   --  A button's caption follows Text. Works for owned and borrowed buttons; its command is unchanged.
+
    function Borrow_Field
      (Self      : Context;
       Existing  : in out Pomarine.Widgets.Text_Fields.Text_Field;
@@ -516,6 +521,47 @@ package Pomarine.UI.Contexts is
       Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False);
    --  Route an app-owned widget event through the normal edit-before-command turn. The binding owns
    --  this event handler until its scope is destroyed; the widget's tag is left unchanged.
+
+   type Editor_Hook is (Tool_Used, Link_Followed, Link_Asked);
+   --  What an editor says that no other widget does: a tool of its toolbar was used (Add_Tool), a link was
+   --  Command-clicked, it has begun to ask for a link's address.
+
+   procedure On_Editor_Event
+     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Editor_Hook;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+     with Pre => Hook = Tool_Used or else not Index_From_Event;
+   --  Route an event of an editor the application keeps (Borrow_Widget) through the normal turn. With
+   --  Index_From_Event the command's index says the tool used as well as Index (Tool_Index); otherwise it is
+   --  Index. Target must be an editor and each hook of it may be bound once.
+
+   type Canvas_Hook is (Line_Selected, Line_Deleted);
+   --  What a canvas says of its lines: which is selected changed (0 for none), Backspace or Delete was pressed
+   --  while one is selected.
+
+   procedure On_Canvas_Event
+     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Canvas_Hook;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+     with Pre => Hook = Line_Selected or else not Index_From_Event;
+   --  As On_Editor_Event, of a canvas the application keeps. With Index_From_Event, of Line_Selected, the
+   --  command's index is the Tag of the line selected, 0 for none.
+
+   function Tool_Index (Index : Natural; Tool : Positive) return Natural is
+     (Index * Pomarine.Widgets.Editors.Tool_Capacity + Tool)
+     with Pre => Tool <= Pomarine.Widgets.Editors.Tool_Capacity;
+   --  The index of a command of Tool_Used with Index_From_Event, of the editor bound with Index.
+
+   function Editor_Of (Index : Positive) return Natural is
+     ((Index - 1) / Pomarine.Widgets.Editors.Tool_Capacity);
+   function Tool_Of (Index : Positive) return Positive is
+     ((Index - 1) mod Pomarine.Widgets.Editors.Tool_Capacity + 1);
+   --  What Tool_Index put together: the Index the editor was bound with, the tool.
+
+   type List_Actions is array (Positive range <>) of Commands.Command;
+   procedure On_List_Actions (Self : Context; Target : Pomarine.UI.Widget_Handle; Actions : List_Actions)
+     with Pre => Actions'First = 1 and then Actions'Length in 1 .. Pomarine.Models.Max_Actions;
+   --  Bind each numbered row action to a command, with the row as its index. Unknown actions are ignored.
+   --  Target must borrow a list. For Click and Submit, On_Event with Index_From_Event uses its selected row;
+   --  a list with no selection does not execute a command. Bindings detach with the control's scope.
 
    function Borrow_Slider
      (Self : Context; Existing : in out Pomarine.Widgets.Sliders.Slider; Value : Fraction_Property)

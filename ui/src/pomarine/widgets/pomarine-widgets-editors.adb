@@ -194,6 +194,10 @@ package body Pomarine.Widgets.Editors is
    function Search_Count (Item : Editor) return Natural is (Text_Areas.Search_Count (Item.Text));
    function Search_Current (Item : Editor) return Natural is (Text_Areas.Search_Current (Item.Text));
 
+   function Can_Edit (Item : Editor) return Boolean is
+     (Has_Document (Item) and then not Text_Areas.Is_Read_Only (Item.Text)
+      and then not Text_Areas.Is_Composing (Item.Text));
+
    function Area (Item : in out Editor)
       return not null access Pomarine.Text_Areas.Text_Area is
      (Item.Text'Unchecked_Access);

@@ -6,6 +6,7 @@ package Options_UI is
 
    package Options is new Pomarine.UI.Contexts (Options_VM.Commands, Options_VM.Model);
 
+   package Caption is new Options.Read_Text (Options_VM.Caption);
    package Light_Adapter is new Options.Read_Flag (Options_VM.Light);
    package Dark_Adapter is new Options.Read_Flag (Options_VM.Dark);
    package Sync_Adapter is new Options.Read_Flag (Options_VM.Sync);

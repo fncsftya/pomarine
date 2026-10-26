@@ -1,3 +1,4 @@
+with System.Storage_Elements;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with Ada.Text_IO;
@@ -30,6 +31,22 @@ procedure UI_Ownership_Test is
 
    Baseline_Arenas : constant Natural := Arenas.Live_Arenas;
    Baseline_Views  : constant Natural := UI.Live_Views;
+
+   procedure Full_Arena_Block is
+      use type System.Storage_Elements.Storage_Count;
+      Home : Arenas.Handle := Arenas.Make;
+      Address : System.Address;
+      Held : System.Storage_Elements.Storage_Count;
+   begin
+      Arenas.Allocate_From_Subpool (Arenas.Pool, Address, 1, 1, Home);
+      Held := System.Storage_Elements.Storage_Count (Arenas.Bytes_Held (Home));
+      Arenas.Allocate_From_Subpool (Arenas.Pool, Address, Held - 1, 1, Home);
+      pragma Assert (Arenas.Block_Count (Home) = 1);
+      Arenas.Allocate_From_Subpool (Arenas.Pool, Address, 1, 1, Home);
+      pragma Assert (Arenas.Block_Count (Home) = 2);
+      Arenas.Destroy (Home);
+      pragma Assert (Arenas.Live_Arenas = Baseline_Arenas);
+   end Full_Arena_Block;
 
    --  The application's own widgets, which the view only borrows.
 
@@ -523,6 +540,8 @@ begin
    pragma Assert (Finalized_Untagged);
    Ada.Text_IO.Put_Line ("Teardown_Reclaims_What_It_Owns");
    Teardown_Reclaims_What_It_Owns;
+   Ada.Text_IO.Put_Line ("Full_Arena_Block");
+   Full_Arena_Block;
    Ada.Text_IO.Put_Line ("Handles_Go_Stale_With_The_Scope");
    Handles_Go_Stale_With_The_Scope;
    Ada.Text_IO.Put_Line ("Views_Do_Not_Mix");
