@@ -33,6 +33,23 @@ package body Pomarine.Widgets is
    use type Interfaces.Unsigned_64;
    use type Semantics.Role;
 
+   function Has_Pointer_Capture (Item : Widget'Class) return Boolean is
+     (Is_Attached (Item) and then Item.Owner.Capture = Item.Slot);
+
+   procedure Capture_Pointer (Item : in out Widget'Class; Button : Natural := 0) is
+   begin
+      Item.Owner.Capture := Item.Slot;
+      Item.Owner.Capture_Button := Button;
+   end Capture_Pointer;
+
+   procedure Release_Pointer (Item : in out Widget'Class) is
+   begin
+      if Has_Pointer_Capture (Item) then
+         Item.Owner.Capture := 0;
+         Item.Owner.Capture_Button := 0;
+      end if;
+   end Release_Pointer;
+
    --  The table
 
    Slot_Bits : constant := 21;

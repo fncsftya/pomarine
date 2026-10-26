@@ -3,7 +3,7 @@ with Interfaces;
 package Pomarine.Events is
 
    type Event_Kind is
-     (Quit, Key_Down, Text_Input, Text_Editing, Mouse_Down, Mouse_Up,
+     (Quit, Key_Down, Key_Up, Text_Input, Text_Editing, Mouse_Down, Mouse_Up,
       Mouse_Move, Mouse_Wheel, Pinch, Redraw, Theme_Changed, Other);
    --  Text_Input: text typed, once Windows.Start_Text_Input is called;
    --  the keys that typed it come as Key_Down too. Text_Editing: what an
@@ -63,7 +63,7 @@ package Pomarine.Events is
    type Event is record
       Kind    : Event_Kind := Other;
       Time    : Milliseconds := 0;  --  when, as Ticks
-      Key     : Key_Code := 0;      --  of Key_Down
+      Key     : Key_Code := 0;      --  of Key_Down or Key_Up
       Command : Boolean := False;   --  Command was held
       Control : Boolean := False;   --  Control was held
       Option  : Boolean := False;   --  Option (Alt) was held

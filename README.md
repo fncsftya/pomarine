@@ -5,11 +5,11 @@ toolkit of [Bonxie](https://github.com/fncsftya/bonxie), which keeps it as a sub
 user. `examples/` is the place to start, and the gallery (below) is what the library's own tests keep honest.
 
 Known gaps, for now: macOS only; no tree, table, date or colour picker, and a stepper but no typed number field; one
-window to a tree; no key-up events, drag and drop, or right-to-left text.
+window loop per application; no secondary-window routing, drag and drop, bidi/RTL, localization or touch gestures.
 
 A MacOS-only GUI library for Ada: a tree of widgets, laid out by Yoga's
 flexbox, drawn with SDL3, with text from CoreText. It is built to be fast
-(only what changed is drawn, nothing is allocated while it runs) and to be
+(only what changed is drawn, with growing storage for user content) and to be
 read: an application says what its screens are, and what its buttons are for.
 
 ## A window, in brief
@@ -63,6 +63,40 @@ periodic time updates stay in the widget. Each program declares the tree and mod
 view, so they outlive its bindings. `Pomarine.Windows` opens the window and runs the loop (`Run`), or takes it a turn at a time (`Step`) for an
 application with a loop of its own; `Set_Title`, `Set_Size`, `Close` and `Set_Theme` work on it after it is open, and
 it follows the system's light or dark appearance unless told which (`Follow_System`).
+
+## System input and files
+
+`Pomarine.Events` delivers `Key_Down` and `Key_Up`; both include the key and modifiers. Key-up bubbles from
+focus without running shortcuts or Tab navigation. Mouse events, including `Mouse_Wheel`, carry Command,
+Control, Option and Shift. Wheel modifiers reflect the state when the queue is read (SDL does not store them).
+
+`Widgets.Capture_Pointer (Control)` routes moves and releases to that widget outside its bounds until
+`Release_Pointer (Control)`. Pass `Button => 1` (or another button) to release automatically with that button.
+Hiding or removing the widget or an ancestor releases it too. A handled press still captures automatically.
+Capture is within the tree; SDL's automatic mouse capture carries pressed drags beyond the native window.
+
+Native file dialogs are asynchronous, separate from the in-tree alert and confirmation widgets:
+
+```ada
+Dialogs.Open_File (Win, Name => "Documents", Extensions => "pdf;epub");
+-- In the application's next turns (for example Windows.Run's Idle procedure):
+case Dialogs.File_State is
+   when Dialogs.Chosen =>
+      Load (Dialogs.File_Path); -- copy/use the path before resetting
+      Dialogs.Reset_File;
+   when Dialogs.Cancelled | Dialogs.Failed => Dialogs.Reset_File;
+   when Dialogs.Idle | Dialogs.Waiting => null;
+end case;
+-- For saving: Dialogs.Save_File (Win, Suggested => "notes.txt");
+```
+
+Only one native file dialog may be pending. Completion wakes the loop; paths, filter labels and suggested names
+have growing storage. The parent window must outlive its pending dialog. Native panels need manual macOS checks:
+open, cancel, save, overwrite, filters and long suggested names/paths.
+
+Phase 3's optional secondary windows and drag and drop are deferred: `Windows.Step` drains the process-wide
+queue into one tree, and each window currently owns SDL shutdown. Multiple windows require event routing and
+shared platform lifetime before they can be supported safely. Overlays remain local to their tree.
 
 ## What is where
 

@@ -108,11 +108,11 @@ package body SDL3.Events is
 
       if Raw.Kind = Thin.Event_Quit then
          Item.Kind := Quit;
-      elsif Raw.Kind = Thin.Event_Key_Down then
+      elsif Raw.Kind in Thin.Event_Key_Down | Thin.Event_Key_Up then
          declare
             Key : constant Thin.Key_Event := To_Key (Raw);
          begin
-            Item.Kind := Key_Down;
+            Item.Kind := (if Raw.Kind = Thin.Event_Key_Down then Key_Down else Key_Up);
             Item.Key := Key.Key;
             Set_Modifiers (Item, Key.Modifiers);
          end;

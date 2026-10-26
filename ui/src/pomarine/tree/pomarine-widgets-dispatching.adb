@@ -96,8 +96,10 @@ package body Pomarine.Widgets.Dispatching is
       Bubble (Item, Over, Event, Taker);
       Handled := Taker /= 0;
       if Taker /= 0 then
-         Item.Capture := Taker;
-         Item.Capture_Button := Event.Button;
+         if Item.Capture = 0 then
+            Item.Capture := Taker;
+            Item.Capture_Button := Event.Button;
+         end if;
       elsif Accepts = 0 and then Item.Focus /= 0 then
          --  A click elsewhere takes the focus away.
          Set_Focus (Item, 0);
@@ -228,7 +230,7 @@ package body Pomarine.Widgets.Dispatching is
                Item.Wheel_Time := Event.Time;
             end if;
 
-         when Pomarine.Events.Key_Down | Pomarine.Events.Text_Input
+         when Pomarine.Events.Key_Down | Pomarine.Events.Key_Up | Pomarine.Events.Text_Input
             | Pomarine.Events.Text_Editing =>
             Dispatch_Keys (Item, Event, Handled);
 

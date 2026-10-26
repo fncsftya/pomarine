@@ -1,5 +1,28 @@
 with Pomarine.Widgets.Buttons;
+with Pomarine.Windows.Files;
+with SDL3.Dialogs;
 package body Pomarine.Dialogs is
+
+   function File_State return File_States is
+     (File_States'Val (SDL3.Dialogs.States'Pos (SDL3.Dialogs.State)));
+   function File_Path return String is (SDL3.Dialogs.Path);
+
+   procedure Reset_File is
+   begin
+      SDL3.Dialogs.Reset;
+   end Reset_File;
+
+   procedure Open_File
+     (Over : Windows.Window; Name : String := "Files"; Extensions : String := "") is
+   begin
+      Windows.Files.Open_File (Over, Name, Extensions);
+   end Open_File;
+
+   procedure Save_File
+     (Over : Windows.Window; Name : String := "Files"; Extensions : String := ""; Suggested : String := "") is
+   begin
+      Windows.Files.Save_File (Over, Name, Extensions, Suggested);
+   end Save_File;
 
    package Boxes renames Pomarine.Widgets.Dialogs;
    package Buttons renames Pomarine.Widgets.Buttons;

@@ -883,6 +883,19 @@ package Pomarine.Widgets is
    function Hit (Item : Tree; X, Y : Float) return Widget_Access;
    --  The widget at pixel X, Y: the last of the deepest. null if none.
 
+   procedure Capture_Pointer (Item : in out Widget'Class; Button : Natural := 0)
+     with Pre => Is_Attached (Item) and then Is_Visible (Item),
+          Post => Has_Pointer_Capture (Item);
+   --  Route pointer moves and releases to Item even outside its bounds. Replaces any previous capture.
+   --  Button /= 0 releases capture when that button is released; 0 holds it until explicitly released.
+   --  Hiding or removing the widget also releases capture. Coordinates remain relative to the window.
+
+   procedure Release_Pointer (Item : in out Widget'Class)
+     with Post => not Has_Pointer_Capture (Item);
+   --  Safe when detached or when another widget holds capture.
+
+   function Has_Pointer_Capture (Item : Widget'Class) return Boolean;
+
    --  Focus: at most one widget has it, and takes keys and typing.
 
    procedure Focus (Item : in out Widget'Class)

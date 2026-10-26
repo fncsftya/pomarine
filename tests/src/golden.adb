@@ -2,6 +2,7 @@ with Ada.Command_Line;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Animation_Tests;
+with Surface_Tests;
 with Command_Tests;
 with Control_Tests;
 with Document_Tests;
@@ -45,6 +46,7 @@ procedure Golden is
       end if;
    end Run;
 begin
+   Run ("surface-input", Surface_Tests.Input'Access);
    Run ("document-rich-text", Document_Tests.Rich_Text'Access);
    Run ("textarea-rich-text", Text_Area_Tests.Rich_Text'Access);
    Run ("document-loading", Document_Tests.Loading'Access);

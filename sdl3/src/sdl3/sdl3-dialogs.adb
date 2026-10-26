@@ -1,4 +1,5 @@
-with Ada.Strings.Bounded;
+with Ada.Strings.Unbounded;
+with Ada.Unchecked_Conversion;
 with Interfaces.C.Strings;
 with SDL3.Events;
 with System.Address_To_Access_Conversions;
@@ -6,8 +7,9 @@ with System.Address_To_Access_Conversions;
 package body SDL3.Dialogs is
 
    package C renames Interfaces.C;
+   function To_Address is new Ada.Unchecked_Conversion (C.Strings.chars_ptr, System.Address);
 
-   package Paths is new Ada.Strings.Bounded.Generic_Bounded_Length (Max_Path);
+   package Paths renames Ada.Strings.Unbounded;
 
    protected Answer is
       procedure Ask;
@@ -17,26 +19,26 @@ package body SDL3.Dialogs is
       function Chosen_Path return String;
    private
       Now   : States := Idle;
-      Found : Paths.Bounded_String;
+      Found : Paths.Unbounded_String;
    end Answer;
 
    protected body Answer is
       procedure Ask is
       begin
          Now := Waiting;
-         Found := Paths.Null_Bounded_String;
+         Found := Paths.Null_Unbounded_String;
       end Ask;
 
       procedure Give (To : States; Where : String := "") is
       begin
          Now := To;
-         Found := Paths.To_Bounded_String (Where, Ada.Strings.Right);
+         Found := Paths.To_Unbounded_String (Where);
       end Give;
 
       procedure Forget is
       begin
          Now := Idle;
-         Found := Paths.Null_Bounded_String;
+         Found := Paths.Null_Unbounded_String;
       end Forget;
 
       function Current return States is (Now);
@@ -50,8 +52,8 @@ package body SDL3.Dialogs is
      with Convention => C;
 
    --  The filter outlives the call: the dialog is shown after it.
-   Name_Text    : aliased C.char_array (0 .. 63);
-   Pattern_Text : aliased C.char_array (0 .. 255);
+   Name_Text    : C.Strings.chars_ptr := C.Strings.Null_Ptr;
+   Pattern_Text : C.Strings.chars_ptr := C.Strings.Null_Ptr;
    The_Filter   : aliased Filter;
 
    package Pointers is
@@ -81,7 +83,7 @@ package body SDL3.Dialogs is
             Chosen_File : constant String :=
               C.Strings.Value (Pointers.To_Pointer (List).all);
          begin
-            if Chosen_File'Length in 1 .. Max_Path then
+            if Chosen_File'Length > 0 then
                Answer.Give (Chosen, Chosen_File);
             else
                Answer.Give (Failed);
@@ -106,12 +108,13 @@ package body SDL3.Dialogs is
       Name       : String;
       Extensions : String)
    is
-      Used : C.size_t;
    begin
+      C.Strings.Free (Name_Text);
+      C.Strings.Free (Pattern_Text);
+      Name_Text := C.Strings.New_String (Name);
+      Pattern_Text := C.Strings.New_String (Extensions);
+      The_Filter := (To_Address (Name_Text), To_Address (Pattern_Text));
       Answer.Ask;
-      C.To_C (Name, Name_Text, Used);
-      C.To_C (Extensions, Pattern_Text, Used);
-      The_Filter := (Name_Text'Address, Pattern_Text'Address);
       Show
         (Answered'Address, System.Null_Address, SDL3.Windows.Raw_Handle (Over),
          (if Extensions = "" then System.Null_Address else The_Filter'Address),
@@ -127,7 +130,7 @@ package body SDL3.Dialogs is
       Where    : System.Address)
      with Import, Convention => C, External_Name => "SDL_ShowSaveFileDialog";
 
-   Suggested_Text : aliased C.char_array (0 .. 255);
+   Suggested_Text : C.Strings.chars_ptr := C.Strings.Null_Ptr;
 
    procedure Save_File
      (Over       : SDL3.Windows.Window;
@@ -135,18 +138,20 @@ package body SDL3.Dialogs is
       Extensions : String;
       Suggested  : String)
    is
-      Used : C.size_t;
    begin
+      C.Strings.Free (Name_Text);
+      C.Strings.Free (Pattern_Text);
+      Name_Text := C.Strings.New_String (Name);
+      Pattern_Text := C.Strings.New_String (Extensions);
+      C.Strings.Free (Suggested_Text);
+      Suggested_Text := C.Strings.New_String (Suggested);
+      The_Filter := (To_Address (Name_Text), To_Address (Pattern_Text));
       Answer.Ask;
-      C.To_C (Name, Name_Text, Used);
-      C.To_C (Extensions, Pattern_Text, Used);
-      C.To_C (Suggested, Suggested_Text, Used);
-      The_Filter := (Name_Text'Address, Pattern_Text'Address);
       Show_Save
         (Answered'Address, System.Null_Address, SDL3.Windows.Raw_Handle (Over),
          (if Extensions = "" then System.Null_Address else The_Filter'Address),
          (if Extensions = "" then 0 else 1),
-         (if Suggested = "" then System.Null_Address else Suggested_Text'Address));
+         (if Suggested = "" then System.Null_Address else To_Address (Suggested_Text)));
    end Save_File;
 
    function State return States is (Answer.Current);

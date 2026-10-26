@@ -2049,7 +2049,7 @@ package body Pomarine.Text_Areas is
                Handle_Key (Item, Event, Board, Handled);
             end if;
          when Events.Quit | Events.Pinch | Events.Redraw
-            | Events.Theme_Changed | Events.Other =>
+            | Events.Theme_Changed | Events.Key_Up | Events.Other =>
             null;
       end case;
    end Handle;

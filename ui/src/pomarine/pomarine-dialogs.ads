@@ -1,4 +1,5 @@
 with Ada.Strings.Unbounded;
+with Pomarine.Windows;
 with Pomarine.Widgets.Dialogs;
 
 --  The questions most programs ask, ready made from a Dialog the program has added to its tree (see
@@ -10,6 +11,25 @@ with Pomarine.Widgets.Dialogs;
 --     ...                              --  later, in the listener, or with Callbacks.On (Ask, Choose, ...)
 --     if Dialogs.Confirmed (Event) then Delete_It; end if;
 package Pomarine.Dialogs is
+
+   type File_States is (Idle, Waiting, Chosen, Cancelled, Failed);
+   --  One native file dialog at a time. Completion wakes the event loop. Copy File_Path before Reset_File.
+   function File_State return File_States;
+
+   procedure Open_File
+     (Over : Windows.Window; Name : String := "Files"; Extensions : String := "")
+     with Pre => Windows.Is_Open (Over) and then File_State /= Waiting;
+   --  Extensions: semicolon-separated, such as "pdf;epub", or empty for any file.
+
+   procedure Save_File
+     (Over : Windows.Window; Name : String := "Files"; Extensions : String := ""; Suggested : String := "")
+     with Pre => Windows.Is_Open (Over) and then File_State /= Waiting;
+
+   function File_Path return String
+     with Pre => File_State = Chosen, Post => File_Path'Result'Length > 0;
+
+   procedure Reset_File
+     with Pre => File_State /= Waiting, Post => File_State = Idle;
 
    subtype Dialog is Pomarine.Widgets.Dialogs.Dialog;
 

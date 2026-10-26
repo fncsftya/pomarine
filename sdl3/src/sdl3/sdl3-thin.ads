@@ -19,6 +19,7 @@ private package SDL3.Thin is
    Event_Quit        : constant Event_Type := 16#100#;
    Event_User        : constant Event_Type := 16#8000#;
    Event_Key_Down    : constant Event_Type := 16#300#;
+   Event_Key_Up      : constant Event_Type := 16#301#;
    Event_Text_Editing : constant Event_Type := 16#302#;
    Event_Text_Input  : constant Event_Type := 16#303#;
    Event_Mouse_Motion : constant Event_Type := 16#400#;

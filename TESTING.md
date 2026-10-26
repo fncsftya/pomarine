@@ -230,3 +230,10 @@ The drawing of the todo screen is golden: `ui-todo-opens`, `ui-todo-used` (a cho
 `ui-todo-wide`, in `tests`, beside the others (`cd tests; bin/golden ui-todo`). They are drawn from `Todo.Build`
 with the layout of the screen in them: change a layout and these change.
 
+
+## System surface
+
+`cd tests && alr build && bin/golden surface` checks SDL queue decoding of key-up and wheel modifiers,
+key-up delivery without Tab navigation, explicit pointer capture outside bounds, capture replacement, matching
+button release, hide/remove teardown and native file-dialog idle/path contracts. These are assertions without
+images. Native file panels need the manual checks listed in README.md; automated tests do not dismiss OS panels.
