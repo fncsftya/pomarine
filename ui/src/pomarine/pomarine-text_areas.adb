@@ -1237,14 +1237,7 @@ package body Pomarine.Text_Areas is
       then Ada.Strings.Unbounded.To_String (Item.Pending_Family)
       else Docs.Family_At (Item.Doc.all, Selection_First (Item), Selection_Last (Item)));
 
-   function Is_Address (Words : String) return Boolean is
-      function Starts (Prefix : String) return Boolean is
-        (Words'Length > Prefix'Length and then Words (Words'First .. Words'First + Prefix'Length - 1) = Prefix);
-   begin
-      return Words'Length <= Docs.Link_Capacity
-        and then (Starts ("http://") or else Starts ("https://") or else Starts ("mailto:"))
-        and then (for all C of Words => Standard.Character'Pos (C) > 32 and then Standard.Character'Pos (C) /= 127);
-   end Is_Address;
+   function Is_Address (Words : String) return Boolean is (Docs.Is_Address (Words));
 
    function Link_Here (Item : Text_Area) return String is
      (Docs.Link_At (Item.Doc.all, Selection_First (Item), Selection_Last (Item)));

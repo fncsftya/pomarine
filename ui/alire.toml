@@ -12,6 +12,7 @@ macos = true
 '...' = false
 
 [[depends-on]]
+pomarine_model = "*"
 pomarine_vm = "*"
 sdl3 = "*"
 texts = "*"
@@ -20,6 +21,7 @@ yoga = "*"
 
 [[pins]]
 pomarine_vm = { path = "../vm" }
+pomarine_model = { path = "../model" }
 coretext = { path = "../coretext" }
 sdl3 = { path = "../sdl3" }
 texts = { path = "../texts" }

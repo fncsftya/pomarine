@@ -1,4 +1,5 @@
 with "config/pomarine_ui_config.gpr";
+with "pomarine_model.gpr";
 with "pomarine_vm.gpr";
 with "sdl3.gpr";
 with "texts.gpr";

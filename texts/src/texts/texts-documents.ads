@@ -116,6 +116,10 @@ package Texts.Documents is
    Link_Capacity : constant := 2048;
    --  Bytes of an address a person may link to, which the program bounds as it reads one.
 
+   function Is_Address (Words : String) return Boolean;
+   --  Whether Words is one address to link to: http://, https:// or mailto: and something after it, with no space
+   --  or control character in it, and no longer than Link_Capacity.
+
    function Link_At (Item : Document; From, To : Position) return String
      with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    --  The address the text at From links to, or, if From = To, the text

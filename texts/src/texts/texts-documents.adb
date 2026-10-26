@@ -973,6 +973,15 @@ package body Texts.Documents is
          Format_Run'(From, To, Faced, Name => Unbounded.To_Unbounded_String (Name), others => <>), Name'Length > 0);
    end Set_Family;
 
+   function Is_Address (Words : String) return Boolean is
+      function Starts (Prefix : String) return Boolean is
+        (Words'Length > Prefix'Length and then Words (Words'First .. Words'First + Prefix'Length - 1) = Prefix);
+   begin
+      return Words'Length <= Link_Capacity
+        and then (Starts ("http://") or else Starts ("https://") or else Starts ("mailto:"))
+        and then (for all C of Words => Standard.Character'Pos (C) > 32 and then Standard.Character'Pos (C) /= 127);
+   end Is_Address;
+
    function Link_At (Item : Document; From, To : Position) return String is
       Found : constant Natural := Run_At (Item, From, To, Linked);
    begin

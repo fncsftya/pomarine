@@ -1,0 +1,21 @@
+name = "pomarine_model"
+description = "Words, pages and marks as data, with nothing to draw them"
+version = "0.1.0-dev"
+
+authors = ["Matt Rawcliffe"]
+licenses = "MIT"
+website = ""
+tags = []
+
+[[depends-on]]
+pomarine_vm = "*"
+
+[[pins]]
+pomarine_vm = { path = "../vm" }
+
+[build-switches]
+"*".ada_version = "Ada2022"
+"*".compile_checks = "Errors"
+"*".runtime_checks = "Everything"
+"*".style_checks = "Yes"
+"*".contracts = "Yes"

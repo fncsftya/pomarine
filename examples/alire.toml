@@ -27,6 +27,7 @@ yoga = "*"
 pomarine = { path = ".." }
 pomarine_ui = { path = "../ui" }
 pomarine_vm = { path = "../vm" }
+pomarine_model = { path = "../model" }
 coretext = { path = "../coretext" }
 sdl3 = { path = "../sdl3" }
 texts = { path = "../texts" }

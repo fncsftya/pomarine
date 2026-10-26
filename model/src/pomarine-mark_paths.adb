@@ -1,4 +1,3 @@
-with Pomarine.Marks.Drawing;
 
 package body Pomarine.Mark_Paths is
 
@@ -61,14 +60,4 @@ package body Pomarine.Mark_Paths is
       end loop;
       return False;
    end Contains;
-
-   procedure Draw
-     (Item : Path; Target : SDL3.Painters.Painter'Class;
-      Color : SDL3.Painters.Color; Blend : SDL3.Painters.Blends;
-      Left, Top, Wide, High, Radius : Float)
-   is
-   begin
-      Marks.Drawing.Draw
-        ([(Trace => Item, others => <>)], 1, Target, Color, Blend, Left, Top, Wide, High, Radius);
-   end Draw;
 end Pomarine.Mark_Paths;

@@ -1,5 +1,3 @@
-with SDL3.Painters;
-
 --  Fixed storage for a freehand stroke, in fractions of its picture or page.
 package Pomarine.Mark_Paths is
    Max_Points : constant := 64;
@@ -22,10 +20,4 @@ package Pomarine.Mark_Paths is
      with Pre => Wide > 0.0 and then High > 0.0 and then Radius > 0.0;
    --  X and Y are pixels relative to the picture's origin.
 
-   procedure Draw
-     (Item : Path; Target : SDL3.Painters.Painter'Class;
-      Color : SDL3.Painters.Color; Blend : SDL3.Painters.Blends;
-      Left, Top, Wide, High, Radius : Float)
-     with Pre => Wide > 0.0 and then High > 0.0 and then Radius > 0.0;
-   --  Merge coverage before painting, so joins do not darken a stroke.
 end Pomarine.Mark_Paths;

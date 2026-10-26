@@ -28,6 +28,7 @@ pomarine_native = { path = "../native" }
 pomarine_testing = { path = "../testing" }
 pomarine_ui = { path = "../ui" }
 pomarine_vm = { path = "../vm" }
+pomarine_model = { path = "../model" }
 coretext = { path = "../coretext" }
 sdl3 = { path = "../sdl3" }
 texts = { path = "../texts" }
