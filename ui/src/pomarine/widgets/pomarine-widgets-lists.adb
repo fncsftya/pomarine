@@ -385,7 +385,7 @@ package body Pomarine.Widgets.Lists is
       Invalidate (Item);
    end Hover_Changed;
 
-   overriding function Accepts_Focus (Item : List) return Boolean is
+   overriding function Is_Focusable (Item : List) return Boolean is
      (Item.Model /= null);
 
    overriding procedure Focus_Changed (Item : in out List; Focused : Boolean) is

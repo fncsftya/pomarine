@@ -105,7 +105,7 @@ package Pomarine.Widgets.Lists is
 
    overriding procedure Hover_Changed (Item : in out List; Hovered : Boolean);
 
-   overriding function Accepts_Focus (Item : List) return Boolean;
+   overriding function Is_Focusable (Item : List) return Boolean;
 
    overriding procedure Focus_Changed (Item : in out List; Focused : Boolean);
 

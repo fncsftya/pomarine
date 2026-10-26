@@ -209,7 +209,7 @@ package body Pomarine.Widgets.Sliders is
       end if;
    end Set_Focusable;
 
-   overriding function Accepts_Focus (Item : Slider) return Boolean is
+   overriding function Is_Focusable (Item : Slider) return Boolean is
      (Item.Focusable);
 
    overriding procedure Focus_Changed

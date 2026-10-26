@@ -160,9 +160,9 @@ package Pomarine.Widgets.Buttons is
 
    overriding function Cursor (Item : Button) return SDL3.Cursors.Kind;
 
-   overriding function Accepts_Focus (Item : Button) return Boolean;
+   overriding function Is_Focusable (Item : Button) return Boolean;
 
-   overriding function Focus_On_Click (Item : Button) return Boolean is (False);
+   overriding function Focuses_On_Click (Item : Button) return Boolean is (False);
    --  Tab reaches it (if it is focusable), but a click does not move the focus.
 
    overriding procedure Focus_Changed

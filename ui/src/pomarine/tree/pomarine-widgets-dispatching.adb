@@ -72,7 +72,7 @@ package body Pomarine.Widgets.Dispatching is
       Climbing : Node_Index := From;
    begin
       while Climbing /= 0
-        and then not Focus_On_Click (Home.Nodes.Object (Climbing).all)
+        and then not Focuses_On_Click (Home.Nodes.Object (Climbing).all)
       loop
          Climbing := Home.Nodes.Parent (Climbing);
       end loop;

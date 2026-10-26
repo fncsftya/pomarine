@@ -194,7 +194,7 @@ package Pomarine.Widgets.Pictures is
 
    overriding function Cursor (Item : Picture) return SDL3.Cursors.Kind;
 
-   overriding function Accepts_Focus (Item : Picture) return Boolean;
+   overriding function Is_Focusable (Item : Picture) return Boolean;
 
    overriding procedure Hover_Changed
      (Item : in out Picture; Hovered : Boolean);

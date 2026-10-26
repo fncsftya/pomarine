@@ -5,6 +5,8 @@ package Layout_Tests is
 
    procedure Intrinsic_Labels;
    procedure Only_What_Changed;
+   procedure Lengths;
+   --  What a size is: a literal, In_Points, In_Pixels, Unset; a share; Row and Column; On and Off.
    procedure Declarative_Building;
    --  Layouts.Add, Buttons.Looks, Configure and Buttons.Add.
 

@@ -35,9 +35,9 @@ end Handle_Event;
 Widgets.Set_Density (Tree, Pixels_Per_Point);
 Widgets.Set_Listener (Tree, Me'Access);
 Widgets.Set_Root (Tree, Root);
-Layouts.Set_Layout (Root, Flow => Column);        --  in points; the tree knows the density
-                                                  --  (Unit => Device_Pixels for pixels)
-Layouts.Add (Root, Bar, (Flow => Row, Height => 32.0, Padding => (others => 4.0), Gap => 4.0, others => <>));
+Layouts.Column (Root);                            --  sizes are in points; the tree knows the density
+                                                  --  (In_Pixels (X) for pixels, Unit => Device_Pixels for a call)
+Layouts.Add (Root, Bar, Layouts.Row (Height => 32.0, Padding => (others => 4.0), Gap => 4.0));
 Layouts.Add (Root, Page, (Grow => 1.0, others => <>));    --  added, in order, and styled
 
 --  A button is added, looks as said and sits as said, in one line:
@@ -61,7 +61,9 @@ screen from bound components. `gallery_gui` puts every kind of widget on one win
 tests (`gallery-*`, `gallery_view_test`) draw, click and describe, so a change to any widget, the layout or the
 theme shows up there first. `clock_gui` mounts an app-owned custom clock face with `UI.Put`; its painting and
 periodic time updates stay in the widget. Each program declares the tree and model or borrowed face before the
-view, so they outlive its bindings. `Pomarine.Windows` opens the window and runs the loop.
+view, so they outlive its bindings. `Pomarine.Windows` opens the window and runs the loop (`Run`), or takes it a turn at a time (`Step`) for an
+application with a loop of its own; `Set_Title`, `Set_Size`, `Close` and `Set_Theme` work on it after it is open, and
+it follows the system's light or dark appearance unless told which (`Follow_System`).
 
 ## What is where
 
@@ -236,7 +238,7 @@ will not do (`Set_Accessible_Name`, `Hide_From_Accessibility`). Checks,
 switches, sliders, buttons and grips can be made Tab stops and be worked from
 the keyboard (`Set_Focusable`), and `Set_Tab_Navigation` has Tab go round them
 in the order of the tree. A click on a button, a check or a switch does not
-take the focus from a field being typed in (`Focus_On_Click`). A dialog over the
+take the focus from a field being typed in (`Focuses_On_Click`). A dialog over the
 rest has Tab go round only itself with `Set_Focus_Scope`, until
 `Clear_Focus_Scope`. A focus ring is drawn only after a key
 (`Is_Focus_Visible`), not for the focus a click gives.
@@ -246,6 +248,30 @@ rest has Tab go round only itself with `Set_Focus_Scope`, until
 Layout is Yoga's, and only what it changed is placed again. A label can be
 sized to its text (`Labels.Set_Intrinsic`), measured when its text, style or the
 density changes and not otherwise.
+
+A size is a `Layouts.Length` and a share of the room a `Layouts.Weight`, not a `Float`: a plain number
+(`Width => 70.0`) is one, and what is not a number is named, so that it cannot be mixed up with one: `Unset`
+(leave it as it is), `Hairline` and `Shadow_Room` (one outline's width, a shadow's offset), `In_Points (Wide)`
+and `In_Pixels (Edge)` for what is worked out or measured, `Length_Of (X)` for a number in the call's `Unit`.
+(`-2.0` needs `use type Layouts.Length`.) `Outlined`, `Shadowed` and `Wrap` are `On`, `Off` or `As_Is`.
+`Layouts.Row` and `Layouts.Column` are a style (`Layouts.Add (Page, Bar, Layouts.Row (Gap => 4.0))`) and, given a
+widget, `Set_Layout` of that style.
+
+### Names
+
+Say it the same way across widgets: `Set_X` and `X` (`Label`, `Text`, `Value`) for what a widget holds, `Set_Enabled`
+and `Is_Enabled`, `Set_Visible` and `Is_Visible` (this widget) against `Is_Showing` (it and everything it is in),
+`Set_Focusable` and `Is_Focusable` (a Tab stop) with `Focuses_On_Click`. A caption is a `Label`, free text a `Text`,
+and a chosen or measured thing a `Value`. A state is named for what a person sees: a box is `Checked`, a switch `On`,
+a button `Selected`.
+
+### Building a screen from parts
+
+A widget joins the tree one at a time (`Set_Root`, then `Add` to one already in it), because its place, its Yoga
+node and its style live in the tree's tables, and a widget that is in no tree has none to hold children in. There is
+no building a subtree detached and attaching it later. A reusable part is a `Pomarine.UI` component instead: a
+function that makes its controls and returns a `Layout`, which is a description kept until `Mount` (see `UI.md`). The
+low-level way to share a part is a procedure that takes the parent it is to be added to.
 
 ## Animation
 

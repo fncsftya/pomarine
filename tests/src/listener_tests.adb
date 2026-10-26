@@ -294,6 +294,7 @@ package body Listener_Tests is
    end Controls;
 
    procedure Layout_Helpers is
+      use type Layouts.Length;
       Item : Fixture;
    begin
       Open (Item);
@@ -326,7 +327,7 @@ package body Listener_Tests is
         ("layouts-negative-pixels", "6", Image (Integer (Widgets.Left_Of (Item.First))));
       Layouts.Set_Layout
         (Item.Second, Padding => (Right => Layouts.Shadow_Room, others => <>),
-         Width => 50.0, Height => 20.0, Shadowed => True);
+         Width => 50.0, Height => 20.0, Shadowed => Layouts.On);
       Widgets.Layout (Item.Tree, Item.Target);
       Goldens.Check_Text
         ("layouts-order",

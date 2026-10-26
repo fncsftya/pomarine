@@ -200,7 +200,7 @@ package Pomarine.Widgets.Page_Views is
 
    overriding function Cursor (Item : Page_View) return SDL3.Cursors.Kind;
 
-   overriding function Accepts_Focus (Item : Page_View) return Boolean;
+   overriding function Is_Focusable (Item : Page_View) return Boolean;
 
    overriding procedure Hover_Changed
      (Item : in out Page_View; Hovered : Boolean);

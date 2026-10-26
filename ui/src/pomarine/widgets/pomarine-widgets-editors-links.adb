@@ -209,7 +209,7 @@ package body Pomarine.Widgets.Editors.Links is
          Text_Areas.Set_Link (Item.Text, Wanted);
       end if;
       Refresh_Link (Item);
-      if Accepts_Focus (Item) then
+      if Is_Focusable (Item) then
          Focus (Item);
       end if;
       Update_Toolbar (Item);

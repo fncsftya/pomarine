@@ -76,6 +76,96 @@ package body Layout_Tests is
       Goldens.Check_Text ("layout-intrinsic-style-wins", "200", Image (Integer (Widgets.Width_Of (Short))));
    end Intrinsic_Labels;
 
+   procedure Lengths is
+      use type Layouts.Length;
+      use type Layouts.Flow_Kind;
+      Tree   : Widgets.Tree;
+      Target : Renderers.Renderer;
+      Root   : aliased Panels.Panel;
+      First  : aliased Panels.Panel;
+      Second : aliased Panels.Panel;
+
+      function Wide (Item : Widgets.Widget'Class) return String is (Image (Integer (Widgets.Width_Of (Item))));
+      function Left (Item : Widgets.Widget'Class) return String is (Image (Integer (Widgets.Left_Of (Item))));
+      function Top (Item : Widgets.Widget'Class) return String is (Image (Integer (Widgets.Top_Of (Item))));
+
+      procedure Place is
+      begin
+         Widgets.Layout (Tree, Target);
+      end Place;
+   begin
+      Renderers.Create_Offscreen (Target, 400, 200);
+      Widgets.Set_Density (Tree, 2.0);
+      Widgets.Set_Root (Tree, Root);
+      Widgets.Add (Root, First, Second);
+      Layouts.Set_Layout (Root, Width => 200.0, Height => 100.0);
+
+      --  A literal is points; In_Points is points however the call says; In_Pixels is pixels. The same
+      --  number, said four ways, in a call of points and in one of pixels.
+      Layouts.Set_Layout (First, Width => 10.0, Height => 10.0);
+      Place;
+      Goldens.Check_Text ("lengths-literal-points", "20", Wide (First));
+      Layouts.Set_Layout (First, Width => Layouts.In_Points (10.0));
+      Place;
+      Goldens.Check_Text ("lengths-in-points", "20", Wide (First));
+      Layouts.Set_Layout (First, Width => Layouts.In_Pixels (10.0));
+      Place;
+      Goldens.Check_Text ("lengths-in-pixels", "10", Wide (First));
+      Layouts.Set_Layout (First, Width => 10.0, Unit => Layouts.Device_Pixels);
+      Place;
+      Goldens.Check_Text ("lengths-literal-device-pixels", "10", Wide (First));
+      Layouts.Set_Layout (First, Width => Layouts.In_Points (10.0), Unit => Layouts.Device_Pixels);
+      Place;
+      Goldens.Check_Text ("lengths-points-in-pixel-call", "20", Wide (First));
+      Layouts.Set_Layout (First, Width => Layouts.Length_Of (10.0));
+      Place;
+      Goldens.Check_Text ("lengths-length-of", "20", Wide (First));
+
+      --  Unset leaves it as it is, and so does an unnamed share.
+      Layouts.Set_Layout (First, Width => 15.0, Grow => 1.0);
+      Layouts.Set_Layout (First, Height => 7.0);
+      Place;
+      Goldens.Check_Text ("lengths-unset-keeps-width", "30", Wide (First));
+      Goldens.Check_Text ("lengths-set-test", "FT", Boolean'Image (Layouts.Is_Set (Layouts.Unset))(1 .. 1)
+                          & Boolean'Image (Layouts.Is_Set (4.0))(1 .. 1));
+
+      --  A negative size or edge.
+      Goldens.Check_Text ("lengths-negation", "TT",
+                          Boolean'Image (-Layouts.In_Points (2.0) /= Layouts.In_Points (2.0))(1 .. 1)
+                          & Boolean'Image (-Layouts.Unset = Layouts.Unset)(1 .. 1));
+
+      --  Outlined and Shadowed make room when On, and take it away when Off; As_Is leaves the padding.
+      Layouts.Set_Layout (Root, Padding => (others => 4.0), Outlined => Layouts.On, Flow => Layouts.Column);
+      Place;
+      declare
+         With_Edge : constant String := Left (First);
+      begin
+         Layouts.Set_Layout (Root, Width => 200.0);
+         Place;
+         Goldens.Check_Text ("lengths-as-is-keeps-room", With_Edge, Left (First));
+         Layouts.Set_Layout (Root, Padding => (others => 4.0), Outlined => Layouts.Off);
+         Place;
+         Goldens.Check_Text ("lengths-off-takes-room-away", "8", Left (First));
+         Layouts.Set_Layout (Root, Padding => (others => 4.0), Outlined => Layouts.On);
+         Layouts.Set_Layout (Root, Outlined => Layouts.Off);
+         Place;
+         Goldens.Check_Text ("lengths-off-says-no-padding-is-none", "0", Left (First));
+         Goldens.Check_Text ("lengths-on-made-room", Boolean'Image (With_Edge /= "8")(1 .. 1), "T");
+      end;
+
+      --  Row and Column say Flow, and what else is said.
+      Layouts.Row (Root, Padding => (others => 0.0), Gap => 4.0);
+      Layouts.Set_Layout (First, Width => 20.0, Height => 10.0, Grow => 0.0);
+      Layouts.Set_Layout (Second, Width => 20.0, Height => 10.0);
+      Place;
+      Goldens.Check_Text ("lengths-row", "48," & "0", Left (Second) & "," & Top (Second));
+      Layouts.Column (Root, Gap => 4.0);
+      Place;
+      Goldens.Check_Text ("lengths-column", "0," & "28", Left (Second) & "," & Top (Second));
+      Goldens.Check_Text ("lengths-row-as-style", "T",
+                          Boolean'Image (Layouts.Row (Gap => 4.0).Flow = Layouts.Row)(1 .. 1));
+   end Lengths;
+
    procedure Declarative_Building is
       use type Buttons.Kind;
       use type Buttons.Shape_Kind;

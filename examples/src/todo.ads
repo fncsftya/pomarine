@@ -55,7 +55,7 @@ package Todo is
      (Parent  : Todo_UI.Context'Class;
       Caption : String;
       Command : Todo_VM.Command;
-      Width   : Float;
+      Width   : UI.Layouts.Length;
       Look    : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal) return UI.Layout;
 
    --  The screen's own components, which know the model.

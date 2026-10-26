@@ -629,7 +629,7 @@ package body Pomarine.Widgets.Page_Views is
          when Pictures.Eraser      => SDL3.Cursors.Pointer,
          when Pictures.Pointer     => SDL3.Cursors.Default);
 
-   overriding function Accepts_Focus (Item : Page_View) return Boolean is
+   overriding function Is_Focusable (Item : Page_View) return Boolean is
      (Has_Document (Item));
 
    overriding procedure Focus_Changed (Item : in out Page_View; Focused : Boolean) is

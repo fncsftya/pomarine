@@ -213,11 +213,11 @@ package Pomarine.Widgets is
    --  The shape the pointer should have over it, or while it holds a
    --  press. Default leaves it to the widgets it is in.
 
-   function Accepts_Focus (Item : Widget) return Boolean is (False);
+   function Is_Focusable (Item : Widget) return Boolean is (False);
    --  Whether the focus may be given to it: by Tab, or by a click on it or
-   --  on a widget inside it that does not (see Focus_On_Click).
+   --  on a widget inside it that does not (see Focuses_On_Click).
 
-   function Focus_On_Click (Item : Widget) return Boolean is (Accepts_Focus (Widget'Class (Item)));
+   function Focuses_On_Click (Item : Widget) return Boolean is (Is_Focusable (Widget'Class (Item)));
    --  Whether a click on it gives it the focus. A button says it does not,
    --  though Tab reaches it: to click it is not to leave the field that
    --  is being typed in.
@@ -650,9 +650,9 @@ package Pomarine.Widgets is
 
    function Is_Visible (Item : Widget'Class) return Boolean;
    --  Whether it has not been hidden. Its children are not shown if it
-   --  is not: see Is_Shown.
+   --  is not: see Is_Showing.
 
-   function Is_Shown (Item : Widget'Class) return Boolean;
+   function Is_Showing (Item : Widget'Class) return Boolean;
    --  Whether it and every widget it is in is visible.
 
    function Child_Count (Item : Widget'Class) return Natural;
@@ -862,7 +862,7 @@ package Pomarine.Widgets is
    --  Focus: at most one widget has it, and takes keys and typing.
 
    procedure Focus (Item : in out Widget'Class)
-     with Pre  => Is_Attached (Item) and then Accepts_Focus (Item),
+     with Pre  => Is_Attached (Item) and then Is_Focusable (Item),
           Post => Has_Focus (Item);
    --  Give it the focus, taking it from the widget that had it.
 

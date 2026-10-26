@@ -126,7 +126,7 @@ package Pomarine.UI is
 
    package Layouts renames Pomarine.Widgets.Layouts;
 
-   Unset : constant Float := Layouts.Unset;
+   Unset : constant Layouts.Length := Layouts.Unset;
    --  A size, share or edge that is not said.
 
    subtype Align_Kind is Layouts.Align_Kind;
@@ -195,73 +195,73 @@ package Pomarine.UI is
 
    function Place
      (Item   : Label_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
 
    function Place
      (Item   : Button_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
 
    function Place
      (Item   : Field_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
 
    function Place
      (Item   : List_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
    function Place
      (Item   : Check_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
 
    function Place
      (Item   : Switch_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
 
    function Place
      (Item   : Progress_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
 
    function Place
      (Item   : Widget_Handle;
-      Grow   : Float := Unset;
-      Shrink : Float := Unset;
-      Width  : Float := Unset;
-      Height : Float := Unset;
-      Margin : Float := Unset;
+      Grow   : Layouts.Weight := Layouts.Unchanged;
+      Shrink : Layouts.Weight := Layouts.Unchanged;
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+      Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is) return Layout;
 
    --  Where a control goes in its container. A Place says nothing about
@@ -284,31 +284,31 @@ package Pomarine.UI is
 
    function Row
      (Items   : Layout_Array;
-      Gap     : Float := Unset;
-      Padding : Float := Unset;
+      Gap     : Layouts.Length := Unset;
+      Padding : Layouts.Length := Unset;
       Align   : Align_Kind := Layouts.Center;
       Spread  : Spread_Kind := Layouts.As_Is;
-      Grow    : Float := Unset;
-      Width   : Float := Unset;
-      Height  : Float := Unset;
+      Grow    : Layouts.Weight := Layouts.Unchanged;
+      Width   : Layouts.Length := Unset;
+      Height  : Layouts.Length := Unset;
       Appearance : Container_Look := Plain) return Layout;
 
    function Column
      (Items   : Layout_Array;
-      Gap     : Float := Unset;
-      Padding : Float := Unset;
+      Gap     : Layouts.Length := Unset;
+      Padding : Layouts.Length := Unset;
       Align   : Align_Kind := Layouts.As_Is;
       Spread  : Spread_Kind := Layouts.As_Is;
-      Grow    : Float := Unset;
-      Width   : Float := Unset;
-      Height  : Float := Unset;
+      Grow    : Layouts.Weight := Layouts.Unchanged;
+      Width   : Layouts.Length := Unset;
+      Height  : Layouts.Length := Unset;
       Appearance : Container_Look := Plain) return Layout;
    function Hold
      (Item    : Widget_Handle;
       Items   : Layout_Array;
       Flow    : Layouts.Flow_Kind := Layouts.Column;
-      Gap     : Float := Unset;
-      Padding : Float := Unset;
+      Gap     : Layouts.Length := Unset;
+      Padding : Layouts.Length := Unset;
       Align   : Align_Kind := Layouts.As_Is;
       Spread  : Spread_Kind := Layouts.As_Is) return Layout;
 
@@ -316,8 +316,8 @@ package Pomarine.UI is
      (Item    : Grip_Handle;
       Items   : Layout_Array;
       Flow    : Layouts.Flow_Kind := Layouts.Column;
-      Gap     : Float := Unset;
-      Padding : Float := Unset;
+      Gap     : Layouts.Length := Unset;
+      Padding : Layouts.Length := Unset;
       Align   : Align_Kind := Layouts.As_Is;
       Spread  : Spread_Kind := Layouts.As_Is) return Layout;
    --  A widget that holds others (a borrowed panel, scroller or grip; a grip of the view's), placed, with Items
@@ -343,9 +343,9 @@ package Pomarine.UI is
    function Scroll
      (Content : Layout;
       Across  : Boolean := False;
-      Grow    : Float := Unset;
-      Width   : Float := Unset;
-      Height  : Float := Unset) return Layout;
+      Grow    : Layouts.Weight := Layouts.Unchanged;
+      Width   : Layouts.Length := Unset;
+      Height  : Layouts.Length := Unset) return Layout;
    --  Content, which is as long as it is, in a box that scrolls it down (or across).
 
    --  Items go across (Row) or down (Column), in order. Nothing is made of
@@ -375,8 +375,8 @@ package Pomarine.UI is
       Existing : in out Pomarine.Widgets.Widget'Class;
       Items    : Layout_Array;
       Flow     : Layouts.Flow_Kind := Layouts.Column;
-      Gap      : Float := Unset;
-      Padding  : Float := Unset;
+      Gap      : Layouts.Length := Unset;
+      Padding  : Layouts.Length := Unset;
       Align    : Align_Kind := Layouts.As_Is;
       Spread   : Spread_Kind := Layouts.As_Is) return Layout
      with Pre => not Is_Mounted (Item) or else Is_Embedded (Item);

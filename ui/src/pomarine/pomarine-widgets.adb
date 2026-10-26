@@ -212,7 +212,7 @@ package body Pomarine.Widgets is
    function Is_Visible (Item : Widget'Class) return Boolean is
      (Item.Owner = null or else Item.Owner.Nodes.Spot (Item.Slot).Visible);
 
-   function Is_Shown (Item : Widget'Class) return Boolean is
+   function Is_Showing (Item : Widget'Class) return Boolean is
    begin
       if Item.Owner = null then
          return True;
@@ -229,7 +229,7 @@ package body Pomarine.Widgets is
          end loop;
          return True;
       end;
-   end Is_Shown;
+   end Is_Showing;
 
    function Has_Focus (Item : Widget'Class) return Boolean is
      (Item.Owner /= null and then Item.Owner.Nodes.Focused (Item.Slot));

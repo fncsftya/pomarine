@@ -496,7 +496,7 @@ package body Pomarine.UI.Contexts is
          if Found = null then
             Found := Resolve (Within, Item.Handle, Button_Control);
          end if;
-         if Found /= null and then Widgets.Is_Attached (Found.all) and then Widgets.Is_Shown (Found.all) then
+         if Found /= null and then Widgets.Is_Attached (Found.all) and then Widgets.Is_Showing (Found.all) then
             Item.Raised := True;
             if Within.Controls (Item.Handle.Slot).Kind = Field_Control then
                Text_Areas.Select_All

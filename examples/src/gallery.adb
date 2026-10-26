@@ -110,10 +110,10 @@ package body Gallery is
       return Result;
    end Menu_Rows;
 
-   function Prepared_Menu (Parts : in out Specimens) return Float is
+   function Prepared_Menu (Parts : in out Specimens) return UI.Layouts.Length is
    begin
       Menus.Set_Rows (Parts.Menu, Menu_Rows);
-      return Menus.Height_For (Parts.Menu);
+      return UI.Layouts.In_Points (Menus.Height_For (Parts.Menu));
    end Prepared_Menu;
 
    function Lists_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is

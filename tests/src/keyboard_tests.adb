@@ -151,7 +151,7 @@ package body Keyboard_Tests is
       --  Not focusable, they take no focus, by a click either.
       Goldens.Check_Text
         ("keyboard-not-focusable", "FALSE",
-         Widgets.Accepts_Focus (Widgets.Widget'Class (Item.Skip))'Image);
+         Widgets.Is_Focusable (Widgets.Widget'Class (Item.Skip))'Image);
    end Off_Until_Asked;
 
    procedure Click_Leaves_Focus is
@@ -208,8 +208,8 @@ package body Keyboard_Tests is
       --  A grip that is only to be dragged is not a Tab stop.
       Goldens.Check_Text
         ("grip-plain-not-a-stop", "FALSE TRUE",
-         Widgets.Accepts_Focus (Widgets.Widget'Class (Plain))'Image & " "
-         & Widgets.Accepts_Focus (Widgets.Widget'Class (Card))'Image);
+         Widgets.Is_Focusable (Widgets.Widget'Class (Plain))'Image & " "
+         & Widgets.Is_Focusable (Widgets.Widget'Class (Card))'Image);
       Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Tab, others => <>), Handled);
       Goldens.Check_Text
         ("grip-tab", "TRUE", Widgets.Has_Focus (Card)'Image);

@@ -58,7 +58,7 @@ package body Command_Tests is
       Took : Natural := 0;
    end record;
 
-   overriding function Accepts_Focus (Item : Taker) return Boolean is (True);
+   overriding function Is_Focusable (Item : Taker) return Boolean is (True);
 
    overriding procedure Handle_Command
      (Item : in out Taker; Tag : Integer; Done : out Boolean) is

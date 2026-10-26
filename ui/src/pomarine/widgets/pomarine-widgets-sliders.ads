@@ -58,7 +58,7 @@ package Pomarine.Widgets.Sliders is
    --  to begin with, so that clicking it does not take the focus from what
    --  is being typed into.
 
-   overriding function Accepts_Focus (Item : Slider) return Boolean;
+   overriding function Is_Focusable (Item : Slider) return Boolean;
 
    overriding procedure Focus_Changed
      (Item : in out Slider; Focused : Boolean);

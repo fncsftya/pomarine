@@ -282,7 +282,7 @@ package Pomarine.Widgets.Editors is
 
    overriding function Until_Update (Item : Editor) return Integer;
 
-   overriding function Accepts_Focus (Item : Editor) return Boolean;
+   overriding function Is_Focusable (Item : Editor) return Boolean;
 
    overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind;
    --  The I-beam, while it can be edited.

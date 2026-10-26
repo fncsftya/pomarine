@@ -43,7 +43,7 @@ package Pomarine.Scrollbars is
    procedure Set_Pane (Item : in out Bar; Over : Boolean);
    --  Say whether the pointer is over what the bar is for.
 
-   function Is_Shown (Item : Bar) return Boolean;
+   function Is_Showing (Item : Bar) return Boolean;
 
    function Is_Held (Item : Bar) return Boolean;
 

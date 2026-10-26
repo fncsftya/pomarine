@@ -53,7 +53,7 @@ package body Pomarine.Scrollbars is
       Item.Pane := Over;
    end Set_Pane;
 
-   function Is_Shown (Item : Bar) return Boolean is
+   function Is_Showing (Item : Bar) return Boolean is
      (Item.Pane or else Item.Grabbing or else Item.Pressing /= None);
 
    function Is_Held (Item : Bar) return Boolean is
@@ -138,7 +138,7 @@ package body Pomarine.Scrollbars is
 
       X, Y, W, H : Float;
    begin
-      if not Is_Shown (Item) or else not Place.Present then
+      if not Is_Showing (Item) or else not Place.Present then
          return;
       end if;
       --  The trough, a line along its inner side.

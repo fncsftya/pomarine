@@ -95,9 +95,9 @@ package Pomarine.Widgets.Grips is
 
    overriding function Cursor (Item : Grip) return SDL3.Cursors.Kind;
 
-   overriding function Accepts_Focus (Item : Grip) return Boolean;
+   overriding function Is_Focusable (Item : Grip) return Boolean;
 
-   overriding function Focus_On_Click (Item : Grip) return Boolean is (False);
+   overriding function Focuses_On_Click (Item : Grip) return Boolean is (False);
 
    overriding procedure Focus_Changed (Item : in out Grip; Focused : Boolean);
 

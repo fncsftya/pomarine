@@ -1974,7 +1974,7 @@ package body Pomarine.Text_Areas is
          declare
             Dragged, Changed : Boolean;
             To : Float;
-            Before : constant Boolean := Scrollbars.Is_Shown (Item.Bar);
+            Before : constant Boolean := Scrollbars.Is_Showing (Item.Bar);
          begin
             if Event.Kind = Events.Mouse_Move then
                Scrollbars.Set_Pane (Item.Bar, Contains (Item, X, Y));
@@ -1986,7 +1986,7 @@ package body Pomarine.Text_Areas is
                Scroll (Item, To - View_Top (Item));
             end if;
             if Changed or else Dragged
-              or else Before /= Scrollbars.Is_Shown (Item.Bar)
+              or else Before /= Scrollbars.Is_Showing (Item.Bar)
             then
                Item.Bar_Dirty := True;
             end if;

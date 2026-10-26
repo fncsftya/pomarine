@@ -441,7 +441,7 @@ package body Pomarine.Widgets.Pictures is
       Select_Range (Item, First, Last);
    end Select_Line;
 
-   overriding function Accepts_Focus (Item : Picture) return Boolean is
+   overriding function Is_Focusable (Item : Picture) return Boolean is
      (Item.Length > 0);
 
    overriding procedure Focus_Changed

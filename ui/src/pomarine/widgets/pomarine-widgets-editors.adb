@@ -696,7 +696,7 @@ package body Pomarine.Widgets.Editors is
      (if Has_Document (Item) and then Is_Focused (Item)
       then Integer (Text_Areas.Until_Blink (Item.Text)) else -1);
 
-   overriding function Accepts_Focus (Item : Editor) return Boolean is
+   overriding function Is_Focusable (Item : Editor) return Boolean is
      (Has_Document (Item) and then Item.Enabled);
 
    overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind is

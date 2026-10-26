@@ -265,7 +265,7 @@ package body Pomarine.Widgets.Checks is
       end if;
    end Set_Focusable;
 
-   overriding function Accepts_Focus (Item : Check) return Boolean is
+   overriding function Is_Focusable (Item : Check) return Boolean is
      (Item.Focusable);
 
    overriding procedure Focus_Changed

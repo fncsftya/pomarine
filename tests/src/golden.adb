@@ -132,6 +132,7 @@ begin
    Run ("layout-intrinsic", Layout_Tests.Intrinsic_Labels'Access);
    Run ("layout-pruned", Layout_Tests.Only_What_Changed'Access);
    Run ("layout-declarative", Layout_Tests.Declarative_Building'Access);
+   Run ("lengths", Layout_Tests.Lengths'Access);
 
    Run ("ui-todo-opens", UI_Tests.Todo_Opens'Access);
    Run ("ui-todo-used", UI_Tests.Todo_Used'Access);

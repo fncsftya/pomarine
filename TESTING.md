@@ -8,7 +8,7 @@ blinking, scrolling), single-line fields (`field-*`), the widget tree
 (`widgets-*`: layout, damage, focus, hiding, removing), what widgets say to a
 listener (`listener-*`: clicks, tags and commands, a widget's own listener,
 events heard after the event that caused them, checks, grips and fields) and
-the layout helpers (`layouts-*`), the widgets as the
+the layout helpers (`layouts-*`; `lengths-*`: what a size is, `On` and `Off`, `Row` and `Column`), the widgets as the
 design's sheet shows them (`sheet-*`: every kind on one board, pressed,
 focused and hovered states, and what each does with clicks and keys), and
 selecting words over a picture (`pictures-*`, with made-up `Pomarine.Words`:
@@ -146,6 +146,7 @@ cd examples/tests
 alr exec -- gprbuild -P todo_tests.gpr
 for t in todo_vm_test todo_view_test example_views_test ui_slice_test ui_ownership_test ui_unchecked_test \
          ui_sync_test ui_reentry_test ui_text_test ui_list_test ui_controls_test gallery_vm_test gallery_view_test; do bin/$t; done
+bin/windows_test   # opens a real window for a moment: a turn at a time, title, size, theme, idle and close
 ```
 
 * `todo_vm_test`: the todo model alone: command contracts, unchanged versions, long text, growing task storage, and

@@ -65,9 +65,9 @@ package Pomarine.Widgets.Switches is
    --  to begin with, so that clicking it does not take the focus from what
    --  is being typed into.
 
-   overriding function Accepts_Focus (Item : Switch) return Boolean;
+   overriding function Is_Focusable (Item : Switch) return Boolean;
 
-   overriding function Focus_On_Click (Item : Switch) return Boolean is (False);
+   overriding function Focuses_On_Click (Item : Switch) return Boolean is (False);
    --  Tab reaches it (if it is focusable), but a click does not move the focus.
 
    overriding procedure Focus_Changed

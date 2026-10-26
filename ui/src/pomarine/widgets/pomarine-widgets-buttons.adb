@@ -233,7 +233,7 @@ package body Pomarine.Widgets.Buttons is
       end if;
    end Set_Focusable;
 
-   overriding function Accepts_Focus (Item : Button) return Boolean is
+   overriding function Is_Focusable (Item : Button) return Boolean is
      (Item.Focusable and then Item.Enabled);
 
    overriding procedure Focus_Changed

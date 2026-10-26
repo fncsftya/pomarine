@@ -1257,7 +1257,7 @@ package body Widget_Tests is
       Check_Flag ("widgets-hiding-child-visible", True,
                   Widgets.Is_Visible (Item.First));
       Check_Flag ("widgets-hiding-child-shown", False,
-                  Widgets.Is_Shown (Item.First));
+                  Widgets.Is_Showing (Item.First));
       Check_Painted (Item, "widgets-hiding-bar", Golden => False);
       Check_Flag ("widgets-hiding-bar-hit", True,
                   Widgets.Hit (Item.Tree, 4.0, 4.0)

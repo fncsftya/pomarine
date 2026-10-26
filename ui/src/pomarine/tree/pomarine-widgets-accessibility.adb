@@ -165,7 +165,7 @@ package body Pomarine.Widgets.Accessibility is
       end if;
       case Request.Doing is
          when Semantics.Focus =>
-            if Accepts_Focus (Target.all) then
+            if Is_Focusable (Target.all) then
                Set_Focus (Item, Id.Slot);
                Done := True;
             else

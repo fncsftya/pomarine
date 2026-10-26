@@ -134,7 +134,7 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Set_Focusable;
 
-   overriding function Accepts_Focus (Item : Grip) return Boolean is (Item.Focusable);
+   overriding function Is_Focusable (Item : Grip) return Boolean is (Item.Focusable);
 
    overriding procedure Focus_Changed (Item : in out Grip; Focused : Boolean) is
       pragma Unreferenced (Focused);
