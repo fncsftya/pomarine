@@ -3,6 +3,7 @@
 --  what they say and what they leave unsaid. See Goldens.
 package Control_Tests is
 
+   procedure Contracts;
    procedure Choice_Groups;
    procedure Steppers;
    procedure Disclosures;

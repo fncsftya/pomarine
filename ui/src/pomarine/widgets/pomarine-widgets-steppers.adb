@@ -95,8 +95,10 @@ package body Pomarine.Widgets.Steppers is
             when Plus  => Item.Current < Item.High,
             when None  => False));
 
-   procedure Move (Item : in out Stepper; By : Integer) is
-      To : constant Integer := Integer'Max (Item.Low, Integer'Min (Item.High, Item.Current + By));
+   procedure Move (Item : in out Stepper; By : Long_Long_Integer) is
+      To : constant Integer := Integer
+        (Long_Long_Integer'Max (Long_Long_Integer (Item.Low),
+         Long_Long_Integer'Min (Long_Long_Integer (Item.High), Long_Long_Integer (Item.Current) + By)));
    begin
       if Item.Enabled and then To /= Item.Current then
          Item.Current := To;
@@ -151,7 +153,7 @@ package body Pomarine.Widgets.Steppers is
          when Pomarine.Events.Mouse_Up =>
             if Event.Button = 1 and then Item.Pressed /= None then
                if Under = Item.Pressed and then Can_Go (Item, Under) then
-                  Move (Item, (if Under = Plus then Item.By else -Item.By));
+                  Move (Item, (if Under = Plus then Long_Long_Integer (Item.By) else -Long_Long_Integer (Item.By)));
                end if;
                Item.Pressed := None;
                Handled := True;
@@ -160,16 +162,16 @@ package body Pomarine.Widgets.Steppers is
          when Pomarine.Events.Key_Down =>
             if Has_Focus (Item) and then not Event.Command then
                if Event.Key = Pomarine.Events.Key_Up_Arrow then
-                  Move (Item, Item.By);
+                  Move (Item, Long_Long_Integer (Item.By));
                   Handled := True;
                elsif Event.Key = Pomarine.Events.Key_Down_Arrow then
-                  Move (Item, -Item.By);
+                  Move (Item, -Long_Long_Integer (Item.By));
                   Handled := True;
                elsif Event.Key = Pomarine.Events.Key_Page_Up then
-                  Move (Item, 10 * Item.By);
+                  Move (Item, 10 * Long_Long_Integer (Item.By));
                   Handled := True;
                elsif Event.Key = Pomarine.Events.Key_Page_Down then
-                  Move (Item, -10 * Item.By);
+                  Move (Item, -10 * Long_Long_Integer (Item.By));
                   Handled := True;
                end if;
             end if;
@@ -284,10 +286,10 @@ package body Pomarine.Widgets.Steppers is
    begin
       Done := False;
       if Request.Doing = Semantics.Increment and then Can_Go (Item, Plus) then
-         Move (Item, Item.By);
+         Move (Item, Long_Long_Integer (Item.By));
          Done := True;
       elsif Request.Doing = Semantics.Decrement and then Can_Go (Item, Minus) then
-         Move (Item, -Item.By);
+         Move (Item, -Long_Long_Integer (Item.By));
          Done := True;
       end if;
    end Perform;

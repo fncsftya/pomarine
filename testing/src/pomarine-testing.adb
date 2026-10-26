@@ -24,9 +24,9 @@ package body Pomarine.Testing is
       Bounds   : Semantics.Rectangle;
       Children : Widgets.Node_Id_Array)
    is
-      pragma Unreferenced (Id, Children);
+      pragma Unreferenced (Children);
    begin
-      Self.Nodes.Append (Node'(Facts => Facts, Bounds => Bounds));
+      Self.Nodes.Append (Node'(Id => Id, Facts => Facts, Bounds => Bounds));
    end Describe_Node;
 
    overriding procedure Take (Self : in out Plain; Event : Pomarine.Events.Event) is
@@ -174,6 +174,19 @@ package body Pomarine.Testing is
             (Kind => Pomarine.Events.Mouse_Up, Mouse_X => X, Mouse_Y => Y, Button => 1, others => <>));
       Settle (Item);
    end Click_At;
+
+   function Act_On
+     (Item : in out Session; Name : String; Doing : Semantics.Action;
+      Role : Semantics.Role := Semantics.Unknown; Nth : Positive := 1) return Boolean
+   is
+      Done : Boolean;
+   begin
+      Look (Item);
+      Widgets.Act (Item.Tree.all, Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Id,
+                   (Doing => Doing, others => <>), Done);
+      Settle (Item);
+      return Done;
+   end Act_On;
 
    procedure Click_On
      (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown;

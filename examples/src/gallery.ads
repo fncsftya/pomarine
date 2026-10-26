@@ -10,6 +10,9 @@ with Pomarine.Widgets.Dialogs;
 with Pomarine.Widgets.Disclosures;
 with Pomarine.Widgets.Labels;
 with Pomarine.Widgets.Menus;
+with Pomarine.Widgets.Number_Fields;
+with Pomarine.Widgets.Editors;
+with Texts.Documents;
 with Pomarine.Widgets.Panels;
 with Pomarine.Widgets.Popovers;
 with Pomarine.Widgets.Selects;
@@ -19,13 +22,14 @@ with Pomarine.Widgets.Steppers;
 with Pomarine.Widgets.Toasts;
 with Pomarine.Widgets.Tooltips;
 
---  Every kind of widget the library has, on one screen: the program of Gallery_GUI, and what the golden
+--  The general-purpose controls on a scrollable sheet: the program of Gallery_GUI, and what the golden
 --  tests of the library draw (`gallery-*`) and the view tests click through, so that a change to any
 --  widget, the layout or the theme shows up here.
 --
 --  The controls that have a view-model (buttons, a field, checks, radios, a switch, a progress bar, a
 --  list) are made by the view and bound to Gallery_VM. The rest (a slider, a select that opens its own menu,
---  tabs, a stepper, a disclosure, a splitter, a chip, a badge, a menu, a toast, a tooltip) are the application's
+--  tabs, segments, grouped radios, a number field, a stepper, a disclosure, a splitter, an editor,
+--  a chip, a badge, a menu, a toast, a tooltip) are the application's
 --  own, in Specimens, which the caller declares before the view that places them. What opens over the window (a
 --  popover, a dialog, a tooltip that shows itself) is added to the tree's root after the screen is mounted:
 --  the Popover and Dialog buttons open them.
@@ -54,6 +58,13 @@ package Gallery is
       Sample_Tip : Pomarine.Widgets.Tooltips.Tooltip;
       Message : Pomarine.Widgets.Toasts.Toast;
       Views   : Pomarine.Widgets.Choice_Groups.Choice_Group;
+      Alignment : Pomarine.Widgets.Choice_Groups.Choice_Group;
+      Mode : Pomarine.Widgets.Choice_Groups.Choice_Group;
+      Quantity : Pomarine.Widgets.Number_Fields.Number_Field;
+      Sample_Doc : aliased Texts.Documents.Document;
+      Sample_Editor : Pomarine.Widgets.Editors.Editor;
+      Context_Button : Pomarine.Widgets.Buttons.Button;
+      Context_Menu : Pomarine.Widgets.Menus.Menu;
       Copies  : Pomarine.Widgets.Steppers.Stepper;
       Advanced : Pomarine.Widgets.Disclosures.Disclosure;
       Side_Pane, Main_Pane : Pomarine.Widgets.Panels.Panel;
@@ -67,8 +78,9 @@ package Gallery is
    end record;
 
    Width  : constant := 720;
-   Height : constant := 770;
-   --  The window, in points, that the screen is made for.
+   Height : constant := 960;
+   Initial_Height : constant := 770;
+   --  Full-sheet test size and initial native window height, in points. Shorter windows scroll.
 
    procedure Build
      (Screen : in out UI.View;

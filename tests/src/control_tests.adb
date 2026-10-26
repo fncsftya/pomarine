@@ -1,4 +1,10 @@
 with Ada.Strings.Fixed;
+with Ada.Assertions;
+with Pomarine.Dialogs;
+with Pomarine.Widgets.Dialogs;
+with Pomarine.Widgets.Popovers;
+with Pomarine.Widgets.Menus;
+with Pomarine.Widgets.Selects;
 with Goldens;
 with Hearers;
 with Pomarine.Events;
@@ -41,6 +47,43 @@ package body Control_Tests is
       Hearers.Take_Row (Ears, Source, Kind, Row);
       return Row;
    end Row_Said;
+
+   procedure Contracts is
+      Choices : Groups.Choice_Group;
+      Stepper : Widgets.Steppers.Stepper;
+      Splitter : Widgets.Splitters.Splitter;
+      Menu : Widgets.Menus.Menu;
+      Select_Field : Widgets.Selects.Select_Field;
+      Dialog : Widgets.Dialogs.Dialog;
+      Popover : Widgets.Popovers.Popover;
+      type Refusal is (Choice_Index, Choice_Disabled, Step_Range, Step_Value, Split_Limits,
+                       Menu_Row, Select_Index, Dialog_Unattached, Popover_Unattached);
+   begin
+      Groups.Add_Choice (Choices, "Only");
+      Widgets.Steppers.Set_Range (Stepper, 1, 5);
+      for Check in Refusal loop
+         begin
+            case Check is
+               when Choice_Index => Groups.Select_Choice (Choices, 2);
+               when Choice_Disabled => Groups.Set_Choice_Enabled (Choices, 2, False);
+               when Step_Range => Widgets.Steppers.Set_Range (Stepper, 5, 1);
+               when Step_Value => Widgets.Steppers.Set_Value (Stepper, 6);
+               when Split_Limits => Widgets.Splitters.Set_Limits (Splitter, 10.0, 5.0);
+               when Menu_Row => Widgets.Menus.Highlight (Menu, 1);
+               when Select_Index => Widgets.Selects.Choose (Select_Field, 1);
+               when Dialog_Unattached => Pomarine.Dialogs.Alert (Dialog, "Unavailable");
+               when Popover_Unattached => Widgets.Popovers.Show_At (Popover, 0.0, 0.0);
+            end case;
+            raise Program_Error with "contract accepted " & Check'Image;
+         exception
+            when Ada.Assertions.Assertion_Error => null;
+         end;
+      end loop;
+      pragma Assert (Groups.Selected (Choices) = 1 and then Groups.Choice_Count (Choices) = 1);
+      pragma Assert (Widgets.Steppers.Value (Stepper) = 1);
+      pragma Assert (Widgets.Steppers.Minimum (Stepper) = 1 and then Widgets.Steppers.Maximum (Stepper) = 5);
+      pragma Assert (Widgets.Menus.Row_Count (Menu) = 0 and then Widgets.Selects.Choice_Count (Select_Field) = 0);
+   end Contracts;
 
    procedure Choice_Groups is
       Tree    : aliased Widgets.Tree;
@@ -190,6 +233,16 @@ package body Control_Tests is
       Steps.Set_Enabled (Copies, False);
       Testing.Press (Session, Events.Key_Down_Arrow);
       Goldens.Check_Text ("stepper-off", "10", Image (Steps.Value (Copies)));
+
+      --  The full integer range and the largest step still clamp before converting back to Integer.
+      Steps.Set_Enabled (Copies, True);
+      Steps.Set_Range (Copies, Integer'First, Integer'Last);
+      Steps.Set_Step (Copies, Positive'Last);
+      Steps.Set_Value (Copies, Integer'Last - 1);
+      Testing.Press (Session, Events.Key_Page_Up);
+      pragma Assert (Steps.Value (Copies) = Integer'Last);
+      Testing.Press (Session, Events.Key_Page_Down);
+      pragma Assert (Steps.Value (Copies) = Integer'First);
    end Steppers;
 
    procedure Disclosures is

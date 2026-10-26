@@ -3,6 +3,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Animation_Tests;
 with Surface_Tests;
+with Number_Field_Tests;
 with Command_Tests;
 with Control_Tests;
 with Document_Tests;
@@ -46,6 +47,9 @@ procedure Golden is
       end if;
    end Run;
 begin
+   Run ("number-field-states", Number_Field_Tests.States'Access);
+   Run ("number-field-rules", Number_Field_Tests.Rules'Access);
+   Run ("number-field-editing", Number_Field_Tests.Editing'Access);
    Run ("surface-input", Surface_Tests.Input'Access);
    Run ("document-rich-text", Document_Tests.Rich_Text'Access);
    Run ("textarea-rich-text", Text_Area_Tests.Rich_Text'Access);
@@ -150,6 +154,7 @@ begin
    Run ("overlay-stacking", Overlay_Tests.Stacking'Access);
    Run ("overlay-dimming", Overlay_Tests.Dimming'Access);
 
+   Run ("controls-contracts", Control_Tests.Contracts'Access);
    Run ("controls-choices", Control_Tests.Choice_Groups'Access);
    Run ("controls-steppers", Control_Tests.Steppers'Access);
    Run ("controls-disclosures", Control_Tests.Disclosures'Access);
@@ -163,6 +168,9 @@ begin
    Run ("popup-questions", Popup_Tests.Questions'Access);
    Run ("popup-tooltip", Popup_Tests.Tooltip_Rests'Access);
 
+   Run ("gallery-scrolled", Gallery_Tests.Scrolled_Sheet'Access);
+   Run ("gallery-context-open", Gallery_Tests.Context_Open'Access);
+   Run ("gallery-number-invalid", Gallery_Tests.Number_Invalid'Access);
    Run ("gallery-opens", Gallery_Tests.Opens'Access);
    Run ("gallery-used", Gallery_Tests.Used'Access);
    Run ("gallery-dark", Gallery_Tests.Dark'Access);

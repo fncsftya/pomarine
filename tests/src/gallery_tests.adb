@@ -10,6 +10,10 @@ with Pomarine.Testing;
 with Pomarine.Themes;
 with Pomarine.Widgets;
 with Pomarine.Widgets.Sliders;
+with Pomarine.Widgets.Choice_Groups;
+with Pomarine.Widgets.Number_Fields;
+with Pomarine.Widgets.Steppers;
+with Pomarine.Widgets.Disclosures;
 with SDL3.Windows.Renderers;
 
 package body Gallery_Tests is
@@ -18,7 +22,7 @@ package body Gallery_Tests is
    package Images renames Goldens.Images;
    package Widgets renames Pomarine.Widgets;
 
-   type Stage is (Fresh, Handled, Selecting, Showing_Popover, Asking, Hovering);
+   type Stage is (Fresh, Handled, Selecting, Showing_Popover, Asking, Hovering, Contextual, Invalid_Number, Scrolled);
    --  Handled: a person has been at it: clicks, a name, a box ticked, a size, a switch, a row, the slider.
 
    procedure Use_It (Model : in out Gallery_VM.Model; Parts : in out Gallery.Specimens) is
@@ -32,6 +36,12 @@ package body Gallery_Tests is
       Gallery_VM.Execute (Model, Gallery_VM.Toggle_Compact);
       Gallery_VM.Select_Row (Model, 2);
       Pomarine.Widgets.Sliders.Set_Value (Parts.Slider, 0.75);
+      Widgets.Choice_Groups.Select_Choice (Parts.Views, 2);
+      Widgets.Choice_Groups.Select_Choice (Parts.Alignment, 2);
+      Widgets.Choice_Groups.Select_Choice (Parts.Mode, 2);
+      Widgets.Steppers.Set_Value (Parts.Copies, 99);
+      Widgets.Number_Fields.Set_Value (Parts.Quantity, 42);
+      Widgets.Disclosures.Set_Open (Parts.Advanced, False);
    end Use_It;
 
    procedure Click_On (Tree : in out Widgets.Tree; Item : Widgets.Widget'Class) is
@@ -49,7 +59,9 @@ package body Gallery_Tests is
         (Tree, (Kind => Pomarine.Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y, others => <>), Taken);
    end Click_On;
 
-   procedure Draw (Name : String; Colors : Pomarine.Themes.Theme; Density : Float; Then_Do : Stage) is
+   procedure Draw
+     (Name : String; Colors : Pomarine.Themes.Theme; Density : Float; Then_Do : Stage;
+      Window_Height : Positive := Gallery.Height) is
       Target : Renderers.Renderer;  --  before the tree that draws to it
       Board  : Pomarine.Clipboards.Memory_Clipboard;
       Lines  : aliased Pomarine.Line_Texts.Drawer;  --  after Target, which it draws to
@@ -61,7 +73,7 @@ package body Gallery_Tests is
       Drawn  : Images.Image;
    begin
       Renderers.Create_Offscreen
-        (Target, Positive (Float (Gallery.Width) * Density), Positive (Float (Gallery.Height) * Density));
+        (Target, Positive (Float (Gallery.Width) * Density), Positive (Float (Window_Height) * Density));
       Widgets.Set_Density (Tree, Density);
       Widgets.Set_Reduced_Motion (Tree, True);
       Widgets.Set_Clipboard (Tree, Board);
@@ -94,6 +106,29 @@ package body Gallery_Tests is
                          others => <>), Taken);
                Widgets.Update (Tree, 32);
                Widgets.Update (Tree, 1000);
+            end;
+         when Scrolled =>
+            declare
+               Taken : Boolean;
+            begin
+               Widgets.Dispatch
+                 (Tree, (Kind => Pomarine.Events.Mouse_Wheel, Wheel_Y => -100.0,
+                         Mouse_X => 710.0, Mouse_Y => 300.0, others => <>), Taken);
+            end;
+         when Contextual =>
+            Click_On (Tree, Parts.Context_Button);
+         when Invalid_Number =>
+            declare
+               Taken : Boolean;
+            begin
+               Widgets.Focus (Parts.Quantity);
+               Widgets.Dispatch
+                 (Tree, (Kind => Pomarine.Events.Key_Down, Key => Pomarine.Events.Key_A,
+                         Command => True, others => <>), Taken);
+               Widgets.Dispatch (Tree, Pomarine.Events.Text_Event ("1000"), Taken);
+               Widgets.Dispatch
+                 (Tree, (Kind => Pomarine.Events.Key_Down, Key => Pomarine.Events.Key_Return, others => <>), Taken);
+               Widgets.Clear_Focus (Tree);
             end;
          when Fresh | Handled =>
             null;
@@ -145,6 +180,21 @@ package body Gallery_Tests is
       Draw ("gallery-tooltip-shown", Pomarine.Themes.Light, 1.0, Hovering);
    end Tooltip_Shown;
 
+   procedure Scrolled_Sheet is
+   begin
+      Draw ("gallery-scrolled", Pomarine.Themes.Light, 1.0, Scrolled, Gallery.Initial_Height);
+   end Scrolled_Sheet;
+
+   procedure Context_Open is
+   begin
+      Draw ("gallery-context-open", Pomarine.Themes.Light, 1.0, Contextual);
+   end Context_Open;
+
+   procedure Number_Invalid is
+   begin
+      Draw ("gallery-number-invalid", Pomarine.Themes.Light, 1.0, Invalid_Number);
+   end Number_Invalid;
+
    procedure Described is
       Tree    : aliased Widgets.Tree;
       Model   : aliased Gallery_VM.Model;
@@ -153,6 +203,8 @@ package body Gallery_Tests is
       Session : Pomarine.Testing.Session;
       Expected : constant String :=
         "window" & ASCII.LF &
+        "scroll area" & ASCII.LF &
+        "group" & ASCII.LF &
         "text 'Buttons'" & ASCII.LF &
         "group" & ASCII.LF &
         "button 'Click me'" & ASCII.LF &
@@ -174,7 +226,7 @@ package body Gallery_Tests is
         "text 'Values'" & ASCII.LF &
         "group" & ASCII.LF &
         "slider =40%" & ASCII.LF &
-        "button =Georgia" & ASCII.LF &
+        "button 'Font' =Georgia" & ASCII.LF &
         "group 'Ada'" & ASCII.LF &
         "button 'close Ada'" & ASCII.LF &
         "text '3'" & ASCII.LF &
@@ -184,14 +236,40 @@ package body Gallery_Tests is
         "radio button 'Write' ON selected" & ASCII.LF &
         "radio button 'Outline' OFF" & ASCII.LF &
         "radio button 'Canvas' OFF" & ASCII.LF &
-        "slider =2 copies" & ASCII.LF &
+        "slider 'Copies' =2 copies" & ASCII.LF &
+        "text field 'Quantity' =12" & ASCII.LF &
+        "text =12" & ASCII.LF &
+        "group" & ASCII.LF &
+        "group" & ASCII.LF &
+        "radio button 'Left' ON selected" & ASCII.LF &
+        "radio button 'Center' OFF" & ASCII.LF &
+        "radio button 'Right' OFF" & ASCII.LF &
+        "group" & ASCII.LF &
+        "radio button 'Draft' ON selected" & ASCII.LF &
+        "radio button 'Final' OFF" & ASCII.LF &
         "group 'Advanced'" & ASCII.LF &
         "text 'A disclosure hides what is under its heading.'" & ASCII.LF &
         "text 'Click the heading, or press Space on it.'" & ASCII.LF &
         "group" & ASCII.LF &
         "group" & ASCII.LF &
-        "separator" & ASCII.LF &
+        "separator 'Pane divider'" & ASCII.LF &
         "group" & ASCII.LF &
+        "text 'Rich text'" & ASCII.LF &
+        "text area 'Rich text' =Select some text and try the formatting toolbar." & ASCII.LF &
+        "text =Select some text and try the formatting toolbar." & ASCII.LF &
+        "button 'Bold'" & ASCII.LF &
+        "button 'Italic'" & ASCII.LF &
+        "button 'Underline'" & ASCII.LF &
+        "button 'Strikethrough'" & ASCII.LF &
+        "button 'Bulleted list'" & ASCII.LF &
+        "button 'Numbered list'" & ASCII.LF &
+        "button 'Quotation'" & ASCII.LF &
+        "button 'Decrease indent'" & ASCII.LF &
+        "button 'Increase indent'" & ASCII.LF &
+        "button 'Link' disabled" & ASCII.LF &
+        "button 'Font family' =Georgia" & ASCII.LF &
+        "button 'Font size' =14 pt" & ASCII.LF &
+        "button 'Paragraph style' =Normal" & ASCII.LF &
         "text 'Lists and menus'" & ASCII.LF &
         "group" & ASCII.LF &
         "list 'Fruit'" & ASCII.LF &
@@ -212,7 +290,8 @@ package body Gallery_Tests is
         "button 'Undo'" & ASCII.LF &
         "tooltip 'Saves the file'" & ASCII.LF &
         "button 'Popover'" & ASCII.LF &
-        "button 'Dialog'" & ASCII.LF;
+        "button 'Dialog'" & ASCII.LF &
+        "button 'Context menu'" & ASCII.LF;
    begin
       Gallery_VM.Seed (Model);
       Gallery.Build (Screen, Model'Access, Parts);

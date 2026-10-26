@@ -2,9 +2,10 @@
 
 **Status: alpha.** The API will still change, with breaks, as it becomes a general library: it began as the
 toolkit of [Bonxie](https://github.com/fncsftya/bonxie), which keeps it as a submodule and is still its main
-user. `examples/` is the place to start, and the gallery (below) is what the library's own tests keep honest.
+user. Start with [Build your first app](docs/FIRST_APP.md). `examples/` is the place to explore; the gallery
+is what the library's tests keep honest.
 
-Known gaps, for now: macOS only; no tree, table, date or colour picker, and a stepper but no typed number field; one
+Known gaps, for now: macOS only; no tree, table, date or colour picker; one
 window loop per application; no secondary-window routing, drag and drop, bidi/RTL, localization or touch gestures.
 
 A MacOS-only GUI library for Ada: a tree of widgets, laid out by Yoga's
@@ -56,7 +57,8 @@ end if;
 See the comment at the top of `Pomarine.Widgets` for the whole loop, and
 `examples/` for complete programs (`cd examples && alr build`). `hello_gui` declares its greeting and command
 button through `Pomarine.UI`, with `Greeter_VM` holding the count and command rule. `todo_gui` composes a task
-screen from bound components. `gallery_gui` puts every kind of widget on one window, which the golden and view
+screen from bound components. `gallery_gui` puts the general controls on a scrollable sheet, including typed integers, choice groups,
+rich text and context menus, which the golden and view
 tests (`gallery-*`, `gallery_view_test`) draw, click and describe, so a change to any widget, the layout or the
 theme shows up there first. `clock_gui` mounts an app-owned custom clock face with `UI.Put`; its painting and
 periodic time updates stay in the widget. Each program declares the tree and model or borrowed face before the
@@ -112,6 +114,7 @@ shared platform lifetime before they can be supported safely. Overlays remain lo
 | `Pomarine.Testing` (`testing/`, crate `pomarine_testing`) | A window to test offscreen as a person uses it: seen as an assistive technology is told, clicked and typed in by name; `Hearers` keep what widgets said. |
 | `Pomarine.Widgets.Overlays` (`Pomarine.Anchoring`) | What floats over the window: put beside an anchor or a point, kept in the window, let go of by Escape or a press outside, modal if asked. |
 | `Pomarine.Widgets.Popovers`, `.Dialogs`, `Pomarine.Dialogs` | A box that floats; a modal dialog; the usual questions (`Alert`, `Confirm`, `Choose_From`) ready made. |
+| `Pomarine.Widgets.Number_Fields` | Typed integers with validation, commit and restore. |
 | `Pomarine.Widgets.Choice_Groups`, `.Steppers`, `.Disclosures`, `.Splitters`, `.Tooltips` | Exactly one of a few (tabs, segments, radio buttons); a number to step; a heading that opens; a draggable divider; a tooltip that shows itself. |
 | `Pomarine.Widgets.Lists`, `Pomarine.Models` | A list of rows read from a model: a screenful asked for, drawn and described. |
 | `Pomarine.Semantics` | What a widget is to someone who cannot see it: role, name, value, actions. |

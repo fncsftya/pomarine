@@ -93,6 +93,13 @@ package Pomarine.Testing is
 
    --  Doing: what a person does
 
+   function Act_On
+     (Item : in out Session; Name : String; Doing : Pomarine.Semantics.Action;
+      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown; Nth : Positive := 1) return Boolean
+     with Pre => Exists (Item, Name, Role, Nth);
+   --  Ask through accessibility by semantic name (Focus, Increment, Collapse, ...), then settle.
+   --  False if refused. Click_On continues to test physical pointer input.
+
    procedure Click_On
      (Item : in out Session;
       Name : String;
@@ -128,6 +135,7 @@ package Pomarine.Testing is
 private
 
    type Node is record
+      Id : Pomarine.Widgets.Node_Id;
       Facts  : Pomarine.Semantics.Description;
       Bounds : Pomarine.Semantics.Rectangle;
    end record;

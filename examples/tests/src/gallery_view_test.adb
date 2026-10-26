@@ -9,6 +9,11 @@ with Pomarine.Widgets.Dialogs;
 with Pomarine.Widgets.Popovers;
 with Pomarine.Widgets.Selects;
 with Pomarine.Widgets.Splitters;
+with Pomarine.Widgets.Disclosures;
+with Pomarine.Widgets.Steppers;
+with Pomarine.Widgets.Number_Fields;
+with Pomarine.Widgets.Overlays;
+with Texts.Documents;
 
 --  The gallery as a person uses it, by what each control is called: no pixels, so no coordinates to break
 --  when the layout moves (the goldens of tests/ draw it).
@@ -76,20 +81,35 @@ begin
    pragma Assert (Widgets.Choice_Groups.Selected (Parts.Views) = 2);
 
    --  A select that opens its own menu, and shuts it when one is chosen.
-   declare
-      Middle_X : constant Float := Widgets.Left_Of (Parts.Choice) + Widgets.Width_Of (Parts.Choice) / 2.0;
-      Middle_Y : constant Float := Widgets.Top_Of (Parts.Choice) + Widgets.Height_Of (Parts.Choice) / 2.0;
-   begin
-      Testing.Click_At (Window, Middle_X, Middle_Y);
-      pragma Assert (Widgets.Selects.Is_Open (Parts.Choice) and then Testing.Exists (Window, "Menlo"));
-      Testing.Click_On (Window, "Menlo");
-      pragma Assert (Widgets.Selects.Value (Parts.Choice) = "Menlo");
-      pragma Assert (not Widgets.Selects.Is_Open (Parts.Choice));
-   end;
+   Testing.Click_On (Window, "Font");
+   pragma Assert (Widgets.Selects.Is_Open (Parts.Choice) and then Testing.Exists (Window, "Menlo"));
+   Testing.Click_On (Window, "Menlo");
+   pragma Assert (Widgets.Selects.Value (Parts.Choice) = "Menlo");
+   pragma Assert (not Widgets.Selects.Is_Open (Parts.Choice));
+
+   Testing.Click_On (Window, "Center", Radio_Button);
+   Testing.Click_On (Window, "Final", Radio_Button);
+   pragma Assert (Widgets.Choice_Groups.Selected (Parts.Alignment) = 2);
+   pragma Assert (Widgets.Choice_Groups.Selected (Parts.Mode) = 2);
+   pragma Assert (Testing.Act_On (Window, "Copies", Pomarine.Semantics.Increment));
+   pragma Assert (Widgets.Steppers.Value (Parts.Copies) = 3);
+   pragma Assert (Testing.Act_On (Window, "Advanced", Pomarine.Semantics.Collapse));
+   pragma Assert (not Widgets.Disclosures.Is_Open (Parts.Advanced));
+   pragma Assert (not Testing.Exists (Window, "A disclosure hides what is under its heading."));
+   pragma Assert (Testing.Act_On (Window, "Advanced", Pomarine.Semantics.Expand));
+   Testing.Click_On (Window, "Quantity");
+   Testing.Press (Window, Pomarine.Events.Key_A, Command => True);
+   Testing.Type_Text (Window, "25");
+   Testing.Press (Window, Pomarine.Events.Key_Return);
+   pragma Assert (Widgets.Number_Fields.Value (Parts.Quantity) = 25);
+   Testing.Click_On (Window, "Rich text", Multiline_Text_Input);
+   Testing.Press (Window, Pomarine.Events.Key_A, Command => True);
+   Testing.Type_Text (Window, "A gallery editor");
+   pragma Assert (Texts.Documents.Whole (Parts.Sample_Doc) = "A gallery editor");
 
    --  A splitter: the keys give one side more room.
    pragma Assert (Widgets.Splitters.Position (Parts.Divider) = 160.0);
-   Widgets.Focus (Parts.Divider);
+   pragma Assert (Testing.Act_On (Window, "Pane divider", Pomarine.Semantics.Focus));
    Testing.Press (Window, Pomarine.Events.Key_Right_Arrow);
    pragma Assert (Widgets.Splitters.Position (Parts.Divider) = 176.0);
 
@@ -105,7 +125,44 @@ begin
    Testing.Click_On (Window, "Cancel");
    pragma Assert (not Widgets.Dialogs.Is_Shown (Parts.Ask));
 
+   Testing.Click_On (Window, "Context menu");
+   pragma Assert (Widgets.Overlays.Is_Presented (Parts.Context_Menu));
+   Testing.Press (Window, Pomarine.Events.Key_End);
+   Testing.Press (Window, Pomarine.Events.Key_Return);
+   pragma Assert (not Widgets.Overlays.Is_Presented (Parts.Context_Menu));
+
+   --  Semantic actions report refusal without silently changing a disabled control.
+   Widgets.Steppers.Set_Enabled (Parts.Copies, False);
+   pragma Assert (not Testing.Act_On (Window, "Copies", Pomarine.Semantics.Increment));
+   pragma Assert (Widgets.Steppers.Value (Parts.Copies) = 3);
+   Widgets.Steppers.Set_Enabled (Parts.Copies, True);
+
    --  The keyboard: Return in a field does nothing the model cannot, and Tab leaves the screen standing.
    Testing.Press (Window, Pomarine.Events.Key_Tab);
    pragma Assert (Testing.Exists (Window, "Click me"));
+   --  In a shorter window the whole control sheet scrolls, while overlays remain in window coordinates.
+   declare
+      Small_Tree : aliased Widgets.Tree;
+      Small_Model : aliased Gallery_VM.Model;
+      Small_Parts : Gallery.Specimens;
+      Small_Screen : Gallery.UI.View (Small_Tree'Access);
+      Small_Window : Testing.Session;
+   begin
+      Gallery_VM.Seed (Small_Model);
+      Widgets.Set_Reduced_Motion (Small_Tree, True);
+      Gallery.Build (Small_Screen, Small_Model'Access, Small_Parts);
+      Testing.Open (Small_Window, Small_Tree, Gallery.Width, 360);
+      Testing.Feed
+        (Small_Window, (Kind => Pomarine.Events.Mouse_Wheel, Wheel_Y => -100.0,
+                        Mouse_X => 710.0, Mouse_Y => 300.0, others => <>));
+      Testing.Settle (Small_Window);
+      pragma Assert (Widgets.Top_Of (Small_Parts.Context_Button) < 360.0);
+      Testing.Click_On (Small_Window, "Context menu");
+      pragma Assert (Widgets.Overlays.Is_Presented (Small_Parts.Context_Menu));
+      pragma Assert (Widgets.Top_Of (Small_Parts.Context_Menu) >= 0.0);
+      pragma Assert (Widgets.Top_Of (Small_Parts.Context_Menu)
+                     + Widgets.Height_Of (Small_Parts.Context_Menu) <= 360.0);
+      Testing.Press (Small_Window, Pomarine.Events.Key_Escape);
+      pragma Assert (not Widgets.Overlays.Is_Presented (Small_Parts.Context_Menu));
+   end;
 end Gallery_View_Test;

@@ -3,6 +3,7 @@ with Pomarine.Dialogs;
 with Pomarine.Themes;
 with Pomarine.Widgets.Callbacks;
 with Pomarine.Widgets.Checks;
+with Pomarine.Widgets.Overlays;
 
 package body Gallery is
 
@@ -98,6 +99,7 @@ package body Gallery is
       Pomarine.Widgets.Selects.Add_Choice (Parts.Choice, "Menlo");
       Pomarine.Widgets.Selects.Add_Choice (Parts.Choice, "Avenir");
       Pomarine.Widgets.Selects.Set_Value (Parts.Choice, "Georgia");
+      Widgets.Set_Accessible_Name (Parts.Choice, "Font");
       Widgets.Set_Tooltip (Parts.Choice, "Opens its own menu");
       Widgets.Set_Tooltip (Parts.Slider, "Drag it, or use the arrow keys");
       Pomarine.Widgets.Chips.Set_Label (Parts.Tag, "Ada");
@@ -111,20 +113,63 @@ package body Gallery is
       Bound  : aliased Gallery_UI.Component (Parent'Access);
       Views  : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Views);
       Copies : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Copies);
+      Quantity : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Quantity);
       Result : constant UI.Layout :=
-        UI.Row ([UI.Place (Views, Width => 320.0, Height => 32.0), UI.Place (Copies, Width => 150.0, Height => 32.0)],
+        UI.Row ([UI.Place (Views, Width => 280.0, Height => 32.0), UI.Place (Copies, Width => 150.0, Height => 32.0),
+                 UI.Place (Quantity, Width => 160.0, Height => 32.0)],
                 Gap => 24.0);
    begin
       Pomarine.Widgets.Choice_Groups.Set_Look (Parts.Views, Pomarine.Widgets.Choice_Groups.Tabs);
       Pomarine.Widgets.Choice_Groups.Add_Choice (Parts.Views, "Write");
       Pomarine.Widgets.Choice_Groups.Add_Choice (Parts.Views, "Outline");
       Pomarine.Widgets.Choice_Groups.Add_Choice (Parts.Views, "Canvas");
+      Widgets.Number_Fields.Configure (Parts.Quantity, "Georgia", 14.0, Min => 1, Max => 999, Start => 12);
+      Widgets.Set_Accessible_Name (Parts.Quantity, "Quantity");
+      Widgets.Set_Accessible_Name (Parts.Copies, "Copies");
+      Widgets.Choice_Groups.Set_Focusable (Parts.Views, True);
+      Pomarine.Widgets.Steppers.Set_Focusable (Parts.Copies, True);
       Pomarine.Widgets.Steppers.Set_Range (Parts.Copies, 1, 99);
       Pomarine.Widgets.Steppers.Set_Value (Parts.Copies, 2);
       Pomarine.Widgets.Steppers.Set_Suffix (Parts.Copies, " copies");
       Bound.Commit;
       return Result;
    end Choosers_Row;
+
+   function Variants_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
+      Bound : aliased Gallery_UI.Component (Parent'Access);
+      Alignment : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Alignment);
+      Mode : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Mode);
+      Result : constant UI.Layout := UI.Row
+        ([UI.Place (Alignment, Width => 320.0, Height => 32.0),
+          UI.Place (Mode, Width => 320.0, Height => 32.0)], Gap => 24.0);
+   begin
+      Widgets.Choice_Groups.Set_Look (Parts.Alignment, Widgets.Choice_Groups.Segments);
+      Widgets.Choice_Groups.Add_Choice (Parts.Alignment, "Left");
+      Widgets.Choice_Groups.Add_Choice (Parts.Alignment, "Center");
+      Widgets.Choice_Groups.Add_Choice (Parts.Alignment, "Right");
+      Widgets.Choice_Groups.Set_Look (Parts.Mode, Widgets.Choice_Groups.Radios);
+      Widgets.Choice_Groups.Set_Vertical (Parts.Mode, False);
+      Widgets.Choice_Groups.Add_Choice (Parts.Mode, "Draft");
+      Widgets.Choice_Groups.Add_Choice (Parts.Mode, "Final");
+      Widgets.Choice_Groups.Set_Focusable (Parts.Alignment, True);
+      Widgets.Choice_Groups.Set_Focusable (Parts.Mode, True);
+      Bound.Commit;
+      return Result;
+   end Variants_Row;
+
+   function Editor_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
+      Bound : aliased Gallery_UI.Component (Parent'Access);
+      Editor : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Sample_Editor);
+      Result : constant UI.Layout := UI.Place (Editor, Height => 110.0);
+   begin
+      Texts.Documents.Load (Parts.Sample_Doc, "Select some text and try the formatting toolbar.");
+      Widgets.Editors.Configure (Parts.Sample_Editor, "Georgia", 14.0, Measure => 640.0);
+      Widgets.Editors.Attach (Parts.Sample_Editor, Parts.Sample_Doc'Unchecked_Access);
+      Widgets.Editors.Set_Toolbar (Parts.Sample_Editor);
+      Widgets.Set_Accessible_Name (Parts.Sample_Editor, "Rich text");
+      Bound.Commit;
+      return Result;
+   end Editor_Row;
 
    function Disclosure_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
       Bound   : aliased Gallery_UI.Component (Parent'Access);
@@ -158,6 +203,7 @@ package body Gallery is
       Pomarine.Widgets.Panels.Set_Border (Parts.Side_Pane, Pomarine.Themes.Border);
       Pomarine.Widgets.Panels.Set_Fill (Parts.Main_Pane, Pomarine.Themes.Page);
       Pomarine.Widgets.Panels.Set_Border (Parts.Main_Pane, Pomarine.Themes.Border);
+      Widgets.Set_Accessible_Name (Parts.Divider, "Pane divider");
       Pomarine.Widgets.Splitters.Set_Focusable (Parts.Divider, True);
       Pomarine.Widgets.Splitters.Set_Limits (Parts.Divider, 80.0, 400.0);
       Widgets.Set_Tooltip (Parts.Divider, "Drag to give one side more room");
@@ -202,9 +248,11 @@ package body Gallery is
       Tip     : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Sample_Tip);
       Popover : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Info_Button);
       Dialog  : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Ask_Button);
+      Context_Menu : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Context_Button);
       Result  : constant UI.Layout :=
-        UI.Row ([UI.Place (Message, Width => 300.0, Height => 36.0), UI.Place (Tip, Width => 110.0, Height => 22.0),
-                 UI.Place (Popover, Width => 90.0, Height => 32.0), UI.Place (Dialog, Width => 90.0, Height => 32.0)],
+        UI.Row ([UI.Place (Message, Width => 220.0, Height => 36.0), UI.Place (Tip, Width => 90.0, Height => 22.0),
+                 UI.Place (Popover, Width => 80.0, Height => 32.0), UI.Place (Dialog, Width => 80.0, Height => 32.0),
+                 UI.Place (Context_Menu, Width => 100.0, Height => 32.0)],
                 Gap => 16.0);
    begin
       Pomarine.Widgets.Toasts.Set_Message (Parts.Message, "Task deleted");
@@ -212,6 +260,7 @@ package body Gallery is
       Pomarine.Widgets.Tooltips.Set_Text (Parts.Sample_Tip, "Saves the file");
       Buttons.Configure (Parts.Info_Button, Buttons.Looks ("Popover", Focusable => True));
       Buttons.Configure (Parts.Ask_Button, Buttons.Looks ("Dialog", Buttons.Danger, Focusable => True));
+      Buttons.Configure (Parts.Context_Button, Buttons.Looks ("Context menu", Focusable => True));
       Widgets.Set_Tooltip (Parts.Info_Button, "Opens a popover beside it");
       Widgets.Set_Tooltip (Parts.Ask_Button, "Asks whether to go ahead");
       Bound.Commit;
@@ -225,17 +274,20 @@ package body Gallery is
       Name_Part    : constant UI.Layout := Name_Row (Bound);
       Choices      : constant UI.Layout := Choices_Row (Bound);
       Specimen     : constant UI.Layout := Specimens_Row (Bound, Parts);
-      Lists        : constant UI.Layout := Lists_Row (Bound, Parts);
       Choosers     : constant UI.Layout := Choosers_Row (Bound, Parts);
+      Variants     : constant UI.Layout := Variants_Row (Bound, Parts);
       Disclosure   : constant UI.Layout := Disclosure_Row (Bound, Parts);
       Divided      : constant UI.Layout := Splitter_Row (Bound, Parts);
+      Editor       : constant UI.Layout := Editor_Row (Bound, Parts);
+      Lists        : constant UI.Layout := Lists_Row (Bound, Parts);
       Notices      : constant UI.Layout := Notices_Row (Bound, Parts);
    begin
       return UI.Column
         ([Heading (Bound, "Buttons"), Buttons_Part, Progress,
           Heading (Bound, "Fields"), Name_Part, Choices,
           Heading (Bound, "Values"), Specimen,
-          Heading (Bound, "Choosers"), Choosers, Disclosure, Divided,
+          Heading (Bound, "Choosers"), Choosers, Variants, Disclosure, Divided,
+          Heading (Bound, "Rich text"), Editor,
           Heading (Bound, "Lists and menus"), Lists,
           Heading (Bound, "Notices"), Notices],
          Padding => 16.0, Gap => 8.0);
@@ -264,13 +316,24 @@ package body Gallery is
       end if;
    end Ask_Question;
 
+   procedure Show_Context
+     (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
+      pragma Unreferenced (Event);
+   begin
+      if not Widgets.Overlays.Is_Presented (Self.Context_Menu) then
+         Widgets.Overlays.Present_Beside
+           (Self.Context_Menu, Source, (Side => Pomarine.Anchoring.Above, others => <>));
+      end if;
+   end Show_Context;
+
    procedure Build
      (Screen : in out UI.View;
       Model  : not null access Gallery_VM.Model;
       Parts  : in out Specimens)
    is
       Bound : constant Gallery_UI.Context'Class := Gallery_UI.Bind (Screen, Model);
-      Whole : constant UI.Layout := Gallery_Screen (Bound, Parts);
+      Whole : constant UI.Layout := UI.Column
+        ([UI.Scroll (Gallery_Screen (Bound, Parts), Grow => 1.0, Height => 0.0)], Grow => 1.0);
       Root  : Widgets.Widget_Access;
    begin
       UI.Mount (Screen, Whole);
@@ -280,7 +343,13 @@ package body Gallery is
       UI.Layouts.Add (Parts.Info, Parts.Info_Note, (Height => 22.0, others => <>));
       Widgets.Labels.Set_Text (Parts.Info_Note, "A popover holds any widgets.");
       Widgets.Dialogs.Add (Root.all, Parts.Ask, Width => 340.0);
+      UI.Layouts.Add (Root.all, Parts.Context_Menu, (Width => 200.0, others => <>));
+      Menus.Set_Rows (Parts.Context_Menu, Menu_Rows);
+      Menus.Set_Keyboard (Parts.Context_Menu, True);
+      Menus.Set_Closes_On_Choose (Parts.Context_Menu, True);
+      Widgets.Set_Visible (Parts.Context_Menu, False);
       Widgets.Tooltips.Install (Screen.Tree.all, Parts.Hover_Tip);
+      Hooks.On (Parts.Context_Button, Widgets.Click, Parts'Unrestricted_Access, Show_Context'Access);
       Hooks.On (Parts.Info_Button, Widgets.Click, Parts'Unrestricted_Access, Show_Popover'Access);
       Hooks.On (Parts.Ask_Button, Widgets.Click, Parts'Unrestricted_Access, Ask_Question'Access);
    end Build;

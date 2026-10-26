@@ -69,7 +69,7 @@ goldens there or pass a tolerance to `Goldens.Check`.
 
 ## The gallery
 
-`examples/src/gallery.ads` puts every kind of widget on one screen (`Gallery_GUI`), and is the library's guard
+`examples/src/gallery.ads` puts the general controls on a scrollable sheet (`Gallery_GUI`), and is the library's guard
 against general regressions: a change to a widget, the layout or the theme shows in it before anywhere else.
 Whoever adds a widget adds it to the gallery, and to these.
 
@@ -237,3 +237,38 @@ with the layout of the screen in them: change a layout and these change.
 key-up delivery without Tab navigation, explicit pointer capture outside bounds, capture replacement, matching
 button release, hide/remove teardown and native file-dialog idle/path contracts. These are assertions without
 images. Native file panels need the manual checks listed in README.md; automated tests do not dismiss OS panels.
+
+## Alpha controls and coverage
+
+Every “Gallery” semantic test below is in `examples/tests/bin/gallery_view_test`.
+
+| Control | Rules/interactions | Semantic tests | Goldens |
+| --- | --- | --- | --- |
+| Tabs, segments, grouped radios | `controls-choices` | Gallery | Gallery fresh/used, dark/dense |
+| Typed integer | `number-field-rules`, `number-field-editing` | Gallery | `number-field-states`, invalid gallery |
+| Stepper | `controls-steppers` | Gallery | Gallery fresh/used (upper limit) |
+| Disclosure | `controls-disclosures` | Gallery collapse/expand | Gallery open/closed |
+| Splitter | `controls-splitters` | Gallery focus/keys | Gallery fresh/used |
+| Select | `popup-select`, `popup-menu-keys` | Gallery | `gallery-select-open` |
+| Context menu | `popup-context`, `popup-menu-keys` | Gallery | `gallery-context-open` |
+| Popover | `popup-popover` | Gallery | `gallery-popover-open` |
+| Dialog | `popup-questions` | Gallery | `gallery-dialog-open`, `popup-wrapped-message` |
+| Tooltip | `popup-tooltip` | `popup-tooltip` through Testing | `gallery-tooltip-shown` |
+
+`controls-contracts` exercises invalid choice indices, ranges, values and menu rows, and refuses unattached
+dialogs/popovers before any window is made.
+
+Use `bin/golden controls`, `bin/golden popup`, `bin/golden number-field`, and `bin/golden gallery` from `tests/`.
+`number-field-rules` tests the decimal parser without a window: integer bounds, invalid syntax, overflow,
+range rejection and long leading-zero drafts. `number-field-editing` checks commit, focus loss, Escape,
+composition, disabled setters, refused contracts and a 5,000-character invalid draft. `number-field-states`
+shows valid, invalid, disabled and focused fields. The existing field tests cover shared editing behavior.
+
+`gallery_view_test` also checks a short viewport: scroll to the lower controls, open a context menu, and keep
+it within the window. `gallery-scrolled` draws the sheet in its shorter initial window. `Testing.Act_On`
+requests accessibility actions by name and reports refusal; pointer and keyboard tests remain in the existing
+tiers. The gallery's rich-text editor supplements the dedicated document/editor test suites.
+
+The first-app guide is [docs/FIRST_APP.md](docs/FIRST_APP.md). Its project, manifest and main program have been
+compiled as a fresh application; its model/view files are the checked-in Greeter example, covered by
+`example_views_test`.
