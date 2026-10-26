@@ -262,7 +262,8 @@ A borrowed widget that is in a tree already is an `Attachment_Conflict`.
   to 0.0 .. 1.0 for display. Refresh preserves an active drag; after release it shows the latest model value.
   Slider events synchronize edits without dispatching the borrowed widget's existing command tag.
 * `On_Event (Widget_Handle, Kind, Command, Index)` binds a borrowed widget event beside its declaration,
-  without changing its tag. `Index_From_Event => True` uses the chosen row for `Choose` and `Act`, and the
+  without changing its tag. `On_Event (UI.Any (Typed_Handle), ...)` also binds events on typed controls,
+  such as a field's blur, without borrowing the widget again. `Index_From_Event => True` uses the chosen row for `Choose` and `Act`, and the
   event index otherwise. Commands use the usual edit-before-command ordering and `Can_Execute` check.
   The control and event binding must belong to the same construction scope. Duplicate bindings for one
   widget/event pair are rejected; teardown removes the handler before reclaiming its binding record.
@@ -374,7 +375,8 @@ Content : constant UI.Menus.Content :=
 allocation leaves the existing menu unchanged. Dynamic components build a local `Content` vector and append
 row descriptions before setting the snapshot once; storage and text grow with the content. Changing or
 destroying the description afterward leaves the menu's snapshot intact. Replacing content resets scrolling,
-hover and pressed rows, as clearing and rebuilding a menu did. Menu placement and `Choose` event routing remain
+hover and pressed rows. Rows are changed through a complete snapshot; incremental row mutation is removed.
+Menu placement and `Choose` event routing remain
 the host's responsibility; row descriptions do not yet bind commands or model versions.
 
 ## Deferred

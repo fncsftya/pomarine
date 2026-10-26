@@ -16,7 +16,7 @@ with Pomarine.Icons;
 --
 --  The row under the pointer, of those that can be clicked, is shaded.
 --  A click on one is a Choose event with its Row, as a
---  button's is a Click; the application says back how the rows are to be, as by ticking one.
+--  button's is a Click; the application composes a new snapshot to reflect the chosen state.
 --
 --  It is as tall as its rows (and sets its own node's height, so), and as
 --  wide as the application makes it. The application shows it, over what
@@ -48,20 +48,8 @@ package Pomarine.Widgets.Menus is
    type Menu is new Widget with private;
 
    procedure Set_Rows (Item : in out Menu; Rows : Row_Vectors.Vector)
-     with Post => Row_Count (Item) = Natural (Rows.Length);
+     with Post => Row_Count (Item) = Natural (Rows.Length) and then Hovered_Row (Item) = 0;
    --  Prepare all rows before replacing the menu. A failed allocation leaves it unchanged.
-
-   procedure Clear (Item : in out Menu)
-     with Post => Row_Count (Item) = 0;
-
-   procedure Add
-     (Item    : in out Menu;
-      Kind    : Row_Kind;
-      Text    : String := "";
-      Shade   : Tone := Plain;
-      Checked : Boolean := False)
-     with Post => Row_Count (Item) = Row_Count (Item)'Old + 1;
-   --  Add a row after the others.
 
    function Row_Count (Item : Menu) return Natural;
 
@@ -69,27 +57,7 @@ package Pomarine.Widgets.Menus is
    --  Draw the text of each action and box in the font it names, as of a
    --  menu of fonts.
 
-   function Is_Faced (Item : Menu) return Boolean;
-
-   procedure Set_Icon (Item : in out Menu; Row : Positive; To : Pomarine.Icons.Icon)
-     with Pre => Row <= Row_Count (Item);
-
-   procedure Set_Swatch
-     (Item : in out Menu; Row : Positive; To : Themes.Slot)
-     with Pre => Row <= Row_Count (Item);
-
-   procedure Set_Checked (Item : in out Menu; Row : Positive; To : Boolean)
-     with Pre => Row <= Row_Count (Item);
-
-   procedure Set_Enabled (Item : in out Menu; Row : Positive; To : Boolean)
-     with Pre => Row <= Row_Count (Item);
-   --  Turn off an action or a box, to be shown faint and not taken when
-   --  clicked, or on again; they are on to begin with.
-
    function Is_Enabled (Item : Menu; Row : Positive) return Boolean
-     with Pre => Row <= Row_Count (Item);
-
-   function Kind_Of (Item : Menu; Row : Positive) return Row_Kind
      with Pre => Row <= Row_Count (Item);
 
    function Text_Of (Item : Menu; Row : Positive) return String
@@ -156,12 +124,8 @@ package Pomarine.Widgets.Menus is
 
 private
 
-   package Line_Vectors renames Row_Vectors;
-
    type Menu is new Widget with record
-      Rows    : Line_Vectors.Vector;
-      Used    : Natural := 0;
-      --  How many of Rows are there.
+      Rows    : Row_Vectors.Vector;
       Over    : Natural := 0;
       --  The row that can be clicked under the pointer.
       Pressed : Natural := 0;

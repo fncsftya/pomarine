@@ -57,49 +57,20 @@ package body Pomarine.Widgets.Menus is
    end Describe_Row;
 
    procedure Set_Rows (Item : in out Menu; Rows : Row_Vectors.Vector) is
-      Prepared : Line_Vectors.Vector;
+      Prepared : Row_Vectors.Vector;
    begin
       Prepared.Reserve_Capacity (Rows.Length);
       for Each of Rows loop
          Prepared.Append (Each);
       end loop;
       Item.Rows.Move (Prepared);
-      Item.Used := Natural (Rows.Length);
       Item.Scrolled := 0.0;
       Item.Over := 0;
       Item.Pressed := 0;
       Fit (Item);
    end Set_Rows;
 
-   procedure Clear (Item : in out Menu) is
-   begin
-      Item.Used := 0;
-      Item.Rows.Clear;
-      Item.Scrolled := 0.0;
-      Item.Over := 0;
-      Item.Pressed := 0;
-      Fit (Item);
-   end Clear;
-
-   procedure Add
-     (Item    : in out Menu;
-      Kind    : Row_Kind;
-      Text    : String := "";
-      Shade   : Tone := Plain;
-      Checked : Boolean := False)
-   is
-      Made : Row_Description;
-   begin
-      Made.Kind := Kind;
-      Made.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
-      Made.Shade := Shade;
-      Made.Checked := Checked;
-      Item.Used := Item.Used + 1;
-      Item.Rows.Append (Made);
-      Fit (Item);
-   end Add;
-
-   function Row_Count (Item : Menu) return Natural is (Item.Used);
+   function Row_Count (Item : Menu) return Natural is (Natural (Item.Rows.Length));
 
    procedure Set_Faced (Item : in out Menu; To : Boolean) is
    begin
@@ -109,58 +80,8 @@ package body Pomarine.Widgets.Menus is
       end if;
    end Set_Faced;
 
-   function Is_Faced (Item : Menu) return Boolean is (Item.Faced);
-
-   procedure Changed_Look (Item : in out Menu);
-
-   procedure Changed_Look (Item : in out Menu) is
-   begin
-      if Is_Attached (Item) then
-         Invalidate (Item);
-      end if;
-   end Changed_Look;
-
-   procedure Set_Icon (Item : in out Menu; Row : Positive; To : Pomarine.Icons.Icon)
-   is
-   begin
-      Item.Rows (Row).Iconed := True;
-      Item.Rows (Row).Which := To;
-      Changed_Look (Item);
-   end Set_Icon;
-
-   procedure Set_Swatch
-     (Item : in out Menu; Row : Positive; To : Themes.Slot) is
-   begin
-      Item.Rows (Row).Swatched := True;
-      Item.Rows (Row).Swatch := To;
-      Changed_Look (Item);
-   end Set_Swatch;
-
-   procedure Set_Checked (Item : in out Menu; Row : Positive; To : Boolean)
-   is
-   begin
-      if Item.Rows (Row).Checked /= To then
-         Item.Rows (Row).Checked := To;
-         Changed_Look (Item);
-      end if;
-   end Set_Checked;
-
-   function Kind_Of (Item : Menu; Row : Positive) return Row_Kind is
-     (Item.Rows (Row).Kind);
-
    function Text_Of (Item : Menu; Row : Positive) return String is
      (Ada.Strings.Unbounded.To_String (Item.Rows (Row).Text));
-
-   procedure Set_Enabled (Item : in out Menu; Row : Positive; To : Boolean) is
-   begin
-      if Item.Rows (Row).Enabled /= To then
-         Item.Rows (Row).Enabled := To;
-         if not To and then Item.Over = Row then
-            Item.Over := 0;
-         end if;
-         Invalidate (Item);
-      end if;
-   end Set_Enabled;
 
    function Is_Enabled (Item : Menu; Row : Positive) return Boolean is
      (Item.Rows (Row).Enabled);
@@ -172,7 +93,7 @@ package body Pomarine.Widgets.Menus is
       Total : Float := 2.0 * Pad + 2.0 + Themes.Shadow_Offset;
       --  The outline, a point each side, and the shadow.
    begin
-      for Index in 1 .. Item.Used loop
+      for Index in 1 .. Row_Count (Item) loop
          Total := Total + Row_Height (Item.Rows (Index).Kind);
       end loop;
       return Total;
@@ -188,7 +109,7 @@ package body Pomarine.Widgets.Menus is
    function Rows_Height (Item : Menu) return Float is
       Total : Float := 0.0;
    begin
-      for Index in 1 .. Item.Used loop
+      for Index in 1 .. Row_Count (Item) loop
          Total := Total + Row_Height (Item.Rows (Index).Kind);
       end loop;
       return Total;
@@ -256,7 +177,7 @@ package body Pomarine.Widgets.Menus is
       if X < Left_Of (Item) or else X >= Right or else Y < Rows_Top (Item) or else Y >= Rows_Bottom (Item) then
          return 0;
       end if;
-      for Index in 1 .. Item.Used loop
+      for Index in 1 .. Row_Count (Item) loop
          declare
             High : constant Float :=
               Float'Rounding (Row_Height (Item.Rows (Index).Kind) * Pixels);
@@ -362,7 +283,7 @@ package body Pomarine.Widgets.Menus is
         Width_Of (Item) - Pomarine.Boxes.Inset (Look, Pixels) - 2.0 * Edge;
       Top    : Float := First_Top (Item);
       Any_Icon : constant Boolean :=
-        (for some Index in 1 .. Item.Used => Item.Rows (Index).Iconed);
+        (for some Index in 1 .. Row_Count (Item) => Item.Rows (Index).Iconed);
       Saved    : SDL3.Painters.Clip;
       Reserve  : constant Float := (if Is_Scrollable (Item) then 8.0 * Pixels else 0.0);
       --  Of the width, for the bar that shows how far it is scrolled.
@@ -374,7 +295,7 @@ package body Pomarine.Widgets.Menus is
       Narrow_Clip
         (Target, Integer (Float'Floor (Inner_Left)), Integer (Float'Floor (Rows_Top (Item))),
          Integer (Float'Ceiling (Inner_Width)), Integer (Float'Ceiling (Rows_Bottom (Item) - Rows_Top (Item))));
-      for Index in 1 .. Item.Used loop
+      for Index in 1 .. Row_Count (Item) loop
          declare
             Each   : Row_Description renames Item.Rows (Index);
             High   : constant Float :=
@@ -519,7 +440,7 @@ package body Pomarine.Widgets.Menus is
       end if;
    end Describe;
 
-   overriding function Part_Count (Item : Menu) return Natural is (Item.Used);
+   overriding function Part_Count (Item : Menu) return Natural is (Row_Count (Item));
 
    overriding procedure Describe_Part
      (Item   : Menu;
@@ -563,7 +484,7 @@ package body Pomarine.Widgets.Menus is
       Request : Semantics.Request;
       Done    : out Boolean) is
    begin
-      Done := Request.Doing = Semantics.Click and then Part <= Item.Used
+      Done := Request.Doing = Semantics.Click and then Part <= Row_Count (Item)
         and then Can_Click (Item.Rows (Part).Kind) and then Item.Rows (Part).Enabled;
       if Done then
          Notify (Item, Choose, Row => Part);

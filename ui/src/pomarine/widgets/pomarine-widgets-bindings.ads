@@ -22,7 +22,7 @@ with Texts.Documents;
 --
 --  The setters are given what the widget has already and do nothing then, so
 --  a Sync that sets everything is cheap; Changed is so that it need not look.
---  For the commands of a view-model, see Pomarine.Widgets.Bindings.For_Commands.
+--  Declarative controls and commands are bound through Pomarine.UI.Contexts.
 package Pomarine.Widgets.Bindings is
 
    type Syncable is limited interface;

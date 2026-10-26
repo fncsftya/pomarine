@@ -65,6 +65,50 @@ procedure UI_Controls_Test is
       return Result;
    end Build;
 
+   procedure Typed_Event_Bindings_Check_Identity is
+      Tree : aliased Widgets.Tree;
+      Model : aliased Options_VM.Model;
+      Screen : UI.View (Tree'Access);
+      Other : UI.View (Tree'Access);
+      Bound : aliased Options.Context'Class := Options.Bind (Screen, Model'Access);
+      Foreign : constant Options.Context'Class := Options.Bind (Other, Model'Access);
+      Label : constant UI.Label_Handle := Bound.Label ("Choose dark");
+      Elsewhere : constant UI.Label_Handle := Foreign.Label ("Other view");
+      Stale : UI.Label_Handle;
+      Rejected : Boolean := False;
+   begin
+      Bound.On_Event (UI.Any (Label), Widgets.Double_Click, Pick_Dark);
+      begin
+         Bound.On_Event (UI.Any (Label), Widgets.Double_Click, Pick_Light);
+      exception
+         when Program_Error => Rejected := True;
+      end;
+      pragma Assert (Rejected);
+      Rejected := False;
+      begin
+         Bound.On_Event (UI.Any (Elsewhere), Widgets.Double_Click, Pick_Dark);
+      exception
+         when UI.Foreign_Handle => Rejected := True;
+      end;
+      pragma Assert (Rejected);
+      declare
+         Part : aliased Options.Component (Bound'Access);
+      begin
+         Stale := Part.Label ("Uncommitted");
+      end;
+      Rejected := False;
+      begin
+         Bound.On_Event (UI.Any (Stale), Widgets.Double_Click, Pick_Dark);
+      exception
+         when UI.Stale_Handle => Rejected := True;
+      end;
+      pragma Assert (Rejected);
+      UI.Mount (Screen, UI.Place (Label));
+      Widgets.Notify (UI.Widget_Of (Screen, Label).all, Widgets.Double_Click);
+      Widgets.Update (Tree, 0);
+      pragma Assert (Options_VM.Dark (Model));
+   end Typed_Event_Bindings_Check_Identity;
+
    procedure Sliders_And_Menu_Events_Follow_The_Model is
       use type Pomarine.View_Models.Version_Number;
       Tree : aliased Widgets.Tree;
@@ -203,6 +247,42 @@ procedure UI_Controls_Test is
       Rows.Set_Content (Menu, []);
       pragma Assert (Menus.Row_Count (Menu) = 0);
    end Menu_Descriptions_Are_Snapshots_And_Grow;
+
+   procedure Replacing_Menu_Content_Cancels_A_Press is
+      package Menus renames Pomarine.Widgets.Menus;
+      package Rows renames Pomarine.UI.Menus;
+      Tree : aliased Widgets.Tree;
+      Model : aliased Options_VM.Model;
+      Menu : Menus.Menu;
+      Screen : UI.View (Tree'Access);
+      Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+      Choices : constant UI.Widget_Handle := Bound.Borrow_Widget (Menu);
+      Window : Testing.Session;
+   begin
+      Options_VM.Set_Cards (Model, 2);
+      Rows.Set_Content (Menu, [Rows.Row (Menus.Action, "First"), Rows.Row (Menus.Action, "Second")]);
+      Bound.On_Event (Choices, Widgets.Choose, Open_Card, Index_From_Event => True);
+      UI.Mount (Screen, UI.Column ([UI.Place (Choices, Width => 220.0, Height => 80.0)]));
+      Testing.Open (Window, Tree, 320, 250);
+      Testing.Feed
+        (Window, (Kind => Pomarine.Events.Mouse_Move, Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
+      Testing.Feed
+        (Window, (Kind => Pomarine.Events.Mouse_Down, Button => 1,
+                  Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
+      Testing.Settle (Window);
+      pragma Assert (Menus.Hovered_Row (Menu) = 1);
+      Rows.Set_Content (Menu, [Rows.Row (Menus.Action, "Replacement")]);
+      pragma Assert (Menus.Row_Count (Menu) = 1 and then Menus.Hovered_Row (Menu) = 0);
+      Testing.Feed
+        (Window, (Kind => Pomarine.Events.Mouse_Up, Button => 1,
+                  Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
+      Testing.Settle (Window);
+      pragma Assert (Options_VM.Opened (Model) = 0);
+      Testing.Click_On (Window, "Replacement");
+      pragma Assert (Options_VM.Opened (Model) = 1);
+      Rows.Set_Content (Menu, []);
+      pragma Assert (Menus.Row_Count (Menu) = 0 and then Menus.Part_Count (Menu) = 0);
+   end Replacing_Menu_Content_Cancels_A_Press;
 
    procedure Fragments_Keep_Siblings_And_Roll_Back is
       Tree : aliased Widgets.Tree;
@@ -487,9 +567,11 @@ procedure UI_Controls_Test is
    end A_Turn_Is_Told_And_A_Bar_Can_Move;
 
 begin
+   Typed_Event_Bindings_Check_Identity;
    Sliders_And_Menu_Events_Follow_The_Model;
    Borrowed_Buttons_Follow_Flags;
    Menu_Descriptions_Are_Snapshots_And_Grow;
+   Replacing_Menu_Content_Cancels_A_Press;
    Fragments_Keep_Siblings_And_Roll_Back;
    A_Turn_Is_Told_And_A_Bar_Can_Move;
    Cards_Are_Repeated_Components_Of_One_Model;

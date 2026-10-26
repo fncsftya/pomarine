@@ -164,11 +164,11 @@ package body Pomarine.Testing is
       return Semantics.To_String (Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Facts.Value);
    end Value_Of;
 
-   procedure Click_At (Item : in out Session; X, Y : Float) is
+   procedure Click_At (Item : in out Session; X, Y : Float; Clicks : Positive := 1) is
    begin
       Take (Item.Uses.all, (Kind => Pomarine.Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, others => <>));
       Take (Item.Uses.all,
-            (Kind => Pomarine.Events.Mouse_Down, Mouse_X => X, Mouse_Y => Y, Button => 1, Clicks => 1,
+            (Kind => Pomarine.Events.Mouse_Down, Mouse_X => X, Mouse_Y => Y, Button => 1, Clicks => Clicks,
              others => <>));
       Take (Item.Uses.all,
             (Kind => Pomarine.Events.Mouse_Up, Mouse_X => X, Mouse_Y => Y, Button => 1, others => <>));
@@ -176,13 +176,14 @@ package body Pomarine.Testing is
    end Click_At;
 
    procedure Click_On
-     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown; Nth : Positive := 1) is
+     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown;
+      Nth : Positive := 1; Clicks : Positive := 1) is
    begin
       Look (Item);
       declare
          Bounds : constant Semantics.Rectangle := Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Bounds;
       begin
-         Click_At (Item, (Bounds.Left + Bounds.Right) / 2.0, (Bounds.Top + Bounds.Bottom) / 2.0);
+         Click_At (Item, (Bounds.Left + Bounds.Right) / 2.0, (Bounds.Top + Bounds.Bottom) / 2.0, Clicks);
       end;
    end Click_On;
 

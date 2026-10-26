@@ -4,6 +4,7 @@ with SDL3.Windows.Renderers;
 with Goldens;
 with Hearers;
 with Pomarine.Semantics;
+with Pomarine.UI.Menus;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Checks;
 with Pomarine.Widgets.Labels;
@@ -120,9 +121,11 @@ package body Semantic_Tests is
       Widgets.Checks.Set_Label (Item.Wrap, "Wrap");
       Widgets.Sliders.Set_Value (Item.Volume, 0.5);
       Widgets.Set_Accessible_Name (Item.Volume, "Volume");
-      Widgets.Menus.Add (Item.Pop, Widgets.Menus.Heading, "File");
-      Widgets.Menus.Add (Item.Pop, Widgets.Menus.Action, "Open");
-      Widgets.Menus.Add (Item.Pop, Widgets.Menus.Check, "Autosave", Checked => True);
+      Pomarine.UI.Menus.Set_Content
+        (Item.Pop,
+         [Pomarine.UI.Menus.Row (Widgets.Menus.Heading, "File"),
+          Pomarine.UI.Menus.Row (Widgets.Menus.Action, "Open"),
+          Pomarine.UI.Menus.Row (Widgets.Menus.Check, "Autosave", Checked => True)]);
       Widgets.Set_Visible (Item.Pop, False);
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Root), Yoga.Column);
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Bar), Yoga.Row);

@@ -126,12 +126,15 @@ a program with assertions; none opens a window.
 ```sh
 cd examples/tests
 alr exec -- gprbuild -P todo_tests.gpr
-for t in todo_vm_test todo_view_test ui_slice_test ui_ownership_test ui_unchecked_test \
+for t in todo_vm_test todo_view_test example_views_test ui_slice_test ui_ownership_test ui_unchecked_test \
          ui_sync_test ui_reentry_test ui_text_test ui_list_test ui_controls_test; do bin/$t; done
 ```
 
 * `todo_vm_test`: the todo model alone: command contracts, unchanged versions, long text, growing task storage, and
   a choice that is of a task and not of a row (rows moved, others deleted, the chosen one deleted, a newcomer in its place).
+* `example_views_test`: Hello's initial greeting, command contract, click and keyboard bindings, and a model
+  change reflected by the next turn; Clock's borrowed face, padding and growth at two sizes and densities,
+  accessible time, and teardown that detaches the face without destroying it.
 * `ui_slice_test`: a field and commands through a view, as the first slice that was built.
 * `ui_ownership_test`: the arenas (`Live_Arenas`, `Live_Views`) are back where they were when views go; borrowed
   widgets are taken out of the tree, untagged, and not finalized, before the application's own objects are;
@@ -174,7 +177,9 @@ for t in todo_vm_test todo_view_test ui_slice_test ui_ownership_test ui_unchecke
   the chosen row independently of the widget tag/index; duplicate event bindings are rejected. Reattaching
   borrowed controls after view teardown does not call their former bindings.
   Menu row snapshots retain their content after the description is cleared, keep checked and disabled
-  states, grow to 2,048 rows with 700-character labels, and accept an empty replacement.
+  states, grow to 2,048 rows with 700-character labels, and accept an empty replacement. Replacing content
+  during a press cancels that press: releasing it does not choose a row from the replacement.
+
 * `ui_reentry_test`: an event that comes while the view is in the middle of a pass is kept and run as a turn
   of its own when the pass is done (`Queued_Events`), and not inside it; a model that raises leaves the view able to
   go on; the person and the model changing a text in one turn.

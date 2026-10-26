@@ -7,7 +7,10 @@ project Todo_Tests is
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Create_Missing_Dirs use "True";
-   for Main use ("todo_vm_test.adb", "todo_view_test.adb", "ui_slice_test.adb", "ui_ownership_test.adb", "ui_sync_test.adb", "ui_text_test.adb", "ui_list_test.adb", "ui_reentry_test.adb", "ui_controls_test.adb", "ui_unchecked_test.adb");
+   for Main use
+     ("todo_vm_test.adb", "todo_view_test.adb", "example_views_test.adb", "ui_slice_test.adb",
+      "ui_ownership_test.adb", "ui_sync_test.adb", "ui_text_test.adb", "ui_list_test.adb",
+      "ui_reentry_test.adb", "ui_controls_test.adb", "ui_unchecked_test.adb");
    package Compiler is
       for Default_Switches ("Ada") use ("-gnat2022", "-gnata", "-gnatyM120", "-gnatVa", "-gnatwa", "-gnatwh", "-g");
    end Compiler;

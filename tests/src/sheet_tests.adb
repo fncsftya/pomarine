@@ -1,4 +1,5 @@
 with Pomarine.Events;
+with Pomarine.UI.Menus;
 with SDL3.Windows.Renderers;
 with Texts.Documents;
 with Goldens;
@@ -397,23 +398,23 @@ package body Sheet_Tests is
       Named (7, "MENUS", 150.0);
       Nodes.Set_Align_Items (Widgets.Node (Item.Rows (7)), Yoga.Flex_Start);
       Put (Item.Rows (7), Item.Drop_Menu, 240.0, 10.0);
-      Menus.Add (Item.Drop_Menu, Menus.Heading, "LINKED TO INTRO");
-      Menus.Add (Item.Drop_Menu, Menus.Check, "Ten steps towards happiness",
-                 Checked => True);
-      Menus.Set_Swatch (Item.Drop_Menu, 2, Pomarine.Themes.Focus);
-      Menus.Add (Item.Drop_Menu, Menus.Check, "Codeless Code");
-      Menus.Set_Swatch (Item.Drop_Menu, 3, Pomarine.Themes.Primary);
-      Menus.Add (Item.Drop_Menu, Menus.Separator);
-      Menus.Add (Item.Drop_Menu, Menus.Action, "Add source", Menus.Primary);
-      Menus.Set_Icon (Item.Drop_Menu, 5, Test_Icons.Plus);
+      Pomarine.UI.Menus.Set_Content
+        (Item.Drop_Menu,
+         [Pomarine.UI.Menus.Row (Menus.Heading, "LINKED TO INTRO"),
+          Pomarine.UI.Menus.Row (Menus.Check, "Ten steps towards happiness", Checked => True,
+                                 Swatch => Pomarine.Themes.Focus),
+          Pomarine.UI.Menus.Row (Menus.Check, "Codeless Code", Swatch => Pomarine.Themes.Primary),
+          Pomarine.UI.Menus.Row (Menus.Separator),
+          Pomarine.UI.Menus.Row (Menus.Action, "Add source", Menus.Primary,
+                                 Icon => Pomarine.Icons.Shown (Test_Icons.Plus))]);
       Put (Item.Rows (7), Item.Context, 140.0, 10.0);
-      Menus.Add (Item.Context, Menus.Action, "Open");
-      Menus.Set_Icon (Item.Context, 1, Test_Icons.Diamond);
-      Menus.Add (Item.Context, Menus.Action, "Rename");
-      Menus.Set_Icon (Item.Context, 2, Test_Icons.Square);
-      Menus.Add (Item.Context, Menus.Separator);
-      Menus.Add (Item.Context, Menus.Action, "Delete", Menus.Danger);
-      Menus.Set_Icon (Item.Context, 4, Test_Icons.Triangle);
+      Pomarine.UI.Menus.Set_Content
+        (Item.Context,
+         [Pomarine.UI.Menus.Row (Menus.Action, "Open", Icon => Pomarine.Icons.Shown (Test_Icons.Diamond)),
+          Pomarine.UI.Menus.Row (Menus.Action, "Rename", Icon => Pomarine.Icons.Shown (Test_Icons.Square)),
+          Pomarine.UI.Menus.Row (Menus.Separator),
+          Pomarine.UI.Menus.Row (Menus.Action, "Delete", Menus.Danger,
+                                 Icon => Pomarine.Icons.Shown (Test_Icons.Triangle))]);
       Put (Item.Rows (7), Item.Scroll, 110.0, 120.0);
       Widgets.Add (Item.Scroll, Item.Long);
       Panels.Set_Fill (Item.Long, Pomarine.Themes.Page);

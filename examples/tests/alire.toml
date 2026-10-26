@@ -1,5 +1,5 @@
 name = "todo_tests"
-description = "Tests for the todo example"
+description = "Tests for the declarative examples"
 version = "0.1.0-dev"
 
 authors = ["Matt Rawcliffe"]
@@ -7,7 +7,7 @@ licenses = "MIT"
 website = ""
 tags = []
 
-executables = ["todo_vm_test", "todo_view_test"]
+executables = ["todo_vm_test", "todo_view_test", "example_views_test"]
 
 [available.'case(os)']
 macos = true

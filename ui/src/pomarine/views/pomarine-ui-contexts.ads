@@ -507,6 +507,11 @@ package Pomarine.UI.Contexts is
    --  Discrete frame actions. Target must outlive the binding; movement and resizing stay in the view.
 
    procedure On_Event
+     (Self : Context; Target : Pomarine.UI.Control_Ref; Kind : Pomarine.Widgets.Event_Kind;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False);
+   --  Bind a discrete event on a typed control, without borrowing it again.
+
+   procedure On_Event
      (Self : Context; Target : Pomarine.UI.Widget_Handle; Kind : Pomarine.Widgets.Event_Kind;
       Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False);
    --  Route an app-owned widget event through the normal edit-before-command turn. The binding owns

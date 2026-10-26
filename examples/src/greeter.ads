@@ -1,20 +1,13 @@
-with Pomarine.Widgets;
-with Pomarine.Widgets.Buttons;
-with Pomarine.Widgets.Labels;
-with Pomarine.Widgets.Panels;
+with Greeter_VM;
+with Pomarine.UI;
+with Pomarine.UI.Contexts;
 
---  What the window of Hello_GUI shows: a greeting and a button that changes it.
+--  A greeting and a command button, owned and synchronized by the view.
 package Greeter is
+   package UI renames Pomarine.UI;
+   package Controls is new UI.Contexts (Greeter_VM.Commands, Greeter_VM.Model);
+   package Greeting_Text is new Controls.Read_Text (Greeter_VM.Message);
 
-   type Greeting is limited record
-      Page  : aliased Pomarine.Widgets.Panels.Panel;
-      Text  : aliased Pomarine.Widgets.Labels.Label;
-      Greet : aliased Pomarine.Widgets.Buttons.Button;
-      Count : Natural := 0;
-   end record;
-   --  The widgets are the application's own, here beside what it knows.
-
-   procedure Build (Item : aliased in out Greeting; Tree : in out Pomarine.Widgets.Tree);
-   --  Make Tree of Item's widgets, each button given the procedure to call.
-
+   procedure Build (Screen : in out UI.View; Model : not null access Greeter_VM.Model);
+   --  Model must outlive Screen.
 end Greeter;

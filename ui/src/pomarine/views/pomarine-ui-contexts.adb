@@ -1184,18 +1184,30 @@ package body Pomarine.UI.Contexts is
 
    procedure On_Event
      (Self : Context; Target : Pomarine.UI.Widget_Handle; Kind : Widgets.Event_Kind;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False) is
+   begin
+      On_Event (Self, Pomarine.UI.Any (Target), Kind, Command, Index, Index_From_Event);
+   end On_Event;
+
+   procedure On_Event
+     (Self : Context; Target : Pomarine.UI.Control_Ref; Kind : Widgets.Event_Kind;
       Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
    is
       Home : constant not null View_Ref := View_Of (Self);
-      Handle : constant Handle_Data := Handle_Data (Target);
+      Handle : constant Handle_Data := Data_Of (Target);
    begin
       Require_Open (Home.all, Self.Scope);
-      Require_Handle (Home.all, Handle, Custom_Control);
+      if Handle.View /= 0 and then Handle.View /= Home.Number then
+         raise Foreign_Handle with "event control belongs to another view";
+      elsif Handle.Slot not in 1 .. Natural (Home.Controls.Length) then
+         raise Stale_Handle with "event control outlived its scope";
+      end if;
+      Require_Handle (Home.all, Handle, Home.Controls (Handle.Slot).Kind);
       if Home.Controls (Handle.Slot).Scope /= Self.Scope.Slot then
          raise Program_Error with "event binding must belong to the control's scope";
       end if;
       declare
-         Found : constant Widgets.Widget_Access := Resolve (Home.all, Handle, Custom_Control);
+         Found : constant Widgets.Widget_Access := Resolve (Home.all, Handle, Home.Controls (Handle.Slot).Kind);
       begin
          for Binding of Home.Bindings loop
             if Binding /= null and then Binding.all in Event_Command_Binding'Class then

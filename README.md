@@ -49,7 +49,11 @@ end if;
 ```
 
 See the comment at the top of `Pomarine.Widgets` for the whole loop, and
-`examples/` for a complete program (`Pomarine.Windows` opens the window and runs the loop; the button is given its procedure with `Callbacks.On`) (`cd examples && alr build && bin/hello_gui`).
+`examples/` for complete programs (`cd examples && alr build`). `hello_gui` declares its greeting and command
+button through `Pomarine.UI`, with `Greeter_VM` holding the count and command rule. `todo_gui` composes a task
+screen from bound components. `clock_gui` mounts an app-owned custom clock face with `UI.Put`; its painting and
+periodic time updates stay in the widget. Each program declares the tree and model or borrowed face before the
+view, so they outlive its bindings. `Pomarine.Windows` opens the window and runs the loop.
 
 ## What is where
 
@@ -60,7 +64,7 @@ See the comment at the top of `Pomarine.Widgets` for the whole loop, and
 | `Pomarine.Widgets.Commands` | The application's own enumeration, for what widgets are for. |
 | `Pomarine.Widgets.Callbacks` | A procedure of the application's own for what one widget says. |
 | `Pomarine.View_Models` (`vm/`, crate `pomarine_vm`) | The parts of a view-model, with no widget in them: a `Version` for change, properties, and the commands a screen can be asked (`Command_Models`). |
-| `Pomarine.Widgets.Bindings` | Ties a view to a view-model: the root that has the view sync, a field's text both ways, and (`For_Commands`) which widget triggers which command and what the tree asks the model. |
+| `Pomarine.Widgets.Bindings` | Synchronization machinery used by `Pomarine.UI`: the root update hook and text edit tracking. |
 | `Pomarine.UI` (`ui/src/pomarine/views/`) | A screen as functions and layouts: a `View` that owns its widgets, bindings and documents in arenas, `Contexts` that make controls together with their view-model bindings, `Row`/`Column`/`Place`, and `Mount`. See `UI.md`. |
 | `Pomarine.Testing` (`testing/`, crate `pomarine_testing`) | A window to test offscreen as a person uses it: seen as an assistive technology is told, clicked and typed in by name; `Hearers` keep what widgets said. |
 | `Pomarine.Widgets.Lists`, `Pomarine.Models` | A list of rows read from a model: a screenful asked for, drawn and described. |
@@ -173,17 +177,11 @@ menu bar, and the validator dims and ticks its items.
 For a form or a list, keep what the screen means apart from how it looks (Model-View-ViewModel). The
 view-model (`Pomarine.View_Models`, a crate of the standard library only) has properties, commands that say
 when they can be done (`Can_Execute`) and what they do (`Execute (What, Index)`, `Index` being which of many),
-and a `Version` that goes up when anything it shows changes. The view asks the version (a `Watch`) once a turn
-and after each event, and sets its widgets (their setters do nothing for what they have) when it has changed;
-nothing is observed, so nothing is allocated and no lifetime is shared. The widgets are tied to the commands
-with `Pomarine.Widgets.Bindings.For_Commands`; the tree's validator asks the model whether each is possible, and
-a widget that only says a command (a field's Return) is a `Trigger`, which is not turned off with it. A view-model
-is tested alone, and its view with `Pomarine.Testing`, which clicks by what a widget is called. Canvases,
-editors and gestures stay with the code that handles events.
-
-A screen need not be built by hand. With `Pomarine.UI` the controls are declared with their bindings in component
-functions, the hierarchy is a layout expression, and the view owns the widgets, keeps the models and the widgets in
-step (in a defined order: edits, command, refresh) and takes it all down in order: see `UI.md`, and the todo example.
+and a `Version` that goes up when anything it shows changes. With `Pomarine.UI`, controls are declared with
+bindings in component functions, the hierarchy is a layout expression, and the view owns the widgets and keeps
+them in step with the model (edits, command, refresh). Commands check `Can_Execute` before running. A view-model
+is tested alone, and its view with `Pomarine.Testing`, which clicks by what a widget is called. Continuous canvas
+and editor gestures stay in the view. See `UI.md` and the todo example.
 
 ## Nodes
 

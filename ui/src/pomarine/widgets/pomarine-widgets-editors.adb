@@ -1179,6 +1179,7 @@ package body Pomarine.Widgets.Editors is
         (case Which is when Pick_Family => Family_Wide, when Pick_Size => Size_Wide,
                        when Pick_Source => Link_Wide - 2.0 * Bubble_Pad, when others => Style_Wide);
       Top    : Float := Toolbar_Top + Button_High + Tip_Gap;
+      Rows   : Menus.Row_Vectors.Vector;
    begin
       if Item.Choosing = Which then
          Close_Chooser (Item);
@@ -1190,32 +1191,34 @@ package body Pomarine.Widgets.Editors is
          Add (Item, Item.Chooser);
          Yoga.Nodes.Set_Position_Type (Node (Item.Chooser), Yoga.Absolute);
       end if;
-      Menus.Clear (Item.Chooser);
-      Menus.Set_Faced (Item.Chooser, Which = Pick_Family);
       case Which is
          when Pick_Family =>
             declare
                Names : constant CoreText.Fonts.Family_Vectors.Vector := CoreText.Fonts.Families;
             begin
                for Name of Names loop
-                  Menus.Add (Item.Chooser, Menus.Check, Name, Checked => Name = Family_Shown (Item));
+                  Rows.Append (Menus.Describe_Row (Menus.Check, Name, Checked => Name = Family_Shown (Item)));
                end loop;
             end;
          when Pick_Size =>
             for Points of Sizes loop
-               Menus.Add (Item.Chooser, Menus.Check, Size_Text (Float (Points)),
-                          Checked => Float (Points) = Size_Shown (Item));
+               Rows.Append
+                 (Menus.Describe_Row (Menus.Check, Size_Text (Float (Points)),
+                                      Checked => Float (Points) = Size_Shown (Item)));
             end loop;
          when Pick_Source =>
             for Title of Item.Link_Titles loop
-               Menus.Add (Item.Chooser, Menus.Check, Ada.Strings.Unbounded.To_String (Title), Checked => False);
+               Rows.Append (Menus.Describe_Row (Menus.Check, Ada.Strings.Unbounded.To_String (Title)));
             end loop;
          when others =>
             for Kind in Texts.Paragraph_Kind range 0 .. 3 loop
-               Menus.Add (Item.Chooser, Menus.Check, Style_Name (Kind),
-                          Checked => Kind = Text_Areas.Paragraph_Style (Item.Text));
+               Rows.Append
+                 (Menus.Describe_Row (Menus.Check, Style_Name (Kind),
+                                      Checked => Kind = Text_Areas.Paragraph_Style (Item.Text)));
             end loop;
       end case;
+      Menus.Set_Rows (Item.Chooser, Rows);
+      Menus.Set_Faced (Item.Chooser, Which = Pick_Family);
       Menus.Set_Max_Height (Item.Chooser, Menu_Rows_High);
       for Row in 1 .. Menus.Row_Count (Item.Chooser) loop
          if Menus.Is_Checked (Item.Chooser, Row) then

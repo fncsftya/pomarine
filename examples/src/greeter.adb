@@ -1,34 +1,28 @@
-with Pomarine.Widgets.Callbacks;
-with Pomarine.Widgets.Layouts;
+with Pomarine.Widgets.Buttons;
+with Pomarine.Widgets.Labels;
 
 package body Greeter is
-   package Widgets renames Pomarine.Widgets;
-   package Buttons renames Pomarine.Widgets.Buttons;
-   package Labels renames Pomarine.Widgets.Labels;
-   package Layouts renames Pomarine.Widgets.Layouts;
-
-   package Handlers is new Widgets.Callbacks (Greeting);
-
-   procedure Say_Hello (Self : in out Greeting; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
-      pragma Unreferenced (Source, Event);
+   function Greeting_Screen (Screen : in out UI.View; Parent : Controls.Context'Class) return UI.Layout is
+      Bound   : aliased Controls.Component (Parent'Access);
+      Message : constant UI.Label_Handle := Bound.Label (Greeting_Text.Property);
+      Greet   : constant UI.Button_Handle :=
+        Bound.Button ("Say hello", Greeter_VM.Say_Hello, Look => Pomarine.Widgets.Buttons.Primary,
+                      Focusable => True);
+      Result  : constant UI.Layout :=
+        UI.Column ([UI.Place (Message, Width => 200.0, Height => 24.0),
+                    UI.Place (Greet, Width => 120.0, Height => 32.0)],
+                   Align => UI.Layouts.Center, Spread => UI.Layouts.Center, Padding => 16.0, Gap => 12.0,
+                   Grow => 1.0);
    begin
-      Self.Count := Self.Count + 1;
-      Labels.Set_Text (Self.Text, "Hello again, x" & Self.Count'Image & "!");
-   end Say_Hello;
+      Pomarine.Widgets.Labels.Set_Centered (UI.Widget_Of (Screen, Message).all, True);
+      Bound.Commit;
+      return Result;
+   end Greeting_Screen;
 
-   procedure Build (Item : aliased in out Greeting; Tree : in out Widgets.Tree) is
+   procedure Build (Screen : in out UI.View; Model : not null access Greeter_VM.Model) is
+      Bound : constant Controls.Context'Class := Controls.Bind (Screen, Model);
+      Whole : constant UI.Layout := Greeting_Screen (Screen, Bound);
    begin
-      Widgets.Set_Root (Tree, Item.Page);
-      Layouts.Set_Layout
-        (Item.Page, (Flow => Layouts.Column, Align => Layouts.Center, Spread => Layouts.Center,
-                     Padding => (others => 16.0), Gap => 12.0, others => <>));
-      Layouts.Add (Item.Page, Item.Text, (Width => 200.0, Height => 24.0, others => <>));
-      Buttons.Add
-        (Item.Page, Item.Greet, Buttons.Looks ("Say hello", Buttons.Primary),
-         (Width => 120.0, Height => 32.0, others => <>));
-      Labels.Set_Text (Item.Text, "Hello, world!");
-      Labels.Set_Centered (Item.Text, True);
-      Handlers.On (Item.Greet, Widgets.Click, Item'Access, Say_Hello'Access);
+      UI.Mount (Screen, Whole);
    end Build;
-
 end Greeter;

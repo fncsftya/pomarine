@@ -97,13 +97,14 @@ package Pomarine.Testing is
      (Item : in out Session;
       Name : String;
       Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
-      Nth  : Positive := 1)
+      Nth  : Positive := 1;
+      Clicks : Positive := 1)
      with Pre => Exists (Item, Name, Role, Nth);
    --  Move the pointer to the middle of the first widget called Name, press
    --  the left button and let it go. A disabled widget is clicked all the
-   --  same: what it does about that is what is tested.
+   --  same: what it does about that is what is tested. Clicks => 2 sends a double press.
 
-   procedure Click_At (Item : in out Session; X, Y : Float);
+   procedure Click_At (Item : in out Session; X, Y : Float; Clicks : Positive := 1);
    --  The same at a point, in points from the window's top left, for what has
    --  no name.
 
