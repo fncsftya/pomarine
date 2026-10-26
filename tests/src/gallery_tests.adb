@@ -2,6 +2,7 @@ with Gallery;
 with Gallery_VM;
 with Goldens;
 with Pomarine.Clipboards;
+with Pomarine.Events;
 with Pomarine.Icons;
 with Pomarine.Line_Texts;
 with Test_Icons;
@@ -17,7 +18,7 @@ package body Gallery_Tests is
    package Images renames Goldens.Images;
    package Widgets renames Pomarine.Widgets;
 
-   type Stage is (Fresh, Handled);
+   type Stage is (Fresh, Handled, Selecting, Showing_Popover, Asking, Hovering);
    --  Handled: a person has been at it: clicks, a name, a box ticked, a size, a switch, a row, the slider.
 
    procedure Use_It (Model : in out Gallery_VM.Model; Parts : in out Gallery.Specimens) is
@@ -32,6 +33,21 @@ package body Gallery_Tests is
       Gallery_VM.Select_Row (Model, 2);
       Pomarine.Widgets.Sliders.Set_Value (Parts.Slider, 0.75);
    end Use_It;
+
+   procedure Click_On (Tree : in out Widgets.Tree; Item : Widgets.Widget'Class) is
+      --  A press and a let go at the middle of Item.
+      Taken   : Boolean;
+      Pixels  : constant Float := Widgets.Density (Item);
+      X       : constant Float := (Widgets.Left_Of (Item) + Widgets.Width_Of (Item) / 2.0) / Pixels;
+      Y       : constant Float := (Widgets.Top_Of (Item) + Widgets.Height_Of (Item) / 2.0) / Pixels;
+   begin
+      Widgets.Dispatch (Tree, (Kind => Pomarine.Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, others => <>), Taken);
+      Widgets.Dispatch
+        (Tree, (Kind => Pomarine.Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => X, Mouse_Y => Y,
+                others => <>), Taken);
+      Widgets.Dispatch
+        (Tree, (Kind => Pomarine.Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y, others => <>), Taken);
+   end Click_On;
 
    procedure Draw (Name : String; Colors : Pomarine.Themes.Theme; Density : Float; Then_Do : Stage) is
       Target : Renderers.Renderer;  --  before the tree that draws to it
@@ -60,6 +76,30 @@ package body Gallery_Tests is
       Widgets.Layout (Tree, Target);
       Widgets.Update (Tree, 16);
       Widgets.Layout (Tree, Target);
+      case Then_Do is
+         when Selecting =>
+            Click_On (Tree, Parts.Choice);
+         when Showing_Popover =>
+            Click_On (Tree, Parts.Info_Button);
+         when Asking =>
+            Click_On (Tree, Parts.Ask_Button);
+         when Hovering =>
+            declare
+               Taken   : Boolean;
+            begin
+               Widgets.Dispatch
+                 (Tree, (Kind => Pomarine.Events.Mouse_Move,
+                         Mouse_X => (Widgets.Left_Of (Parts.Slider) + 20.0) / Density,
+                         Mouse_Y => (Widgets.Top_Of (Parts.Slider) + Widgets.Height_Of (Parts.Slider) / 2.0) / Density,
+                         others => <>), Taken);
+               Widgets.Update (Tree, 32);
+               Widgets.Update (Tree, 1000);
+            end;
+         when Fresh | Handled =>
+            null;
+      end case;
+      Widgets.Update (Tree, 1100);
+      Widgets.Layout (Tree, Target);
       Widgets.Paint (Tree, Target, Colors);
       Images.Read (Drawn, Target);
       Goldens.Check (Name, Drawn);
@@ -84,6 +124,26 @@ package body Gallery_Tests is
    begin
       Draw ("gallery-dense", Pomarine.Themes.Light, 2.0, Handled);
    end Dense;
+
+   procedure Select_Open is
+   begin
+      Draw ("gallery-select-open", Pomarine.Themes.Light, 1.0, Selecting);
+   end Select_Open;
+
+   procedure Popover_Open is
+   begin
+      Draw ("gallery-popover-open", Pomarine.Themes.Light, 1.0, Showing_Popover);
+   end Popover_Open;
+
+   procedure Dialog_Open is
+   begin
+      Draw ("gallery-dialog-open", Pomarine.Themes.Light, 1.0, Asking);
+   end Dialog_Open;
+
+   procedure Tooltip_Shown is
+   begin
+      Draw ("gallery-tooltip-shown", Pomarine.Themes.Light, 1.0, Hovering);
+   end Tooltip_Shown;
 
    procedure Described is
       Tree    : aliased Widgets.Tree;
@@ -118,6 +178,20 @@ package body Gallery_Tests is
         "group 'Ada'" & ASCII.LF &
         "button 'close Ada'" & ASCII.LF &
         "text '3'" & ASCII.LF &
+        "text 'Choosers'" & ASCII.LF &
+        "group" & ASCII.LF &
+        "group" & ASCII.LF &
+        "radio button 'Write' ON selected" & ASCII.LF &
+        "radio button 'Outline' OFF" & ASCII.LF &
+        "radio button 'Canvas' OFF" & ASCII.LF &
+        "slider =2 copies" & ASCII.LF &
+        "group 'Advanced'" & ASCII.LF &
+        "text 'A disclosure hides what is under its heading.'" & ASCII.LF &
+        "text 'Click the heading, or press Space on it.'" & ASCII.LF &
+        "group" & ASCII.LF &
+        "group" & ASCII.LF &
+        "separator" & ASCII.LF &
+        "group" & ASCII.LF &
         "text 'Lists and menus'" & ASCII.LF &
         "group" & ASCII.LF &
         "list 'Fruit'" & ASCII.LF &
@@ -136,7 +210,9 @@ package body Gallery_Tests is
         "group" & ASCII.LF &
         "status 'Task deleted'" & ASCII.LF &
         "button 'Undo'" & ASCII.LF &
-        "tooltip 'Saves the file'" & ASCII.LF;
+        "tooltip 'Saves the file'" & ASCII.LF &
+        "button 'Popover'" & ASCII.LF &
+        "button 'Dialog'" & ASCII.LF;
    begin
       Gallery_VM.Seed (Model);
       Gallery.Build (Screen, Model'Access, Parts);

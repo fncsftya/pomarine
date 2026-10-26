@@ -4,9 +4,8 @@
 toolkit of [Bonxie](https://github.com/fncsftya/bonxie), which keeps it as a submodule and is still its main
 user. `examples/` is the place to start, and the gallery (below) is what the library's own tests keep honest.
 
-Known gaps, for now: macOS only; no tab, radio-group, dialog, popover or context-menu widgets (a menu or a
-select is shown by the application); no tree, table, splitter, number or date field; one window to a tree;
-no key-up events, drag and drop, or right-to-left text.
+Known gaps, for now: macOS only; no tree, table, date or colour picker, and a stepper but no typed number field; one
+window to a tree; no key-up events, drag and drop, or right-to-left text.
 
 A MacOS-only GUI library for Ada: a tree of widgets, laid out by Yoga's
 flexbox, drawn with SDL3, with text from CoreText. It is built to be fast
@@ -77,6 +76,9 @@ it follows the system's light or dark appearance unless told which (`Follow_Syst
 | `Pomarine.Widgets.Bindings` | Synchronization machinery used by `Pomarine.UI`: the root update hook and text edit tracking. |
 | `Pomarine.UI` (`ui/src/pomarine/views/`) | A screen as functions and layouts: a `View` that owns its widgets, bindings and documents in arenas, `Contexts` that make controls together with their view-model bindings, `Row`/`Column`/`Place`, and `Mount`. See `UI.md`. |
 | `Pomarine.Testing` (`testing/`, crate `pomarine_testing`) | A window to test offscreen as a person uses it: seen as an assistive technology is told, clicked and typed in by name; `Hearers` keep what widgets said. |
+| `Pomarine.Widgets.Overlays` (`Pomarine.Anchoring`) | What floats over the window: put beside an anchor or a point, kept in the window, let go of by Escape or a press outside, modal if asked. |
+| `Pomarine.Widgets.Popovers`, `.Dialogs`, `Pomarine.Dialogs` | A box that floats; a modal dialog; the usual questions (`Alert`, `Confirm`, `Choose_From`) ready made. |
+| `Pomarine.Widgets.Choice_Groups`, `.Steppers`, `.Disclosures`, `.Splitters`, `.Tooltips` | Exactly one of a few (tabs, segments, radio buttons); a number to step; a heading that opens; a draggable divider; a tooltip that shows itself. |
 | `Pomarine.Widgets.Lists`, `Pomarine.Models` | A list of rows read from a model: a screenful asked for, drawn and described. |
 | `Pomarine.Semantics` | What a widget is to someone who cannot see it: role, name, value, actions. |
 | `Pomarine.Accessibility` (`native/`) | The adapter that tells the system's accessibility (AccessKit, VoiceOver). |
@@ -256,6 +258,25 @@ and `In_Pixels (Edge)` for what is worked out or measured, `Length_Of (X)` for a
 (`-2.0` needs `use type Layouts.Length`.) `Outlined`, `Shadowed` and `Wrap` are `On`, `Off` or `As_Is`.
 `Layouts.Row` and `Layouts.Column` are a style (`Layouts.Add (Page, Bar, Layouts.Row (Gap => 4.0))`) and, given a
 widget, `Set_Layout` of that style.
+
+### Over the window
+
+A menu, a popover, a context menu or a dialog is a widget the application adds to the tree (a child of the root, or of a
+box that covers the window) and then *presents*, with `Pomarine.Widgets.Overlays`:
+
+```ada
+Overlays.Present_Beside (Menu, Field, (Side => Below, Match_Width => True));   --  a select's choices
+Overlays.Present_At (Menu, Event.Mouse_X, Event.Mouse_Y);                       --  a context menu
+Overlays.Present_Centered (Dialog);                                             --  modal, over everything
+```
+
+The tree puts it by its anchor (on the side that has room, inside the window, and again if the anchor moves), shows it
+over the rest, and lets go of it on Escape or a press outside it, saying `Dismiss` after the event that caused it. A
+press on the anchor only lets it go, so a second click on a select closes its menu. A modal overlay takes the pointer
+and Tab, has the focus in it, and gives the focus back. `Selects` with choices (`Add_Choice`) open their own menu;
+`Menus.Set_Closes_On_Choose` makes a context menu let go of itself; `Dialogs` and `Pomarine.Dialogs.Confirm` say
+`Choose` with the number of the button. `Tooltips.Install (Tree, Tip)` once, and `Widgets.Set_Tooltip (Widget, "...")`
+on what has one, and the tree shows the box after the pointer rests (a key, a press or a move takes it away).
 
 ### Names
 

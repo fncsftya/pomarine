@@ -32,6 +32,7 @@ private package Pomarine.Widgets.Nodes is
    type Cold_Block is record
       Name  : Semantics.Text;
       Help  : Semantics.Text;
+      Tip   : Semantics.Text;
       Hooks : Hook_Array;
       Link  : Natural;
       --  While it is given back: the next that is.

@@ -1,4 +1,5 @@
 with Pomarine.Boxes;
+with Pomarine.Widgets.Overlays;
 with Yoga.Nodes;
 package body Pomarine.Widgets.Menus is
 
@@ -6,6 +7,7 @@ package body Pomarine.Widgets.Menus is
    use type Semantics.Role;
 
    use type Pomarine.Events.Event_Kind;
+   use type Pomarine.Events.Key_Code;
    use all type SDL3.Painters.Painter;
 
    --  In points
@@ -192,6 +194,72 @@ package body Pomarine.Widgets.Menus is
       return 0;
    end Row_At;
 
+   procedure Set_Keyboard (Item : in out Menu; To : Boolean) is
+   begin
+      Item.Keys := To;
+      if not To and then Is_Attached (Item) and then Has_Focus (Item) then
+         Release_Focus (Item);
+      end if;
+   end Set_Keyboard;
+
+   overriding function Is_Focusable (Item : Menu) return Boolean is (Item.Keys);
+
+   overriding procedure Focus_Changed (Item : in out Menu; Focused : Boolean) is
+   begin
+      if not Focused and then Item.Keys and then Item.Over /= 0 then
+         Item.Over := 0;
+         Invalidate (Item);
+      end if;
+   end Focus_Changed;
+
+   function Can_Choose (Item : Menu; Row : Positive) return Boolean is
+     (Can_Click (Item.Rows (Row).Kind) and then Item.Rows (Row).Enabled);
+
+   procedure Highlight (Item : in out Menu; Row : Natural) is
+   begin
+      if Row = 0 or else not Can_Choose (Item, Row) then
+         if Item.Over /= 0 then
+            Item.Over := 0;
+            Invalidate (Item);
+         end if;
+      elsif Item.Over /= Row then
+         Item.Over := Row;
+         Reveal (Item, Row);
+         Invalidate (Item);
+      end if;
+   end Highlight;
+
+   function Next_Choosable (Item : Menu; From : Natural; By : Integer) return Natural is
+      --  The row after From (going the way By says, round) that can be chosen; 0 if there is none.
+      Count : constant Natural := Row_Count (Item);
+      Index : Integer := From;
+   begin
+      for Step in 1 .. Count loop
+         Index := Index + By;
+         if Index > Count then
+            Index := 1;
+         elsif Index < 1 then
+            Index := Count;
+         end if;
+         if Can_Choose (Item, Index) then
+            return Index;
+         end if;
+      end loop;
+      return 0;
+   end Next_Choosable;
+
+   procedure Set_Closes_On_Choose (Item : in out Menu; To : Boolean) is
+   begin
+      Item.Closes := To;
+   end Set_Closes_On_Choose;
+
+   procedure Close_If_Asked (Item : in out Menu) is
+   begin
+      if Item.Closes and then Is_Attached (Item) and then Overlays.Is_Presented (Item) then
+         Overlays.Dismiss (Item);
+      end if;
+   end Close_If_Asked;
+
    overriding procedure Handle
      (Item    : in out Menu;
       Event   : Pomarine.Events.Event;
@@ -223,10 +291,34 @@ package body Pomarine.Widgets.Menus is
             if Event.Button = 1 then
                if Item.Pressed /= 0 and then Under = Item.Pressed then
                   Notify (Item, Choose, Row => Under);
+                  Close_If_Asked (Item);
                end if;
                Handled := Item.Pressed /= 0;
                Item.Pressed := 0;
                Invalidate (Item);
+            end if;
+         when Pomarine.Events.Key_Down =>
+            if Item.Keys and then Has_Focus (Item) and then not Event.Command and then Row_Count (Item) > 0 then
+               if Event.Key = Pomarine.Events.Key_Down_Arrow then
+                  Highlight (Item, Next_Choosable (Item, Item.Over, 1));
+                  Handled := True;
+               elsif Event.Key = Pomarine.Events.Key_Up_Arrow then
+                  Highlight
+                    (Item, Next_Choosable (Item, (if Item.Over = 0 then Row_Count (Item) + 1 else Item.Over), -1));
+                  Handled := True;
+               elsif Event.Key = Pomarine.Events.Key_Home then
+                  Highlight (Item, Next_Choosable (Item, 0, 1));
+                  Handled := True;
+               elsif Event.Key = Pomarine.Events.Key_End then
+                  Highlight (Item, Next_Choosable (Item, Row_Count (Item) + 1, -1));
+                  Handled := True;
+               elsif Event.Key in Pomarine.Events.Key_Return | Pomarine.Events.Key_Space then
+                  if Item.Over /= 0 then
+                     Notify (Item, Choose, Row => Item.Over);
+                     Close_If_Asked (Item);
+                  end if;
+                  Handled := True;
+               end if;
             end if;
          when Pomarine.Events.Mouse_Wheel =>
             if Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item)) then
@@ -488,6 +580,7 @@ package body Pomarine.Widgets.Menus is
         and then Can_Click (Item.Rows (Part).Kind) and then Item.Rows (Part).Enabled;
       if Done then
          Notify (Item, Choose, Row => Part);
+         Close_If_Asked (Item);
          Invalidate (Item);
       end if;
    end Perform_Part;

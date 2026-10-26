@@ -1,6 +1,13 @@
+with Ada.Unchecked_Conversion;
+with System;
+with Pomarine.Anchoring;
 with Pomarine.Boxes;
 with Pomarine.Icons;
+with Pomarine.Widgets.Layouts;
+with Pomarine.Widgets.Overlays;
 package body Pomarine.Widgets.Selects is
+
+   use type Ada.Strings.Unbounded.Unbounded_String;
 
    use type Semantics.Action;
    use type Semantics.Role;
@@ -61,6 +68,122 @@ package body Pomarine.Widgets.Selects is
 
    function Is_Enabled (Item : Select_Field) return Boolean is
      (Item.Enabled);
+
+   --  Its menu
+
+   Menu_Room : constant Float := 240.0;
+   --  The most height of its menu, in points: more rows are scrolled.
+
+   function Chosen (Item : Select_Field) return Natural is
+   begin
+      for Index in 1 .. Natural (Item.Choices.Length) loop
+         if Item.Choices (Index) = Item.Text then
+            return Index;
+         end if;
+      end loop;
+      return 0;
+   end Chosen;
+
+   function Choice_Count (Item : Select_Field) return Natural is (Natural (Item.Choices.Length));
+
+   function Choice (Item : Select_Field; Index : Positive) return String is
+     (Ada.Strings.Unbounded.To_String (Item.Choices (Index)));
+
+   procedure Choose (Item : in out Select_Field; Index : Positive) is
+   begin
+      Set_Value (Item, Choice (Item, Index));
+   end Choose;
+
+   procedure Open_When_Clicked
+     (Self, Proc : System.Address; Source : in out Widget'Class; Event : Widget_Event);
+   --  What a click on it does, when it has choices: after the event that was the click.
+
+   procedure Chosen_From_Menu
+     (Self, Proc : System.Address; Source : in out Widget'Class; Event : Widget_Event);
+   --  What its menu says when a row is chosen.
+
+   procedure Menu_Let_Go
+     (Self, Proc : System.Address; Source : in out Widget'Class; Event : Widget_Event);
+   --  What its menu says when Escape or a press elsewhere has let go of it.
+
+   type Field_Access is access all Select_Field;
+   function To_Field is new Ada.Unchecked_Conversion (System.Address, Field_Access);
+
+   procedure Add_Choice (Item : in out Select_Field; Text : String) is
+   begin
+      Item.Choices.Append (Ada.Strings.Unbounded.To_Unbounded_String (Text));
+      Set_Hook (Item, Click, Open_When_Clicked'Access, Item'Address, System.Null_Address);
+   end Add_Choice;
+
+   procedure Clear_Choices (Item : in out Select_Field) is
+   begin
+      Item.Choices.Clear;
+      Clear_Hook (Item, Click);
+   end Clear_Choices;
+
+   procedure Open (Item : in out Select_Field) is
+      Rows : Menus.Row_Vectors.Vector;
+      Now  : constant Natural := Chosen (Item);
+   begin
+      if not Is_Attached (Item.Menu) then
+         Layouts.Add (Root_Widget (Tree_Of (Item).all).all, Item.Menu, (Place => Layouts.Absolute, others => <>));
+         Set_Visible (Item.Menu, False);
+         Set_Hook (Item.Menu, Choose, Chosen_From_Menu'Access, Item'Address, System.Null_Address);
+         Set_Hook (Item.Menu, Dismiss, Menu_Let_Go'Access, Item'Address, System.Null_Address);
+         Menus.Set_Keyboard (Item.Menu, True);
+      end if;
+      for Index in 1 .. Choice_Count (Item) loop
+         Rows.Append (Menus.Describe_Row (Menus.Check, Choice (Item, Index), Checked => Index = Now));
+      end loop;
+      Menus.Set_Rows (Item.Menu, Rows);
+      Menus.Set_Faced (Item.Menu, Item.Faced);
+      Menus.Set_Max_Height (Item.Menu, Menu_Room);
+      Overlays.Present_Beside
+        (Item.Menu, Item, (Gap => 2.0, Match_Width => True, others => <>), Pomarine.Anchoring.Light_Dismiss);
+      Set_Open (Item, True);
+      if Now /= 0 then
+         Menus.Reveal (Item.Menu, Now);
+         Menus.Highlight (Item.Menu, Now);
+      end if;
+   end Open;
+
+   procedure Open_When_Clicked
+     (Self, Proc : System.Address; Source : in out Widget'Class; Event : Widget_Event)
+   is
+      pragma Unreferenced (Self, Proc, Event);
+      Field : Select_Field renames Select_Field (Source);
+   begin
+      if Choice_Count (Field) > 0 and then Field.Enabled then
+         if Overlays.Is_Presented (Field.Menu) then
+            Overlays.Dismiss (Field.Menu);
+            Set_Open (Field, False);
+         else
+            Open (Field);
+         end if;
+      end if;
+   end Open_When_Clicked;
+
+   procedure Chosen_From_Menu
+     (Self, Proc : System.Address; Source : in out Widget'Class; Event : Widget_Event)
+   is
+      pragma Unreferenced (Proc);
+      Field : constant Field_Access := To_Field (Self);
+   begin
+      Overlays.Dismiss (Source);
+      Set_Open (Field.all, False);
+      if Event.Row in 1 .. Choice_Count (Field.all) and then Choice (Field.all, Event.Row) /= Value (Field.all) then
+         Choose (Field.all, Event.Row);
+         Notify (Field.all, Change);
+      end if;
+   end Chosen_From_Menu;
+
+   procedure Menu_Let_Go
+     (Self, Proc : System.Address; Source : in out Widget'Class; Event : Widget_Event)
+   is
+      pragma Unreferenced (Proc, Source, Event);
+   begin
+      Set_Open (To_Field (Self).all, False);
+   end Menu_Let_Go;
 
    overriding procedure Handle
      (Item    : in out Select_Field;

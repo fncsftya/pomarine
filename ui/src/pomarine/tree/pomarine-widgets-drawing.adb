@@ -1,4 +1,5 @@
 with Pomarine.Widgets.Nodes;
+with Pomarine.Widgets.Overlaying;
 package body Pomarine.Widgets.Drawing is
 
    package Renderers renames SDL3.Windows.Renderers;
@@ -100,14 +101,24 @@ package body Pomarine.Widgets.Drawing is
       Target : SDL3.Painters.Painter'Class)
    is
       Pixels_Wide, Pixels_High : Natural;
+      Moved : Boolean := False;
    begin
       SDL3.Painters.Output_Size (Target, Pixels_Wide, Pixels_High);
-      Yoga.Nodes.Calculate_Layout
-        (Item.Yoga_Tree, Float (Pixels_Wide), Float (Pixels_High));
-      Place (Item, Item.Root, 0.0, 0.0, False);
+      --  What floats is put by what it is placed by, which is where it is only once the rest is laid out: again,
+      --  until it stays (it does, in a pass or two).
+      for Pass in 1 .. 3 loop
+         Yoga.Nodes.Calculate_Layout
+           (Item.Yoga_Tree, Float (Pixels_Wide), Float (Pixels_High));
+         Place (Item, Item.Root, 0.0, 0.0, False);
+         Moved := Overlaying.Position (Item, Float (Pixels_Wide), Float (Pixels_High));
+         exit when not Moved;
+      end loop;
       Item.Replace_All := False;
-      Item.Layout_Pending := False;
+      Item.Layout_Pending := Moved;
    end Lay_Out;
+
+   Scrim : constant Renderers.Color := (Red => 0, Green => 0, Blue => 0, Alpha => 90);
+   --  What is laid over the window, under a modal overlay.
 
    procedure Paint_Widget
      (Home     : in out Tree;
@@ -133,6 +144,13 @@ package body Pomarine.Widgets.Drawing is
          Draw (Drawer.all, Target, Colors);
          Table.Paint_Dirty (Painting) := False;
          while Child /= 0 loop
+            if Home.Overlay_Count > 0 and then Table.Spot (Child).Visible
+              and then Overlaying.Is_Modal_Content (Home, Child)
+            then
+               --  A modal overlay has what is under it dimmed.
+               SDL3.Painters.Fill_Rect
+                 (Target, Scrim, Float (Box.Left), Float (Box.Top), Float (Box.Width), Float (Box.Height));
+            end if;
             Paint_Widget (Home, Child, Target, Colors, Box);
             Child := Table.Next (Child);
          end loop;

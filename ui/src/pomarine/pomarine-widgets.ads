@@ -6,6 +6,7 @@ with SDL3.Windows.Renderers;
 with SDL3.Painters;
 with SDL3.Cursors;
 with Pomarine.Events;
+with Pomarine.Anchoring;
 with Pomarine.Clipboards;
 with Pomarine.Icons;
 with Pomarine.Line_Texts;
@@ -69,7 +70,8 @@ package Pomarine.Widgets is
       Press,         --  a pin
       Release,       --  a pin, or a grip, let go (before its Click, if it says one)
       Act,           --  a button at the end of a list's row (Row, Action)
-      Blur);         --  the widget has lost the focus (only said if it has a handler)
+      Blur,          --  the widget has lost the focus (only said if it has a handler)
+      Dismiss);      --  an overlay was let go of, by Escape or a press outside it (see Pomarine.Widgets.Overlays)
    --  What many kinds of widget say. What only one kind says (a canvas's
    --  selected line, an editor's tool or link) is its own package's, heard
    --  with that package's Callbacks, so that this does not grow with every
@@ -344,6 +346,25 @@ package Pomarine.Widgets is
    --  (a button of a picture only). Said, it is used whatever the widget
    --  would have said.
 
+   procedure Set_Tooltip (Item : in out Widget'Class; Text : String);
+   --  What to say, in a small box beside it, when the pointer has rested on it a moment (see Enable_Tooltips; nothing
+   --  is shown if the tree does not). "" for none. A widget with none takes the one of the widget it is in.
+
+   function Tooltip_Of (Item : Widget'Class) return String;
+
+   type Tip_Presenter is access procedure (Tip : in out Widget'Class; Text : String; Anchor : Widget'Class);
+   --  What shows Tip, which is in the tree, with Text beside Anchor (see Pomarine.Widgets.Tooltips.Install).
+
+   procedure Enable_Tooltips
+     (Item     : in out Tree;
+      Tip      : in out Widget'Class;
+      Present  : not null Tip_Presenter;
+      Delay_MS : Natural := 600)
+     with Pre => Is_Attached (Tip);
+   --  Have the tree show Tip, with Present, beside a widget that has a tooltip (Set_Tooltip) once the pointer has
+   --  rested over it for Delay_MS milliseconds, and let go of it (see Pomarine.Widgets.Overlays) when the pointer moves
+   --  to another widget, or a key, a press or a wheel turn comes.
+
    procedure Set_Accessible_Help (Item : in out Widget'Class; Text : String);
    --  More than its name: what it is for.
 
@@ -576,6 +597,9 @@ package Pomarine.Widgets is
 
    function Part_Number_Of (Id : Node_Id) return Natural;
    --  Which part of a widget Id names; 0 if the widget itself.
+
+   function Root_Widget (Item : Tree) return Widget_Access;
+   --  The widget that is the whole of the tree; null if it has none.
 
    function Root_Id (Item : Tree) return Node_Id;
    function Parent_Id (Item : Tree; Id : Node_Id) return Node_Id
@@ -1161,8 +1185,44 @@ private
 
    type Key_Table is array (1 .. Key_Binding_Capacity) of Key_Binding;
 
+   Overlay_Capacity : constant := 8;
+   --  The most overlays one tree has presented at once (a dialog, the menu over it, the menu of that): what the
+   --  library holds, and no one's content.
+
+   type Overlay_Anchor is (Placed_By_Widget, Placed_At_Point, Placed_In_Middle);
+
+   type Overlay is record
+      Content  : Node_Id := No_Node;
+      Anchor   : Overlay_Anchor := Placed_In_Middle;
+      Beside   : Node_Id := No_Node;
+      --  Of Placed_By_Widget.
+      Point_X, Point_Y : Float := 0.0;
+      --  Of Placed_At_Point, in pixels.
+      Where    : Pomarine.Anchoring.Placement;
+      How      : Pomarine.Anchoring.Behavior;
+      Saved_Scope : Node_Id := No_Node;
+      Saved_Focus : Node_Id := No_Node;
+      Applied  : Boolean := False;
+      --  Whether Applied_* is what the content's style says.
+      Applied_Left, Applied_Top, Applied_Width : Float := 0.0;
+   end record;
+
+   type Overlay_Array is array (1 .. Overlay_Capacity) of Overlay;
+
    type Tree is new Ada.Finalization.Limited_Controlled with record
       Yoga_Tree : Yoga.Nodes.Tree;
+      Tip_Id      : Node_Id := No_Node;
+      Tip_Present : Tip_Presenter;
+      Tip_Delay   : Natural := 600;
+      Tip_Over    : Node_Id := No_Node;
+      --  The widget with a tooltip the pointer is over, since Tip_Since; whether Tip_Shown.
+      Tip_Since   : Pomarine.Events.Milliseconds := 0;
+      Tip_Shown   : Boolean := False;
+      Tip_Quiet   : Boolean := False;
+      --  Let go of by a key or a press, and not shown again until the pointer is over another.
+      Overlays  : Overlay_Array;
+      Overlay_Count : Natural := 0;
+      --  The overlays presented, the last over the rest: see Pomarine.Widgets.Overlays.
       Hearer    : Listener_Access;
       Queue     : Event_Queue;
       Queued    : Natural := 0;

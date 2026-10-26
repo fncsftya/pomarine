@@ -9,5 +9,10 @@ package Gallery_Tests is
    procedure Dark;
    procedure Dense;
    procedure Described;
+   procedure Select_Open;
+   procedure Popover_Open;
+   procedure Dialog_Open;
+   procedure Tooltip_Shown;
+   --  What opens over the screen: a select's own menu, a popover, a modal dialog, a tooltip that shows itself.
 
 end Gallery_Tests;

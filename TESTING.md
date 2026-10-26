@@ -85,6 +85,19 @@ cd examples/tests && alr exec -- gprbuild -P todo_tests.gpr && bin/gallery_view_
 cd ../../tests && alr build && bin/golden gallery
 ```
 
+## Things over the window, and the controls that choose
+
+* `overlay-*` (`tests/`): where an overlay is put (below, above, after, clamped, as wide as its anchor, at a point, in the
+  middle), what lets go of it (Escape, a press outside, not one inside, the anchor, pass-through, passive), what a
+  modal one takes and gives back (the pointer, Tab, the focus), the dimming under it (`overlay-dimming`), and stacking.
+* `popup-*`: a select's own menu, a context menu that closes itself, a popover, `Pomarine.Dialogs` answered by click,
+  Return and Escape, a dialog's message wrapped (`popup-wrapped-message`), menus worked by the keys
+  (`popup-menu-keys`), and a tooltip that comes after the pointer rests and goes with a move, a key or a press.
+* `controls-*`: choice groups (tabs, segments, radio buttons), steppers, disclosures and splitters: clicks, keys, what
+  each says and what it leaves unsaid.
+* `gallery-select-open`, `gallery-popover-open`, `gallery-dialog-open` and `gallery-tooltip-shown`: the gallery with each
+  of those open over it, drawn.
+
 ## Rich text
 
 `document-rich-text` checks style boundaries, merging, multi-paragraph replacement,

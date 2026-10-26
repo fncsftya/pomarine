@@ -48,7 +48,7 @@ package body Pomarine.Widgets.Nodes is
                Chunks ((Index - 1) / Chunk_Size + 1) := new Cold_Chunk;
             end if;
          end if;
-         Block (Index).all := (Name => Semantics.Empty_Text, Help => Semantics.Empty_Text,
+         Block (Index).all := (Name => Semantics.Empty_Text, Help => Semantics.Empty_Text, Tip => Semantics.Empty_Text,
                                Hooks => [others => <>], Link => 0);
          Item.Cold := Index;
       end if;

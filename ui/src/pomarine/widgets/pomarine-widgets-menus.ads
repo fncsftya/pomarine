@@ -51,6 +51,27 @@ package Pomarine.Widgets.Menus is
      with Post => Row_Count (Item) = Natural (Rows.Length) and then Hovered_Row (Item) = 0;
    --  Prepare all rows before replacing the menu. A failed allocation leaves it unchanged.
 
+   procedure Set_Keyboard (Item : in out Menu; To : Boolean);
+   --  Let the keys work it, when it has the focus (an overlay with focus in it is given it when it is presented): Down
+   --  and Up go to the next and the previous row that can be chosen, round, Home and End to the first and last,
+   --  and Return or Space chooses the one that is shaded. Off to begin with, so that menus are not Tab stops.
+
+   procedure Highlight (Item : in out Menu; Row : Natural)
+     with Pre => Row <= Row_Count (Item);
+   --  Shade a row, as the pointer over it does, and bring it into view; 0 for none. A row that cannot be chosen
+   --  is not shaded.
+
+   overriding function Is_Focusable (Item : Menu) return Boolean;
+
+   overriding procedure Focus_Changed (Item : in out Menu; Focused : Boolean);
+   --  A menu worked by keys has nothing shaded once the focus has left it.
+
+   overriding function Focuses_On_Click (Item : Menu) return Boolean is (False);
+
+   procedure Set_Closes_On_Choose (Item : in out Menu; To : Boolean);
+   --  When a row is chosen, say so and then let go of the menu if it is presented (see Pomarine.Widgets.Overlays), as
+   --  a context menu is. Off to begin with, as the application shows and hides it.
+
    function Row_Count (Item : Menu) return Natural;
 
    procedure Set_Faced (Item : in out Menu; To : Boolean);
@@ -135,6 +156,8 @@ private
       Scrolled : Float := 0.0;
       --  How far the rows are scrolled up, in pixels.
       Faced    : Boolean := False;
+      Closes   : Boolean := False;
+      Keys     : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Menus;

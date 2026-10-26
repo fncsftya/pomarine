@@ -1,5 +1,7 @@
 with Pomarine.Widgets.Nodes;
 with Pomarine.Widgets.Focusing;
+with Pomarine.Widgets.Overlaying;
+with Pomarine.Widgets.Tipping;
 package body Pomarine.Widgets.Dispatching is
 
    use Pomarine.Widgets.Nodes;
@@ -163,8 +165,22 @@ package body Pomarine.Widgets.Dispatching is
    is
       Over  : Node_Index;
       Taker : Node_Index;
+      Consumed : Boolean;
    begin
       Handled := False;
+      --  What floats over the tree sees the input first: Escape, a press outside it, what a modal one takes.
+      Over := (if Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Up | Pomarine.Events.Mouse_Move
+                                | Pomarine.Events.Mouse_Wheel | Pomarine.Events.Pinch
+               then Hit_Slot (Item, Event.Mouse_X * Item.Density, Event.Mouse_Y * Item.Density) else 0);
+      if Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Key_Down | Pomarine.Events.Mouse_Wheel then
+         Tipping.Pressed (Item);
+      end if;
+      Overlaying.Take_Input (Item, Event, Over, Consumed);
+      if Consumed then
+         Handled := True;
+         Deliver (Item);
+         return;
+      end if;
       case Event.Kind is
          when Pomarine.Events.Mouse_Down =>
             Set_Input_Source (Item, Keyboard => False);

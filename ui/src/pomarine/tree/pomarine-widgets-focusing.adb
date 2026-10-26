@@ -45,6 +45,11 @@ package body Pomarine.Widgets.Focusing is
       while Walking /= 0 and then (not Scoped or else Within (Item, Walking, Item.Scope.Slot)) loop
          if Walking = Item.Focus then
             Passed := True;
+            --  It is one of the order too: with no other, Tab comes back to it.
+            if First = 0 then
+               First := Walking;
+            end if;
+            Last := Walking;
          elsif Is_Taker (Item, Walking) then
             if First = 0 then
                First := Walking;

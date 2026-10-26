@@ -3,10 +3,19 @@ with Tasks;
 with Pomarine.UI;
 with Pomarine.UI.Contexts;
 with Pomarine.Widgets.Badges;
+with Pomarine.Widgets.Buttons;
+with Pomarine.Widgets.Choice_Groups;
 with Pomarine.Widgets.Chips;
+with Pomarine.Widgets.Dialogs;
+with Pomarine.Widgets.Disclosures;
+with Pomarine.Widgets.Labels;
 with Pomarine.Widgets.Menus;
+with Pomarine.Widgets.Panels;
+with Pomarine.Widgets.Popovers;
 with Pomarine.Widgets.Selects;
 with Pomarine.Widgets.Sliders;
+with Pomarine.Widgets.Splitters;
+with Pomarine.Widgets.Steppers;
 with Pomarine.Widgets.Toasts;
 with Pomarine.Widgets.Tooltips;
 
@@ -15,9 +24,11 @@ with Pomarine.Widgets.Tooltips;
 --  widget, the layout or the theme shows up here.
 --
 --  The controls that have a view-model (buttons, a field, checks, radios, a switch, a progress bar, a
---  list) are made by the view and bound to Gallery_VM. The rest (a slider, a select, a chip, a badge, a
---  menu, a tooltip, a toast) are the application's own, in Specimens, which the caller declares before
---  the view that places them.
+--  list) are made by the view and bound to Gallery_VM. The rest (a slider, a select that opens its own menu,
+--  tabs, a stepper, a disclosure, a splitter, a chip, a badge, a menu, a toast, a tooltip) are the application's
+--  own, in Specimens, which the caller declares before the view that places them. What opens over the window (a
+--  popover, a dialog, a tooltip that shows itself) is added to the tree's root after the screen is mounted:
+--  the Popover and Dialog buttons open them.
 package Gallery is
 
    package UI renames Pomarine.UI;
@@ -40,12 +51,23 @@ package Gallery is
       Tag     : Pomarine.Widgets.Chips.Chip;
       Count   : Pomarine.Widgets.Badges.Badge;
       Menu    : Pomarine.Widgets.Menus.Menu;
-      Tip     : Pomarine.Widgets.Tooltips.Tooltip;
+      Sample_Tip : Pomarine.Widgets.Tooltips.Tooltip;
       Message : Pomarine.Widgets.Toasts.Toast;
+      Views   : Pomarine.Widgets.Choice_Groups.Choice_Group;
+      Copies  : Pomarine.Widgets.Steppers.Stepper;
+      Advanced : Pomarine.Widgets.Disclosures.Disclosure;
+      Side_Pane, Main_Pane : Pomarine.Widgets.Panels.Panel;
+      Divider : Pomarine.Widgets.Splitters.Splitter;
+      Note_1, Note_2 : Pomarine.Widgets.Labels.Label;
+      Info_Button, Ask_Button : Pomarine.Widgets.Buttons.Button;
+      Info    : Pomarine.Widgets.Popovers.Popover;
+      Info_Note : Pomarine.Widgets.Labels.Label;
+      Ask     : Pomarine.Widgets.Dialogs.Dialog;
+      Hover_Tip : Pomarine.Widgets.Tooltips.Tooltip;
    end record;
 
    Width  : constant := 720;
-   Height : constant := 560;
+   Height : constant := 770;
    --  The window, in points, that the screen is made for.
 
    procedure Build

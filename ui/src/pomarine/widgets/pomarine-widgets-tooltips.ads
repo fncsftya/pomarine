@@ -22,6 +22,12 @@ package Pomarine.Widgets.Tooltips is
    Height : constant Float := 22.0;
    --  In points, to make it.
 
+   procedure Install (Home : in out Tree; Tip : in out Tooltip; Delay_MS : Natural := 600)
+     with Pre => Has_Root (Home) and then not Is_Attached (Tip), Post => Is_Attached (Tip);
+   --  Have Home show Tip by itself: added to its root, hidden, and put beside any widget that has a tooltip
+   --  (Widgets.Set_Tooltip) once the pointer has rested on it for Delay_MS milliseconds, below it or over it where
+   --  there is room, and let go of when the pointer moves on, or a key, a press or a wheel turn comes.
+
    overriding procedure Draw
      (Item   : in out Tooltip;
       Target : SDL3.Painters.Painter'Class;

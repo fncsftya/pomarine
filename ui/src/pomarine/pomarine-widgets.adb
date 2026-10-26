@@ -19,6 +19,7 @@ with Pomarine.Widgets.Drawing;
 with Pomarine.Widgets.Dispatching;
 with Pomarine.Widgets.Lifecycle;
 with Pomarine.Widgets.Adding;
+with Pomarine.Widgets.Tipping;
 package body Pomarine.Widgets is
 
    use Pomarine.Widgets.Adding;
@@ -68,6 +69,9 @@ package body Pomarine.Widgets is
      ((Id.Slot, Id.Use_Number, Part));
 
    function Part_Number_Of (Id : Node_Id) return Natural is (Id.Part);
+
+   function Root_Widget (Item : Tree) return Widget_Access is
+     (if Item.Root = 0 then null else Item.Nodes.Object (Item.Root));
 
    function Root_Id (Item : Tree) return Node_Id is
      (Id_Of_Slot (Item, Item.Root));
@@ -870,6 +874,29 @@ package body Pomarine.Widgets is
       end if;
    end Set_Accessible_Name;
 
+   procedure Set_Tooltip (Item : in out Widget'Class; Text : String) is
+   begin
+      if Text /= "" or else Item.Cold /= 0 then
+         Semantics.Set (Block (Cold (Item)).all.Tip, Text);
+      end if;
+   end Set_Tooltip;
+
+   function Tooltip_Of (Item : Widget'Class) return String is
+     (if Item.Cold = 0 then "" else Semantics.To_String (Block (Item.Cold).all.Tip));
+
+   procedure Enable_Tooltips
+     (Item     : in out Tree;
+      Tip      : in out Widget'Class;
+      Present  : not null Tip_Presenter;
+      Delay_MS : Natural := 600) is
+   begin
+      Item.Tip_Id := Id_Of (Tip);
+      Item.Tip_Present := Present;
+      Item.Tip_Delay := Delay_MS;
+      Item.Tip_Over := No_Node;
+      Item.Tip_Shown := False;
+   end Enable_Tooltips;
+
    procedure Set_Accessible_Help (Item : in out Widget'Class; Text : String) is
    begin
       Semantics.Set (Block (Cold (Item)).all.Help, Text);
@@ -962,6 +989,8 @@ package body Pomarine.Widgets is
       Updating : Node_Index := Item.Root;
    begin
       Animations.Step_Animations (Item, Now);
+      Item.Clock := Now;
+      Tipping.Step (Item, Now);
       Revalidate (Item);
       while Updating /= 0 loop
          if Item.Nodes.Spot (Updating).Visible then
@@ -989,6 +1018,13 @@ package body Pomarine.Widgets is
          end if;
          Asking := Following_Shown (Item, Asking);
       end loop;
+      declare
+         Tipped : constant Integer := Tipping.Wait (Item);
+      begin
+         if Tipped >= 0 and then (Result < 0 or else Tipped < Result) then
+            Result := Tipped;
+         end if;
+      end;
       return Result;
    end Until_Update;
 

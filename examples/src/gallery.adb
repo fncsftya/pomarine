@@ -1,11 +1,15 @@
+with Pomarine.Anchoring;
+with Pomarine.Dialogs;
 with Pomarine.Themes;
-with Pomarine.Widgets.Buttons;
+with Pomarine.Widgets.Callbacks;
 with Pomarine.Widgets.Checks;
 
 package body Gallery is
 
    package Buttons renames Pomarine.Widgets.Buttons;
    package Menus renames Pomarine.Widgets.Menus;
+   package Widgets renames Pomarine.Widgets;
+   package Hooks is new Pomarine.Widgets.Callbacks (Specimens);
 
    use all type Gallery_VM.Command;
 
@@ -90,13 +94,76 @@ package body Gallery is
                 Gap => 16.0);
    begin
       Pomarine.Widgets.Sliders.Set_Value (Parts.Slider, 0.4);
+      Pomarine.Widgets.Selects.Add_Choice (Parts.Choice, "Georgia");
+      Pomarine.Widgets.Selects.Add_Choice (Parts.Choice, "Menlo");
+      Pomarine.Widgets.Selects.Add_Choice (Parts.Choice, "Avenir");
       Pomarine.Widgets.Selects.Set_Value (Parts.Choice, "Georgia");
+      Widgets.Set_Tooltip (Parts.Choice, "Opens its own menu");
+      Widgets.Set_Tooltip (Parts.Slider, "Drag it, or use the arrow keys");
       Pomarine.Widgets.Chips.Set_Label (Parts.Tag, "Ada");
       Pomarine.Widgets.Chips.Set_Swatch (Parts.Tag, Pomarine.Themes.Primary);
       Pomarine.Widgets.Badges.Set_Count (Parts.Count, 3);
       Bound.Commit;
       return Result;
    end Specimens_Row;
+
+   function Choosers_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
+      Bound  : aliased Gallery_UI.Component (Parent'Access);
+      Views  : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Views);
+      Copies : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Copies);
+      Result : constant UI.Layout :=
+        UI.Row ([UI.Place (Views, Width => 320.0, Height => 32.0), UI.Place (Copies, Width => 150.0, Height => 32.0)],
+                Gap => 24.0);
+   begin
+      Pomarine.Widgets.Choice_Groups.Set_Look (Parts.Views, Pomarine.Widgets.Choice_Groups.Tabs);
+      Pomarine.Widgets.Choice_Groups.Add_Choice (Parts.Views, "Write");
+      Pomarine.Widgets.Choice_Groups.Add_Choice (Parts.Views, "Outline");
+      Pomarine.Widgets.Choice_Groups.Add_Choice (Parts.Views, "Canvas");
+      Pomarine.Widgets.Steppers.Set_Range (Parts.Copies, 1, 99);
+      Pomarine.Widgets.Steppers.Set_Value (Parts.Copies, 2);
+      Pomarine.Widgets.Steppers.Set_Suffix (Parts.Copies, " copies");
+      Bound.Commit;
+      return Result;
+   end Choosers_Row;
+
+   function Disclosure_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
+      Bound   : aliased Gallery_UI.Component (Parent'Access);
+      Whole   : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Advanced);
+      First   : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Note_1);
+      Second  : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Note_2);
+      Result  : constant UI.Layout :=
+        UI.Styled
+          (UI.Hold (Whole, [UI.Place (First, Height => 20.0), UI.Place (Second, Height => 20.0)]),
+           Pomarine.Widgets.Disclosures.Box_Style);
+   begin
+      Pomarine.Widgets.Disclosures.Set_Title (Parts.Advanced, "Advanced");
+      Pomarine.Widgets.Disclosures.Set_Focusable (Parts.Advanced, True);
+      Pomarine.Widgets.Labels.Set_Text (Parts.Note_1, "A disclosure hides what is under its heading.");
+      Pomarine.Widgets.Labels.Set_Text (Parts.Note_2, "Click the heading, or press Space on it.");
+      Bound.Commit;
+      return Result;
+   end Disclosure_Row;
+
+   function Splitter_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
+      Bound   : aliased Gallery_UI.Component (Parent'Access);
+      Side    : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Side_Pane);
+      Divider : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Divider);
+      Main    : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Main_Pane);
+      Result  : constant UI.Layout :=
+        UI.Row ([UI.Place (Side, Width => 160.0, Shrink => 0.0), UI.Place (Divider, Width => 6.0, Shrink => 0.0),
+                 UI.Place (Main, Grow => 1.0)],
+                Height => 56.0, Align => UI.Layouts.Stretch);
+   begin
+      Pomarine.Widgets.Panels.Set_Fill (Parts.Side_Pane, Pomarine.Themes.Tint);
+      Pomarine.Widgets.Panels.Set_Border (Parts.Side_Pane, Pomarine.Themes.Border);
+      Pomarine.Widgets.Panels.Set_Fill (Parts.Main_Pane, Pomarine.Themes.Page);
+      Pomarine.Widgets.Panels.Set_Border (Parts.Main_Pane, Pomarine.Themes.Border);
+      Pomarine.Widgets.Splitters.Set_Focusable (Parts.Divider, True);
+      Pomarine.Widgets.Splitters.Set_Limits (Parts.Divider, 80.0, 400.0);
+      Widgets.Set_Tooltip (Parts.Divider, "Drag to give one side more room");
+      Bound.Commit;
+      return Result;
+   end Splitter_Row;
 
    function Menu_Rows return Menus.Row_Vectors.Vector is
       Result : Menus.Row_Vectors.Vector;
@@ -132,14 +199,21 @@ package body Gallery is
    function Notices_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
       Bound   : aliased Gallery_UI.Component (Parent'Access);
       Message : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Message);
-      Tip     : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Tip);
+      Tip     : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Sample_Tip);
+      Popover : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Info_Button);
+      Dialog  : constant UI.Widget_Handle := Bound.Borrow_Widget (Parts.Ask_Button);
       Result  : constant UI.Layout :=
-        UI.Row ([UI.Place (Message, Width => 300.0, Height => 36.0), UI.Place (Tip, Width => 110.0, Height => 22.0)],
+        UI.Row ([UI.Place (Message, Width => 300.0, Height => 36.0), UI.Place (Tip, Width => 110.0, Height => 22.0),
+                 UI.Place (Popover, Width => 90.0, Height => 32.0), UI.Place (Dialog, Width => 90.0, Height => 32.0)],
                 Gap => 16.0);
    begin
       Pomarine.Widgets.Toasts.Set_Message (Parts.Message, "Task deleted");
       Pomarine.Widgets.Toasts.Set_Action (Parts.Message, "Undo");
-      Pomarine.Widgets.Tooltips.Set_Text (Parts.Tip, "Saves the file");
+      Pomarine.Widgets.Tooltips.Set_Text (Parts.Sample_Tip, "Saves the file");
+      Buttons.Configure (Parts.Info_Button, Buttons.Looks ("Popover", Focusable => True));
+      Buttons.Configure (Parts.Ask_Button, Buttons.Looks ("Dialog", Buttons.Danger, Focusable => True));
+      Widgets.Set_Tooltip (Parts.Info_Button, "Opens a popover beside it");
+      Widgets.Set_Tooltip (Parts.Ask_Button, "Asks whether to go ahead");
       Bound.Commit;
       return Result;
    end Notices_Row;
@@ -152,16 +226,43 @@ package body Gallery is
       Choices      : constant UI.Layout := Choices_Row (Bound);
       Specimen     : constant UI.Layout := Specimens_Row (Bound, Parts);
       Lists        : constant UI.Layout := Lists_Row (Bound, Parts);
+      Choosers     : constant UI.Layout := Choosers_Row (Bound, Parts);
+      Disclosure   : constant UI.Layout := Disclosure_Row (Bound, Parts);
+      Divided      : constant UI.Layout := Splitter_Row (Bound, Parts);
       Notices      : constant UI.Layout := Notices_Row (Bound, Parts);
    begin
       return UI.Column
         ([Heading (Bound, "Buttons"), Buttons_Part, Progress,
           Heading (Bound, "Fields"), Name_Part, Choices,
           Heading (Bound, "Values"), Specimen,
+          Heading (Bound, "Choosers"), Choosers, Disclosure, Divided,
           Heading (Bound, "Lists and menus"), Lists,
           Heading (Bound, "Notices"), Notices],
          Padding => 16.0, Gap => 8.0);
    end Gallery_Screen;
+
+   procedure Show_Popover
+     (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
+      pragma Unreferenced (Event);
+   begin
+      if Widgets.Popovers.Is_Shown (Self.Info) then
+         Widgets.Popovers.Hide (Self.Info);
+      else
+         Widgets.Popovers.Show_Beside (Self.Info, Source, (Side => Pomarine.Anchoring.Above, others => <>));
+      end if;
+   end Show_Popover;
+
+   procedure Ask_Question
+     (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
+      pragma Unreferenced (Source, Event);
+   begin
+      if not Widgets.Dialogs.Is_Shown (Self.Ask) then
+         Pomarine.Dialogs.Confirm
+           (Self.Ask, "Delete the file?", "It cannot be got back, so think twice before you press Delete." & ASCII.LF
+            & "Press Escape to keep the file.",
+            Yes => "Delete", Dangerous => True);
+      end if;
+   end Ask_Question;
 
    procedure Build
      (Screen : in out UI.View;
@@ -170,8 +271,18 @@ package body Gallery is
    is
       Bound : constant Gallery_UI.Context'Class := Gallery_UI.Bind (Screen, Model);
       Whole : constant UI.Layout := Gallery_Screen (Bound, Parts);
+      Root  : Widgets.Widget_Access;
    begin
       UI.Mount (Screen, Whole);
+      --  What floats over the window is in the root of the tree, over what the screen made.
+      Root := Widgets.Root_Widget (Screen.Tree.all);
+      Widgets.Popovers.Add (Root.all, Parts.Info, Width => 230.0);
+      UI.Layouts.Add (Parts.Info, Parts.Info_Note, (Height => 22.0, others => <>));
+      Widgets.Labels.Set_Text (Parts.Info_Note, "A popover holds any widgets.");
+      Widgets.Dialogs.Add (Root.all, Parts.Ask, Width => 340.0);
+      Widgets.Tooltips.Install (Screen.Tree.all, Parts.Hover_Tip);
+      Hooks.On (Parts.Info_Button, Widgets.Click, Parts'Unrestricted_Access, Show_Popover'Access);
+      Hooks.On (Parts.Ask_Button, Widgets.Click, Parts'Unrestricted_Access, Ask_Question'Access);
    end Build;
 
 end Gallery;

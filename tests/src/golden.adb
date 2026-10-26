@@ -3,6 +3,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Animation_Tests;
 with Command_Tests;
+with Control_Tests;
 with Document_Tests;
 with Field_Tests;
 with Gallery_Tests;
@@ -11,7 +12,9 @@ with Layout_Tests;
 with Keyboard_Tests;
 with List_Tests;
 with Listener_Tests;
+with Overlay_Tests;
 with Painter_Tests;
+with Popup_Tests;
 with Picture_Tests;
 with Platform_Tests;
 with Semantic_Tests;
@@ -138,10 +141,34 @@ begin
    Run ("ui-todo-used", UI_Tests.Todo_Used'Access);
    Run ("ui-todo-wide", UI_Tests.Todo_Wide'Access);
 
+   Run ("overlay-placing", Overlay_Tests.Placing'Access);
+   Run ("overlay-edges", Overlay_Tests.Placing_At_Edges'Access);
+   Run ("overlay-letting-go", Overlay_Tests.Letting_Go'Access);
+   Run ("overlay-modality", Overlay_Tests.Modality'Access);
+   Run ("overlay-stacking", Overlay_Tests.Stacking'Access);
+   Run ("overlay-dimming", Overlay_Tests.Dimming'Access);
+
+   Run ("controls-choices", Control_Tests.Choice_Groups'Access);
+   Run ("controls-steppers", Control_Tests.Steppers'Access);
+   Run ("controls-disclosures", Control_Tests.Disclosures'Access);
+   Run ("controls-splitters", Control_Tests.Splitters'Access);
+
+   Run ("popup-select", Popup_Tests.Select_Menu'Access);
+   Run ("popup-context", Popup_Tests.Context_Menu'Access);
+   Run ("popup-popover", Popup_Tests.Popover_Box'Access);
+   Run ("popup-menu-keys", Popup_Tests.Menu_Keys'Access);
+   Run ("popup-wrapped-message", Popup_Tests.Wrapped_Message'Access);
+   Run ("popup-questions", Popup_Tests.Questions'Access);
+   Run ("popup-tooltip", Popup_Tests.Tooltip_Rests'Access);
+
    Run ("gallery-opens", Gallery_Tests.Opens'Access);
    Run ("gallery-used", Gallery_Tests.Used'Access);
    Run ("gallery-dark", Gallery_Tests.Dark'Access);
    Run ("gallery-dense", Gallery_Tests.Dense'Access);
+   Run ("gallery-select-open", Gallery_Tests.Select_Open'Access);
+   Run ("gallery-popover-open", Gallery_Tests.Popover_Open'Access);
+   Run ("gallery-dialog-open", Gallery_Tests.Dialog_Open'Access);
+   Run ("gallery-tooltip-shown", Gallery_Tests.Tooltip_Shown'Access);
    Run ("gallery-described", Gallery_Tests.Described'Access);
 
    Run ("application-posts", Platform_Tests.Posted_Work'Access);

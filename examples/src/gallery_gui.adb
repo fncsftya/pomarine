@@ -3,9 +3,10 @@ with Gallery_VM;
 with Pomarine.Widgets;
 with Pomarine.Windows;
 
---  Every widget the library has, on one window: the buttons, fields, checks, radios, switch, slider, select,
---  list, menu, badge, chip, toast and tooltip. Click, type and tab about to see how each answers. Close the
---  window to end it.
+--  Every widget the library has, on one window: the buttons, fields, checks, radios, switch, slider, a select that
+--  opens its own menu, tabs, a stepper, a disclosure, list, menu, badge, chip, toast and tooltips (rest the pointer on
+--  the slider). The Popover and Dialog buttons open what floats over the window. Click, type and tab about to see how
+--  each answers. Close the window to end it.
 procedure Gallery_GUI is
    Win    : Pomarine.Windows.Window;  --  before the tree that draws to it
    Tree   : aliased Pomarine.Widgets.Tree;
