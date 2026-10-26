@@ -1,6 +1,12 @@
 # Pomarine
 
-NOTE: this is in heavily development and primarily tailored to support [Bonxie](https://github.com/fncsftya/bonxie). I'll try to turn it into a more generic library over time.
+**Status: alpha.** The API will still change, with breaks, as it becomes a general library: it began as the
+toolkit of [Bonxie](https://github.com/fncsftya/bonxie), which keeps it as a submodule and is still its main
+user. `examples/` is the place to start, and the gallery (below) is what the library's own tests keep honest.
+
+Known gaps, for now: macOS only; no tab, radio-group, dialog, popover or context-menu widgets (a menu or a
+select is shown by the application); no tree, table, splitter, number or date field; one window to a tree;
+no key-up events, drag and drop, or right-to-left text.
 
 A MacOS-only GUI library for Ada: a tree of widgets, laid out by Yoga's
 flexbox, drawn with SDL3, with text from CoreText. It is built to be fast
@@ -51,7 +57,9 @@ end if;
 See the comment at the top of `Pomarine.Widgets` for the whole loop, and
 `examples/` for complete programs (`cd examples && alr build`). `hello_gui` declares its greeting and command
 button through `Pomarine.UI`, with `Greeter_VM` holding the count and command rule. `todo_gui` composes a task
-screen from bound components. `clock_gui` mounts an app-owned custom clock face with `UI.Put`; its painting and
+screen from bound components. `gallery_gui` puts every kind of widget on one window, which the golden and view
+tests (`gallery-*`, `gallery_view_test`) draw, click and describe, so a change to any widget, the layout or the
+theme shows up there first. `clock_gui` mounts an app-owned custom clock face with `UI.Put`; its painting and
 periodic time updates stay in the widget. Each program declares the tree and model or borrowed face before the
 view, so they outlive its bindings. `Pomarine.Windows` opens the window and runs the loop.
 

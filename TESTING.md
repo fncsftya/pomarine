@@ -67,6 +67,24 @@ do not see how the GPU smooths scaled glyphs. CoreText may also rasterize
 slightly differently on another macOS release; if so, regenerate the
 goldens there or pass a tolerance to `Goldens.Check`.
 
+## The gallery
+
+`examples/src/gallery.ads` puts every kind of widget on one screen (`Gallery_GUI`), and is the library's guard
+against general regressions: a change to a widget, the layout or the theme shows in it before anywhere else.
+Whoever adds a widget adds it to the gallery, and to these.
+
+* `tests/` (`bin/golden gallery`): `gallery-opens` and `gallery-used` (clicks, a name, a box, a radio, a switch,
+  a row and the slider changed), `gallery-dark` (the dark theme), `gallery-dense` (twice the density), and
+  `gallery-described` (the screen as an assistive technology is told it, which `Check_Text` compares line by line).
+  Look at the picture before `UPDATE_GOLDEN=1`.
+* `examples/tests` (`bin/gallery_view_test`, `bin/gallery_vm_test`): the screen clicked and typed in by name, and
+  the model's command contracts alone, with no widget and no window.
+
+```sh
+cd examples/tests && alr exec -- gprbuild -P todo_tests.gpr && bin/gallery_view_test && bin/gallery_vm_test
+cd ../../tests && alr build && bin/golden gallery
+```
+
 ## Rich text
 
 `document-rich-text` checks style boundaries, merging, multi-paragraph replacement,
@@ -127,7 +145,7 @@ a program with assertions; none opens a window.
 cd examples/tests
 alr exec -- gprbuild -P todo_tests.gpr
 for t in todo_vm_test todo_view_test example_views_test ui_slice_test ui_ownership_test ui_unchecked_test \
-         ui_sync_test ui_reentry_test ui_text_test ui_list_test ui_controls_test; do bin/$t; done
+         ui_sync_test ui_reentry_test ui_text_test ui_list_test ui_controls_test gallery_vm_test gallery_view_test; do bin/$t; done
 ```
 
 * `todo_vm_test`: the todo model alone: command contracts, unchanged versions, long text, growing task storage, and

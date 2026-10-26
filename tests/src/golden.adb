@@ -5,6 +5,7 @@ with Animation_Tests;
 with Command_Tests;
 with Document_Tests;
 with Field_Tests;
+with Gallery_Tests;
 with Goldens;
 with Layout_Tests;
 with Keyboard_Tests;
@@ -135,6 +136,12 @@ begin
    Run ("ui-todo-opens", UI_Tests.Todo_Opens'Access);
    Run ("ui-todo-used", UI_Tests.Todo_Used'Access);
    Run ("ui-todo-wide", UI_Tests.Todo_Wide'Access);
+
+   Run ("gallery-opens", Gallery_Tests.Opens'Access);
+   Run ("gallery-used", Gallery_Tests.Used'Access);
+   Run ("gallery-dark", Gallery_Tests.Dark'Access);
+   Run ("gallery-dense", Gallery_Tests.Dense'Access);
+   Run ("gallery-described", Gallery_Tests.Described'Access);
 
    Run ("application-posts", Platform_Tests.Posted_Work'Access);
    Run ("menus-choices", Platform_Tests.Menu_Choices'Access);

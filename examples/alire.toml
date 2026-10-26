@@ -7,7 +7,7 @@ licenses = "MIT"
 website = ""
 tags = []
 
-executables = ["hello_gui", "todo_gui", "clock_gui"]
+executables = ["hello_gui", "todo_gui", "clock_gui", "gallery_gui"]
 
 [available.'case(os)']
 macos = true
