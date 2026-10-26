@@ -1,7 +1,10 @@
+with Pomarine.Widgets.Frames;
+with Pomarine.Widgets.Sliders;
 with Ada.Finalization;
 with Pomarine.Models;
 with Pomarine.View_Models;
 with Pomarine.Widgets.Buttons;
+with Pomarine.Widgets.Checks;
 with Pomarine.Widgets.Labels;
 with Pomarine.Widgets.Lists;
 with Pomarine.Widgets.Text_Fields;
@@ -62,9 +65,11 @@ package Pomarine.UI.Contexts is
    --  Properties: how the model is read and written
 
    type Text_Adapter is limited interface;
-   function Current (Self : Text_Adapter; Item : Model) return String is abstract;
-   procedure Assign (Self : Text_Adapter; Item : in out Model; Value : String) is abstract;
-   function Stamp (Self : Text_Adapter; Item : Model) return VM.Version_Number is abstract;
+   function Current (Self : Text_Adapter; Item : Model; Index : Natural) return String is abstract;
+   procedure Assign (Self : Text_Adapter; Item : in out Model; Value : String; Index : Natural) is abstract;
+   function Stamp (Self : Text_Adapter; Item : Model; Index : Natural) return VM.Version_Number is abstract;
+   --  Index is of which of many the control is (Pomarine.UI.Contexts.Label and the others take one); 0 if it
+   --  is not one of many.
    function Can_Assign (Self : Text_Adapter) return Boolean is abstract;
    type Text_Adapter_Ref is access constant Text_Adapter'Class;
    --  Implemented by Read_Text and Edit_Text.
@@ -79,12 +84,30 @@ package Pomarine.UI.Contexts is
       --  A text to show, never written.
    private
       type Adapter is new Text_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model) return String is (Get (Item));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String) is null;
-      overriding function Stamp (Self : Adapter; Item : Model) return VM.Version_Number is (Changes (Item));
+      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return String is (Get (Item));
+      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural) is null;
+      overriding function Stamp (Self : Adapter; Item : Model; Index : Natural) return VM.Version_Number is
+        (Changes (Item));
       overriding function Can_Assign (Self : Adapter) return Boolean is (False);
       Instance : aliased constant Adapter := (null record);
    end Read_Text;
+
+   generic
+      with function Get (Item : Model; Index : Positive) return String;
+   package Indexed_Text is
+      function Property return Text_Property;
+      --  A text to show for each of many (a card of a list): the model is asked for the one of Index, whole
+      --  version, each turn.
+   private
+      type Adapter is new Text_Adapter with null record;
+      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return String is
+        (Get (Item, Positive'Max (1, Index)));
+      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural) is null;
+      overriding function Stamp (Self : Adapter; Item : Model; Index : Natural) return VM.Version_Number is
+        (Whole_Version (Item));
+      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
+      Instance : aliased constant Adapter := (null record);
+   end Indexed_Text;
 
    generic
       with function Get (Item : Model) return String;
@@ -97,9 +120,10 @@ package Pomarine.UI.Contexts is
       --  says is shown.
    private
       type Adapter is new Text_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model) return String is (Get (Item));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String);
-      overriding function Stamp (Self : Adapter; Item : Model) return VM.Version_Number is (Changes (Item));
+      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return String is (Get (Item));
+      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural);
+      overriding function Stamp (Self : Adapter; Item : Model; Index : Natural) return VM.Version_Number is
+        (Changes (Item));
       overriding function Can_Assign (Self : Adapter) return Boolean is (True);
       Instance : aliased constant Adapter := (null record);
    end Edit_Text;
@@ -165,6 +189,91 @@ package Pomarine.UI.Contexts is
       Instance : aliased constant Adapter := (null record);
    end Choice;
 
+   type Flag_Adapter is limited interface;
+   function Current (Self : Flag_Adapter; Item : Model; Index : Natural) return Boolean is abstract;
+   procedure Assign (Self : Flag_Adapter; Item : in out Model; Value : Boolean; Index : Natural) is abstract;
+   function Can_Assign (Self : Flag_Adapter) return Boolean is abstract;
+   type Flag_Adapter_Ref is access constant Flag_Adapter'Class;
+
+   type Flag_Property is private;
+
+   generic
+      with function Get (Item : Model) return Boolean;
+   package Read_Flag is
+      function Property return Flag_Property;
+      --  A yes or no to show: whether a box is ticked, a control is shown. It is read at each turn,
+      --  so a click that the model did not take is undone.
+   private
+      type Adapter is new Flag_Adapter with null record;
+      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return Boolean is (Get (Item));
+      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural) is null;
+      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
+      Instance : aliased constant Adapter := (null record);
+   end Read_Flag;
+
+   generic
+      with function Get (Item : Model; Index : Positive) return Boolean;
+   package Indexed_Flag is
+      function Property return Flag_Property;
+      --  A yes or no for each of many (whether a card is shown, ticked).
+   private
+      type Adapter is new Flag_Adapter with null record;
+      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return Boolean is
+        (Get (Item, Positive'Max (1, Index)));
+      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural) is null;
+      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
+      Instance : aliased constant Adapter := (null record);
+   end Indexed_Flag;
+
+   generic
+      with function Get (Item : Model) return Boolean;
+      with procedure Set (Item : in out Model; Value : Boolean);
+   package Edit_Flag is
+      function Property return Flag_Property;
+      --  A yes or no to show, and to be written by what the person ticks.
+   private
+      type Adapter is new Flag_Adapter with null record;
+      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return Boolean is (Get (Item));
+      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural);
+      overriding function Can_Assign (Self : Adapter) return Boolean is (True);
+      Instance : aliased constant Adapter := (null record);
+   end Edit_Flag;
+
+   type Fraction_Adapter is limited interface;
+   function Current (Self : Fraction_Adapter; Item : Model) return Float is abstract;
+   procedure Assign (Self : Fraction_Adapter; Item : in out Model; Value : Float) is null;
+   function Can_Assign (Self : Fraction_Adapter) return Boolean is abstract;
+   type Fraction_Adapter_Ref is access constant Fraction_Adapter'Class;
+
+   type Fraction_Property is private;
+
+   generic
+      with function Get (Item : Model) return Float;
+   package Read_Fraction is
+      function Property return Fraction_Property;
+      --  How far on a job is, from 0.0 to 1.0 (a value outside is taken as the nearest end).
+   private
+      type Adapter is new Fraction_Adapter with null record;
+      overriding function Current (Self : Adapter; Item : Model) return Float is (Get (Item));
+      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
+      Instance : aliased constant Adapter := (null record);
+   end Read_Fraction;
+
+   generic
+      with function Get (Item : Model) return Float;
+      with procedure Set (Item : in out Model; Value : Float);
+   package Edit_Fraction is
+      function Property return Fraction_Property;
+   private
+      type Adapter is new Fraction_Adapter with null record;
+      overriding function Current (Self : Adapter; Item : Model) return Float is (Get (Item));
+      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Float);
+      overriding function Can_Assign (Self : Adapter) return Boolean is (True);
+      Instance : aliased constant Adapter := (null record);
+   end Edit_Fraction;
+
+   function Is_Writable (Item : Fraction_Property) return Boolean;
+
    --  Commands that are not an enumeration's: what can be done, and doing it
 
    type Action_Adapter is limited interface;
@@ -211,14 +320,18 @@ package Pomarine.UI.Contexts is
 
    function Is_Writable (Item : Text_Property) return Boolean;
 
-   function Label (Self : Context; Text : Text_Property) return Pomarine.UI.Label_Handle;
+   function Label (Self : Context; Text : Text_Property; Index : Natural := 0) return Pomarine.UI.Label_Handle;
+
+   function Label (Self : Context; Caption : String) return Pomarine.UI.Label_Handle;
+   --  A label of a text that is no model's.
 
    function Button
      (Self    : Context;
       Caption : String;
       Command : Commands.Command;
       Look    : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
-      Index   : Natural := 0) return Pomarine.UI.Button_Handle;
+      Index   : Natural := 0;
+      Focusable : Boolean := False) return Pomarine.UI.Button_Handle;
    --  A button that does Command when it is clicked, if the model can, and is turned
    --  on and off as the model says.
 
@@ -230,12 +343,39 @@ package Pomarine.UI.Contexts is
       Index   : Natural := 0) return Pomarine.UI.Button_Handle;
    --  As above, for a command that is no enumeration's (Action).
 
+   function Button
+     (Self    : Context;
+      Look    : Pomarine.Widgets.Buttons.Settings;
+      Command : Commands.Command;
+      Index   : Natural := 0;
+      Reflect : Boolean := True) return Pomarine.UI.Button_Handle;
+   --  As above, a button as Look says in every way (an icon, a shape, a caption). Not Reflect: the button
+   --  does the command, but is not turned on and off as the model says.
+
+   function Grip
+     (Self    : Context;
+      Look    : Pomarine.UI.Grip_Look;
+      Command : Commands.Command;
+      Index   : Natural := 0;
+      Name    : String := "") return Pomarine.UI.Grip_Handle;
+   --  A box that does Command when it is clicked (Hold puts what is in it), as a card that is opened. It is
+   --  not turned on and off as the model says.
+
+   function Plain_Grip (Self : Context; Look : Pomarine.UI.Grip_Look) return Pomarine.UI.Grip_Handle;
+   --  A grip the view places but does not hear: the application hooks what it wants (Click, Double_Click).
+
+   function Plain_Button
+     (Self : Context; Look : Pomarine.Widgets.Buttons.Settings) return Pomarine.UI.Button_Handle;
+   --  A button the view places but does not hear and the model knows nothing of: the application hooks its
+   --  Click (Pomarine.Widgets.Callbacks) on Widget_Of.
+
    function Text_Field
      (Self        : Context;
       Text        : Text_Property;
       Placeholder : String := "";
       Name        : String := "";
-      Replacing   : Replacement := Caret_At_End) return Pomarine.UI.Field_Handle
+      Replacing   : Replacement := Caret_At_End;
+      Index       : Natural := 0) return Pomarine.UI.Field_Handle
      with Pre => Is_Writable (Text);
 
    function Text_Field
@@ -244,7 +384,8 @@ package Pomarine.UI.Contexts is
       Submit      : Commands.Command;
       Placeholder : String := "";
       Name        : String := "";
-      Replacing   : Replacement := Caret_At_End) return Pomarine.UI.Field_Handle
+      Replacing   : Replacement := Caret_At_End;
+      Index       : Natural := 0) return Pomarine.UI.Field_Handle
      with Pre => Is_Writable (Text);
 
    function Text_Field
@@ -253,11 +394,67 @@ package Pomarine.UI.Contexts is
       Submit      : Action_Property;
       Placeholder : String := "";
       Name        : String := "";
-      Replacing   : Replacement := Caret_At_End) return Pomarine.UI.Field_Handle
+      Replacing   : Replacement := Caret_At_End;
+      Index       : Natural := 0) return Pomarine.UI.Field_Handle
      with Pre => Is_Writable (Text);
    --  A field that shows the model's text and gives it what is typed, and, with Submit,
    --  does the command when Return is pressed (the field stays typeable when it cannot).
    --  Name is what an assistive technology (and a test) calls it; none, if not said.
+
+   function Check
+     (Self    : Context;
+      Caption : String;
+      Checked : Flag_Property;
+      Command : Commands.Command;
+      Form    : Pomarine.Widgets.Checks.Kind := Pomarine.Widgets.Checks.Box;
+      Index   : Natural := 0;
+      Name    : String := "") return Pomarine.UI.Check_Handle;
+   --  Index: of which of many it is, for the command and for the flag.
+   --  A box (or, with Form Radio, a radio) shown ticked as Checked says. A click does Command, if
+   --  the model can; what the model makes of it, Checked says back.
+
+   function Check
+     (Self    : Context;
+      Caption : String;
+      Checked : Flag_Property;
+      Form    : Pomarine.Widgets.Checks.Kind := Pomarine.Widgets.Checks.Box;
+      Name    : String := "") return Pomarine.UI.Check_Handle
+     with Pre => Is_Settable (Checked);
+   --  A box that is ticked as Checked says and gives the model what the person ticks (Edit_Flag).
+
+   function Is_Settable (Item : Flag_Property) return Boolean;
+
+   function Switch
+     (Self    : Context;
+      Caption : String;
+      On      : Flag_Property;
+      Command : Commands.Command;
+      Index   : Natural := 0;
+      Name    : String := "") return Pomarine.UI.Switch_Handle;
+   --  As Check, a switch.
+
+   function Progress (Self : Context; Done : Fraction_Property) return Pomarine.UI.Progress_Handle;
+
+   procedure Show_When
+     (Self : Context; Target : Pomarine.UI.Control_Ref; Shown : Flag_Property; Index : Natural := 0);
+
+   procedure Enabled_When
+     (Self : Context; Target : Pomarine.UI.Button_Handle; Allowed : Flag_Property; Index : Natural := 0);
+   --  Explicit availability for an embedded host whose validator does not route this view's tags.
+
+   procedure Selected_When
+     (Self : Context; Target : Pomarine.UI.Button_Handle; Selected : Flag_Property; Index : Natural := 0);
+   --  The button's pressed appearance follows the model; this does not change its command.
+
+   procedure Focus_When
+     (Self : Context; Target : Pomarine.UI.Focus_Target; Raised : Flag_Property; Index : Natural := 0);
+   --  Give the control the focus, a field with its text selected, when Raised turns true: declare it after
+   --  what shows the control, so that it is shown when it is given.
+
+   procedure Show_When
+     (Self : Context; Target : Pomarine.UI.Layout; Shown : Flag_Property; Index : Natural := 0);
+   --  As above, for a Row, Column or Scroll: its panel, with all it holds.
+   --  The control is in the layout while Shown is true, and out of it (it takes no room) when not.
 
    function List
      (Self      : Context;
@@ -292,7 +489,8 @@ package Pomarine.UI.Contexts is
      (Self     : Context;
       Existing : in out Pomarine.Widgets.Buttons.Button;
       Command  : Commands.Command;
-      Index    : Natural := 0) return Pomarine.UI.Button_Handle;
+      Index    : Natural := 0;
+      Reflect  : Boolean := True) return Pomarine.UI.Button_Handle;
 
    function Borrow_Field
      (Self      : Context;
@@ -302,6 +500,28 @@ package Pomarine.UI.Contexts is
       Replacing : Replacement := Caret_At_End) return Pomarine.UI.Field_Handle
      with Pre => Is_Writable (Text);
    --  Backing is the document the field shows (the application attached it).
+
+   procedure On_Frame_Event
+     (Self : Context; Target : in out Pomarine.Widgets.Frames.Frame; Kind : Pomarine.Widgets.Event_Kind;
+      Command : Commands.Command; Index : Natural := 0);
+   --  Discrete frame actions. Target must outlive the binding; movement and resizing stay in the view.
+
+   procedure On_Event
+     (Self : Context; Target : Pomarine.UI.Widget_Handle; Kind : Pomarine.Widgets.Event_Kind;
+      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False);
+   --  Route an app-owned widget event through the normal edit-before-command turn. The binding owns
+   --  this event handler until its scope is destroyed; the widget's tag is left unchanged.
+
+   function Borrow_Slider
+     (Self : Context; Existing : in out Pomarine.Widgets.Sliders.Slider; Value : Fraction_Property)
+      return Pomarine.UI.Widget_Handle
+      with Pre => Is_Writable (Value);
+   --  Changes are collected before commands. Programmatic refreshes preserve an active drag.
+
+   function Borrow_Widget
+     (Self : Context; Existing : in out Pomarine.Widgets.Widget'Class) return Pomarine.UI.Widget_Handle;
+   --  A widget of any kind that the application keeps (a canvas, a picture, a custom widget): the view
+   --  places it and Show_When shows or hides it. The rest of it is the application's.
 
    function Borrow_List
      (Self      : Context;
@@ -339,9 +559,23 @@ private
       Adapter : Choice_Adapter_Ref;
    end record;
 
+   type Flag_Property is record
+      Adapter : Flag_Adapter_Ref;
+   end record;
+
+   type Fraction_Property is record
+      Adapter : Fraction_Adapter_Ref;
+   end record;
+
+   function Is_Writable (Item : Fraction_Property) return Boolean is
+     (Item.Adapter /= null and then Item.Adapter.Can_Assign);
+
    type Action_Property is record
       Adapter : Action_Adapter_Ref;
    end record;
+
+   function Is_Settable (Item : Flag_Property) return Boolean is
+     (Item.Adapter /= null and then Item.Adapter.Can_Assign);
 
    function Is_Writable (Item : Text_Property) return Boolean is
      (Item.Adapter /= null and then Item.Adapter.Can_Assign);

@@ -13,4 +13,13 @@ package body Pomarine.Widgets.Frames.Handlers is
       end if;
    end On;
 
+   procedure Off (Item : in out Frame; Kind : Event_Kind) is
+   begin
+      if Kind = Blur then
+         Plain.Off (Item.Title_Field, Kind);
+      else
+         Plain.Off (Item.Outline_Panel, Kind);
+      end if;
+   end Off;
+
 end Pomarine.Widgets.Frames.Handlers;

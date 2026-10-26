@@ -127,7 +127,7 @@ a program with assertions; none opens a window.
 cd examples/tests
 alr exec -- gprbuild -P todo_tests.gpr
 for t in todo_vm_test todo_view_test ui_slice_test ui_ownership_test ui_unchecked_test \
-         ui_sync_test ui_reentry_test ui_text_test ui_list_test; do bin/$t; done
+         ui_sync_test ui_reentry_test ui_text_test ui_list_test ui_controls_test; do bin/$t; done
 ```
 
 * `todo_vm_test`: the todo model alone: command contracts, unchanged versions, long text, growing task storage, and
@@ -157,6 +157,24 @@ for t in todo_vm_test todo_view_test ui_slice_test ui_ownership_test ui_unchecke
   for a change of the name); a model's change from elsewhere is not heard back as an edit; two forms and a todo list, three
   models of two kinds, in one view, with no command of one done by a button of another; a command that is no literal
   of the model's enumeration (`Command_Action`).
+* `ui_controls_test`: radios and a switch follow the model, a click the model cannot take is put back, what is
+  shown only while a job runs (`Show_When`) comes and goes, a progress bar follows the model, a styled
+  column, a scroller and a borrowed widget of any kind are placed, and the handles go stale with the view.
+  It also checks late mounting before an existing sibling and teardown of the added components;
+  repeated clickable grips with indexed text, flags and commands (including a previously hidden card);
+  observer notification after a command changes what is shown; and an app-owned bar and its children
+  removed and mounted into another parent through `Put_In` and `Put`.
+  Fragments place sibling controls without a wrapper. Faults before each attachment of a nested held
+  container leave the original parent unchanged; retry succeeds. A failed late mount leaves earlier
+  siblings attached and can also be retried. The fixture uses a `UI.Hosts.Host` to own its embedded view.
+  Borrowed command buttons bind selected appearance and availability through `Selected_When` and
+  `Enabled_When`, including a click that disables its own button and an external model change that restores it.
+  Editable borrowed sliders collect mouse and keyboard edits, preserve an active drag during an external
+  update, refresh without setter feedback, and ignore colliding command tags. Borrowed menu events route
+  the chosen row independently of the widget tag/index; duplicate event bindings are rejected. Reattaching
+  borrowed controls after view teardown does not call their former bindings.
+  Menu row snapshots retain their content after the description is cleared, keep checked and disabled
+  states, grow to 2,048 rows with 700-character labels, and accept an empty replacement.
 * `ui_reentry_test`: an event that comes while the view is in the middle of a pass is kept and run as a turn
   of its own when the pass is done (`Queued_Events`), and not inside it; a model that raises leaves the view able to
   go on; the person and the model changing a text in one turn.

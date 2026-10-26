@@ -250,10 +250,138 @@ A borrowed widget that is in a tree already is an `Attachment_Conflict`.
   rather than at the next `Update`), `Testing.Feed` and `Testing.Compose` (a turn of several events, and an input
   method) were added.
 
+## More controls (2026-10-26, for moving bonxie over)
+
+* `Check` (a box or a radio) and `Switch` are bound to a `Read_Flag` (what the model says is ticked or on) and to
+  the command a click does. Both say `Change`, not `Click`, so the view hears that kind for them and
+  runs the command of a `Change` as it does of a `Click`. A flag is compared with the widget at every turn
+  (it is cheap), so a click that the model did not take is put back.
+* `Progress` is bound to a `Read_Fraction`.
+* `Edit_Fraction (Get, Set)` and `Borrow_Slider (Widget, Property)` bind an app-owned slider's value.
+  Edits are collected before commands; programmatic refreshes do not call the setter. Fractions are clamped
+  to 0.0 .. 1.0 for display. Refresh preserves an active drag; after release it shows the latest model value.
+  Slider events synchronize edits without dispatching the borrowed widget's existing command tag.
+* `On_Event (Widget_Handle, Kind, Command, Index)` binds a borrowed widget event beside its declaration,
+  without changing its tag. `Index_From_Event => True` uses the chosen row for `Choose` and `Act`, and the
+  event index otherwise. Commands use the usual edit-before-command ordering and `Can_Execute` check.
+  The control and event binding must belong to the same construction scope. Duplicate bindings for one
+  widget/event pair are rejected; teardown removes the handler before reclaiming its binding record.
+* `On_Frame_Event (Frame, Kind, Command)` binds discrete frame actions (title double-click, submit, blur,
+  minimize, restore and close). The app-owned frame must outlive the binding. Move and resize remain
+  view gestures; they are rejected by this command API. Both event APIs exclusively own their event handler
+  while the binding lives; do not replace that handler from application code.
+
+* `Show_When (UI.Any (Handle), Flag)` puts a control in or out of its layout (`Set_Visible`) as a flag says.
+* `Borrow_Widget` places a widget of the application's of any kind (`Widget_Handle`): the view lays it out and
+  may hide it, the rest is the application's. It is the way a canvas, a picture is put in a declared
+  screen before it has a declarative form of its own.
+* `Row` and `Column` take an `Appearance` (`Container_Look`: fill, border, shadow, radius); `Scroll (Content,
+  Across)` is a scroller around one layout.
+* Checks and switches take the focus from the keyboard (they are made focusable).
+
+* `Styled (Layout, Layouts.Style)` gives any placed control or container a raw box style; `Show_When (Layout, Flag)`
+  shows or hides a container's panel; `Label (Caption)` is a label of constant text; `Button` can be `Focusable`.
+* **Embedded views** (for an application that has one tree, one validator and one listener already):
+  `Mount_Into (View, Parent, Layout)` puts the screen in a widget of the application's, which keeps the root,
+  validator and listener. The application gives the view tags clear of its own (`Use_Tags_From`), asks it about
+  them from its validator (`Owns_Tag`, `Command_State`), and has it `Synchronize` in its own turn. bonxie's
+  settings form is one (`View.Build.Settings_Form`, `View.Menus.Validate`, `View.Settings_View.Draw`).
+
+* `Edit_Flag` (a box the person ticks, given to the model by a setter), `Button (Settings, ..., Reflect => False)`
+  (a button that does a command but is not turned on and off by it), `Plain_Button` (placed, not heard: the
+  application hooks its `Click`), `Spacer` (an empty container, for a rule or a block of colour), `Panel_Of`
+  (the panel a container made, to show, hide, scope the focus to), and `Container_Look` rounds corners.
+  `Styled` is exact: no default size of a control is added to it.
+* `Selected_When (Button, Flag)` binds a button's selected appearance; `Enabled_When (Button, Flag)` binds
+  its availability. Both read flags without sending widget state back through a setter. `Borrow_Button`
+  accepts `Reflect => False` too: the binding still checks `Can_Execute` before executing, while an embedded
+  host may bind availability explicitly when the application's validator does not route that host's tags.
+* Several contexts (of different models) may bind one view: bonxie's list dialog binds `Nav_VM` and `Item_List_VM`.
+* A model that the world must follow gives a view-model-side `Effects` interface (`Settings_VM.Effects`,
+  `Confirm_VM.Effects`, `Nav_VM.Effects`): what must happen around a command that a button of the view
+  does is done there, not by the button's handler.
+
+Tests: `ui_controls_test` (with `Options_VM`, `Options_UI`), which includes a view in a panel of the application's.
+
+## Cards, app-owned containers and late mounting
+
+`Context.Grip (Look, Command, Index, Name)` makes a clickable card container. `Grip_Look` controls its
+fill, border, shadow, hover colours, corners, hand pointer and keyboard focusability. `Plain_Grip` leaves
+click handling to the application. `Hold (Grip, Items)` places the grip and its declared children together;
+`Hold` also accepts a borrowed `Widget_Handle`. The container must start without children. Give its outer
+box with `Styled`; `Hold` describes the children's flow, gap, padding and alignment.
+
+`UI.Put (Screen, Existing)` places an app-owned widget without a model context.
+`UI.Put_In (Screen, Existing, Items)` nests layouts inside an app-owned container, with the same child
+layout options as `Hold`. These widgets remain owned by the application. Editors, pictures and canvases
+can keep their configuration and gesture handlers while their placement becomes declarative. Calling
+`Put` again for the same widget reuses its control identity.
+
+Repeated cards pass their row through `Index` on the controls and bindings. `Indexed_Text` and
+`Indexed_Flag` adapt getters with a positive row argument; commands receive the control's index too.
+For example, `Bound.Label (Titles, Row)` and `Bound.Grip (Look, Open_Card, Row)` refer to the same row.
+Indexed adapters map an omitted index (0) to row 1, so pass an explicit positive index for repeated controls.
+An index is a position, not a stable item identity: the model must still reject stale identities when rows
+can outlive their items. Keyed repeated components remain deferred.
+
+An embedded view can open and commit more components after its first mount. `Mount_Into` appends a layout
+to an attached parent; `Mount_Before` inserts it before an attached sibling. This supports sections and
+cards created as the model grows. The application continues to own the tree, validator and synchronization.
+A bar can also move: remove its widget from the tree, describe it again with `Put_In` and `Put`, then
+`Mount_Into` its new attached parent. This reuses its widgets and bindings.
+
+`Context.Focus_When (Target, Raised, Index)` gives focus when a flag turns true; a field's text is selected.
+Declare it after the binding that shows the control, so the target is visible before focus is given.
+Unlike `Focus_Initially`, it can respond to later model changes, such as entering rename mode.
+
+An application implements `UI.Observer.Turned` and registers it with `UI.Observe` to hear when a
+synchronization turn changed the state shown by the widgets. This is where an embedded host can request
+another layout. The notification describes widget state, rather than a paint callback. Keep the observer
+alive while registered; `Observe (Screen, null)` removes it.
+
+## Frame content, fragments and hosts
+
+`Fragment (Screen, Items)` describes siblings without adding a panel or applying a style to their parent.
+It is useful at an existing widget's insertion point: `Mount_Before` keeps their order before that sibling.
+Validation covers the entire fragment before attachment. A failed embedded mount removes the fragment's
+partial attachments and leaves previously mounted siblings in place; the same description can be retried.
+Use `Row` or `Column` when the group needs its own box, appearance or visibility binding.
+
+`Pomarine.UI.Hosts.Host` owns a view whose tree becomes known at build time. `Host.Open (Attached_Widget)`
+borrows that widget's tree, and `Host.Screen` returns the view. Declare the host after the widgets and models
+it borrows, so finalization detaches bindings and widgets before their owners disappear. The tree must outlive
+it. Bonxie's item windows and readers use this pattern. `Widgets.Tree_Of` returns the borrowed tree of an
+attached widget; it does not transfer ownership.
+
+`Widgets.Frames` composes its chrome through an embedded view. Content mounts before `Content_End`, title
+controls before `Title_End`, and status controls before `Status_End`. Overlays mount into `Surface` or
+`Status_Surface`. These insertion points replace the frame's old `Add_*` procedures. The frame still owns
+its dragging, resizing, title editing and geometry; its content's view owns the content descriptions.
+
+## Menu row descriptions
+
+`Pomarine.UI.Menus` composes menu content as values, including icons, swatches, ticks and availability:
+
+```ada
+Content : constant UI.Menus.Content :=
+  [UI.Menus.Row (Menus.Heading, "Actions"),
+   UI.Menus.Row (Menus.Check, "Chosen", Checked => True),
+   UI.Menus.Row (Menus.Separator),
+   UI.Menus.Row (Menus.Action, "Remove", Menus.Danger)];
+```
+
+`UI.Menus.Set_Content (Menu, Content)` prepares the rows before replacing the widget's snapshot. A failed
+allocation leaves the existing menu unchanged. Dynamic components build a local `Content` vector and append
+row descriptions before setting the snapshot once; storage and text grow with the content. Changing or
+destroying the description afterward leaves the menu's snapshot intact. Replacing content resets scrolling,
+hover and pressed rows, as clearing and rebuilding a menu did. Menu placement and `Choose` event routing remain
+the host's responsibility; row descriptions do not yet bind commands or model versions.
+
 ## Deferred
 
-Conditional mounting, replacing a screen, subtrees that change, keyed repeated components, and mounting more than
-one screen into a view. A view takes no more components once mounted (`Open_Scope` raises `Program_Error`).
+Conditional component creation and removal driven by bindings, replacing a screen, keyed repeated components,
+and mounting more than one standalone screen into a view. A standalone view takes no more components once mounted (`Open_Scope` raises `Program_Error`);
+embedded views accept late components as described above.
 Reusable components that know no model at all would be generic over a context instance; the ones here
 (`Entry_Field`, `Command_Button`) take the bindings they need, in the instance of the screen.
 

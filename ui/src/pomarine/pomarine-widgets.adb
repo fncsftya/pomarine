@@ -168,6 +168,8 @@ package body Pomarine.Widgets is
    function Is_Attached (Item : Widget'Class) return Boolean is
      (Item.Owner /= null);
 
+   function Tree_Of (Item : Widget'Class) return not null access Tree is (Item.Owner);
+
    function Id_Of (Item : Widget'Class) return Node_Id is
      (if Item.Owner = null then No_Node
       else (Item.Slot, Item.Owner.Nodes.Use_Number (Item.Slot), 0));

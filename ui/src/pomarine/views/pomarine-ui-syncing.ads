@@ -32,7 +32,8 @@ with Pomarine.Widgets;
 private package Pomarine.UI.Syncing is
 
    procedure Install
-     (Within : in out View'Class; Item : in out Pomarine.Widgets.Widget'Class; Kind : Pomarine.Widgets.Event_Kind);
+     (Within : in out View'Class; Item : in out Pomarine.Widgets.Widget'Class; Kind : Pomarine.Widgets.Event_Kind;
+      Edits_Only : Boolean := False);
    --  Have Item's Kind of event heard by the view (Hear).
 
    procedure Uninstall (Item : in out Pomarine.Widgets.Widget'Class; Kind : Pomarine.Widgets.Event_Kind);

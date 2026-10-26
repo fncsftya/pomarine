@@ -22,4 +22,6 @@ package Pomarine.Widgets.Frames.Handlers is
    --  When Item says Kind, call Do_This with Self. Self must be there as
    --  long as Item is in use. Replaces a handler for that kind.
 
+   procedure Off (Item : in out Frame; Kind : Event_Kind);
+
 end Pomarine.Widgets.Frames.Handlers;

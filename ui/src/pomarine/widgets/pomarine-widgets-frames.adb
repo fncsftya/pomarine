@@ -75,29 +75,39 @@ package body Pomarine.Widgets.Frames is
       Item.Floating := Placement = Floating;
       Item.Editing := False;
 
-      Add (Parent, Item.Outline_Panel);
-      Add (Item.Outline_Panel, Item.Title_Bar);
-      if Editable_Title then
-         Add (Item.Title_Bar, Item.Tag, Item.Title_Area);
-         Add (Item.Title_Area, Item.Title_Label);
-         Add (Item.Title_Bar, Item.Title_Field);
-         Add (Item.Title_Bar, Item.Spacer);
-      else
-         Add (Item.Title_Bar, Item.Tag);
-         Add (Item.Title_Bar, Item.Title_Label);
-      end if;
-      if Item.Docked then
-         Add (Item.Title_Bar, Item.Minimize_Button);
-      end if;
-      Add (Item.Title_Bar, Item.Close_Button);
-      Add (Item.Outline_Panel, Item.Status_Bar);
-      Add (Item.Status_Bar, Item.Corner);
-      if Item.Docked then
-         Add (Dock.all, Item.Mini);
-         Add (Item.Mini, Item.Mini_Area);
-         Add (Item.Mini_Area, Item.Mini_Title);
-         Add (Item.Mini, Item.Mini_Close);
-      end if;
+      Item.UI_Host.Open (Parent);
+      declare
+         Screen : UI.View renames Item.UI_Host.Screen.all;
+         Tag : constant UI.Layout := UI.Put (Screen, Item.Tag);
+         Title : constant UI.Layout :=
+           (if Editable_Title
+            then UI.Put_In (Screen, Item.Title_Area, [UI.Put (Screen, Item.Title_Label)])
+            else UI.Put (Screen, Item.Title_Label));
+         Field : constant UI.Layout :=
+           (if Editable_Title then UI.Put (Screen, Item.Title_Field) else UI.Nothing);
+         Spacer : constant UI.Layout :=
+           (if Editable_Title then UI.Put (Screen, Item.Spacer) else UI.Nothing);
+         Minimize_Control : constant UI.Layout :=
+           (if Item.Docked then UI.Put (Screen, Item.Minimize_Button) else UI.Nothing);
+         Close_Control : constant UI.Layout := UI.Put (Screen, Item.Close_Button);
+         Bar_Layout : constant UI.Layout :=
+           UI.Put_In (Screen, Item.Title_Bar, [Tag, Title, Field, Spacer, Minimize_Control, Close_Control]);
+         Status : constant UI.Layout :=
+           UI.Put_In (Screen, Item.Status_Bar, [UI.Put (Screen, Item.Corner)]);
+         Chrome_Layout : constant UI.Layout := UI.Put_In (Screen, Item.Outline_Panel, [Bar_Layout, Status]);
+         Mini_Title : constant UI.Layout :=
+           (if Item.Docked then UI.Put_In (Screen, Item.Mini_Area, [UI.Put (Screen, Item.Mini_Title)])
+            else UI.Nothing);
+         Mini_Close : constant UI.Layout :=
+           (if Item.Docked then UI.Put (Screen, Item.Mini_Close) else UI.Nothing);
+         Mini : constant UI.Layout :=
+           (if Item.Docked then UI.Put_In (Screen, Item.Mini, [Mini_Title, Mini_Close]) else UI.Nothing);
+      begin
+         UI.Mount_Into (Screen, Parent, Chrome_Layout);
+         if Item.Docked then
+            UI.Mount_Into (Screen, Dock.all, Mini);
+         end if;
+      end;
 
       --  What an assistive technology hears: a window with a title, and
       --  not the square of a colour, or the corner to size it by.
@@ -234,36 +244,20 @@ package body Pomarine.Widgets.Frames is
       Set_Visible (Item.Outline_Panel, False);
    end Build;
 
-   procedure Add_Title_Button
-     (Item : in out Frame; Button : in out Widget'Class) is
-   begin
-      Add_Before (Item.Title_Bar, Button, Item.Close_Button);
-   end Add_Title_Button;
+   function Title_End (Item : in out Frame) return not null access Widget'Class is
+     (Item.Close_Button'Unchecked_Access);
 
-   procedure Add_Content
-     (Item : in out Frame; Part : in out Widget'Class) is
-   begin
-      Add_Before (Item.Outline_Panel, Part, Item.Status_Bar);
-   end Add_Content;
+   function Content_End (Item : in out Frame) return not null access Widget'Class is
+     (Item.Status_Bar'Unchecked_Access);
 
-   procedure Add_Status_Item
-     (Item : in out Frame; Part : in out Widget'Class) is
-   begin
-      Add_Before (Item.Status_Bar, Part, Item.Corner);
-      --  Before the corner, which is over the row.
-   end Add_Status_Item;
+   function Status_End (Item : in out Frame) return not null access Widget'Class is
+     (Item.Corner'Unchecked_Access);
 
-   procedure Add_Over_Content
-     (Item : in out Frame; Part : in out Widget'Class) is
-   begin
-      Add (Item.Outline_Panel, Part);
-   end Add_Over_Content;
+   function Surface (Item : in out Frame) return not null access Widget'Class is
+     (Item.Outline_Panel'Unchecked_Access);
 
-   procedure Add_Over_Status
-     (Item : in out Frame; Part : in out Widget'Class) is
-   begin
-      Add (Item.Status_Bar, Part);
-   end Add_Over_Status;
+   function Status_Surface (Item : in out Frame) return not null access Widget'Class is
+     (Item.Status_Bar'Unchecked_Access);
 
    procedure Set_Title (Item : in out Frame; To : String) is
    begin

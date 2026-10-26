@@ -40,6 +40,37 @@ package body Pomarine.Widgets.Menus is
       end if;
    end Fit;
 
+   function Describe_Row
+     (Kind : Row_Kind; Text : String := ""; Shade : Tone := Plain; Checked : Boolean := False;
+      Allowed : Boolean := True; Icon : Pomarine.Icons.Optional := Pomarine.Icons.No_Icon;
+      Swatch : Themes.Slot := 0) return Row_Description
+   is
+      use type Pomarine.Icons.Optional;
+      use type Themes.Slot;
+   begin
+      return (Kind => Kind, Text => Ada.Strings.Unbounded.To_Unbounded_String (Text),
+              Shade => Shade, Checked => Checked, Enabled => Allowed,
+              Iconed => Icon /= Pomarine.Icons.No_Icon,
+              Which => (if Icon = Pomarine.Icons.No_Icon then Pomarine.Icons.Icon'First
+                        else Pomarine.Icons.Icon_Of (Icon)),
+              Swatched => Swatch /= 0, Swatch => Swatch);
+   end Describe_Row;
+
+   procedure Set_Rows (Item : in out Menu; Rows : Row_Vectors.Vector) is
+      Prepared : Line_Vectors.Vector;
+   begin
+      Prepared.Reserve_Capacity (Rows.Length);
+      for Each of Rows loop
+         Prepared.Append (Each);
+      end loop;
+      Item.Rows.Move (Prepared);
+      Item.Used := Natural (Rows.Length);
+      Item.Scrolled := 0.0;
+      Item.Over := 0;
+      Item.Pressed := 0;
+      Fit (Item);
+   end Set_Rows;
+
    procedure Clear (Item : in out Menu) is
    begin
       Item.Used := 0;
@@ -57,7 +88,7 @@ package body Pomarine.Widgets.Menus is
       Shade   : Tone := Plain;
       Checked : Boolean := False)
    is
-      Made : Line;
+      Made : Row_Description;
    begin
       Made.Kind := Kind;
       Made.Text := Ada.Strings.Unbounded.To_Unbounded_String (Text);
@@ -345,7 +376,7 @@ package body Pomarine.Widgets.Menus is
          Integer (Float'Ceiling (Inner_Width)), Integer (Float'Ceiling (Rows_Bottom (Item) - Rows_Top (Item))));
       for Index in 1 .. Item.Used loop
          declare
-            Each   : Line renames Item.Rows (Index);
+            Each   : Row_Description renames Item.Rows (Index);
             High   : constant Float :=
               Float'Rounding (Row_Height (Each.Kind) * Pixels);
             Middle : constant Float := Top + High / 2.0;
@@ -498,7 +529,7 @@ package body Pomarine.Widgets.Menus is
    is
       Pixels : constant Float := Density (Item);
       Top    : Float := First_Top (Item);
-      Row    : Line renames Item.Rows (Part);
+      Row    : Row_Description renames Item.Rows (Part);
    begin
       for Before in 1 .. Part - 1 loop
          Top := Top + Float'Rounding (Row_Height (Item.Rows (Before).Kind) * Pixels);

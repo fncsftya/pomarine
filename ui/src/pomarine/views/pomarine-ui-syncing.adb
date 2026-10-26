@@ -18,10 +18,25 @@ package body Pomarine.UI.Syncing is
       end if;
    end Heard;
 
-   procedure Install
-     (Within : in out View'Class; Item : in out Widgets.Widget'Class; Kind : Widgets.Event_Kind) is
+   procedure Edited
+     (Self : in out Hub; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   is
+      pragma Unreferenced (Source, Event);
    begin
-      Hub_Callbacks.On (Item, Kind, Within.Judge'Unchecked_Access, Heard'Access);
+      if Self.Owner /= null then
+         Hear (Self.Owner.all, (Kind => Widgets.Change, Tag => Widgets.No_Tag, Index => 0));
+      end if;
+   end Edited;
+
+   procedure Install
+     (Within : in out View'Class; Item : in out Widgets.Widget'Class; Kind : Widgets.Event_Kind;
+      Edits_Only : Boolean := False) is
+   begin
+      if Edits_Only then
+         Hub_Callbacks.On (Item, Kind, Within.Judge'Unchecked_Access, Edited'Access);
+      else
+         Hub_Callbacks.On (Item, Kind, Within.Judge'Unchecked_Access, Heard'Access);
+      end if;
    end Install;
 
    procedure Uninstall (Item : in out Widgets.Widget'Class; Kind : Widgets.Event_Kind) is
@@ -84,7 +99,8 @@ package body Pomarine.UI.Syncing is
    procedure Do_Command (Within : in out View'Class; Event : Widgets.Widget_Event) is
       use Tag_Maps;
       Found : constant Cursor :=
-        (if Event.Kind in Widgets.Click | Widgets.Submit then Within.Commands.Find (Event.Tag) else No_Element);
+        (if Event.Kind in Widgets.Click | Widgets.Submit | Widgets.Change
+         then Within.Commands.Find (Event.Tag) else No_Element);
    begin
       if Found = No_Element then
          return;
@@ -115,6 +131,7 @@ package body Pomarine.UI.Syncing is
    is
       Passes : Natural := 0;
       Doing  : Boolean := First;
+      Changed : Boolean := False;
    begin
       Within.Syncing := True;
       begin
@@ -128,6 +145,7 @@ package body Pomarine.UI.Syncing is
             end if;
             Refresh_All (Within, Forced => Forced and then Passes = 0);
             if Within.Touched then
+               Changed := True;
                Widgets.Revalidate (Within.Tree.all);
             end if;
             Passes := Passes + 1;
@@ -139,6 +157,9 @@ package body Pomarine.UI.Syncing is
             raise;
       end;
       Within.Syncing := False;
+      if Changed and then Within.Watcher /= null then
+         Within.Watcher.Turned;
+      end if;
    end Run;
 
    procedure Drain (Within : in out View'Class) is

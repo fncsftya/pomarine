@@ -983,6 +983,10 @@ package Pomarine.Widgets is
    function Is_Settled (Item : Widget'Class) return Boolean
      with Pre => Is_Attached (Item);
 
+   function Tree_Of (Item : Widget'Class) return not null access Tree
+     with Pre => Is_Attached (Item);
+   --  The borrowed tree; it must outlive any view embedded beside Item.
+
    function Clipboard (Item : Widget'Class) return Clipboard_Access
      with Pre => Is_Attached (Item);
    --  null if the tree has none.

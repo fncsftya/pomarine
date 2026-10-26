@@ -1,4 +1,5 @@
 with Texts.Documents;
+with Pomarine.UI.Hosts;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Editors;
 with Pomarine.Widgets.Grips;
@@ -14,8 +15,8 @@ with Pomarine.Widgets.Text_Fields;
 --  minimised to a bar in a dock.
 --
 --  A Frame is the chrome alone. It is built with its content left to the
---  application, which adds that where it belongs (Add_Content,
---  Add_Status_Item, ...), styles it, and says where the window is (Place).
+--  application, which mounts declarative layouts at its insertion points,
+--  styles it, and says where the window is (Place).
 --  It keeps nothing of what the window is for: it says how far the title
 --  bar and the corner have been dragged (Move, Resize), and which buttons
 --  were clicked (Close, Minimize, Restore), as events, and the application
@@ -73,27 +74,12 @@ package Pomarine.Widgets.Frames is
    --  a button to minimise it is in the title bar, and a bar for it
    --  is in the Dock, in which it is while it is minimised.
 
-   --  Content: widgets are added in the order they are laid out in.
-
-   procedure Add_Title_Button
-     (Item : in out Frame; Button : in out Widget'Class);
-   --  After the title, before the button to close it.
-
-   procedure Add_Content
-     (Item : in out Frame; Part : in out Widget'Class);
-   --  After the title bar, before the status line.
-
-   procedure Add_Status_Item
-     (Item : in out Frame; Part : in out Widget'Class);
-   --  In the status line, before the corner.
-
-   procedure Add_Over_Content
-     (Item : in out Frame; Part : in out Widget'Class);
-   --  After the status line: as a menu over the content.
-
-   procedure Add_Over_Status
-     (Item : in out Frame; Part : in out Widget'Class);
-   --  In the status line, after the corner: over it.
+   function Title_End (Item : in out Frame) return not null access Widget'Class;
+   function Content_End (Item : in out Frame) return not null access Widget'Class;
+   function Status_End (Item : in out Frame) return not null access Widget'Class;
+   function Surface (Item : in out Frame) return not null access Widget'Class;
+   function Status_Surface (Item : in out Frame) return not null access Widget'Class;
+   --  Declarative insertion points: mount before an End, or into a Surface for overlays.
 
    --  Looks
 
@@ -190,7 +176,7 @@ private
       Floating  : Boolean := True;
       Editing   : Boolean := False;
 
-      Outline_Panel : Panels.Panel;
+      Outline_Panel : aliased Panels.Panel;
       --  On the canvas: the outline, round the bar, the content and the
       --  status line.
       Title_Bar     : Grips.Grip;
@@ -200,15 +186,17 @@ private
       Title_Field   : Text_Fields.Text_Field;
       Spacer        : Panels.Panel;
       Minimize_Button : Buttons.Button;
-      Close_Button  : Buttons.Button;
-      Status_Bar    : Panels.Panel;
-      Corner        : Grips.Grip;
+      Close_Button  : aliased Buttons.Button;
+      Status_Bar    : aliased Panels.Panel;
+      Corner        : aliased Grips.Grip;
 
       Mini          : Panels.Panel;
       --  In the dock.
       Mini_Area     : Grips.Grip;
       Mini_Title    : Labels.Label;
       Mini_Close    : Buttons.Button;
+      UI_Host : Pomarine.UI.Hosts.Host;
+      --  Detach the declared chrome before its widgets are finalized.
    end record;
 
 end Pomarine.Widgets.Frames;

@@ -27,7 +27,29 @@ package Pomarine.Widgets.Menus is
 
    type Tone is (Plain, Primary, Danger);
 
+   type Row_Description is record
+      Kind     : Row_Kind := Note;
+      Text     : Ada.Strings.Unbounded.Unbounded_String;
+      Shade    : Tone := Plain;
+      Checked  : Boolean := False;
+      Enabled  : Boolean := True;
+      Iconed   : Boolean := False;
+      Which    : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
+      Swatched : Boolean := False;
+      Swatch   : Themes.Slot := Themes.Primary;
+   end record;
+   package Row_Vectors is new Ada.Containers.Vectors (Positive, Row_Description);
+
+   function Describe_Row
+     (Kind : Row_Kind; Text : String := ""; Shade : Tone := Plain; Checked : Boolean := False;
+      Allowed : Boolean := True; Icon : Pomarine.Icons.Optional := Pomarine.Icons.No_Icon;
+      Swatch : Themes.Slot := 0) return Row_Description;
+
    type Menu is new Widget with private;
+
+   procedure Set_Rows (Item : in out Menu; Rows : Row_Vectors.Vector)
+     with Post => Row_Count (Item) = Natural (Rows.Length);
+   --  Prepare all rows before replacing the menu. A failed allocation leaves it unchanged.
 
    procedure Clear (Item : in out Menu)
      with Post => Row_Count (Item) = 0;
@@ -134,19 +156,7 @@ package Pomarine.Widgets.Menus is
 
 private
 
-   type Line is record
-      Kind     : Row_Kind := Note;
-      Text     : Ada.Strings.Unbounded.Unbounded_String;
-      Shade    : Tone := Plain;
-      Checked  : Boolean := False;
-      Enabled  : Boolean := True;
-      Iconed   : Boolean := False;
-      Which    : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
-      Swatched : Boolean := False;
-      Swatch   : Themes.Slot := Themes.Primary;
-   end record;
-
-   package Line_Vectors is new Ada.Containers.Vectors (Positive, Line);
+   package Line_Vectors renames Row_Vectors;
 
    type Menu is new Widget with record
       Rows    : Line_Vectors.Vector;
