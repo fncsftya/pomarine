@@ -204,6 +204,17 @@ package body Pomarine.Testing is
       Settle (Item);
    end Type_Text;
 
+   procedure Feed (Item : in out Session; Event : Pomarine.Events.Event) is
+   begin
+      Take (Item.Uses.all, Event);
+   end Feed;
+
+   procedure Compose (Item : in out Session; Text : String; Cursor : Natural := Natural'Last) is
+   begin
+      Take (Item.Uses.all, Pomarine.Events.Editing_Event (Text, Cursor));
+      Settle (Item);
+   end Compose;
+
    procedure Press
      (Item : in out Session; Key : Pomarine.Events.Key_Code; Command : Boolean := False; Shift : Boolean := False) is
    begin

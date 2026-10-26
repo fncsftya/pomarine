@@ -1,0 +1,40 @@
+with Pomarine.Events;
+with Pomarine.Testing;
+with Pomarine.Widgets;
+with Todo;
+with Todo_VM;
+
+procedure Todo_View_Test is
+   package Testing renames Pomarine.Testing;
+   Tree   : aliased Pomarine.Widgets.Tree;
+   Model  : aliased Todo_VM.Model;
+   Screen : Todo.UI.View (Tree'Access);
+   Window : Testing.Session;
+begin
+   Todo_VM.Seed (Model);
+   Todo.Build (Screen, Model'Access);
+   Testing.Open (Window, Tree, 640, 480);
+   pragma Assert (Testing.Is_Disabled (Window, "Done"));
+   pragma Assert (Testing.Is_Disabled (Window, "Delete"));
+   pragma Assert (Testing.Is_Disabled (Window, "Clear done"));
+   Testing.Press (Window, Pomarine.Events.Key_Return);
+   pragma Assert (Todo_VM.Count (Model) = 2);
+   Testing.Type_Text (Window, "A new task");
+   pragma Assert (Todo_VM.Draft (Model) = "A new task");
+   Testing.Press (Window, Pomarine.Events.Key_Return);
+   pragma Assert (Todo_VM.Count (Model) = 3);
+   pragma Assert (Todo_VM.Draft (Model) = "");
+   Testing.Click_On (Window, "A new task");
+   pragma Assert (not Testing.Is_Disabled (Window, "Done"));
+   Testing.Click_On (Window, "Done");
+   pragma Assert (Testing.Shows (Window, "2 of 3 left"));
+   Testing.Click_On (Window, "Clear done");
+   pragma Assert (Todo_VM.Count (Model) = 2);
+   pragma Assert (Testing.Is_Disabled (Window, "Delete"));
+   Testing.Click_On (Window, "Build the examples");
+   Testing.Click_On (Window, "Done");
+   Testing.Click_On (Window, "Done");
+   pragma Assert (Testing.Is_Disabled (Window, "Clear done"));
+   Testing.Click_On (Window, "Delete");
+   pragma Assert (Todo_VM.Count (Model) = 1);
+end Todo_View_Test;

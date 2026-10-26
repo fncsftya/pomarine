@@ -69,6 +69,8 @@ package body Pomarine.Widgets.Lists is
 
    function Selected (Item : List) return Natural is (Row_Of_Id (Item, Item.Chosen));
 
+   function Chosen_Id (Item : List) return Natural is (Item.Chosen);
+
    --  A row's buttons: squares as high as the row, side by side at its
    --  right end, before the bar, in the order the row has them.
 
@@ -182,6 +184,11 @@ package body Pomarine.Widgets.Lists is
          Reveal (Item, Row);
       end if;
    end Select_Row;
+
+   procedure Select_Id (Item : in out List; Id : Natural) is
+   begin
+      Select_Row (Item, Row_Of_Id (Item, Id));
+   end Select_Id;
 
    --  Events
 
@@ -346,8 +353,7 @@ package body Pomarine.Widgets.Lists is
       end case;
    end Handle;
 
-   overriding procedure Update (Item : in out List; Now : Pomarine.Events.Milliseconds) is
-      pragma Unreferenced (Now);
+   procedure Catch_Up (Item : in out List) is
    begin
       if Item.Model /= null
         and then Pomarine.Models.Version (Item.Model.all) /= Item.Seen
@@ -361,6 +367,12 @@ package body Pomarine.Widgets.Lists is
          end if;
          Invalidate (Item);
       end if;
+   end Catch_Up;
+
+   overriding procedure Update (Item : in out List; Now : Pomarine.Events.Milliseconds) is
+      pragma Unreferenced (Now);
+   begin
+      Catch_Up (Item);
    end Update;
 
    overriding procedure Hover_Changed (Item : in out List; Hovered : Boolean) is

@@ -34,6 +34,49 @@ package body Tasks is
       Item.Changed := Item.Changed + 1;
    end Clear_Done;
 
+   procedure Move (Item : in out Task_List; From, To : Positive) is
+   begin
+      if From /= To then
+         declare
+            Moving : constant Task_Item := Item.Items (From);
+         begin
+            Item.Items.Delete (From);
+            Item.Items.Insert (To, Moving);
+         end;
+         Item.Changed := Item.Changed + 1;
+      end if;
+   end Move;
+
+   function Find (Item : Task_List; Id : Natural) return Natural is
+      Low  : Natural := 1;
+      High : Natural := Natural (Item.Items.Length);
+   begin
+      if Id = 0 then
+         return 0;
+      end if;
+      while Low <= High loop
+         declare
+            Middle : constant Positive := Low + (High - Low) / 2;
+            Seen   : constant Positive := Item.Items (Middle).Id;
+         begin
+            if Seen = Id then
+               return Middle;
+            elsif Seen < Id then
+               Low := Middle + 1;
+            else
+               High := Middle - 1;
+            end if;
+         end;
+      end loop;
+      --  Not where the order says: after a Move, or gone.
+      for Row in 1 .. Natural (Item.Items.Length) loop
+         if Item.Items (Row).Id = Id then
+            return Row;
+         end if;
+      end loop;
+      return 0;
+   end Find;
+
    function Open_Count (Item : Task_List) return Natural is
    begin
       return Result : Natural := 0 do

@@ -51,6 +51,18 @@ package Pomarine.Widgets.Lists is
    --  Choose Row (0 for none), and bring it into view. Says nothing: it is
    --  the application's doing.
 
+   function Chosen_Id (Item : List) return Natural;
+   --  The id (Pomarine.Models.List_Model.Row_Id) of the chosen row; 0 if none. Unlike
+   --  Selected, it is the same wherever the row moves to, and costs no search.
+
+   procedure Catch_Up (Item : in out List);
+   --  Look at the model now, as Update does: keep what shows within the rows, and let go of a choice
+   --  that is gone. For an application that asks Chosen_Id before the list has had its turn.
+
+   procedure Select_Id (Item : in out List; Id : Natural);
+   --  Choose the row with that id (0 for none), and bring it into view. An id
+   --  no row has is none. Says nothing, as Select_Row.
+
    procedure Reveal (Item : in out List; Row : Positive);
    --  Scroll, if need be, to show Row.
 

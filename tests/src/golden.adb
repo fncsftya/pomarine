@@ -17,6 +17,7 @@ with Semantic_Tests;
 with Setter_Tests;
 with Sheet_Tests;
 with Text_Area_Tests;
+with UI_Tests;
 with Widget_Tests;
 
 --  Draws widgets and text areas by themselves, in various setups, and
@@ -130,6 +131,10 @@ begin
    Run ("layout-intrinsic", Layout_Tests.Intrinsic_Labels'Access);
    Run ("layout-pruned", Layout_Tests.Only_What_Changed'Access);
    Run ("layout-declarative", Layout_Tests.Declarative_Building'Access);
+
+   Run ("ui-todo-opens", UI_Tests.Todo_Opens'Access);
+   Run ("ui-todo-used", UI_Tests.Todo_Used'Access);
+   Run ("ui-todo-wide", UI_Tests.Todo_Wide'Access);
 
    Run ("application-posts", Platform_Tests.Posted_Work'Access);
    Run ("menus-choices", Platform_Tests.Menu_Choices'Access);

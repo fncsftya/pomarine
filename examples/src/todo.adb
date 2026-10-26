@@ -1,98 +1,78 @@
-with Pomarine.Line_Texts;
-with Pomarine.Widgets.Callbacks;
-with Pomarine.Widgets.Layouts;
-
 package body Todo is
-   package Widgets renames Pomarine.Widgets;
-   package Buttons renames Pomarine.Widgets.Buttons;
-   package Layouts renames Pomarine.Widgets.Layouts;
 
-   package Handlers is new Widgets.Callbacks (Page);
+   use all type Todo_VM.Command;
 
-   procedure Show_Summary (Item : in out Page) is
-      Open : constant Natural := Tasks.Open_Count (Item.Items);
-   begin
-      Pomarine.Widgets.Labels.Set_Text
-        (Item.Summary, Open'Image & " of" & Tasks.Count (Item.Items)'Image & " left");
-   end Show_Summary;
-
-   procedure Add_Task (Item : in out Page; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
-      pragma Unreferenced (Source, Event);
-      Text : constant String := Texts.Documents.Whole (Item.Typed);
-   begin
-      if Text'Length > 0 then
-         Tasks.Add (Item.Items, Text);
-         Texts.Documents.Load (Item.Typed, "");
-         Pomarine.Widgets.Lists.Reveal (Item.List, Tasks.Count (Item.Items));
-         Show_Summary (Item);
-      end if;
-   end Add_Task;
-
-   procedure Toggle_Chosen
-     (Item : in out Page; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   function Entry_Field
+     (Parent  : Todo_UI.Context'Class;
+      Text    : Todo_UI.Text_Property;
+      Submit  : Todo_VM.Command;
+      Prompt  : String) return Entry_Part
    is
-      pragma Unreferenced (Source, Event);
-      Row : constant Natural := Pomarine.Widgets.Lists.Selected (Item.List);
+      Bound  : aliased Todo_UI.Component (Parent'Access);
+      Typed  : constant UI.Field_Handle := Bound.Text_Field (Text, Submit => Submit, Placeholder => Prompt);
+      Result : constant Entry_Part := (Layout => UI.Place (Typed), Focus => UI.Focus_Of (Typed));
    begin
-      if Row > 0 then
-         Tasks.Toggle (Item.Items, Row);
-         Show_Summary (Item);
-      end if;
-   end Toggle_Chosen;
+      Bound.Commit;
+      return Result;
+   end Entry_Field;
 
-   procedure Remove_Chosen
-     (Item : in out Page; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   function Command_Button
+     (Parent  : Todo_UI.Context'Class;
+      Caption : String;
+      Command : Todo_VM.Command;
+      Width   : Float;
+      Look    : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal) return UI.Layout
    is
-      pragma Unreferenced (Source, Event);
-      Row : constant Natural := Pomarine.Widgets.Lists.Selected (Item.List);
+      Bound  : aliased Todo_UI.Component (Parent'Access);
+      Made   : constant UI.Button_Handle := Bound.Button (Caption, Command => Command, Look => Look);
+      Result : constant UI.Layout := UI.Place (Made, Width => Width);
    begin
-      if Row > 0 then
-         Tasks.Delete (Item.Items, Row);
-         Show_Summary (Item);
-      end if;
-   end Remove_Chosen;
+      Bound.Commit;
+      return Result;
+   end Command_Button;
 
-   procedure Sweep_Done
-     (Item : in out Page; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
-   is
-      pragma Unreferenced (Source, Event);
+   function Task_Entry (Parent : Todo_UI.Context'Class) return Entry_Part is
+     (Entry_Field (Parent, Task_Draft, Add_Task, "What needs doing? Press Return"));
+
+   function Task_Content (Parent : Todo_UI.Context'Class) return Content_Part is
+      Bound : aliased Todo_UI.Component (Parent'Access);
+      Tasks_List : constant UI.List_Handle := Bound.List (Task_Rows, Task_Choice);
+      Result : constant Content_Part :=
+        (Layout => UI.Place (Tasks_List, Grow => 1.0), Reveal => UI.Reveal_Of (Tasks_List));
    begin
-      Tasks.Clear_Done (Item.Items);
-      Show_Summary (Item);
-   end Sweep_Done;
+      Bound.Commit;
+      return Result;
+   end Task_Content;
 
-   procedure Build (Item : aliased in out Page; Tree : in out Widgets.Tree) is
+   function Task_Actions (Parent : Todo_UI.Context'Class) return UI.Layout is
+      Bound   : aliased Todo_UI.Component (Parent'Access);
+      Summary : constant UI.Label_Handle := Bound.Label (Text => Task_Summary);
+      Done    : constant UI.Layout := Command_Button (Bound, "Done", Toggle_Chosen, Width => 70.0);
+      Delete  : constant UI.Layout :=
+        Command_Button (Bound, "Delete", Remove_Chosen, Width => 70.0, Look => Pomarine.Widgets.Buttons.Danger);
+      Clear   : constant UI.Layout := Command_Button (Bound, "Clear done", Sweep_Done, Width => 100.0);
+      Result  : constant UI.Layout := UI.Row ([UI.Place (Summary, Grow => 1.0), Done, Delete, Clear], Gap => 8.0);
    begin
-      Widgets.Set_Root (Tree, Item.Root);
-      Layouts.Set_Layout (Item.Root, (Flow => Layouts.Column, Padding => (others => 12.0), Gap => 8.0, others => <>));
-      Layouts.Add (Item.Root, Item.Entry_Box, (Height => 38.0, others => <>));
-      Layouts.Add (Item.Root, Item.List, (Grow => 1.0, others => <>));
-      Layouts.Add
-        (Item.Root, Item.Footer,
-         (Flow => Layouts.Row, Align => Layouts.Center, Height => 32.0, Gap => 8.0, others => <>));
-      Layouts.Add (Item.Footer, Item.Summary, (Grow => 1.0, Height => 24.0, others => <>));
-      Buttons.Add
-        (Item.Footer, Item.Toggle, Buttons.Looks ("Done"), (Width => 70.0, Height => 32.0, others => <>));
-      Buttons.Add
-        (Item.Footer, Item.Remove, Buttons.Looks ("Delete", Buttons.Danger),
-         (Width => 70.0, Height => 32.0, others => <>));
-      Buttons.Add
-        (Item.Footer, Item.Sweep, Buttons.Looks ("Clear done"), (Width => 100.0, Height => 32.0, others => <>));
+      Bound.Commit;
+      return Result;
+   end Task_Actions;
 
-      Pomarine.Widgets.Text_Fields.Configure (Item.Entry_Box, Pomarine.Line_Texts.Interface_Font, 15.0);
-      Pomarine.Widgets.Text_Fields.Attach (Item.Entry_Box, Item.Typed'Unchecked_Access);
-      Pomarine.Widgets.Text_Fields.Set_Placeholder (Item.Entry_Box, "What needs doing? Press Return");
-      Pomarine.Widgets.Lists.Set_Model (Item.List, Item.Items'Unchecked_Access);
+   function Task_Screen (Bound : Todo_UI.Context'Class) return UI.Layout is
+      --  Declared one after the other: the order controls are made in is the order of the tab key.
+      Entry_Area : constant Entry_Part := Task_Entry (Bound);
+      Content    : constant Content_Part := Task_Content (Bound);
+      Actions    : constant UI.Layout := Task_Actions (Bound);
+   begin
+      Bound.Focus_Initially (Entry_Area.Focus);
+      Bound.Reveal_After (Add_Task, Content.Reveal, Task_Count);
+      return UI.Column ([Entry_Area.Layout, Content.Layout, Actions], Padding => 12.0, Gap => 8.0);
+   end Task_Screen;
 
-      Handlers.On (Item.Entry_Box, Widgets.Submit, Item'Access, Add_Task'Access);
-      Handlers.On (Item.Toggle, Widgets.Click, Item'Access, Toggle_Chosen'Access);
-      Handlers.On (Item.Remove, Widgets.Click, Item'Access, Remove_Chosen'Access);
-      Handlers.On (Item.Sweep, Widgets.Click, Item'Access, Sweep_Done'Access);
-
-      Tasks.Add (Item.Items, "Read the Pomarine README");
-      Tasks.Add (Item.Items, "Build the examples");
-      Show_Summary (Item);
-      Widgets.Focus (Item.Entry_Box);
+   procedure Build (Screen : in out UI.View; Model : not null access Todo_VM.Model) is
+      Bound : constant Todo_UI.Context'Class := Todo_UI.Bind (Screen, Model);
+      Whole : constant UI.Layout := Task_Screen (Bound);
+   begin
+      UI.Mount (Screen, Whole);
    end Build;
 
 end Todo;

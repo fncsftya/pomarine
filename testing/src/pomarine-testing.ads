@@ -114,6 +114,16 @@ package Pomarine.Testing is
      (Item : in out Session; Key : Pomarine.Events.Key_Code; Command : Boolean := False; Shift : Boolean := False);
    --  A key goes down, to the widget with the focus, with Command and Shift held if they are asked.
 
+   procedure Feed (Item : in out Session; Event : Pomarine.Events.Event);
+   --  Hand over one event as the platform would, and let no time pass after it: of
+   --  the events that come in one turn, the last is not followed by an Update.
+   --  Settle lets the time pass.
+
+   procedure Compose (Item : in out Session; Text : String; Cursor : Natural := Natural'Last);
+   --  An input method shows Text (underlined, in place of the selection) before it types it,
+   --  with the caret after Cursor characters of it; "" takes it away. Typing the same text
+   --  (Type_Text) after it is what the method does to commit it.
+
 private
 
    type Node is record

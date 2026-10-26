@@ -27,6 +27,15 @@ package Tasks is
 
    procedure Clear_Done (Item : in out Task_List);
 
+   procedure Move (Item : in out Task_List; From, To : Positive)
+     with Pre => From <= Count (Item) and then To <= Count (Item);
+   --  Put the task in row From into row To, the others making room: their ids stay theirs.
+
+   function Find (Item : Task_List; Id : Natural) return Natural;
+   --  The row of the task with that id; 0 if there is none (it was deleted, or Id is 0). Ids are
+   --  given in order and never again, so rows added and deleted leave the rest in order and the
+   --  search is quick; after a Move it may look further.
+
    function Open_Count (Item : Task_List) return Natural;
    --  How many are not done.
 

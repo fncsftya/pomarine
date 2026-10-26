@@ -1552,6 +1552,18 @@ package body Pomarine.Widgets is
          end if;
          if Above = 0 then
             Home.Root := 0;
+            --  Its children's nodes are Yoga's root's children still: take them away, or the
+            --  next root has them.
+            declare
+               Child : Node_Index := Home.Nodes.First (Slot);
+            begin
+               while Child /= 0 loop
+                  Yoga.Nodes.Delete (Home.Nodes.Yoga_Node (Slot), Home.Nodes.Yoga_Node (Child));
+                  Child := Home.Nodes.Next (Child);
+               end loop;
+            end;
+            Home.Layout_Pending := True;
+            Home.Lost := True;
          else
             Unlink (Home.all, Slot);
             Yoga.Nodes.Delete

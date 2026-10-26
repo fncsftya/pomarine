@@ -16,6 +16,7 @@ macos = true
 [[depends-on]]
 pomarine = "*"
 pomarine_ui = "*"
+pomarine_vm = "*"
 coretext = "*"
 sdl3 = "*"
 texts = "*"

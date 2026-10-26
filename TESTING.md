@@ -104,3 +104,72 @@ and does not overflow, that setting a property to what it has is not a change, t
 that text has no length it stops at, and that a command's precondition refuses what cannot be done. `Pomarine.Testing`
 (`testing/`) is what an application's tests of its views use; the example in `evo/mvvm/example` (`bin/view_test`)
 clicks by name and types into the field, and `bin/vm_test` is its view-model alone.
+
+The todo example uses `examples/src/view_models/todo_vm.ads` for draft text, selection,
+summary and command rules. Its tests cover command contracts, unchanged versions,
+long text, growing task storage and stable row identities; the offscreen test
+checks adding, toggling, clearing and deleting by semantic name. Run:
+
+```sh
+cd examples/tests
+alr build
+bin/todo_vm_test
+bin/todo_view_test
+```
+
+## Views
+
+`Pomarine.UI` (`UI.md`) is tested in `examples/tests`, with `Form_VM` (a model with a text that can normalize, be
+changed from elsewhere, and keeps a journal of what was done to it and in what order) and the todo example. Each is
+a program with assertions; none opens a window.
+
+```sh
+cd examples/tests
+alr exec -- gprbuild -P todo_tests.gpr
+for t in todo_vm_test todo_view_test ui_slice_test ui_ownership_test ui_unchecked_test \
+         ui_sync_test ui_reentry_test ui_text_test ui_list_test; do bin/$t; done
+```
+
+* `todo_vm_test`: the todo model alone: command contracts, unchanged versions, long text, growing task storage, and
+  a choice that is of a task and not of a row (rows moved, others deleted, the chosen one deleted, a newcomer in its place).
+* `ui_slice_test`: a field and commands through a view, as the first slice that was built.
+* `ui_ownership_test`: the arenas (`Live_Arenas`, `Live_Views`) are back where they were when views go; borrowed
+  widgets are taken out of the tree, untagged, and not finalized, before the application's own objects are;
+  a handle outlives its scope, its place is used again and it stays stale; handles and layouts of another view;
+  a context outlives its view; a control placed twice, in another tree, a tree with a root, no screen; a mount
+  that fails before each of five attachments leaves the tree, the controls, the scopes and the arenas as they were and
+  mounts when tried again (this is what found the tree's stale Yoga children); a declaration that fails, a
+  component not committed, a child that fails after another succeeded, a parent that fails after its children
+  succeeded, a parent that forgives a child.
+* `ui_unchecked_test`: stale and foreign handles, a layout of another view, a control twice, and a mount refused, with
+  its own `Expect`, not an assertion. Built with assertions ignored and every check off across the whole tree of
+  crates, it is still refused:
+
+  ```sh
+  printf 'pragma Assertion_Policy (Ignore);\n' > ignore.adc
+  alr exec -- gprbuild -f -P todo_tests.gpr --relocate-build-tree=/tmp/unchecked --root-dir=../.. \
+        -cargs:Ada -gnatp -gnatec=$PWD/ignore.adc
+  /tmp/unchecked/examples/tests/bin/ui_unchecked_test
+  ```
+* `ui_sync_test`: the first turn is done when `Mount` returns (text shown, commands on or off) and no component is run again
+  when a model changes; Return typed in the turn of the typing saves what was typed, in the order `set(..) save(..)`;
+  each binding watches its own version (`Name_Reads`, `Status_Reads`: no read when nothing changed, the status not read
+  for a change of the name); a model's change from elsewhere is not heard back as an edit; two forms and a todo list, three
+  models of two kinds, in one view, with no command of one done by a button of another; a command that is no literal
+  of the model's enumeration (`Command_Action`).
+* `ui_reentry_test`: an event that comes while the view is in the middle of a pass is kept and run as a turn
+  of its own when the pass is done (`Queued_Events`), and not inside it; a model that raises leaves the view able to
+  go on; the person and the model changing a text in one turn.
+* `ui_text_test`: a refresh to the same text keeps the caret, the selection, the document's state and its undo (and
+  undo's result is heard); another text replaces the document, forgets the history and puts the caret at the end, the
+  start, or where it was; a model that normalizes is shown as it said; an input method's composition is not given to
+  the model, is not disturbed by the model's change, and puts it off until it ends (cancelled: the model's text; committed:
+  the person's); Return during composition is not a submission, Return after a commit in the same turn submits it.
+* `ui_list_test`: a choice follows its item when rows are moved or others deleted, goes with it when it is deleted
+  and is not given to the task that takes its row; the first focus is the entry (type with no click); a task added by
+  Return is shown even far down the list, and one added by something else is not scrolled to; the names.
+
+The drawing of the todo screen is golden: `ui-todo-opens`, `ui-todo-used` (a choice, text in the entry) and
+`ui-todo-wide`, in `tests`, beside the others (`cd tests; bin/golden ui-todo`). They are drawn from `Todo.Build`
+with the layout of the screen in them: change a layout and these change.
+
