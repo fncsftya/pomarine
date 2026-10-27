@@ -1987,6 +1987,166 @@ package body Pomarine.UI.Contexts is
       return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
    end Borrow_Widget;
 
+   function Borrow_Widget
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Widget'Class;
+      Click    : Commands.Command;
+      Index    : Natural := 0;
+      Tooltip  : String := "";
+      Name     : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Exact    : Boolean := False) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Widget_Handle := Borrow_Widget (Self, Existing);
+   begin
+      Describe (Existing, Tooltip, Name);
+      On_Event (Self, Made, Widgets.Click, Click, Index);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align, Exact);
+   end Borrow_Widget;
+
+   function Borrow_Holding
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Widget'Class;
+      Items    : Pomarine.UI.Layout_Array;
+      Click    : Commands.Command;
+      Index    : Natural := 0;
+      Flow     : Pomarine.UI.Layouts.Flow_Kind := Pomarine.UI.Layouts.Column;
+      Gap      : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Padding  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Spread   : Pomarine.UI.Spread_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Widget_Handle := Borrow_Widget (Self, Existing);
+   begin
+      On_Event (Self, Made, Widgets.Click, Click, Index);
+      return Pomarine.UI.Hold (Made, Items, Flow, Gap, Padding, Align, Spread);
+   end Borrow_Holding;
+
+   function Borrow_Holding
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Widget'Class;
+      Items    : Pomarine.UI.Layout_Array;
+      Flow     : Pomarine.UI.Layouts.Flow_Kind := Pomarine.UI.Layouts.Column;
+      Gap      : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Padding  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Spread   : Pomarine.UI.Spread_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+   begin
+      return Pomarine.UI.Hold
+        (Borrow_Widget (Self, Existing), Items, Flow, Gap, Padding, Align, Spread);
+   end Borrow_Holding;
+
+   function Borrow_Label
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Labels.Label;
+      Text     : Text_Property;
+      Tooltip  : String := "";
+      Name     : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Exact    : Boolean := False) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Label_Handle := Borrow_Label (Self, Existing, Text);
+   begin
+      Describe (Existing, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align, Exact);
+   end Borrow_Label;
+
+   function Borrow_Button
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Buttons.Button;
+      Command  : Commands.Command;
+      Index    : Natural := 0;
+      Reflect  : Boolean := True;
+      Tooltip  : String := "";
+      Name     : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Exact    : Boolean := False) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Button_Handle := Borrow_Button (Self, Existing, Command, Index, Reflect);
+   begin
+      Describe (Existing, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align, Exact);
+   end Borrow_Button;
+
+   function Borrow_Field
+     (Self      : Context;
+      Existing  : in out Pomarine.Widgets.Text_Fields.Text_Field;
+      Backing   : aliased in out Texts.Documents.Document;
+      Text      : Text_Property;
+      Replacing : Replacement := Caret_At_End;
+      Tooltip   : String := "";
+      Name      : String := "";
+      Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width     : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align     : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Exact     : Boolean := False) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Field_Handle := Borrow_Field (Self, Existing, Backing, Text, Replacing);
+   begin
+      Describe (Existing, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align, Exact);
+   end Borrow_Field;
+
+   function Borrow_Slider
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Sliders.Slider;
+      Value    : Fraction_Property;
+      Tooltip  : String := "";
+      Name     : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Exact    : Boolean := False) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Widget_Handle := Borrow_Slider (Self, Existing, Value);
+   begin
+      Describe (Existing, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align, Exact);
+   end Borrow_Slider;
+
+   function Borrow_List
+     (Self      : Context;
+      Existing  : in out Pomarine.Widgets.Lists.List;
+      Rows      : Rows_Property;
+      Selection : Choice_Property;
+      Tooltip   : String := "";
+      Name      : String := "";
+      Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width     : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align     : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
+      Exact     : Boolean := False) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.List_Handle := Borrow_List (Self, Existing, Rows, Selection);
+   begin
+      Describe (Existing, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align, Exact);
+   end Borrow_List;
+
    --  Components
 
    overriding procedure Initialize (Item : in out Component) is

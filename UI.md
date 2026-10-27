@@ -239,6 +239,13 @@ at a time. The view takes over the handler of the one event it hears (`Click`, `
 the view takes them out of the tree, leaves them as they were, and does not finalize them (`ui_ownership_test`).
 A borrowed widget that is in a tree already is an `Attachment_Conflict`.
 
+Each `Borrow_*` also has a placed form, as the owned controls do: it takes `Tooltip`, `Name` and the `Place`
+parameters (`Grow`, `Shrink`, `Width`, `Height`, `Margin`, `Align`, `Exact`) and returns the `Layout`, so
+`Bound.Borrow_Button (Part, Save, Width => 80.0, Exact => True)` is the whole of it. `Borrow_Widget` with `Click`
+(and `Index`) binds a click; `Borrow_Holding (Part, Items, Click => ...)` is a borrowed grip or panel with what it
+holds and an optional click (`Hold` and `On_Event` in one). Keep the handle forms for what needs the handle
+afterwards (`Selected_When`, `Enabled_When`, `Show_When` on the control, more than one event).
+
 ## What building it found
 
 * **Prototype first.** Four mechanics were tried in a small program before the API was spelled: subpool arenas

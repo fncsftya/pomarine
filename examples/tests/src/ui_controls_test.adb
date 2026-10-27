@@ -17,6 +17,7 @@ with Pomarine.Widgets.Checks;
 with Pomarine.Widgets.Labels;
 with Pomarine.Widgets.Switches;
 with Pomarine.Widgets.Panels;
+with Pomarine.Widgets.Grips;
 with Pomarine.Widgets;
 with Options_UI;
 with Options_VM;
@@ -384,6 +385,31 @@ procedure UI_Controls_Test is
       pragma Assert (not Widgets.Buttons.Is_Selected (Borrowed));
       pragma Assert (not Testing.Is_Disabled (Window, "Choose dark"));
    end Borrowed_Buttons_Follow_Flags;
+
+   procedure Borrowed_Placed_Forms_Wire_And_Place is
+      Tree : aliased Widgets.Tree;
+      Model : aliased Options_VM.Model;
+      Borrowed : Widgets.Buttons.Button;
+      Card : Widgets.Grips.Grip;
+      Screen : UI.View (Tree'Access);
+      Window : Testing.Session;
+      Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+   begin
+      Widgets.Buttons.Configure (Borrowed, Widgets.Buttons.Looks ("Choose dark"));
+      UI.Mount
+        (Screen,
+         UI.Column
+           ([Bound.Borrow_Button (Borrowed, Pick_Dark, Reflect => False, Tooltip => "Dark", Height => 40.0),
+             UI.Styled
+              (Bound.Borrow_Holding (Card, [Bound.Label ("Choose light")], Click => Pick_Light),
+               (Height => 40.0, others => <>))]));
+      Testing.Open (Window, Tree, 320, 200);
+      pragma Assert (not Options_VM.Dark (Model));
+      Testing.Click_On (Window, "Choose dark");
+      pragma Assert (Options_VM.Dark (Model));
+      Testing.Click_On (Window, "Choose light");
+      pragma Assert (not Options_VM.Dark (Model));
+   end Borrowed_Placed_Forms_Wire_And_Place;
 
    procedure Button_Captions_Follow_Text is
       Tree : aliased Widgets.Tree;
@@ -792,6 +818,7 @@ begin
    Canvas_Hooks_Are_Bound_Once_To_A_Canvas;
    Sliders_And_Menu_Events_Follow_The_Model;
    Borrowed_Buttons_Follow_Flags;
+   Borrowed_Placed_Forms_Wire_And_Place;
    Button_Captions_Follow_Text;
    Menu_Descriptions_Are_Snapshots_And_Grow;
    Replacing_Menu_Content_Cancels_A_Press;
