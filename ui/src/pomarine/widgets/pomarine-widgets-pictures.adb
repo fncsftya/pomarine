@@ -29,6 +29,9 @@ package body Pomarine.Widgets.Pictures is
    procedure Stop_Loading (Item : in out Picture);
    --  Give up the picture being read, if any.
 
+   procedure Release_Strips (Item : in out Picture);
+   --  Let go of the textures of the strips read.
+
    procedure Stop_Loading (Item : in out Picture) is
    begin
       if Item.Job /= 0 then
@@ -36,6 +39,14 @@ package body Pomarine.Widgets.Pictures is
          Item.Job := 0;
       end if;
    end Stop_Loading;
+
+   procedure Release_Strips (Item : in out Picture) is
+   begin
+      for Each of Item.Pixels loop
+         Textures.Release (Each);
+      end loop;
+      Item.Ready := 0;
+   end Release_Strips;
 
    use type Pomarine.Events.Event_Kind;
    use type Pomarine.Events.Key_Code;
@@ -472,11 +483,26 @@ package body Pomarine.Widgets.Pictures is
       Item.Down := 0.0;
       Item.Across := 0.0;
       Item.Fitted := 0.0;
-      Textures.Release (Item.Pixels);
+      Release_Strips (Item);
       Item.Wide := 0;
       Item.High := 0;
+      Item.Strips := 0;
+      Item.Strip_High := [others => 0];
       if Path /= "" then
-         SDL3.Pictures.Size (Path, Item.Wide, Item.High);
+         --  A file that is not there is one strip that cannot be read.
+         Item.Strips := Natural'Max (1, Pomarine.Strips.Strip_Count (Path));
+         for Each in 1 .. Item.Strips loop
+            declare
+               Wide, High : Natural;
+            begin
+               SDL3.Pictures.Size (Pomarine.Strips.Strip_File (Path, Each), Wide, High);
+               if Each = 1 then
+                  Item.Wide := Wide;
+               end if;
+               Item.Strip_High (Each) := High;
+               Item.High := Item.High + High;
+            end;
+         end loop;
       end if;
       Item.Held := False;
       Item.Anchor := 0;
@@ -496,14 +522,14 @@ package body Pomarine.Widgets.Pictures is
             Jobs.Prioritize (Item.Job);
          end if;
       else
-         Jobs.Request (File_Name (Item), Urgent, Item.Job);
+         Jobs.Request (Pomarine.Strips.Strip_File (File_Name (Item), Item.Ready + 1), Urgent, Item.Job);
       end if;
    end Load_Soon;
 
    procedure Unload (Item : in out Picture) is
    begin
       Stop_Loading (Item);
-      Textures.Release (Item.Pixels);
+      Release_Strips (Item);
       Item.Loaded := False;
       Item.Failed := False;
    end Unload;
@@ -586,10 +612,19 @@ package body Pomarine.Widgets.Pictures is
             Item.Failed := True;
             return;
          elsif Item.Job /= 0 and then Jobs.State (Item.Job) = Jobs.Done then
+            declare
+               Strip_Dark : Boolean;
             begin
-               Jobs.Finish (Item.Job, Item.Pixels, Target.Device.all, Item.Dark);
+               Jobs.Finish (Item.Job, Item.Pixels (Item.Ready + 1), Target.Device.all, Strip_Dark);
                Item.Job := 0;
-               Item.Loaded := True;
+               Item.Ready := Item.Ready + 1;
+               if Item.Ready = 1 then
+                  Item.Dark := Strip_Dark;
+               end if;
+               Item.Loaded := Item.Ready >= Item.Strips;
+               if not Item.Loaded then
+                  Load_Soon (Item, Urgent => True);
+               end if;
             exception
                when others =>
                   Item.Job := 0;
@@ -600,20 +635,37 @@ package body Pomarine.Widgets.Pictures is
       end if;
       --  As tall as it will be, before it is there.
       if Item.Loaded then
-         Item.Fitted := Wide * Float (Textures.Height (Item.Pixels)) / Float (Textures.Width (Item.Pixels));
+         declare
+            High : Natural := 0;
+         begin
+            for Each in 1 .. Item.Ready loop
+               High := High + Textures.Height (Item.Pixels (Each));
+            end loop;
+            Item.Fitted := Wide * Float (High) / Float (Textures.Width (Item.Pixels (1)));
+         end;
       elsif Item.Wide > 0 then
          Item.Fitted := Wide * Float (Item.High) / Float (Item.Wide);
       end if;
       Item.Down := Float'Min (Item.Down, Furthest (Item, Height_Of (Item)));
       Item.Across := Float'Min (Item.Across, 1.0);
-      if Item.Loaded then
-         SDL3.Painters.Draw_Scaled
-           (Target,
-            Item.Pixels,
-            Left_Of (Item) - Item.Across * Float'Max (0.0, Wide - Box),
-            Top_Of (Item) - Item.Down * Item.Fitted,
-            Wide,
-            Item.Fitted);
+      --  The strips read so far, one under another; each is drawn a pixel taller than it is, under
+      --  the next, so that no line of the paper's shows between them.
+      if Item.Ready > 0 then
+         declare
+            Left : constant Float := Left_Of (Item) - Item.Across * Float'Max (0.0, Wide - Box);
+            Down : Float := Top_Of (Item) - Item.Down * Item.Fitted;
+         begin
+            for Each in 1 .. Item.Ready loop
+               declare
+                  High : constant Float :=
+                    Wide * Float (Textures.Height (Item.Pixels (Each))) / Float (Textures.Width (Item.Pixels (1)));
+               begin
+                  SDL3.Painters.Draw_Scaled
+                    (Target, Item.Pixels (Each), Left, Down, Wide, (if Each < Item.Strips then High + 1.0 else High));
+                  Down := Down + High;
+               end;
+            end loop;
+         end;
       end if;
       declare
          Left : constant Float := Origin_X (Item);

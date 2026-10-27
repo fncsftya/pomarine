@@ -6,9 +6,11 @@ with SDL3.Cursors;
 with Pomarine.Events;
 with SDL3.Windows.Renderers.Textures;
 with Pomarine.Scrollbars;
+with Pomarine.Strips;
 with Pomarine.Words;
 
---  A picture from a PNG file, as wide as the box, and as tall as that
+--  A picture from a PNG file (or, if it is too tall to be one texture, from
+--  several, one under another: see Pomarine.Strips), as wide as the box, and as tall as that
 --  makes it, of which the box shows a part: scrolled with the wheel (or a
 --  trackpad's two fingers), and by Scroll_To. It is read in the background
 --  (see SDL3.Pictures.Jobs): when it is first drawn, or sooner if asked
@@ -206,6 +208,9 @@ package Pomarine.Widgets.Pictures is
 
 private
 
+   type Strip_Heights is array (Pomarine.Strips.Strip_Index) of Natural;
+   type Strip_Textures is array (Pomarine.Strips.Strip_Index) of SDL3.Windows.Renderers.Textures.Texture;
+
    type Picture is new Widget with record
       Search_Found : Pomarine.Searches.Results;
       Name         : String (1 .. Path_Capacity) := [others => ' '];
@@ -215,10 +220,16 @@ private
       Failed       : Boolean := False;
       Wide         : Natural := 0;
       High         : Natural := 0;
-      --  The file's size in pixels, from its header: 0 if not known.
+      --  The picture's size in pixels, from the headers of its files, all
+      --  its strips together for the height: 0 if not known.
+      Strips       : Natural := 0;
+      --  How many files it is of; Strip_High is of each.
+      Strip_High   : Strip_Heights := [others => 0];
+      Ready        : Natural := 0;
+      --  How many strips, from the first, are read and have a texture.
       Job          : Natural := 0;
-      --  The ticket of the picture being read, 0 if none.
-      Pixels       : SDL3.Windows.Renderers.Textures.Texture;
+      --  The ticket of the strip being read (Ready + 1), 0 if none.
+      Pixels       : Strip_Textures;
       Down         : Float := 0.0;
       --  How far the picture is scrolled, as a fraction of its height.
       Zoomed       : Float := 1.0;
