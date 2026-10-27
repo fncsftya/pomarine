@@ -1049,19 +1049,49 @@ package body Pomarine.UI.Contexts is
       end if;
    end Called;
 
-   function Label (Self : Context; Text : Text_Property; Index : Natural := 0) return Pomarine.UI.Label_Handle is
+   procedure Look_Of
+     (Home   : in out Pomarine.UI.View'Class;
+      Handle : Pomarine.UI.Label_Handle;
+      Style  : Pomarine.Line_Texts.Style;
+      Ink    : Pomarine.Themes.Slot) is
+      use type Pomarine.Line_Texts.Style;
+      use type Pomarine.Themes.Slot;
+   begin
+      if Style /= Pomarine.Line_Texts.Regular then
+         Labels.Set_Style (Widget_Of (Home, Handle).all, Style);
+      end if;
+      if Ink /= 0 then
+         Labels.Set_Ink (Widget_Of (Home, Handle).all, Ink);
+      end if;
+   end Look_Of;
+   --  What a label is made to look like, when it is not the plain one.
+
+   function Label
+     (Self  : Context;
+      Text  : Text_Property;
+      Index : Natural := 0;
+      Style : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink   : Pomarine.Themes.Slot := 0) return Pomarine.UI.Label_Handle
+   is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Label_Handle := New_Label (Home.all, Self.Scope);
    begin
       Wire_Label (Self, Home.all, Handle, Text, Index);
+      Look_Of (Home.all, Handle, Style, Ink);
       return Handle;
    end Label;
 
-   function Label (Self : Context; Caption : String) return Pomarine.UI.Label_Handle is
+   function Label
+     (Self    : Context;
+      Caption : String;
+      Style   : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink     : Pomarine.Themes.Slot := 0) return Pomarine.UI.Label_Handle
+   is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Label_Handle := New_Label (Home.all, Self.Scope);
    begin
       Labels.Set_Text (Widget_Of (Home.all, Handle).all, Caption);
+      Look_Of (Home.all, Handle, Style, Ink);
       return Handle;
    end Label;
 
@@ -1681,6 +1711,8 @@ package body Pomarine.UI.Contexts is
       Text     : Text_Property;
       Index    : Natural := 0;
       Centered : Boolean := False;
+      Style    : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink      : Pomarine.Themes.Slot := 0;
       Tooltip  : String := "";
       Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
       Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
@@ -1690,7 +1722,7 @@ package body Pomarine.UI.Contexts is
       Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
    is
       Home : constant not null View_Ref := View_Of (Self);
-      Made : constant Pomarine.UI.Label_Handle := Label (Self, Text, Index);
+      Made : constant Pomarine.UI.Label_Handle := Label (Self, Text, Index, Style, Ink);
    begin
       if Centered then
          Labels.Set_Centered (Widget_Of (Home.all, Made).all, True);
@@ -1703,6 +1735,8 @@ package body Pomarine.UI.Contexts is
      (Self     : Context;
       Caption  : String;
       Centered : Boolean := False;
+      Style    : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink      : Pomarine.Themes.Slot := 0;
       Tooltip  : String := "";
       Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
       Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
@@ -1712,7 +1746,7 @@ package body Pomarine.UI.Contexts is
       Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
    is
       Home : constant not null View_Ref := View_Of (Self);
-      Made : constant Pomarine.UI.Label_Handle := Label (Self, Caption);
+      Made : constant Pomarine.UI.Label_Handle := Label (Self, Caption, Style, Ink);
    begin
       if Centered then
          Labels.Set_Centered (Widget_Of (Home.all, Made).all, True);

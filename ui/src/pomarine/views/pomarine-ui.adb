@@ -825,8 +825,10 @@ package body Pomarine.UI is
       end;
    end Described;
 
-   function Placed_Layout (Handle : Handle_Data; Box : Layouts.Style) return Layout is
-     (Described (Placed, Box, Handle, [1 .. 0 => Nothing], Handle.View));
+   function Placed_Layout (Handle : Handle_Data; Box : Layouts.Style; Exact : Boolean := False) return Layout is
+     (if Exact
+      then Styled (Described (Placed, Box, Handle, [1 .. 0 => Nothing], Handle.View), Box)
+      else Described (Placed, Box, Handle, [1 .. 0 => Nothing], Handle.View));
 
    function Box_Of
      (Grow, Shrink : Layouts.Weight; Width, Height, Margin : Layouts.Length; Align : Align_Kind)
@@ -841,8 +843,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Button_Handle;
@@ -851,8 +854,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Field_Handle;
@@ -861,8 +865,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : List_Handle;
@@ -871,8 +876,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Check_Handle;
@@ -881,8 +887,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Switch_Handle;
@@ -891,8 +898,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Progress_Handle;
@@ -901,8 +909,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Widget_Handle;
@@ -911,8 +920,9 @@ package body Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align)));
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout is
+     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Held_Layout
      (Handle : Handle_Data; Items : Layout_Array; Flow : Layouts.Flow_Kind;

@@ -195,7 +195,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
 
    function Place
      (Item   : Button_Handle;
@@ -204,7 +205,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
 
    function Place
      (Item   : Field_Handle;
@@ -213,7 +215,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
 
    function Place
      (Item   : List_Handle;
@@ -222,7 +225,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
    function Place
      (Item   : Check_Handle;
       Grow   : Layouts.Weight := Layouts.Unchanged;
@@ -230,7 +234,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
 
    function Place
      (Item   : Switch_Handle;
@@ -239,7 +244,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
 
    function Place
      (Item   : Progress_Handle;
@@ -248,7 +254,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
 
    function Place
      (Item   : Widget_Handle;
@@ -257,7 +264,8 @@ package Pomarine.UI is
       Width  : Layouts.Length := Unset;
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
-      Align  : Align_Kind := Layouts.As_Is) return Layout;
+      Align  : Align_Kind := Layouts.As_Is;
+      Exact  : Boolean := False) return Layout;
 
    --  Where a control goes in its container. A Place says nothing about
    --  size that a control has a default for: buttons are 80 x 32 points,

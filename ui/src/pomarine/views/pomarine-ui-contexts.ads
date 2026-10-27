@@ -1,7 +1,9 @@
 with Pomarine.Widgets.Frames;
 with Pomarine.Widgets.Sliders;
 with Ada.Finalization;
+with Pomarine.Line_Texts;
 with Pomarine.Models;
+with Pomarine.Themes;
 with Pomarine.View_Models;
 with Pomarine.Widgets.Buttons;
 with Pomarine.Widgets.Checks;
@@ -140,9 +142,19 @@ package Pomarine.UI.Contexts is
 
    function Is_Writable (Item : Text_Property) return Boolean;
 
-   function Label (Self : Context; Text : Text_Property; Index : Natural := 0) return Pomarine.UI.Label_Handle;
+   function Label
+     (Self  : Context;
+      Text  : Text_Property;
+      Index : Natural := 0;
+      Style : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink   : Pomarine.Themes.Slot := 0) return Pomarine.UI.Label_Handle;
+   --  A label of the model's text, in Style and in Ink (a slot of 0 is the theme's foreground).
 
-   function Label (Self : Context; Caption : String) return Pomarine.UI.Label_Handle;
+   function Label
+     (Self    : Context;
+      Caption : String;
+      Style   : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink     : Pomarine.Themes.Slot := 0) return Pomarine.UI.Label_Handle;
    --  A label of a text that is no model's.
 
    function Button
@@ -301,6 +313,8 @@ package Pomarine.UI.Contexts is
       Text     : Text_Property;
       Index    : Natural := 0;
       Centered : Boolean := False;
+      Style    : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink      : Pomarine.Themes.Slot := 0;
       Tooltip  : String := "";
       Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
       Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
@@ -313,6 +327,8 @@ package Pomarine.UI.Contexts is
      (Self     : Context;
       Caption  : String;
       Centered : Boolean := False;
+      Style    : Pomarine.Line_Texts.Style := Pomarine.Line_Texts.Regular;
+      Ink      : Pomarine.Themes.Slot := 0;
       Tooltip  : String := "";
       Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
       Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
