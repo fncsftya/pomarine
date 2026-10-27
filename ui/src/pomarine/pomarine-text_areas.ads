@@ -654,4 +654,7 @@ private
       Keyboard_Navigation : Boolean := True;
    end record;
 
+   function Has_Toolbar (Item : Text_Area) return Boolean is
+     (Item.Toolbar and then not Item.Single and then not Item.Read_Only);
+
 end Pomarine.Text_Areas;
