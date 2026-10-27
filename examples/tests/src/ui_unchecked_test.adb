@@ -8,7 +8,7 @@ with Form_VM;
 
 --  What is refused when nothing is asked of the compiler: no assertion, contract or check of range is relied
 --  on, and this test does not use one either (Expect), so it can be built with assertions ignored and all
---  checks off (see TESTING.md). A handle that has outlived its scope, one of another view, a control placed
+--  checks off (see docs/testing.md). A handle that has outlived its scope, one of another view, a control placed
 --  twice and a layout of a scope that is gone are each refused by a test the program makes itself, before
 --  any storage is looked at.
 

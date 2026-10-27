@@ -168,7 +168,7 @@ end First_App;
 ```
 
 The model must outlive every use of the view. Here `Model` lives for the whole call to `Show`, and `Run_Window`
-manages the window, tree, and view in lifetime order. See [UI.md](../UI.md) for constructing those objects yourself.
+manages the window, tree, and view in lifetime order. See [UI guide](ui.md) for constructing those objects yourself.
 
 ## Make your own copy
 
@@ -257,6 +257,6 @@ bin/example_views_test
 ```
 
 That test exercises the example greeter in `examples/src`, not the tutorial source. Test model rules without
-widgets, bindings through `Pomarine.Testing`, and drawing through goldens. See [TESTING.md](../TESTING.md) for the
-test and image-review workflows, [UI.md](../UI.md) for more controls and bindings, and the gallery
+widgets, bindings through `Pomarine.Testing`, and drawing through goldens. See [testing guide](testing.md) for the
+test and image-review workflows, [UI guide](ui.md) for more controls and bindings, and the gallery
 (`alr run gallery_gui` from `examples/`) for examples.

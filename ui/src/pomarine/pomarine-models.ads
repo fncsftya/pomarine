@@ -8,7 +8,9 @@ with Pomarine.Icons;
 package Pomarine.Models is
 
    Text_Capacity : constant := 160;
-   --  Bytes of a row's text and of its detail; more is cut off.
+   --  Bytes of a row's displayed text and detail; Set_Text and Set_Detail
+   --  truncate at a UTF-8 character boundary. Keep the full user content in
+   --  the application model, not in this presentation buffer.
 
    Max_Actions : constant := 3;
    --  How many buttons a row can have at its end.
@@ -65,6 +67,11 @@ package Pomarine.Models is
    function Detail_Of (Item : Row_Content) return String;
 
    type List_Model is limited interface;
+   --  Implement this interface over application storage for a list whose
+   --  size can grow. The list borrows the model, which must outlive its use.
+   --  Count and Describe_Row use one-based row positions; Row_Id supplies
+   --  stable, distinct positive identities, not positions. A selection is
+   --  an identity and zero represents no selection in UI.Contexts.Choosing.
 
    function Count (Self : List_Model) return Natural is abstract;
    --  How many rows.
@@ -90,6 +97,8 @@ package Pomarine.Models is
    --  application fills by hand.
 
    type Text_List (Capacity : Positive) is limited new List_Model with private;
+   --  A fixed-capacity convenience model for a bounded set of rows. Use a
+   --  List_Model over growing storage for user-created or unbounded content.
 
    procedure Clear (Item : in out Text_List)
    with Post => Count (Item) = 0;

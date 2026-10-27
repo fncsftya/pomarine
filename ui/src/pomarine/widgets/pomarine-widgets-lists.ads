@@ -59,6 +59,8 @@ package Pomarine.Widgets.Lists is
    procedure Catch_Up (Item : in out List);
    --  Look at the model now, as Update does: keep what shows within the rows, and let go of a choice
    --  that is gone. For an application that asks Chosen_Id before the list has had its turn.
+   --  Selected reports the current row position; Chosen_Id reports its stable identity. After deleting or
+   --  moving rows, call Catch_Up before asking for the id if Update has not yet run.
 
    procedure Select_Id (Item : in out List; Id : Natural);
    --  Choose the row with that id (0 for none), and bring it into view. An id

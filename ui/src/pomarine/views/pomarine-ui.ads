@@ -50,11 +50,10 @@ with Texts.Documents;
 --  it. Declare the model before the view. Destroying a view never calls the
 --  model; using a view after its model is gone does.
 --
---  The adapters that say how to read and write a model are generics
---  instantiated in a package (library level). A persistent binding keeps a
---  pointer to such an instance, and nothing nested: an instantiation inside
---  a subprogram is refused by the compiler (its accessibility check), so a
---  binding can neither keep local package state nor call a nested callback.
+--  Instantiate Contexts at library level. Properties such as Showing and
+--  Editing take access to the model's library-level subprograms; the view
+--  keeps the resulting adapters in its arena. A binding must not retain a
+--  nested callback or model that has gone out of scope.
 --
 --  Widgets that the application owns can be brought in by borrowing
 --  (Contexts.Borrow_*): the view binds and places them like its own, but
@@ -466,6 +465,9 @@ package Pomarine.UI is
 
    procedure Mount_Into (Item : in out View; Parent : in out Pomarine.Widgets.Widget'Class; Screen : Layout)
    with Pre => Pomarine.Widgets.Is_Attached (Parent);
+   --  Mount Screen as the last children of an attached host widget. The host
+   --  retains its root, validator and listener; see Mount_Before for routing
+   --  and synchronization. Unlike Mount, the host must call Synchronize.
 
    procedure Mount_Before (Item : in out View; Before : in out Pomarine.Widgets.Widget'Class; Screen : Layout)
    with Pre => Pomarine.Widgets.Is_Attached (Before);

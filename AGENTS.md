@@ -24,7 +24,7 @@ Before handoff, run `rg --files -0 -g '*.adb' -g '*.ads' -g '*.ada' | xargs -0 g
 
 ## Testing
 
-See TESTING.md
+See docs/testing.md
 ## The native crate
 
 `native/` is Ada over a small Rust static library (`native/rust`, built by

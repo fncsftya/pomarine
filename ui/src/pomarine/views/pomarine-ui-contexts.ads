@@ -76,6 +76,10 @@ package Pomarine.UI.Contexts is
    --
    --  The view keeps what it needs in its own arena. Changes says what a text or a choice watches to see it was
    --  changed; none, the model as a whole.
+   --  Showing text is for a Label; Editing text also supplies the setter required by Text_Field. Listing
+   --  supplies a List's rows and Choosing its selected id. Showing a flag supplies read-only state; Editing
+   --  supplies state that a settable Check may write. The command-bound Check and Switch instead run a command.
+   --  Showing a fraction supplies Progress; Editing also supplies a setter to controls that accept one.
 
    type Text_Getter is access function (Item : Model) return String;
    type Text_Each_Getter is access function (Item : Model; Index : Positive) return String;
@@ -92,12 +96,14 @@ package Pomarine.UI.Contexts is
    type Version_Getter is access function (Item : Model) return VM.Version_Number;
 
    function Showing (Get : not null Text_Getter; Changes : Version_Getter := null) return Text_Property;
-   --  A text to show, never written.
+   --  A text to show, never written, such as in a Label. Changes selects the version to watch; null watches
+   --  the whole model. Advance that version whenever Get can return a different value.
    function Showing (Get : not null Text_Each_Getter) return Text_Property;
    --  A text to show for each of many (a card of a list), whole version, each turn.
    function Editing
      (Get : not null Text_Getter; Set : not null Text_Setter; Changes : Version_Getter := null) return Text_Property;
-   --  A text to show and to be written by what the person types (as Edit_Text).
+   --  A text to show and to be written by what the person types (as Edit_Text). Text_Field requires a writable
+   --  property. The setter must update the watched version when the displayed text changes.
 
    function Showing (Get : not null Flag_Getter) return Flag_Property;
    function Showing (Get : not null Flag_Each_Getter) return Flag_Property;
@@ -120,12 +126,13 @@ package Pomarine.UI.Contexts is
    --  A number, to see whether it grew (as Counter).
 
    function Listing (Get : not null Rows_Getter) return Rows_Property;
-   --  The rows a list shows, borrowed from the model (as Row_Source).
+   --  The rows a list shows, borrowed from the model (as Row_Source). The returned model must outlive its use.
 
    function Choosing
      (Get : not null Count_Getter; Set : not null Choice_Setter; Changes : Version_Getter := null)
       return Choice_Property;
-   --  The id of the chosen row, and how a choice is made (as Choice).
+   --  The stable Row_Id of the chosen row, or 0 for no selection, and how
+   --  a choice is made (as Choice). It is not a one-based row position.
 
    function Doing (Allowed : not null Flag_Getter; Perform : not null Action_Performer) return Action_Property;
    --  A command that is no enumeration's (as Command_Action).
