@@ -50,7 +50,7 @@ package body Pomarine.Widgets.Buttons is
       Icon_Points : Float := 0.0;
       Captioned   : Boolean := False;
       Shape       : Shape_Kind := Plain;
-      Focusable   : Boolean := False;
+      Focusable   : Boolean := True;
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
       Underlined  : Boolean := False;
       Struck      : Boolean := False) return Settings is

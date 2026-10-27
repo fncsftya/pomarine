@@ -17,10 +17,11 @@ with Pomarine.Widgets.Layouts;
 --
 --  It is pressed by the left button over it, and clicked by that button
 --  let go over it, which it says to the tree's listener (see
---  Pomarine.Widgets.Listener) as a Click. It does not take the
---  focus, unless it is made to (Set_Focusable), so that clicking it does
---  not take it from what is being typed into; with the focus, it has a
---  ring in the theme's focus colour, and Return or Space clicks it.
+--  Pomarine.Widgets.Listener) as a Click. Tab reaches it, and with the
+--  focus it has a ring in the theme's focus colour, and Return or Space
+--  clicks it. A click does not move the focus to it, so that it does not
+--  take it from what is being typed into. One that Tab should skip, such
+--  as a toolbar button beside an editor, is made so (Set_Focusable).
 
 package Pomarine.Widgets.Buttons is
 
@@ -52,7 +53,7 @@ package Pomarine.Widgets.Buttons is
       Icon_Points : Float := 0.0;
       Captioned   : Boolean := False;
       Shape       : Shape_Kind := Plain;
-      Focusable   : Boolean := False;
+      Focusable   : Boolean := True;
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
       Underlined  : Boolean := False;
       Struck      : Boolean := False) return Settings
@@ -184,7 +185,7 @@ private
       Icon_Points : Float := 0.0;
       Captioned   : Boolean := False;
       Shape       : Shape_Kind := Plain;
-      Focusable   : Boolean := False;
+      Focusable   : Boolean := True;
    end record;
 
    type Button is new Widget with record
@@ -203,7 +204,7 @@ private
       Selected    : Boolean := False;
       Shape       : Shape_Kind := Plain;
       Enabled     : Boolean := True;
-      Focusable   : Boolean := False;
+      Focusable   : Boolean := True;
       Down        : Boolean := False;  --  pressed, and not yet let go
       By_Command  : Boolean := False;  --  selected as a command in force
       Over_Caret  : Boolean := False;  --  the pointer is over it

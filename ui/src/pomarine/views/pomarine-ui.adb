@@ -395,7 +395,7 @@ package body Pomarine.UI is
    end New_Label;
 
    function New_Button
-     (Item : in out View; Scope : Scope_Ref; Caption : String; Kind : Buttons.Kind; Focusable : Boolean := False)
+     (Item : in out View; Scope : Scope_Ref; Caption : String; Kind : Buttons.Kind; Focusable : Boolean := True)
       return Button_Handle
    is (New_Button (Item, Scope, Buttons.Looks (Caption, Kind, Focusable => Focusable)));
 

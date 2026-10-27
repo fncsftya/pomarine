@@ -1225,7 +1225,7 @@ package body Pomarine.UI.Contexts is
       Command   : Commands.Command;
       Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
       Index     : Natural := 0;
-      Focusable : Boolean := False) return Pomarine.UI.Button_Handle
+      Focusable : Boolean := True) return Pomarine.UI.Button_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Button_Handle := New_Button (Home.all, Self.Scope, Caption, Look, Focusable);
@@ -1945,7 +1945,7 @@ package body Pomarine.UI.Contexts is
       Command   : Commands.Command;
       Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
       Index     : Natural := 0;
-      Focusable : Boolean := False;
+      Focusable : Boolean := True;
       Tooltip   : String := "";
       Name      : String := "";
       Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;

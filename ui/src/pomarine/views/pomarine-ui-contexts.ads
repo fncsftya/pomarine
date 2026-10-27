@@ -176,7 +176,7 @@ package Pomarine.UI.Contexts is
       Command   : Commands.Command;
       Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
       Index     : Natural := 0;
-      Focusable : Boolean := False) return Pomarine.UI.Button_Handle;
+      Focusable : Boolean := True) return Pomarine.UI.Button_Handle;
    --  A button that does Command when it is clicked, if the model can, and is turned
    --  on and off as the model says.
 
@@ -351,7 +351,7 @@ package Pomarine.UI.Contexts is
       Command   : Commands.Command;
       Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
       Index     : Natural := 0;
-      Focusable : Boolean := False;
+      Focusable : Boolean := True;
       Tooltip   : String := "";
       Name      : String := "";
       Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;

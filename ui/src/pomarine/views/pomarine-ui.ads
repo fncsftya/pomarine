@@ -835,7 +835,7 @@ private
       Scope     : Scope_Ref;
       Caption   : String;
       Kind      : Pomarine.Widgets.Buttons.Kind;
-      Focusable : Boolean := False) return Button_Handle;
+      Focusable : Boolean := True) return Button_Handle;
    function New_Button
      (Item : in out View; Scope : Scope_Ref; Look : Pomarine.Widgets.Buttons.Settings; Unheard : Boolean := False)
       return Button_Handle;
