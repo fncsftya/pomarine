@@ -227,7 +227,8 @@ For a form or a list, keep what the screen means apart from how it looks (Model-
 view-model (`Pomarine.View_Models`, a crate of the standard library only) has properties, commands that say
 when they can be done (`Can_Execute`) and what they do (`Execute (What, Index)`, `Index` being which of many),
 and a `Version` that goes up when anything it shows changes (an `Observed_Model` keeps it: say how a command is done
-(`Perform`) and call `Mark_Changed` for the rest). With `Pomarine.UI`, controls are declared with
+(`Perform`, declared privately; clients call `Execute`) and call `Mark_Changed` for the rest). With
+`Pomarine.UI`, controls are declared with
 bindings in component functions, the hierarchy is a layout expression, and the view owns the widgets and keeps
 them in step with the model (edits, command, refresh). Commands check `Can_Execute` before running. A view-model
 is tested alone, and its view with `Pomarine.Testing`, which clicks by what a widget is called. Continuous canvas

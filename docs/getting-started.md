@@ -45,20 +45,23 @@ package Greeter_VM is
 
    overriding
    function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding
-   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0)
-   with Post => Count (Self) = Count (Self)'Old + 1;
 
 private
    type Model is limited new Commands.Observed_Model with record
       Greetings : Natural := 0;
    end record;
+
+   --  Private: run commands through Execute, which checks Can_Execute and counts the change.
+   overriding
+   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0)
+   with Post => Count (Self) = Count (Self)'Old + 1;
 end Greeter_VM;
 ```
 
 `Command_Models` gives this model a command interface for its enumeration. `Can_Execute` says whether a command
 is available; `Index` identifies an item for commands that act on one. This command has no item, so it uses zero.
-`Perform` does the work; its postcondition describes the expected result.
+`Perform` does the work; its postcondition describes the expected result. It is declared in the private part so
+that clients cannot call it: `Execute` is the only way in.
 
 In [`greeter_vm.adb`](../tutorial/src/view_models/greeter_vm.adb), the message depends on the count, and the
 command is available while the count can still increase:
@@ -90,7 +93,8 @@ end Greeter_VM;
 Call `Execute` to run a command from application code. `Observed_Model.Execute` calls `Perform` and marks the
 model changed, so bindings know to refresh. UI command routing checks `Can_Execute`; direct calls to `Execute`
 are subject to its precondition and assertion, whose enforcement depends on assertion policy. The tutorial enables
-contracts and runtime checks. Do not call `Perform` directly: it bypasses `Execute`'s check and change tracking.
+contracts and runtime checks. `Perform` is only the hook `Execute` calls; calling it directly would skip the `Can_Execute` check and
+the change tracking, and the view would not refresh.
 When a setter changes displayed state outside a command, call `Mark_Changed` or account for the change through
 `Parts_Version`; see [`Pomarine.View_Models`](../vm/src/pomarine-view_models.ads).
 

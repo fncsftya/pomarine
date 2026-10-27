@@ -10,8 +10,6 @@ package Meter_VM is
 
    overriding
    function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding
-   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 
    function Level (Self : Model) return Float;
    procedure Set_Level (Self : in out Model; To : Float);
@@ -30,4 +28,8 @@ private
       Ready  : Boolean := False;
       Zeros  : Natural := 0;
    end record;
+
+   --  Private: run commands through Execute, which checks Can_Execute and counts the change.
+   overriding
+   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 end Meter_VM;

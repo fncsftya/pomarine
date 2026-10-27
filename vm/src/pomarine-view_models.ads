@@ -119,6 +119,10 @@ package Pomarine.View_Models is
       --  A model that counts its own changes, so that it need not write Version and bump a counter: derive
       --  from it, say how a command is done (Perform), and call Mark_Changed when something changed that no
       --  command did (a property set by a widget). Execute is Perform and a Mark_Changed.
+      --  Execute is the entry point; Perform is only the hook it calls. Calling Perform yourself skips the
+      --  Can_Execute check and the Mark_Changed, so bindings are not told and the view goes stale. Ada cannot
+      --  hide an inherited abstract operation, so declare your override in the private part of your package: then
+      --  only Execute reaches it.
 
       overriding
       function Version (Self : Observed_Model) return Version_Number;
@@ -138,7 +142,8 @@ package Pomarine.View_Models is
       --  Something changed.
 
       procedure Perform (Self : in out Observed_Model; What : Command; Index : Natural := 0) is abstract;
-      --  Do What, as Execute says.
+      --  Do What, as Execute says. Only the hook: do not call it, call Execute. It does not check Can_Execute
+      --  and does not Mark_Changed.
 
       overriding
       procedure Execute (Self : in out Observed_Model; What : Command; Index : Natural := 0);

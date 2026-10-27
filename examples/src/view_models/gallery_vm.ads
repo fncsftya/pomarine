@@ -17,8 +17,6 @@ package Gallery_VM is
 
    overriding
    function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding
-   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 
    function Clicks (Self : Model) return Natural;
    function Summary (Self : Model) return String;
@@ -66,6 +64,10 @@ private
       Items  : aliased Tasks.Task_List;
       Choice : Natural := 0;
    end record;
+
+   --  Private: run commands through Execute, which checks Can_Execute and counts the change.
+   overriding
+   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 
    overriding
    function Parts_Version (Self : Model) return Pomarine.View_Models.Version_Number;

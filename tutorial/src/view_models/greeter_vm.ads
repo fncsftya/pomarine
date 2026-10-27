@@ -12,11 +12,12 @@ package Greeter_VM is
 
    overriding
    function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
+private
+   --  Private: run commands through Execute, which checks Can_Execute and counts the change.
    overriding
    procedure Perform (Self : in out Model; What : Command; Index : Natural := 0)
    with Post => Count (Self) = Count (Self)'Old + 1;
 
-private
    type Model is limited new Commands.Observed_Model with record
       Greetings : Natural := 0;
    end record;

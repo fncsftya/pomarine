@@ -11,8 +11,6 @@ package Todo_VM is
 
    overriding
    function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding
-   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 
    function Count (Self : Model) return Natural;
    function Draft (Self : Model) return String;
@@ -47,6 +45,10 @@ private
       Choice : Natural := 0;
       --  The id of the chosen task.
    end record;
+
+   --  Private: run commands through Execute, which checks Can_Execute and counts the change.
+   overriding
+   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 
    overriding
    function Parts_Version (Self : Model) return Pomarine.View_Models.Version_Number;
