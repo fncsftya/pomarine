@@ -126,11 +126,11 @@ package body Greeter is
       Bound : constant Controls.Context'Class := Controls.Bind (Screen, Model);
       Whole : constant UI.Layout :=
         UI.Column
-          ([Bound.Label (Greeting, Centered => True, Width => 200.0, Height => 24.0),
+          ([Bound.Label (Greeting, Centered => True, Width => 200.0),
             Bound.Button
               ("Say hello", Greeter_VM.Say_Hello,
                Look => Pomarine.Widgets.Buttons.Primary, Focusable => True,
-               Width => 120.0, Height => 32.0)],
+               Width => 120.0)],
            Align => UI.Layouts.Center, Spread => UI.Layouts.Center,
            Padding => 16.0, Gap => 12.0, Grow => 1.0);
    begin
@@ -141,9 +141,9 @@ end Greeter;
 
 The layout is built once. Bindings refresh when the model version changes, and button availability follows
 `Can_Execute`. `Focusable => True` lets the button take keyboard focus. Dimensions are in points; the window
-supplies display density. The explicit sizes give this example its pictured proportions; controls also have default
-sizes. Keep application rules and persistence in the model; geometry, focus, painting, and continuous gestures
-belong in the view.
+supplies display density. The label and button give only the widths that set this example's pictured proportions;
+heights come from the controls' default sizes (24 for a label, 32 for a button). Keep application rules and
+persistence in the model; geometry, focus, painting, and continuous gestures belong in the view.
 
 ## Open the window
 

@@ -10,8 +10,8 @@ settled by.
 ```ada
 function Task_Actions (Parent : Todo_UI.Context'Class) return UI.Layout is
   (UI.Row ([Parent.Label (Task_Summary, Grow => 1.0),
-            Parent.Button ("Done", Toggle_Chosen, Width => 70.0),
-            Parent.Button ("Delete", Remove_Chosen, Look => Danger, Width => 70.0),
+            Parent.Button ("Done", Toggle_Chosen),
+            Parent.Button ("Delete", Remove_Chosen, Look => Danger),
             Parent.Button ("Clear done", Sweep_Done, Width => 100.0)],
            Gap => 8.0));
 
@@ -49,10 +49,11 @@ Where this differs from the first sketch, and why:
   handles, no `Commit`. A component that must give up whole when it fails declares a guard (`Bound : aliased ...
   Component (Parent'Access)`) and ends with `return Bound.Finish (Layout)` (or `Commit`, then the return): a
   function cannot do something after its result, and the commit must be the last thing that can go right.
-* A control made by a context with a layout result (`Bound.Button ("Done", Cmd, Width => 70.0)`) is placed in the
+* A control made by a context with a layout result (`Bound.Button ("Done", Cmd, Grow => 1.0)`) is placed in the
   same call, with the `Grow`, `Shrink`, `Width`, `Height`, `Margin` and `Align` of `UI.Place`, and an optional
-  `Tooltip` and `Name`: buttons have no size of their own, so the layout says it (a button is 80 x 32 points, a
-  field 38 high, a label 24 high, if it does not). The handle-returning forms stay for a control wanted again
+  `Tooltip` and `Name`: a control has no size fitted to its content yet, so it takes a fallback when the layout
+  says nothing (a button is 80 x 32 points, a field 38 high, a label 24 high). Say a size only where the fallback
+  is wrong, as for "Clear done" above; sizing by content, for long or translated text, is still to do. The handle-returning forms stay for a control wanted again
   (`Focus_Of`, `Reveal_Of`, `Widget_Of`), then `UI.Place (Handle, ...)`.
 * The focus a field has at the start (`Focus_Initially => True`) and the scrolling of a list to a task just added
   (`Reveal_After`, `Growth`) are said of the control, so a component need not hand them up.

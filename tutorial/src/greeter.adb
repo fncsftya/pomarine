@@ -5,14 +5,13 @@ package body Greeter is
       Bound : constant Controls.Context'Class := Controls.Bind (Screen, Model);
       Whole : constant UI.Layout :=
         UI.Column
-          ([Bound.Label (Greeting, Centered => True, Width => 200.0, Height => 24.0),
+          ([Bound.Label (Greeting, Centered => True, Width => 200.0),
             Bound.Button
               ("Say hello",
                Greeter_VM.Say_Hello,
                Look      => Pomarine.Widgets.Buttons.Primary,
                Focusable => True,
-               Width     => 120.0,
-               Height    => 32.0)],
+               Width     => 120.0)],
            Align   => UI.Layouts.Center,
            Spread  => UI.Layouts.Center,
            Padding => 16.0,
