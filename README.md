@@ -56,13 +56,13 @@ end if;
 
 See the comment at the top of `Pomarine.Widgets` for the whole loop, and
 `examples/` for complete programs (`cd examples && alr build`). `hello_gui` declares its greeting and command
-button through `Pomarine.UI`, with `Greeter_VM` holding the count and command rule. `todo_gui` composes a task
-screen from bound components. `gallery_gui` puts the general controls on a scrollable sheet, including typed integers, choice groups,
+button through `Pomarine.UI`, with `Greeter_VM` holding the count and command rule, and runs them with
+`Pomarine.UI.Run_Window`. `todo_gui` composes a task screen from bound components, each an expression. `gallery_gui` puts the general controls on a scrollable sheet, including typed integers, choice groups,
 rich text and context menus, which the golden and view
 tests (`gallery-*`, `gallery_view_test`) draw, click and describe, so a change to any widget, the layout or the
 theme shows up there first. `clock_gui` mounts an app-owned custom clock face with `UI.Put`; its painting and
-periodic time updates stay in the widget. Each program declares the tree and model or borrowed face before the
-view, so they outlive its bindings. `Pomarine.Windows` opens the window and runs the loop (`Run`), or takes it a turn at a time (`Step`) for an
+periodic time updates stay in the widget. A program that uses `Run_Window` declares only the model (or borrowed face) before the call; one that makes its own
+window declares the tree and model before the view, so they outlive its bindings. `Pomarine.Windows` opens the window and runs the loop (`Run`), or takes it a turn at a time (`Step`) for an
 application with a loop of its own; `Set_Title`, `Set_Size`, `Close` and `Set_Theme` work on it after it is open, and
 it follows the system's light or dark appearance unless told which (`Follow_System`).
 
@@ -108,9 +108,9 @@ shared platform lifetime before they can be supported safely. Overlays remain lo
 | `Pomarine.Widgets.Layouts` | `Set_Layout`: a box's style, in points, one call. |
 | `Pomarine.Widgets.Commands` | The application's own enumeration, for what widgets are for. |
 | `Pomarine.Widgets.Callbacks` | A procedure of the application's own for what one widget says. |
-| `Pomarine.View_Models` (`vm/`, crate `pomarine_vm`) | The parts of a view-model, with no widget in them: a `Version` for change, properties, and the commands a screen can be asked (`Command_Models`). |
+| `Pomarine.View_Models` (`vm/`, crate `pomarine_vm`) | The parts of a view-model, with no widget in them: a `Version` for change, properties, and the commands a screen can be asked (`Command_Models`, with an `Observed_Model` that counts its own changes). |
 | `Pomarine.Widgets.Bindings` | Synchronization machinery used by `Pomarine.UI`: the root update hook and text edit tracking. |
-| `Pomarine.UI` (`ui/src/pomarine/views/`) | A screen as functions and layouts: a `View` that owns its widgets, bindings and documents in arenas, `Contexts` that make controls together with their view-model bindings, `Row`/`Column`/`Place`, and `Mount`. See `UI.md`. |
+| `Pomarine.UI` (`ui/src/pomarine/views/`) | A screen as functions and layouts: a `View` that owns its widgets, bindings and documents in arenas, `Contexts` that make controls together with their view-model bindings (a control can be placed in the same call, `Bound.Button ("Done", Cmd, Width => 70.0)`), properties made of the model's own subprograms (`Showing`, `Editing`, ...), `Row`/`Column`/`Place`, `Mount`, and `Run_Window` for a program of one screen. See `UI.md`. |
 | `Pomarine.Testing` (`testing/`, crate `pomarine_testing`) | A window to test offscreen as a person uses it: seen as an assistive technology is told, clicked and typed in by name; `Hearers` keep what widgets said. |
 | `Pomarine.Widgets.Overlays` (`Pomarine.Anchoring`) | What floats over the window: put beside an anchor or a point, kept in the window, let go of by Escape or a press outside, modal if asked. |
 | `Pomarine.Widgets.Popovers`, `.Dialogs`, `Pomarine.Dialogs` | A box that floats; a modal dialog; the usual questions (`Alert`, `Confirm`, `Choose_From`) ready made. |
@@ -226,7 +226,8 @@ menu bar, and the validator dims and ticks its items.
 For a form or a list, keep what the screen means apart from how it looks (Model-View-ViewModel). The
 view-model (`Pomarine.View_Models`, a crate of the standard library only) has properties, commands that say
 when they can be done (`Can_Execute`) and what they do (`Execute (What, Index)`, `Index` being which of many),
-and a `Version` that goes up when anything it shows changes. With `Pomarine.UI`, controls are declared with
+and a `Version` that goes up when anything it shows changes (an `Observed_Model` keeps it: say how a command is done
+(`Perform`) and call `Mark_Changed` for the rest). With `Pomarine.UI`, controls are declared with
 bindings in component functions, the hierarchy is a layout expression, and the view owns the widgets and keeps
 them in step with the model (edits, command, refresh). Commands check `Can_Execute` before running. A view-model
 is tested alone, and its view with `Pomarine.Testing`, which clicks by what a widget is called. Continuous canvas
@@ -328,7 +329,7 @@ a button `Selected`.
 A widget joins the tree one at a time (`Set_Root`, then `Add` to one already in it), because its place, its Yoga
 node and its style live in the tree's tables, and a widget that is in no tree has none to hold children in. There is
 no building a subtree detached and attaching it later. A reusable part is a `Pomarine.UI` component instead: a
-function that makes its controls and returns a `Layout`, which is a description kept until `Mount` (see `UI.md`). The
+function that makes its controls and returns a `Layout` (often one expression), which is a description kept until `Mount` (see `UI.md`). The
 low-level way to share a part is a procedure that takes the parent it is to be added to.
 
 ## Animation
