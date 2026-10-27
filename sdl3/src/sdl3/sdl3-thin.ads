@@ -232,6 +232,9 @@ private package SDL3.Thin is
    function Start_Text_Input (Win : Window) return Interfaces.C.C_bool
    with Import, Convention => C, External_Name => "SDL_StartTextInput";
 
+   function Stop_Text_Input (Win : Window) return Interfaces.C.C_bool
+   with Import, Convention => C, External_Name => "SDL_StopTextInput";
+
    function Set_Text_Input_Area
      (Win : Window; Rect : System.Address; Cursor : Interfaces.C.int) return Interfaces.C.C_bool
    with Import, Convention => C, External_Name => "SDL_SetTextInputArea";

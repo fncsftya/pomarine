@@ -7,6 +7,7 @@ with Number_Field_Tests;
 with Command_Tests;
 with Control_Tests;
 with Document_Tests;
+with Embed_Tests;
 with Field_Tests;
 with Gallery_Tests;
 with Goldens;
@@ -144,6 +145,10 @@ begin
    Run ("ui-todo-used", UI_Tests.Todo_Used'Access);
    Run ("ui-todo-wide", UI_Tests.Todo_Wide'Access);
 
+   Run ("embed-placing", Embed_Tests.Placing'Access);
+   Run ("embed-under-overlays", Embed_Tests.Hiding_Under_Overlays'Access);
+   Run ("embed-keyboard", Embed_Tests.Keyboard'Access);
+   Run ("embed-shortcuts", Embed_Tests.Shortcuts'Access);
    Run ("overlay-placing", Overlay_Tests.Placing'Access);
    Run ("overlay-edges", Overlay_Tests.Placing_At_Edges'Access);
    Run ("overlay-letting-go", Overlay_Tests.Letting_Go'Access);

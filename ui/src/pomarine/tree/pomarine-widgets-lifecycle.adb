@@ -23,6 +23,21 @@ package body Pomarine.Widgets.Lifecycle is
       end if;
    end Let_Go;
 
+   procedure Tell_Hidden (Home : in out Tree; Slot : Node_Index) is
+      Part : Node_Index := Home.Nodes.First (Slot);
+   begin
+      Home.Nodes.Object (Slot).Hidden;
+      while Part /= 0 loop
+         declare
+            Next : constant Node_Index := Home.Nodes.Next (Part);
+         begin
+            Tell_Hidden (Home, Part);
+            Part := Next;
+         end;
+      end loop;
+   end Tell_Hidden;
+   --  Say it of the widget and of each in it, as they are no longer shown.
+
    procedure Show_Or_Hide (Item : in out Widget'Class; To : Boolean) is
       Table : Node_Table renames Item.Owner.Nodes.all;
    begin
@@ -40,6 +55,9 @@ package body Pomarine.Widgets.Lifecycle is
       end if;
       Yoga.Nodes.Set_Display (Table.Yoga_Node (Item.Slot), (if To then Yoga.Flex else Yoga.None));
       Request_Layout (Item);
+      if not To then
+         Tell_Hidden (Item.Owner.all, Item.Slot);
+      end if;
    end Show_Or_Hide;
 
    procedure Unlink (Home : in out Tree; Slot : Node_Index) is
@@ -72,6 +90,7 @@ package body Pomarine.Widgets.Lifecycle is
       Above : constant Node_Index := Owner.Nodes.Parent (Slot);
    begin
       Let_Go (Owner.all, Slot);
+      Tell_Hidden (Owner.all, Slot);
       Invalidate (Item);
       Request_Layout (Item);
       Unlink (Owner.all, Slot);

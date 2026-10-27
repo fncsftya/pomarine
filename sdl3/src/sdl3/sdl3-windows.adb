@@ -46,6 +46,11 @@ package body SDL3.Windows is
       Errors.Check (Thin.Start_Text_Input (Item.Handle), "SDL_StartTextInput");
    end Start_Text_Input;
 
+   procedure Stop_Text_Input (Item : Window) is
+   begin
+      Errors.Check (Thin.Stop_Text_Input (Item.Handle), "SDL_StopTextInput");
+   end Stop_Text_Input;
+
    procedure Set_Text_Input_Area (Item : Window; X, Y, Width, Height : Integer) is
       use Interfaces.C;
       Rect : aliased constant Thin.IRect := (X => int (X), Y => int (Y), W => int (Width), H => int (Height));

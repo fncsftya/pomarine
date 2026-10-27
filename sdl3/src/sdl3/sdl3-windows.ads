@@ -30,6 +30,11 @@ package SDL3.Windows is
    --  Have typing in the window come as Text_Input events, through the
    --  system's input methods.
 
+   procedure Stop_Text_Input (Item : Window)
+   with Pre => Is_Open (Item);
+   --  Have typing in the window no longer come as Text_Input events: for a view of the system's own that is
+   --  typed in, which would otherwise be given each key twice.
+
    procedure Set_Text_Input_Area (Item : Window; X, Y, Width, Height : Integer)
    with Pre => Is_Open (Item) and then Width >= 0 and then Height >= 0;
    --  Where the text being typed is, in points from the window's top

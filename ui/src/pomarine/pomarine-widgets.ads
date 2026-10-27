@@ -170,6 +170,11 @@ package Pomarine.Widgets is
    --  and made it Width x Height, in pixels: called when those change,
    --  and when the density does.
 
+   procedure Hidden (Item : in out Widget) is null;
+   --  It will not be shown, or told the time (Update), until it is shown again: it was hidden (Set_Visible), as
+   --  was a widget it is in, or taken out of the tree. For a widget that stands for something outside the tree's
+   --  drawing (see Pomarine.Widgets.Embeds), which must be hidden too.
+
    procedure Draw (Item : in out Widget; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is null;
    --  Draw it, in its box, which is the clip: whatever it draws outside
    --  is not seen. What it draws over is not cleared for it, so a widget
