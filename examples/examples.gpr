@@ -16,13 +16,23 @@ project Examples is
    for Main use ("hello_gui.adb", "todo_gui.adb", "clock_gui.adb", "gallery_gui.adb");
 
    package Compiler is
+      --  Stack probes and canaries are for development and validation builds; a release build leaves them out.
+      Stack_Checks := ("-fstack-check", "-fstack-protector-strong");
+      case Examples_Config.Build_Profile is
+         when "release" => Stack_Checks := ();
+         when others => null;
+      end case;
+
       for Default_Switches ("Ada") use Examples_Config.Ada_Compiler_Switches &
         ("-gnatwh",          --  local declarations hiding others
          "-gnatyM120",        --  longest line
-         "-gnatVa",          --  validity checks everywhere
-         "-fstack-check",    --  detect stack overflow
-         "-fstack-protector-strong");
+         "-gnatVa")          --  validity checks everywhere
+        & Stack_Checks;
    end Compiler;
+
+   package Linker is
+      for Default_Switches ("Ada") use ("-Wl,-dead_strip");
+   end Linker;
 
    package Binder is
       for Switches ("Ada") use ("-Es"); --  Symbolic traceback

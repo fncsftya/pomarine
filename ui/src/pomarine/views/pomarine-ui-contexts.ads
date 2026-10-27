@@ -1,7 +1,7 @@
 with Pomarine.Widgets.Frames;
 with Pomarine.Widgets.Sliders;
-with Ada.Finalization;
 with Pomarine.Line_Texts;
+with Pomarine.UI.Binders;
 with Pomarine.Models;
 with Pomarine.Themes;
 with Pomarine.View_Models;
@@ -132,7 +132,7 @@ package Pomarine.UI.Contexts is
 
    --  Contexts
 
-   type Context is new Ada.Finalization.Limited_Controlled with private;
+   type Context is new Binders.Context with private;
 
    function Bind (Screen : in out Pomarine.UI.View; Data : not null access Model) return Context'Class;
    --  The context of the view's own scope (class-wide, since a component is a
@@ -143,12 +143,7 @@ package Pomarine.UI.Contexts is
    --  As above, for a model that is not aliased, or reached through an object that is not: the access is
    --  taken here, so that no caller needs Unrestricted_Access. The same lifetime rule holds.
 
-   function Scope_Of (Item : Context) return Pomarine.UI.Scope_Ref;
-
-   function Is_Open (Item : Context) return Boolean;
-   --  Whether its scope still takes controls.
-
-   type Replacement is (Caret_At_End, Caret_At_Start, Caret_Kept);
+   type Replacement is new Binders.Replacement;
    --  Where the caret goes when the model gives a field a text other than the field's: the whole
    --  text is replaced (the undo history with it), and the caret is put at the end, at the start,
    --  or, if it can be, where it was.
@@ -687,7 +682,7 @@ package Pomarine.UI.Contexts is
    --  Route an app-owned widget event through the normal edit-before-command turn. The binding owns
    --  this event handler until its scope is destroyed; the widget's tag is left unchanged.
 
-   type Editor_Hook is (Tool_Used, Link_Followed, Link_Asked);
+   type Editor_Hook is new Binders.Editor_Hook;
    --  What an editor says that no other widget does: a tool of its toolbar was used (Add_Tool), a link was
    --  Command-clicked, it has begun to ask for a link's address.
 
@@ -703,7 +698,7 @@ package Pomarine.UI.Contexts is
    --  Index_From_Event the command's index says the tool used as well as Index (Tool_Index); otherwise it is
    --  Index. Target must be an editor and each hook of it may be bound once.
 
-   type Canvas_Hook is (Line_Selected, Line_Deleted);
+   type Canvas_Hook is new Binders.Canvas_Hook;
    --  What a canvas says of its lines: which is selected changed (0 for none), Backspace or Delete was pressed
    --  while one is selected.
 
@@ -768,48 +763,6 @@ package Pomarine.UI.Contexts is
 
 private
 
-   type Model_Ref is access all Model;
-
-   --  How a binding reads and writes the model: the adapter of a property, made in the arena of its scope.
-
-   type Text_Adapter is limited interface;
-   function Current (Self : Text_Adapter; Item : Model; Index : Natural) return String is abstract;
-   procedure Assign (Self : Text_Adapter; Item : in out Model; Value : String; Index : Natural) is abstract;
-   function Stamp (Self : Text_Adapter; Item : Model; Index : Natural) return VM.Version_Number is abstract;
-   function Can_Assign (Self : Text_Adapter) return Boolean is abstract;
-   type Text_Adapter_Ref is access constant Text_Adapter'Class;
-
-   type Count_Adapter is limited interface;
-   function Current (Self : Count_Adapter; Item : Model) return Natural is abstract;
-   type Count_Adapter_Ref is access constant Count_Adapter'Class;
-
-   type Rows_Adapter is limited interface;
-   function Rows_Of (Self : Rows_Adapter; Item : in out Model) return Pomarine.Models.Model_Access is abstract;
-   type Rows_Adapter_Ref is access constant Rows_Adapter'Class;
-
-   type Choice_Adapter is limited interface;
-   function Chosen (Self : Choice_Adapter; Item : Model) return Natural is abstract;
-   procedure Choose (Self : Choice_Adapter; Item : in out Model; Id : Natural) is abstract;
-   function Stamp (Self : Choice_Adapter; Item : Model) return VM.Version_Number is abstract;
-   type Choice_Adapter_Ref is access constant Choice_Adapter'Class;
-
-   type Flag_Adapter is limited interface;
-   function Current (Self : Flag_Adapter; Item : Model; Index : Natural) return Boolean is abstract;
-   procedure Assign (Self : Flag_Adapter; Item : in out Model; Value : Boolean; Index : Natural) is abstract;
-   function Can_Assign (Self : Flag_Adapter) return Boolean is abstract;
-   type Flag_Adapter_Ref is access constant Flag_Adapter'Class;
-
-   type Fraction_Adapter is limited interface;
-   function Current (Self : Fraction_Adapter; Item : Model) return Float is abstract;
-   procedure Assign (Self : Fraction_Adapter; Item : in out Model; Value : Float) is null;
-   function Can_Assign (Self : Fraction_Adapter) return Boolean is abstract;
-   type Fraction_Adapter_Ref is access constant Fraction_Adapter'Class;
-
-   type Action_Adapter is limited interface;
-   function May_Perform (Self : Action_Adapter; Item : Model) return Boolean is abstract;
-   procedure Run_Action (Self : Action_Adapter; Item : in out Model) is abstract;
-   type Action_Adapter_Ref is access constant Action_Adapter'Class;
-
    --  A property is the model's own subprograms, from which the view makes the adapter in its arena when it
    --  binds the property.
 
@@ -861,11 +814,7 @@ private
    function Is_Writable (Item : Text_Property) return Boolean
    is (Item.Set /= null);
 
-   type Context is new Ada.Finalization.Limited_Controlled with record
-      Number : Natural := 0;
-      Data   : Model_Ref;
-      Scope  : Pomarine.UI.Scope_Ref;
-   end record;
+   type Context is new Binders.Context with null record;
 
    type Component (Parent : not null access constant Context'Class) is limited new Context with record
       Committed : Boolean := False;

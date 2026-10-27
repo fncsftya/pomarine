@@ -17,12 +17,18 @@ project Yoga is
    for Library_Kind use Library_Type;
 
    package Compiler is
+      --  Stack probes and canaries are for development and validation builds; a release build leaves them out.
+      Stack_Checks := ("-fstack-check", "-fstack-protector-strong");
+      case Yoga_Config.Build_Profile is
+         when "release" => Stack_Checks := ();
+         when others => null;
+      end case;
+
       for Default_Switches ("Ada") use Yoga_Config.Ada_Compiler_Switches &
         ("-gnatwh",          --  local declarations hiding others
          "-gnatyM120",        --  longest line
-         "-gnatVa",          --  validity checks everywhere
-         "-fstack-check",    --  detect stack overflow
-         "-fstack-protector-strong");
+         "-gnatVa")          --  validity checks everywhere
+        & Stack_Checks;
       --  "-I vendor" lets the sources find <yoga/Yoga.h>.
       for Default_Switches ("C++") use
         ("-std=c++20", "-O2", "-fno-rtti", "-I" & Project'Project_Dir & "vendor");

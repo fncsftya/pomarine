@@ -9,8 +9,15 @@ project Pomarine_VM_Tests is
    for Main use ("vm_tests.adb");
 
    package Compiler is
+      --  Stack probes and canaries are for development and validation builds; a release build leaves them out.
+      Stack_Checks := ("-fstack-check", "-fstack-protector-strong");
+      case Pomarine_VM_Tests_Config.Build_Profile is
+         when "release" => Stack_Checks := ();
+         when others => null;
+      end case;
+
       for Default_Switches ("Ada") use Pomarine_VM_Tests_Config.Ada_Compiler_Switches &
-        ("-gnatwh", "-gnatyM120", "-gnatVa", "-fstack-check", "-fstack-protector-strong");
+        ("-gnatwh", "-gnatyM120", "-gnatVa") & Stack_Checks;
    end Compiler;
 
    package Binder is
