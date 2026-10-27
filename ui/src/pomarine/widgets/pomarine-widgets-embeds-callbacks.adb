@@ -18,8 +18,7 @@ package body Pomarine.Widgets.Embeds.Callbacks is
    end Run_Shortcut;
 
    procedure On_Shortcut
-     (Item : in out Embed'Class; Self : not null access Context; Do_This : not null Shortcut_Handler)
-   is
+     (Item : in out Embed'Class; Self : not null access Context; Do_This : not null Shortcut_Handler) is
    begin
       Item.Shortcut_Hook := (Run_Shortcut'Unrestricted_Access, Self.all'Address, To_Address (Do_This));
    end On_Shortcut;

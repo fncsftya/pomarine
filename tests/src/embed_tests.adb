@@ -159,6 +159,14 @@ package body Embed_Tests is
       Overlays.Dismiss (Item.Menu);
       Widgets.Update (Item.Tree, 1200);
       Goldens.Check_Text ("embed-after-overlay", "yes", Image (Item.View.Showing));
+
+      --  Something of the application's, over the window and not in the tree's overlays, hides it too.
+      Item.Page.Set_Covered (True);
+      Widgets.Update (Item.Tree, 1300);
+      Goldens.Check_Text ("embed-covered", "no", Image (Item.View.Showing));
+      Item.Page.Set_Covered (False);
+      Widgets.Update (Item.Tree, 1400);
+      Goldens.Check_Text ("embed-uncovered", "yes", Image (Item.View.Showing));
    end Hiding_Under_Overlays;
 
    procedure Keyboard is
@@ -202,10 +210,7 @@ package body Embed_Tests is
       Item.View.Pressed := 3;
       Widgets.Update (Item.Tree, 1200);
       Widgets.Update (Item.Tree, 1300);
-      Goldens.Check_Text
-        ("embed-shortcut",
-         "3 no",
-         Image (Item.Heard) & " " & Image (Item.View.Keyboard));
+      Goldens.Check_Text ("embed-shortcut", "3 no", Image (Item.Heard) & " " & Image (Item.View.Keyboard));
    end Shortcuts;
 
 end Embed_Tests;

@@ -42,6 +42,12 @@ package Pomarine.Widgets.Embeds is
 
    function Has_Host (Item : Embed) return Boolean;
 
+   procedure Set_Covered (Item : in out Embed; To : Boolean);
+   --  Say that something the application draws over the tree, which the tree does not present as an overlay (a
+   --  layer of its own that covers the window), is over the view: it is hidden while To.
+
+   function Is_Covered (Item : Embed) return Boolean;
+
    function Is_Showing_View (Item : Embed) return Boolean;
    --  Whether the view was last asked to be shown: the widget is showing, and nothing is presented over the tree.
 
@@ -82,6 +88,7 @@ private
       High          : Float := 0.0;
       --  Where the tree put it, in pixels.
       Showing       : Boolean := False;
+      Covered       : Boolean := False;
       Told          : Boolean := False;
       --  Whether the host has been told where it is, and what it was told, in points.
       Told_Left     : Float := 0.0;

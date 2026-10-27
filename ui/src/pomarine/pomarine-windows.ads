@@ -1,4 +1,3 @@
-with System;
 private with Ada.Finalization;
 private with Pomarine.Clipboards;
 private with Pomarine.Line_Texts;
@@ -56,16 +55,6 @@ package Pomarine.Windows is
    --  End the loop (Run, or Step saying Closed), as the window's close button
    --  does, after the turn it is called in. From a handler, or from a procedure
    --  posted with Pomarine.Application.
-
-   procedure Set_Typing (Item : in out Window; On : Boolean)
-   with Pre => Is_Open (Item);
-   --  Whether typing in the window comes to the tree as text (as it does when opened). Off while a view of the
-   --  system's own has the keyboard (see Pomarine.Widgets.Embeds), and on when the tree has it again.
-
-   function Native_Handle (Item : Window) return System.Address
-   with Pre => Is_Open (Item);
-   --  On macOS, the window's NSWindow, for a view of the system's own to be put in (see
-   --  Pomarine.Widgets.Embeds); null if there is none.
 
    function Is_Closing (Item : Window) return Boolean;
    --  Whether the window's loop has been told to end, by Close or by the person.

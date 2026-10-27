@@ -51,18 +51,6 @@ package body Pomarine.Windows is
       Events.Wake;
    end Close;
 
-   procedure Set_Typing (Item : in out Window; On : Boolean) is
-   begin
-      if On then
-         SDL3.Windows.Start_Text_Input (Item.Frame);
-      else
-         SDL3.Windows.Stop_Text_Input (Item.Frame);
-      end if;
-   end Set_Typing;
-
-   function Native_Handle (Item : Window) return System.Address
-   is (SDL3.Windows.Native_Handle (Item.Frame));
-
    function Is_Closing (Item : Window) return Boolean
    is (Item.Stopping);
 

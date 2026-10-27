@@ -19,6 +19,14 @@ package body Pomarine.Widgets.Embeds is
    function Has_Host (Item : Embed) return Boolean
    is (Item.View /= null);
 
+   procedure Set_Covered (Item : in out Embed; To : Boolean) is
+   begin
+      Item.Covered := To;
+   end Set_Covered;
+
+   function Is_Covered (Item : Embed) return Boolean
+   is (Item.Covered);
+
    function Is_Showing_View (Item : Embed) return Boolean
    is (Item.Showing);
 
@@ -83,7 +91,7 @@ package body Pomarine.Widgets.Embeds is
       if Item.View = null or else not Is_Attached (Item) then
          return;
       end if;
-      Show := Is_Showing (Item) and then Overlays.Presented_Count (Tree_Of (Item).all) = 0;
+      Show := Is_Showing (Item) and then not Item.Covered and then Overlays.Presented_Count (Tree_Of (Item).all) = 0;
       if Show /= Item.Showing then
          Item.Showing := Show;
          if not Show and then Has_Focus (Item) then
