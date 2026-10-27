@@ -1,0 +1,49 @@
+with "../config/pomarine_config.gpr";
+project Bundled_Coretext is
+
+   for Library_Name use "coretext_ada";
+   for Library_Version use
+     Project'Library_Name & ".so." & Pomarine_Config.Crate_Version;
+
+   for Source_Dirs use ("src/**");
+   for Object_Dir use "obj/" & Pomarine_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Library_Dir use "lib";
+
+   type Library_Type_Type is ("relocatable", "static", "static-pic");
+   Library_Type : Library_Type_Type :=
+     external ("CORETEXT_LIBRARY_TYPE", external ("LIBRARY_TYPE", "static"));
+   for Library_Kind use Library_Type;
+
+   package Compiler is
+      --  Stack probes and canaries are for development and validation builds; a release build leaves them out.
+      Stack_Checks := ("-fstack-check", "-fstack-protector-strong");
+      case Pomarine_Config.Build_Profile is
+         when "release" => Stack_Checks := ();
+         when others => null;
+      end case;
+
+      for Default_Switches ("Ada") use Pomarine_Config.Ada_Compiler_Switches &
+        ("-gnatwh",          --  local declarations hiding others
+         "-gnatyM120",        --  longest line
+         "-gnatVa")          --  validity checks everywhere
+        & Stack_Checks;
+   end Compiler;
+
+   --  Propagated to every project that depends on this one.
+   package Linker is
+      for Linker_Options use
+        ("-framework", "CoreText",
+         "-framework", "CoreGraphics",
+         "-framework", "CoreFoundation");
+   end Linker;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+   package Install is
+      for Artifacts (".") use ("share");
+   end Install;
+
+end Bundled_Coretext;

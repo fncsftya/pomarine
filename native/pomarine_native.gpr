@@ -1,6 +1,5 @@
+with "pomarine.gpr";
 with "config/pomarine_native_config.gpr";
-with "pomarine_ui.gpr";
-with "sdl3.gpr";
 project Pomarine_Native is
 
    for Library_Name use "pomarine_native_ada";

@@ -15,24 +15,9 @@ macos = true
 
 [[depends-on]]
 pomarine = "*"
-pomarine_ui = "*"
-pomarine_vm = "*"
-coretext = "*"
-sdl3 = "*"
-texts = "*"
-typeset = "*"
-yoga = "*"
 
 [[pins]]
 pomarine = { path = ".." }
-pomarine_ui = { path = "../ui" }
-pomarine_vm = { path = "../vm" }
-pomarine_model = { path = "../model" }
-coretext = { path = "../coretext" }
-sdl3 = { path = "../sdl3" }
-texts = { path = "../texts" }
-typeset = { path = "../typeset" }
-yoga = { path = "../yoga" }
 
 [build-switches]
 "*".ada_version = "Ada2022"

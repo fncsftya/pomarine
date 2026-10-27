@@ -18,22 +18,12 @@ pomarine = "*"
 pomarine_goldens = "*"
 pomarine_native = "*"
 pomarine_testing = "*"
-pomarine_ui = "*"
-texts = "*"
 
 [[pins]]
 pomarine = { path = ".." }
 pomarine_goldens = { path = "../goldens" }
 pomarine_native = { path = "../native" }
 pomarine_testing = { path = "../testing" }
-pomarine_ui = { path = "../ui" }
-pomarine_vm = { path = "../vm" }
-pomarine_model = { path = "../model" }
-coretext = { path = "../coretext" }
-sdl3 = { path = "../sdl3" }
-texts = { path = "../texts" }
-typeset = { path = "../typeset" }
-yoga = { path = "../yoga" }
 
 [build-switches]
 "*".ada_version = "Ada2022"

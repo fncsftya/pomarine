@@ -5,7 +5,7 @@ pragma Style_Checks (Off);
 package Pomarine_Native_Config is
    pragma Pure;
 
-   Crate_Version : constant String := "0.1.0-dev";
+   Crate_Version : constant String := "0.1.0-alpha";
    Crate_Name    : constant String := "pomarine_native";
 
    Alire_Host_OS : constant String := "macos";

@@ -7,23 +7,18 @@ licenses = "MIT"
 website = ""
 tags = []
 
-[[depends-on]]
-pomarine_ui = "*"
-coretext = "*"
-sdl3 = "*"
-texts = "*"
-typeset = "*"
-yoga = "*"
+maintainers = ["Matt Rawcliffe <mhrawcliffe@gmail.com>"]
+maintainers-logins = ["fncsftya"]
+project-files = ["pomarine.gpr"]
 
-[[pins]]
-pomarine_ui = { path = "ui" }
-pomarine_vm = { path = "vm" }
-pomarine_model = { path = "model" }
-coretext = { path = "coretext" }
-sdl3 = { path = "sdl3" }
-texts = { path = "texts" }
-typeset = { path = "typeset" }
-yoga = { path = "yoga" }
+[available.'case(os)']
+macos = true
+'...' = false
+
+[configuration.variables]
+Icon_Capacity = { type = "Integer", first = 16, last = 1024, default = 64 }
+Semantic_Value = { type = "Integer", first = 256, last = 65536, default = 4096 }
+Semantic_Text = { type = "Integer", first = 32, last = 4096, default = 256 }
 
 [build-switches]
 "*".ada_version = "Ada2022"

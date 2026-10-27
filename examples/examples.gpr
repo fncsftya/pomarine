@@ -1,12 +1,5 @@
 with "config/examples_config.gpr";
 with "pomarine.gpr";
-with "pomarine_vm.gpr";
-with "pomarine_ui.gpr";
-with "coretext.gpr";
-with "sdl3.gpr";
-with "texts.gpr";
-with "typeset.gpr";
-with "yoga.gpr";
 project Examples is
 
    for Source_Dirs use ("src/", "src/view_models/", "config/");

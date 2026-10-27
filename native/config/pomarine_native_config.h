@@ -2,7 +2,7 @@
 #ifndef POMARINE_NATIVE_CONFIG_H
 #define POMARINE_NATIVE_CONFIG_H
 
-#define CRATE_VERSION "0.1.0-dev"
+#define CRATE_VERSION "0.1.0-alpha"
 #define CRATE_NAME "pomarine_native"
 
 #define ALIRE_HOST_OS "macos"

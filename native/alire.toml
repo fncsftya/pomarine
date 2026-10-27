@@ -12,18 +12,10 @@ macos = true
 '...' = false
 
 [[depends-on]]
-pomarine_ui = "*"
-sdl3 = "*"
+pomarine = "*"
 
 [[pins]]
-pomarine_ui = { path = "../ui" }
-pomarine_vm = { path = "../vm" }
-pomarine_model = { path = "../model" }
-coretext = { path = "../coretext" }
-sdl3 = { path = "../sdl3" }
-texts = { path = "../texts" }
-typeset = { path = "../typeset" }
-yoga = { path = "../yoga" }
+pomarine = { path = ".." }
 
 # What the system gives only to Objective-C and Rust (AccessKit, the menu
 # bar) is reached through the small C interface in rust/, built to a

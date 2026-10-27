@@ -3,6 +3,17 @@
 Pomarine is an alpha GUI library for Ada on macOS. It provides widgets, layouts, themes, accessibility support,
 and tools for building and testing applications.
 
+## Using Pomarine with Alire
+
+On macOS, install SDL3 and SDL3_image (for example, `brew install sdl3 sdl3_image`), then add
+`pomarine` to your Alire workspace with `alr with pomarine`. Import `pomarine.gpr` in your project.
+The crate includes its UI, view-model, text, CoreText, SDL and Yoga projects; they do not need separate
+Alire dependencies. Your project must compile Ada 2022 source in UTF-8 (GNAT switches `-gnat2022` and
+`-gnatW8`).
+
+The `Icon_Capacity`, `Semantic_Value`, and `Semantic_Text` configuration variables belong to the
+`pomarine` crate when using this bundled release.
+
 ## Gallery
 
 ![Pomarine widget gallery in the light theme](tests/golden/gallery-opens.png)

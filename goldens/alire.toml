@@ -12,10 +12,10 @@ macos = true
 '...' = false
 
 [[depends-on]]
-sdl3 = "*"
+pomarine = "*"
 
 [[pins]]
-sdl3 = { path = "../sdl3" }
+pomarine = { path = ".." }
 
 [build-switches]
 "*".ada_version = "Ada2022"

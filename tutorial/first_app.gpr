@@ -1,5 +1,4 @@
-with "pomarine_ui.gpr";
-with "pomarine_vm.gpr";
+with "pomarine.gpr";
 with "pomarine_testing.gpr";
 project First_App is
    for Source_Dirs use ("src", "src/view_models");

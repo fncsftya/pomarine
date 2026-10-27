@@ -1,6 +1,5 @@
+with "pomarine.gpr";
 with "config/pomarine_testing_config.gpr";
-with "pomarine_ui.gpr";
-with "sdl3.gpr";
 project Pomarine_Testing is
 
    for Library_Name use "pomarine_testing_ada";
