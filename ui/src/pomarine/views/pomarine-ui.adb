@@ -48,6 +48,8 @@ package body Pomarine.UI is
    for Document_Store'Storage_Pool use Arenas.Pool;
    type Node_Store is access Layout_Node;
    for Node_Store'Storage_Pool use Arenas.Pool;
+   type Name_Store is access String;
+   for Name_Store'Storage_Pool use Arenas.Pool;
 
    --  The views that live, by number. A number is never used twice, so a
    --  handle of a view that is gone cannot meet another view.
@@ -819,7 +821,8 @@ package body Pomarine.UI is
          Made  : constant Node_Store :=
            new (Home.Scopes (Home.Top_Scope).Arena)
              Layout_Node'(Count => Items'Length, Kind => Kind, Box => Box, Control => Control,
-                          Made => null, Exact => False, Appearance => Appearance, Across => Across, Items => Items);
+                          Made => null, Exact => False, Appearance => Appearance, Across => Across, Name => null,
+                          Items => Items);
       begin
          return (Scope => Where, Node => Made.all'Unchecked_Access);
       end;
@@ -944,6 +947,28 @@ package body Pomarine.UI is
       Gap : Layouts.Length := Unset; Padding : Layouts.Length := Unset; Align : Align_Kind := Layouts.As_Is;
       Spread : Spread_Kind := Layouts.As_Is) return Layout is
      (Held_Layout (Handle_Data (Item), Items, Flow, Gap, Padding, Align, Spread));
+
+   function Called (Item : Layout; Name : String) return Layout is
+   begin
+      if Item.Node = null then
+         raise Program_Error with "nothing to call " & Name;
+      end if;
+      declare
+         Home : constant View_Ref := Find_View (Item.Scope.View);
+      begin
+         if Home = null or else not Is_Live (Home.all, Item.Scope) then
+            raise Stale_Handle with "layout outlived its scope";
+         end if;
+         declare
+            Arena : constant Subpools.Subpool_Handle := Home.Scopes (Item.Scope.Slot).Arena;
+            Made  : constant Node_Store := new (Arena) Layout_Node'(Item.Node.all);
+            Kept  : constant Name_Store := new (Arena) String'(Name);
+         begin
+            Made.Name := Kept.all'Unchecked_Access;
+            return (Scope => Item.Scope, Node => Made.all'Unchecked_Access);
+         end;
+      end;
+   end Called;
 
    function Styled (Item : Layout; Using : Layouts.Style) return Layout is
    begin
@@ -1341,6 +1366,17 @@ package body Pomarine.UI is
                end loop;
             end;
       end case;
+      if Part.Node.Name /= null and then Part.Node.Kind in Placed | Held | Row_Of | Column_Of | Scroll_Of then
+         declare
+            Made : constant Widgets.Widget_Access :=
+              (if Part.Node.Kind = Placed then Item.Controls (Part.Node.Control.Slot).Widget else Part.Node.Made);
+         begin
+            if Item.Names.Contains (Part.Node.Name.all) then
+               raise Program_Error with "name used twice in a view: " & Part.Node.Name.all;
+            end if;
+            Item.Names.Insert (Part.Node.Name.all, Made);
+         end;
+      end if;
    end Attach_Node;
 
    procedure Make_All_Mounted (Item : in out View'Class; Slot : Positive) is
@@ -1363,6 +1399,7 @@ package body Pomarine.UI is
          Item.Judging := False;
       end if;
       Item.Root := null;
+      Item.Names.Clear;
       Arenas.Destroy (Item.Mount_Arena);
    end Release_Mounted;
 
@@ -1472,6 +1509,16 @@ package body Pomarine.UI is
          if Part.Node.Made /= null and then Widgets.Is_Attached (Part.Node.Made.all) then
             Widgets.Remove (Part.Node.Made.all);
          end if;
+      end if;
+      if Part.Node.Name /= null and then Item.Names.Contains (Part.Node.Name.all) then
+         declare
+            Mine : constant Widgets.Widget_Access :=
+              (if Part.Node.Kind = Placed then Item.Controls (Part.Node.Control.Slot).Widget else Part.Node.Made);
+         begin
+            if Item.Names (Part.Node.Name.all) = Mine then
+               Item.Names.Delete (Part.Node.Name.all);
+            end if;
+         end;
       end if;
       Part.Node.Made := null;
    end Undo_Attachments;
@@ -1605,6 +1652,11 @@ package body Pomarine.UI is
    end Synchronize;
 
    function Screen_Panel (Item : View) return access Widgets.Widget'Class is (Item.Screen_Top);
+
+   function Has_Named (Item : View; Name : String) return Boolean is (Item.Names.Contains (Name));
+
+   function Named (Item : View; Name : String) return not null access Widgets.Widget'Class is
+     (Item.Names (Name));
 
    function Panel_Of (Item : View; Part : Layout) return access Widgets.Widget'Class is
      (if Part.Node = null or else not Is_Live (Item, Part.Scope) then null else Part.Node.Made);

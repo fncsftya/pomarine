@@ -1,3 +1,4 @@
+with Ada.Containers.Indefinite_Ordered_Maps;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 with Ada.Finalization;
@@ -343,6 +344,13 @@ package Pomarine.UI is
    --  does not say another). For what the named parameters do not cover. It is exactly Using: the size
    --  that a button, a field or a label has when a Place says nothing of it is not added.
 
+   function Called (Item : Layout; Name : String) return Layout
+     with Pre => Name'Length > 0;
+   --  Item, with a name that the view can be asked for once the screen is mounted (View.Named). A name is
+   --  one control's or container's in a view, for as long as it is mounted. It goes with the layout
+   --  through Styled. So that a screen's parts are found where they are described, and not kept in a record
+   --  beside it.
+
    function Scroll
      (Content : Layout;
       Across  : Boolean := False;
@@ -479,6 +487,14 @@ package Pomarine.UI is
      with Pre => Is_Mounted (Item);
    --  The panel a Row, Column or Scroll of a mounted screen made; null if Part is not one.
 
+   function Has_Named (Item : View; Name : String) return Boolean;
+   --  Whether a part of the mounted screen was described Called Name.
+
+   function Named (Item : View; Name : String) return not null access Pomarine.Widgets.Widget'Class
+     with Pre => Is_Mounted (Item) and then Has_Named (Item, Name);
+   --  The widget behind the part called Name: the panel of a Row, Column or Scroll, or the widget of a
+   --  control placed (a Panel_Of that finds its part by name, and a Widget_Of for any handle).
+
    function Screen_Panel (Item : View) return access Pomarine.Widgets.Widget'Class
      with Pre => Is_Mounted (Item);
    --  The widget a container screen made, for the application to show and hide; null if the screen is
@@ -562,6 +578,8 @@ private
 
    type Node_Kind is (Empty, Placed, Row_Of, Column_Of, Scroll_Of, Held, Siblings);
 
+   type Name_Ref is access constant String;
+
    type Layout_Node;
    type Node_Ref is access all Layout_Node;
 
@@ -585,6 +603,8 @@ private
       Appearance : Container_Look := Plain;
       Across  : Boolean := False;
       --  A scroller's direction.
+      Name    : Name_Ref;
+      --  What View.Named finds it by; null if it has none.
       Items   : Layout_Array (1 .. Count);
    end record;
 
@@ -678,6 +698,9 @@ private
 
    type View_Ref is access all View'Class;
 
+   package Name_Maps is new Ada.Containers.Indefinite_Ordered_Maps
+     (String, Pomarine.Widgets.Widget_Access, "<" => "<", "=" => Pomarine.Widgets."=");
+
    type Observer_Ref is access all Observer'Class;
 
    type Hub is limited new Pomarine.Widgets.Validator and Pomarine.Widgets.Bindings.Syncable with record
@@ -726,6 +749,8 @@ private
       Watcher      : Observer_Ref;
       --  Mounted into a widget of the application's, not as the tree's root.
       Screen_Top   : Pomarine.Widgets.Widget_Access;
+      Names        : Name_Maps.Map;
+      --  The widgets of the parts that were Called, while they are mounted.
    end record;
 
    overriding procedure Initialize (Item : in out View);
