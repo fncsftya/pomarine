@@ -123,8 +123,7 @@ package body Pomarine.Page_Builds is
 
    end Board;
 
-   task Worker
-     with Storage_Size => 8 * 1024 * 1024 is
+   task type Worker with Storage_Size => 8 * 1024 * 1024 is
       entry Run;
    end Worker;
 
@@ -184,12 +183,55 @@ package body Pomarine.Page_Builds is
       end loop;
    end Worker;
 
+   type Worker_Ref is access Worker;
+
+   protected Latch is
+      entry Take;
+      procedure Give;
+   private
+      Held : Boolean := False;
+   end Latch;
+
+   protected body Latch is
+      entry Take when not Held is
+      begin
+         Held := True;
+      end Take;
+
+      procedure Give is
+      begin
+         Held := False;
+      end Give;
+   end Latch;
+   --  One at a time makes a task: a protected action may not.
+
+   Engine : Worker_Ref;
+   --  Made when first wanted, so that a program that builds no page has no task.
+
+   function Started return Worker_Ref is
+      Found : Worker_Ref;
+   begin
+      Latch.Take;
+      begin
+         if Engine = null then
+            Engine := new Worker;
+         end if;
+         Found := Engine;
+      exception
+         when others =>
+            Latch.Give;
+            raise;
+      end;
+      Latch.Give;
+      return Found;
+   end Started;
+
    procedure Request (Source : Pomarine.Pages.Source_Access; Index : Positive; Job : out Ticket) is
       Wake : Boolean;
    begin
       Board.Add (Source, Index, 0, Job, Wake);
       if Wake then
-         Worker.Run;
+         Started.Run;
       end if;
    end Request;
 
@@ -198,7 +240,7 @@ package body Pomarine.Page_Builds is
    begin
       Board.Add (Source, 1, Count, Job, Wake);
       if Wake then
-         Worker.Run;
+         Started.Run;
       end if;
    end Request_Sizes;
 

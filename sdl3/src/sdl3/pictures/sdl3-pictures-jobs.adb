@@ -198,8 +198,49 @@ package body SDL3.Pictures.Jobs is
       end loop;
    end Worker;
 
-   Worker_1 : Worker (1);
-   Worker_2 : Worker (2);
+   type Worker_Ref is access Worker;
+   type Worker_Refs is array (Worker_Id) of Worker_Ref;
+
+   protected Latch is
+      entry Take;
+      procedure Give;
+   private
+      Held : Boolean := False;
+   end Latch;
+
+   protected body Latch is
+      entry Take when not Held is
+      begin
+         Held := True;
+      end Take;
+
+      procedure Give is
+      begin
+         Held := False;
+      end Give;
+   end Latch;
+   --  One at a time makes a task: a protected action may not.
+
+   Workers : Worker_Refs := [others => null];
+   --  Made when first wanted, so that a program that shows no picture has no task.
+
+   function Worker_Of (Id : Worker_Id) return Worker_Ref is
+      Found : Worker_Ref;
+   begin
+      Latch.Take;
+      begin
+         if Workers (Id) = null then
+            Workers (Id) := new Worker (Id);
+         end if;
+         Found := Workers (Id);
+      exception
+         when others =>
+            Latch.Give;
+            raise;
+      end;
+      Latch.Give;
+      return Found;
+   end Worker_Of;
    --  A task is idle, in Board, from when it finds no more work until it
    --  is woken for some: so Run is only called of a task about to accept.
 
@@ -207,16 +248,9 @@ package body SDL3.Pictures.Jobs is
       Wake : Natural;
    begin
       Board.Add (File_Name, Urgent, Job, Wake);
-      case Wake is
-         when 1      =>
-            Worker_1.Run;
-
-         when 2      =>
-            Worker_2.Run;
-
-         when others =>
-            null;
-      end case;
+      if Wake in Worker_Id then
+         Worker_Of (Wake).Run;
+      end if;
    end Request;
 
    procedure Prioritize (Job : Ticket) is
