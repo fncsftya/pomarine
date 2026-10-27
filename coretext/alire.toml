@@ -1,6 +1,6 @@
 name = "coretext"
 description = "Ada bindings for CoreText text shaping and rasterization (macOS only)"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

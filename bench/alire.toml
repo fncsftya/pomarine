@@ -1,6 +1,6 @@
 name = "bench"
 description = "Benchmarks for laying out and drawing long documents"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

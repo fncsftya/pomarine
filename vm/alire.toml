@@ -1,6 +1,6 @@
 name = "pomarine_vm"
 description = "View-model parts: versions, properties and commands, no widgets"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

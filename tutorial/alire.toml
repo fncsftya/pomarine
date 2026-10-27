@@ -1,6 +1,6 @@
 name = "first_app"
 description = "Reference implementation for the Pomarine tutorial"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 licenses = "MIT"
 executables = ["first_app", "capture"]
 

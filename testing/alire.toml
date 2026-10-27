@@ -1,6 +1,6 @@
 name = "pomarine_testing"
 description = "Test a Pomarine window offscreen: see it, click on it by name, hear it"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

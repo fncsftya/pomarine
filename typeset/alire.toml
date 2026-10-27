@@ -1,6 +1,6 @@
 name = "typeset"
 description = "Lazy paragraph layout and glyph-atlas text drawing (macOS only)"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

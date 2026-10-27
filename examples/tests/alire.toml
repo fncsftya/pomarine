@@ -1,6 +1,6 @@
 name = "todo_tests"
 description = "Tests for the declarative examples"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

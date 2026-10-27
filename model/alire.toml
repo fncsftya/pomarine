@@ -1,6 +1,6 @@
 name = "pomarine_model"
 description = "Words, pages and marks as data, with nothing to draw them"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

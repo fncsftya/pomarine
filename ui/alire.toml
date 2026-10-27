@@ -1,6 +1,6 @@
 name = "pomarine_ui"
 description = "UI components above the graphics layers and below the application"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"

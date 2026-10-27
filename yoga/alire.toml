@@ -1,6 +1,6 @@
 name = "yoga"
 description = "Ada bindings for the Yoga flexbox layout engine"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Your Name"]
 maintainers = ["Your Name <example@example.com>"]

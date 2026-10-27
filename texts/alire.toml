@@ -1,6 +1,6 @@
 name = "texts"
 description = "Text to edit, as paragraphs, held apart from how it is shown"
-version = "0.1.0-dev"
+version = "0.1.0-alpha"
 
 authors = ["Matt Rawcliffe"]
 licenses = "MIT"
