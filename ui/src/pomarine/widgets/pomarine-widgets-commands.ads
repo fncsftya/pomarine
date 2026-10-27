@@ -17,6 +17,7 @@
 --
 --  A widget that says more than one thing (a grip: Click, Double_Click, Drag)
 --  has its Event.Kind to say which.
+
 generic
    type Command is (<>);
 package Pomarine.Widgets.Commands is
@@ -29,12 +30,12 @@ package Pomarine.Widgets.Commands is
    --  is for: a field that says Submit stays typeable while Submit is not
    --  possible.
 
-   function Is_Bound (Event : Widget_Event) return Boolean is
-     (Event.Tag in 0 .. Command'Pos (Command'Last));
+   function Is_Bound (Event : Widget_Event) return Boolean
+   is (Event.Tag in 0 .. Command'Pos (Command'Last));
    --  Whether the widget that said it was given a command.
 
    function What (Event : Widget_Event) return Command
-     with Pre => Is_Bound (Event);
+   with Pre => Is_Bound (Event);
    --  The command of the widget that said Event.
 
 end Pomarine.Widgets.Commands;

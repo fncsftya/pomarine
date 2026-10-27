@@ -6,7 +6,7 @@ package Pomarine_Accessibility_Config is
    pragma Pure;
 
    Crate_Version : constant String := "0.1.0-dev";
-   Crate_Name : constant String := "pomarine_accessibility";
+   Crate_Name    : constant String := "pomarine_accessibility";
 
    Alire_Host_OS : constant String := "macos";
 

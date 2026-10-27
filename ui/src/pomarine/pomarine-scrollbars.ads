@@ -14,6 +14,7 @@ with Pomarine.Themes;
 --  thumb holds it, to drag; pressing on the trough beside it moves the
 --  thumb there, and holds it; pressing an arrow scrolls a step that way,
 --  and the arrow is pressed in until it is let go.
+
 package Pomarine.Scrollbars is
 
    Thickness : constant Float := 12.0;
@@ -30,11 +31,11 @@ package Pomarine.Scrollbars is
 
    type Metrics is record
       Left, Top, Width, Height : Float := 0.0;
-      Density    : Float := 1.0;
-      Start      : Float := 0.0;
-      Shown      : Float := 0.0;
-      Total      : Float := 0.0;
-      Horizontal : Boolean := False;
+      Density                  : Float := 1.0;
+      Start                    : Float := 0.0;
+      Shown                    : Float := 0.0;
+      Total                    : Float := 0.0;
+      Horizontal               : Boolean := False;
    end record;
    --  What a bar shows: the box in pixels, along the side of which it goes,
    --  the density of the pixels, and the view Shown high (or wide), which
@@ -47,11 +48,7 @@ package Pomarine.Scrollbars is
 
    function Is_Held (Item : Bar) return Boolean;
 
-   procedure Draw
-     (Item   : Bar;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme;
-      Within : Metrics);
+   procedure Draw (Item : Bar; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme; Within : Metrics);
    --  Draw it, if it is shown and there is more than the view shows.
 
    procedure Handle

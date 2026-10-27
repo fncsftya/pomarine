@@ -1,26 +1,28 @@
 --  What the sections of Pomarine.Widgets (animations, accessibility, and the rest) share: pixels from
 --  floats, the seldom-used parts of widgets, and where a node is in the tree's table.
+
 private package Pomarine.Widgets.Nodes is
 
    --  Boxes
 
-   Far : constant := 2 ** 28;
+   Far : constant := 2**28;
    --  No pixel is further than this from the origin, so that sums and
    --  differences of two of them stay in Integer.
 
    function To_Pixel (Value : Float) return Integer
-     with Post => To_Pixel'Result in -Far .. Far;
+   with Post => To_Pixel'Result in -Far .. Far;
    --  Value as a pixel, kept within Far of the origin: a layout that has
    --  gone wrong (not a number, infinite, or beyond any screen) must not
    --  stop the application from drawing.
 
    function Around (Across, Down, Wide, High : Float) return Pixel_Box
-     with Post => Around'Result.Left in -Far .. Far
-                    and then Around'Result.Top in -Far .. Far
-                    and then Around'Result.Width in -2 * Far .. 2 * Far
-                    and then Around'Result.Height in -2 * Far .. 2 * Far
-                    and then (if Wide >= 0.0 and then High >= 0.0
-                              then Around'Result.Width >= 0 and then Around'Result.Height >= 0);
+   with
+     Post =>
+       Around'Result.Left in -Far .. Far
+       and then Around'Result.Top in -Far .. Far
+       and then Around'Result.Width in -2 * Far .. 2 * Far
+       and then Around'Result.Height in -2 * Far .. 2 * Far
+       and then (if Wide >= 0.0 and then High >= 0.0 then Around'Result.Width >= 0 and then Around'Result.Height >= 0);
    --  The pixels that any of the box touches. A position or size that is
    --  not a number counts as zero, and one beyond Far as Far.
 

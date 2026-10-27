@@ -1,10 +1,6 @@
 package body Pomarine.Widgets.Frames.Handlers is
 
-   procedure On
-     (Item    : in out Frame;
-      Kind    : Event_Kind;
-      Self    : not null access Context;
-      Do_This : not null Handler) is
+   procedure On (Item : in out Frame; Kind : Event_Kind; Self : not null access Context; Do_This : not null Handler) is
    begin
       if Kind = Blur then
          Plain.On (Item.Title_Field, Kind, Self, Do_This);

@@ -5,6 +5,7 @@ with Pomarine.View_Models;
 --  The view-model parts with no window, display or event: what a count of
 --  changes does, and the contracts of a command. Each check says what it
 --  expects; a failure raises.
+
 procedure VM_Tests is
    package VM renames Pomarine.View_Models;
    use type VM.Version_Number;
@@ -83,15 +84,22 @@ procedure VM_Tests is
       Index   : Natural := 0;
    end record;
 
-   overriding function Version (Self : Door) return VM.Version_Number is (VM.Value (Self.Count));
+   overriding
+   function Version (Self : Door) return VM.Version_Number
+   is (VM.Value (Self.Count));
 
-   overriding function Can_Execute (Self : Door; What : Verb; Index : Natural := 0) return Boolean is
-     (Index < 10
-      and then (case What is when Open => not Self.Is_Open, when Close => Self.Is_Open));
+   overriding
+   function Can_Execute (Self : Door; What : Verb; Index : Natural := 0) return Boolean
+   is (Index < 10
+       and then (case What is
+                   when Open  => not Self.Is_Open,
+                   when Close => Self.Is_Open));
 
-   overriding procedure Execute (Self : in out Door; What : Verb; Index : Natural := 0);
+   overriding
+   procedure Execute (Self : in out Door; What : Verb; Index : Natural := 0);
 
-   overriding procedure Execute (Self : in out Door; What : Verb; Index : Natural := 0) is
+   overriding
+   procedure Execute (Self : in out Door; What : Verb; Index : Natural := 0) is
    begin
       Self.Is_Open := What = Open;
       Self.Index := Index;

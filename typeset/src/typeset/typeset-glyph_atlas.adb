@@ -6,14 +6,11 @@ package body Typeset.Glyph_Atlas is
    use type Interfaces.Unsigned_64;
    package Glyphs renames CoreText.Shaping.Glyphs;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Textures.Vertex_Array, Vertex_Access);
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Slot_Table, Slot_Table_Access);
+   procedure Free is new Ada.Unchecked_Deallocation (Textures.Vertex_Array, Vertex_Access);
+   procedure Free is new Ada.Unchecked_Deallocation (Slot_Table, Slot_Table_Access);
 
    function Floor (X : Float) return Float
-     with Import, Convention => Intrinsic,
-          External_Name => "__builtin_floorf";
+   with Import, Convention => Intrinsic, External_Name => "__builtin_floorf";
    --  Float'Floor, as an instruction rather than a call.
 
    Subpixel_Steps : constant := 4;
@@ -30,31 +27,25 @@ package body Typeset.Glyph_Atlas is
 
    --  The table of slots
 
-   function Home (Key : Interfaces.Unsigned_64) return Slot_Index is
-     (Slot_Index'Mod
-        (Interfaces.Shift_Right (Key * 16#9E37_79B9_7F4A_7C15#, 32)));
+   function Home (Key : Interfaces.Unsigned_64) return Slot_Index
+   is (Slot_Index'Mod (Interfaces.Shift_Right (Key * 16#9E37_79B9_7F4A_7C15#, 32)));
    --  Where Key is looked for first.
 
-   function Index_Of
-     (Item : Atlas; Key : Interfaces.Unsigned_64) return Slot_Index
-     with Pre => Key /= No_Key and then Item.Filled < Slots_Kept;
+   function Index_Of (Item : Atlas; Key : Interfaces.Unsigned_64) return Slot_Index
+   with Pre => Key /= No_Key and then Item.Filled < Slots_Kept;
    --  Where Key is in the table, or the empty place it would go.
 
-   function Index_Of
-     (Item : Atlas; Key : Interfaces.Unsigned_64) return Slot_Index
-   is
+   function Index_Of (Item : Atlas; Key : Interfaces.Unsigned_64) return Slot_Index is
       Index : Slot_Index := Home (Key);
    begin
-      while Item.Slots (Index).Key /= No_Key
-        and then Item.Slots (Index).Key /= Key
-      loop
+      while Item.Slots (Index).Key /= No_Key and then Item.Slots (Index).Key /= Key loop
          Index := Index + 1;
       end loop;
       return Index;
    end Index_Of;
 
    procedure Remove (Item : in out Atlas; Index : Slot_Index)
-     with Pre => Item.Slots (Index).Key /= No_Key;
+   with Pre => Item.Slots (Index).Key /= No_Key;
    --  Forget the glyph at Index. Those after it that were placed further
    --  along than their home because it was taken are moved back, so that
    --  each is still found from its home without crossing an empty place.
@@ -90,39 +81,33 @@ package body Typeset.Glyph_Atlas is
       use Ada.Numerics.Elementary_Functions;
       Steps : constant Float := Float (Steps_Per_Octave);
    begin
-      return Float'Max
-        (1.0,
-         (if Settled
-          then Float'Rounding (Size * Size_Units) / Size_Units
-          else 2.0 ** (Float'Rounding (Log (Size, 2.0) * Steps) / Steps)));
+      return
+        Float'Max
+          (1.0,
+           (if Settled
+            then Float'Rounding (Size * Size_Units) / Size_Units
+            else 2.0**(Float'Rounding (Log (Size, 2.0) * Steps) / Steps)));
    end Raster_Size;
 
    function Key_Of
-     (Font : CoreText.Shaping.Font_Id;
-      Id   : Interfaces.Unsigned_16;
-      Size : Float;
-      Sub  : Natural) return Interfaces.Unsigned_64
+     (Font : CoreText.Shaping.Font_Id; Id : Interfaces.Unsigned_16; Size : Float; Sub : Natural)
+      return Interfaces.Unsigned_64
    is
-      Sized : constant Interfaces.Unsigned_64 :=
-        Interfaces.Unsigned_64 (Float'Rounding (Size * Size_Units));
+      Sized : constant Interfaces.Unsigned_64 := Interfaces.Unsigned_64 (Float'Rounding (Size * Size_Units));
    begin
-      pragma Assert (Positive (Font) < 4096 and then Sized < 2 ** 20);
-      return (((Sized * 4096 + Interfaces.Unsigned_64 (Font)) * 65536
-               + Interfaces.Unsigned_64 (Id)) * 4)
+      pragma Assert (Positive (Font) < 4096 and then Sized < 2**20);
+      return
+        (((Sized * 4096 + Interfaces.Unsigned_64 (Font)) * 65536 + Interfaces.Unsigned_64 (Id)) * 4)
         + Interfaces.Unsigned_64 (Sub);
    end Key_Of;
 
    --  Pages
 
-   procedure Flush_Page
-     (Item   : in out Atlas;
-      Target : SDL3.Painters.Painter'Class;
-      Index  : Positive) is
+   procedure Flush_Page (Item : in out Atlas; Target : SDL3.Painters.Painter'Class; Index : Positive) is
    begin
       if Item.Pages (Index).Quads > 0 then
          SDL3.Painters.Draw_Quads
-           (Target, Item.Pages (Index).Image,
-            Item.Pages (Index).Vertices.all, Item.Pages (Index).Quads);
+           (Target, Item.Pages (Index).Image, Item.Pages (Index).Vertices.all, Item.Pages (Index).Quads);
          Item.Pages (Index).Quads := 0;
       end if;
    end Flush_Page;
@@ -154,9 +139,7 @@ package body Typeset.Glyph_Atlas is
       --  Removing moves a later glyph back to where the one removed was,
       --  which so is looked at again. None moves before it.
       loop
-         if Item.Slots (At_Slot).Key /= No_Key
-           and then Item.Slots (At_Slot).Spot.Page = Index
-         then
+         if Item.Slots (At_Slot).Key /= No_Key and then Item.Slots (At_Slot).Spot.Page = Index then
             Remove (Item, At_Slot);
          else
             exit when At_Slot = Slot_Index'Last;
@@ -166,13 +149,11 @@ package body Typeset.Glyph_Atlas is
       Start_Page (Item.Pages (Index));
    end Empty_Page;
 
-   function Fits
-     (Page : Page_Record; Width, Height : Positive) return Boolean;
+   function Fits (Page : Page_Record; Width, Height : Positive) return Boolean;
    --  Whether a Width x Height image can be put on the page, after
    --  those already, in a row of the same height or a new row.
 
-   function Fits
-     (Page : Page_Record; Width, Height : Positive) return Boolean is
+   function Fits (Page : Page_Record; Width, Height : Positive) return Boolean is
    begin
       if Page.Cursor_X + Width <= Page_Size then
          return Page.Row_Y + Natural'Max (Page.Row_H, Height) <= Page_Size;
@@ -181,17 +162,11 @@ package body Typeset.Glyph_Atlas is
       end if;
    end Fits;
 
-   procedure Take
-     (Page : in out Page_Record;
-      Width, Height : Positive;
-      X, Y : out Natural)
-     with Pre => Fits (Page, Width, Height);
+   procedure Take (Page : in out Page_Record; Width, Height : Positive; X, Y : out Natural)
+   with Pre => Fits (Page, Width, Height);
    --  Put an image on the page.
 
-   procedure Take
-     (Page : in out Page_Record;
-      Width, Height : Positive;
-      X, Y : out Natural) is
+   procedure Take (Page : in out Page_Record; Width, Height : Positive; X, Y : out Natural) is
    begin
       if Page.Cursor_X + Width > Page_Size then
          Page.Row_Y := Page.Row_Y + Page.Row_H;
@@ -205,20 +180,20 @@ package body Typeset.Glyph_Atlas is
    end Take;
 
    procedure Find_Room
-     (Item   : in out Atlas;
-      Target : SDL3.Painters.Painter'Class;
+     (Item          : in out Atlas;
+      Target        : SDL3.Painters.Painter'Class;
       Width, Height : Positive;
-      Index  : out Positive;
-      X, Y   : out Natural)
-     with Pre => Width <= Page_Size and then Height <= Page_Size;
+      Index         : out Positive;
+      X, Y          : out Natural)
+   with Pre => Width <= Page_Size and then Height <= Page_Size;
    --  Somewhere to put an image, making room if need be.
 
    procedure Find_Room
-     (Item   : in out Atlas;
-      Target : SDL3.Painters.Painter'Class;
+     (Item          : in out Atlas;
+      Target        : SDL3.Painters.Painter'Class;
       Width, Height : Positive;
-      Index  : out Positive;
-      X, Y   : out Natural) is
+      Index         : out Positive;
+      X, Y          : out Natural) is
    begin
       for I in 1 .. Item.Count loop
          if Fits (Item.Pages (I), Width, Height) then
@@ -231,11 +206,8 @@ package body Typeset.Glyph_Atlas is
       if Item.Count < Max_Pages then
          Item.Count := Item.Count + 1;
          Index := Item.Count;
-         Textures.Create_Blank
-           (Item.Pages (Index).Image, Target.Device.all, Page_Size, Page_Size,
-            Smooth => True);
-         Item.Pages (Index).Vertices :=
-           new Textures.Vertex_Array (1 .. 4 * Textures.Max_Quads);
+         Textures.Create_Blank (Item.Pages (Index).Image, Target.Device.all, Page_Size, Page_Size, Smooth => True);
+         Item.Pages (Index).Vertices := new Textures.Vertex_Array (1 .. 4 * Textures.Max_Quads);
       else
          --  The page drawn from least recently. Better not one drawn
          --  from this frame: its batch refers to what is there.
@@ -254,23 +226,23 @@ package body Typeset.Glyph_Atlas is
    --  Glyphs
 
    function Slot_For
-     (Item    : in out Atlas;
-      Reg     : CoreText.Shaping.Registry;
-      Target  : SDL3.Painters.Painter'Class;
-      Font    : CoreText.Shaping.Font_Id;
-      Id      : Interfaces.Unsigned_16;
-      Size    : Float;
-      Sub     : Natural) return Slot;
+     (Item   : in out Atlas;
+      Reg    : CoreText.Shaping.Registry;
+      Target : SDL3.Painters.Painter'Class;
+      Font   : CoreText.Shaping.Font_Id;
+      Id     : Interfaces.Unsigned_16;
+      Size   : Float;
+      Sub    : Natural) return Slot;
    --  Where the glyph is, rasterizing it if it is not on a page.
 
    function Slot_For
-     (Item    : in out Atlas;
-      Reg     : CoreText.Shaping.Registry;
-      Target  : SDL3.Painters.Painter'Class;
-      Font    : CoreText.Shaping.Font_Id;
-      Id      : Interfaces.Unsigned_16;
-      Size    : Float;
-      Sub     : Natural) return Slot
+     (Item   : in out Atlas;
+      Reg    : CoreText.Shaping.Registry;
+      Target : SDL3.Painters.Painter'Class;
+      Font   : CoreText.Shaping.Font_Id;
+      Id     : Interfaces.Unsigned_16;
+      Size   : Float;
+      Sub    : Natural) return Slot
    is
       Key    : constant Interfaces.Unsigned_64 := Key_Of (Font, Id, Size, Sub);
       Found  : Slot_Index;
@@ -299,9 +271,7 @@ package body Typeset.Glyph_Atlas is
          Item.Filled := 0;
       end if;
 
-      Glyphs.Rasterize
-        (Reg, Font, Id, Size, Float (Sub) * Subpixel_Width,
-         Item.Scratch);
+      Glyphs.Rasterize (Reg, Font, Id, Size, Float (Sub) * Subpixel_Width, Item.Scratch);
       Item.Made := Item.Made + 1;
 
       if not Glyphs.Is_Blank (Item.Scratch)
@@ -313,15 +283,18 @@ package body Typeset.Glyph_Atlas is
          begin
             Result.W := Glyphs.Width (Item.Scratch);
             Result.H := Glyphs.Height (Item.Scratch);
-            Find_Room (Item, Target, Result.W, Result.H, Index,
-                       Result.X, Result.Y);
+            Find_Room (Item, Target, Result.W, Result.H, Index, Result.X, Result.Y);
             Result.Page := Index;
             Result.Left := Glyphs.Left (Item.Scratch);
             Result.Top := Glyphs.Top (Item.Scratch);
             Result.Color := CoreText.Shaping.Is_Color (Reg, Font);
             Textures.Update_Region
-              (Item.Pages (Index).Image, Result.X, Result.Y, Result.W,
-               Result.H, Glyphs.Pixels (Item.Scratch),
+              (Item.Pages (Index).Image,
+               Result.X,
+               Result.Y,
+               Result.W,
+               Result.H,
+               Glyphs.Pixels (Item.Scratch),
                Glyphs.Pitch (Item.Scratch));
          end;
       end if;
@@ -358,60 +331,41 @@ package body Typeset.Glyph_Atlas is
             Own    : constant Float := (if G.Size > 0.0 then G.Size * Scale else Size);
             Raster : constant Float := Raster_Size (Own, Settled);
             Ratio  : constant Float := Own / Raster;
-            At_X  : constant Float := X + G.X * Scale;
-            Whole : constant Float := Floor (At_X);
-            Sub   : constant Natural :=
-              Natural'Min
-                (Subpixel_Steps - 1,
-                 Natural (Floor ((At_X - Whole) / Subpixel_Width)));
-            Found : constant Slot :=
-              Slot_For (Item, Reg, Target, G.Font, G.Id, Raster, Sub);
+            At_X   : constant Float := X + G.X * Scale;
+            Whole  : constant Float := Floor (At_X);
+            Sub    : constant Natural :=
+              Natural'Min (Subpixel_Steps - 1, Natural (Floor ((At_X - Whole) / Subpixel_Width)));
+            Found  : constant Slot := Slot_For (Item, Reg, Target, G.Font, G.Id, Raster, Sub);
          begin
             if Found.Page /= 0 then
                declare
-                  Page : Page_Record renames Item.Pages (Found.Page);
+                  Page   : Page_Record renames Item.Pages (Found.Page);
                   --  Half a pixel in from the image's edges, which are
                   --  transparent: smoothing samples the pixels either side
                   --  of a point, and at the very edge one of them is a
                   --  neighbour's.
-                  Inset : constant Float := Half_Texel * Ratio;
-                  Left : constant Float :=
-                    Whole + Float (Found.Left) * Ratio + Inset;
-                  Top  : constant Float :=
-                    Base - Float (Found.Top) * Ratio + Inset;
-                  Right  : constant Float :=
-                    Left + Float (Found.W) * Ratio - 2.0 * Inset;
-                  Bottom : constant Float :=
-                    Top + Float (Found.H) * Ratio - 2.0 * Inset;
-                  U0 : constant Float :=
-                    (Float (Found.X) + Half_Texel) / Page_F;
-                  V0 : constant Float :=
-                    (Float (Found.Y) + Half_Texel) / Page_F;
-                  U1 : constant Float :=
-                    (Float (Found.X + Found.W) - Half_Texel) / Page_F;
-                  V1 : constant Float :=
-                    (Float (Found.Y + Found.H) - Half_Texel) / Page_F;
+                  Inset  : constant Float := Half_Texel * Ratio;
+                  Left   : constant Float := Whole + Float (Found.Left) * Ratio + Inset;
+                  Top    : constant Float := Base - Float (Found.Top) * Ratio + Inset;
+                  Right  : constant Float := Left + Float (Found.W) * Ratio - 2.0 * Inset;
+                  Bottom : constant Float := Top + Float (Found.H) * Ratio - 2.0 * Inset;
+                  U0     : constant Float := (Float (Found.X) + Half_Texel) / Page_F;
+                  V0     : constant Float := (Float (Found.Y) + Half_Texel) / Page_F;
+                  U1     : constant Float := (Float (Found.X + Found.W) - Half_Texel) / Page_F;
+                  V1     : constant Float := (Float (Found.Y + Found.H) - Half_Texel) / Page_F;
 
                   --  What the glyph is multiplied by: colour glyphs keep
                   --  their own colours.
-                  R : constant Float :=
-                    (if Found.Color then 1.0 else Float (Value.Red) / 255.0);
-                  Gr : constant Float :=
-                    (if Found.Color then 1.0
-                     else Float (Value.Green) / 255.0);
-                  B : constant Float :=
-                    (if Found.Color then 1.0 else Float (Value.Blue) / 255.0);
+                  R     : constant Float := (if Found.Color then 1.0 else Float (Value.Red) / 255.0);
+                  Gr    : constant Float := (if Found.Color then 1.0 else Float (Value.Green) / 255.0);
+                  B     : constant Float := (if Found.Color then 1.0 else Float (Value.Blue) / 255.0);
                   First : constant Positive := 4 * Page.Quads + 1;
                begin
                   Page.Used := Item.Frame;
-                  Page.Vertices (First) :=
-                    (Left, Top, R, Gr, B, Alpha, U0, V0);
-                  Page.Vertices (First + 1) :=
-                    (Right, Top, R, Gr, B, Alpha, U1, V0);
-                  Page.Vertices (First + 2) :=
-                    (Left, Bottom, R, Gr, B, Alpha, U0, V1);
-                  Page.Vertices (First + 3) :=
-                    (Right, Bottom, R, Gr, B, Alpha, U1, V1);
+                  Page.Vertices (First) := (Left, Top, R, Gr, B, Alpha, U0, V0);
+                  Page.Vertices (First + 1) := (Right, Top, R, Gr, B, Alpha, U1, V0);
+                  Page.Vertices (First + 2) := (Left, Bottom, R, Gr, B, Alpha, U0, V1);
+                  Page.Vertices (First + 3) := (Right, Bottom, R, Gr, B, Alpha, U1, V1);
                   Page.Quads := Page.Quads + 1;
                   if Page.Quads = Textures.Max_Quads then
                      Flush_Page (Item, Target, Found.Page);
@@ -435,16 +389,18 @@ package body Typeset.Glyph_Atlas is
       Settled  : Boolean) is
    begin
       for G of Line.Glyphs loop
-         Draw (Item, Reg, Target, CoreText.Shaping.Glyph_Array'[G], X,
-               Baseline, Scale, Size, Value, Settled);
+         Draw (Item, Reg, Target, CoreText.Shaping.Glyph_Array'[G], X, Baseline, Scale, Size, Value, Settled);
       end loop;
    end Draw;
 
-   function Glyphs_Made (Item : Atlas) return Natural is (Item.Made);
+   function Glyphs_Made (Item : Atlas) return Natural
+   is (Item.Made);
 
-   function Pages_Used (Item : Atlas) return Natural is (Item.Count);
+   function Pages_Used (Item : Atlas) return Natural
+   is (Item.Count);
 
-   overriding procedure Finalize (Item : in out Atlas) is
+   overriding
+   procedure Finalize (Item : in out Atlas) is
    begin
       for I in 1 .. Item.Count loop
          Free (Item.Pages (I).Vertices);

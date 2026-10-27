@@ -2,6 +2,7 @@
 --  settings, that a window's look and movement are to follow: less
 --  movement, more contrast, less see-through. Looked at when asked (it is
 --  cheap), not kept.
+
 package Pomarine.System_Settings is
 
    function Reduce_Motion return Boolean;

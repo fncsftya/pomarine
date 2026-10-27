@@ -2,10 +2,10 @@ package body Pomarine.Widgets.Animations is
 
    use type Pomarine.Events.Milliseconds;
 
-   function Eased (How : Easing; T : Float) return Float is
-     (case How is
+   function Eased (How : Easing; T : Float) return Float
+   is (case How is
          when Linear      => T,
-         when Ease_Out    => 1.0 - (1.0 - T) ** 3,
+         when Ease_Out    => 1.0 - (1.0 - T)**3,
          when Ease_In_Out => T * T * (3.0 - 2.0 * T));
    --  How far along the way a number is, of the whole, T of the way
    --  through the time.
@@ -41,8 +41,14 @@ package body Pomarine.Widgets.Animations is
          Home.Running := Home.Running + 1;
       end if;
       Home.Moving (Free) :=
-        (Active => True, Who => Mine, From => From, To => To, Start => Home.Clock,
-         Length => Milliseconds, How => How, Apply => Apply);
+        (Active => True,
+         Who    => Mine,
+         From   => From,
+         To     => To,
+         Start  => Home.Clock,
+         Length => Milliseconds,
+         How    => How,
+         Apply  => Apply);
       Apply (Item, From);
    end Start;
 
@@ -71,8 +77,7 @@ package body Pomarine.Widgets.Animations is
          if Each.Active then
             declare
                Going : constant Widget_Access := Resolve (Item, Each.Who);
-               Spent : constant Float :=
-                 (if Now > Each.Start then Float (Now - Each.Start) else 0.0);
+               Spent : constant Float := (if Now > Each.Start then Float (Now - Each.Start) else 0.0);
                T     : constant Float := Float'Min (1.0, Spent / Float (Each.Length));
             begin
                if Going = null then
@@ -82,8 +87,7 @@ package body Pomarine.Widgets.Animations is
                   --  The last is exact, not what the curve comes to.
                   Each.Apply
                     (Going.all,
-                     (if T >= 1.0 then Each.To
-                      else Each.From + (Each.To - Each.From) * Eased (Each.How, T)));
+                     (if T >= 1.0 then Each.To else Each.From + (Each.To - Each.From) * Eased (Each.How, T)));
                   if T >= 1.0 then
                      Each.Active := False;
                      Item.Running := Item.Running - 1;

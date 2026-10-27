@@ -9,6 +9,7 @@ with Todo_VM;
 
 --  The list of the todo screen and the choice in it: a choice is of an item, the first focus, and the row
 --  that is shown after one is added.
+
 procedure UI_List_Test is
    package Testing renames Pomarine.Testing;
    package Widgets renames Pomarine.Widgets;

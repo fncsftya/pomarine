@@ -7,6 +7,7 @@ with Pomarine.Windows;
 --  The window's loop as an application with a loop of its own uses it: a turn at a time (Step), a title and
 --  size changed after it is open, the colours chosen, work handed to Idle, and Close. It opens a real window
 --  for a moment, so it is not one of the offscreen tests.
+
 procedure Windows_Test is
    package Windows renames Pomarine.Windows;
 

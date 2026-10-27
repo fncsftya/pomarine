@@ -15,6 +15,7 @@ with Form_UI;
 with Form_VM;
 
 --  Who owns what in a view, how long handles and scopes last, and what a failure leaves behind.
+
 procedure UI_Ownership_Test is
    package UI renames Pomarine.UI;
    package Arenas renames Pomarine.UI.Arenas;
@@ -34,9 +35,9 @@ procedure UI_Ownership_Test is
 
    procedure Full_Arena_Block is
       use type System.Storage_Elements.Storage_Count;
-      Home : Arenas.Handle := Arenas.Make;
+      Home    : Arenas.Handle := Arenas.Make;
       Address : System.Address;
-      Held : System.Storage_Elements.Storage_Count;
+      Held    : System.Storage_Elements.Storage_Count;
    begin
       Arenas.Allocate_From_Subpool (Arenas.Pool, Address, 1, 1, Home);
       Held := System.Storage_Elements.Storage_Count (Arenas.Bytes_Held (Home));
@@ -54,17 +55,20 @@ procedure UI_Ownership_Test is
    Finalized_Untagged : Boolean := False;
 
    type Application_Widgets is limited new Ada.Finalization.Limited_Controlled with record
-      Save   : Buttons.Button;
-      Shown  : Labels.Label;
-      Typed  : Text_Fields.Text_Field;
-      Words  : aliased Texts.Documents.Document;
+      Save  : Buttons.Button;
+      Shown : Labels.Label;
+      Typed : Text_Fields.Text_Field;
+      Words : aliased Texts.Documents.Document;
    end record;
 
-   overriding procedure Finalize (Item : in out Application_Widgets) is
+   overriding
+   procedure Finalize (Item : in out Application_Widgets) is
    begin
       --  The view is gone already (it was declared after this): it has taken them out of the tree and
       --  let go of their handlers and tags, and has not finalized them (this is the first time).
-      Finalized_Detached := not Widgets.Is_Attached (Item.Save) and then not Widgets.Is_Attached (Item.Typed)
+      Finalized_Detached :=
+        not Widgets.Is_Attached (Item.Save)
+        and then not Widgets.Is_Attached (Item.Typed)
         and then not Widgets.Is_Attached (Item.Shown);
       Finalized_Untagged :=
         Widgets.Tag_Of (Item.Save) = Widgets.No_Tag and then Widgets.Tag_Of (Item.Typed) = Widgets.No_Tag;
@@ -142,7 +146,8 @@ procedure UI_Ownership_Test is
       return 0;
    end Remember;
 
-   function Boom return Integer is (Integer'Value ("not a number"));
+   function Boom return Integer
+   is (Integer'Value ("not a number"));
 
    function Leaking_Part (Parent : Forms.Context'Class) return UI.Layout is
       Bound : aliased Forms.Component (Parent'Access);
@@ -300,9 +305,9 @@ procedure UI_Ownership_Test is
    end A_Context_Outlives_Its_View;
 
    procedure A_Control_Is_Placed_Once is
-      Tree   : aliased Widgets.Tree;
-      Model  : aliased Form_VM.Model;
-      Screen : UI.View (Tree'Access);
+      Tree    : aliased Widgets.Tree;
+      Model   : aliased Form_VM.Model;
+      Screen  : UI.View (Tree'Access);
       Refused : Boolean := False;
    begin
       declare
@@ -335,13 +340,13 @@ procedure UI_Ownership_Test is
    end A_Control_Is_Placed_Once;
 
    procedure A_Control_In_A_Tree_Is_Refused is
-      Tree_1  : aliased Widgets.Tree;
-      Tree_2  : aliased Widgets.Tree;
-      Model   : aliased Form_VM.Model;
-      Mine    : Application_Widgets;
-      Root    : aliased Panels.Panel;
-      Screen  : UI.View (Tree_2'Access);
-      Seen    : Boolean := False;
+      Tree_1 : aliased Widgets.Tree;
+      Tree_2 : aliased Widgets.Tree;
+      Model  : aliased Form_VM.Model;
+      Mine   : Application_Widgets;
+      Root   : aliased Panels.Panel;
+      Screen : UI.View (Tree_2'Access);
+      Seen   : Boolean := False;
    begin
       Buttons.Configure (Mine.Save, Buttons.Looks ("Elsewhere"));
       Widgets.Set_Root (Tree_1, Root);
@@ -372,10 +377,10 @@ procedure UI_Ownership_Test is
       Failed : Boolean := False;
    begin
       declare
-         Bound  : constant Forms.Context'Class := Forms.Bind (Screen, Model'Access);
-         Part   : constant Form_Parts.Field_Part := Form_Parts.Handles_Part (Bound, "X");
-         Arenas_Before : constant Natural := Arenas.Live_Arenas;
-         Scopes_Before : constant Natural := UI.Live_Scopes (Screen);
+         Bound           : constant Forms.Context'Class := Forms.Bind (Screen, Model'Access);
+         Part            : constant Form_Parts.Field_Part := Form_Parts.Handles_Part (Bound, "X");
+         Arenas_Before   : constant Natural := Arenas.Live_Arenas;
+         Scopes_Before   : constant Natural := UI.Live_Scopes (Screen);
          Controls_Before : constant Natural := UI.Live_Controls (Screen);
       begin
          --  Five widgets are attached (two controls, a row, two buttons): a fault before each, in turn.
@@ -435,11 +440,11 @@ procedure UI_Ownership_Test is
    end Nothing_To_Mount;
 
    procedure Failures_Release_What_Was_Made is
-      Tree   : aliased Widgets.Tree;
-      Model  : aliased Form_VM.Model;
-      Screen : UI.View (Tree'Access);
+      Tree          : aliased Widgets.Tree;
+      Model         : aliased Form_VM.Model;
+      Screen        : UI.View (Tree'Access);
       Arenas_Before : Natural;
-      Caught : Boolean;
+      Caught        : Boolean;
 
       procedure Nothing_Is_Left (Because : String) is
       begin

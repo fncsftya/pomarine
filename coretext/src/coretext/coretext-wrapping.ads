@@ -11,11 +11,8 @@ package CoreText.Wrapping is
 
    package Span_Vectors is new Ada.Containers.Vectors (Positive, Span);
 
-   function Is_Layout
-     (Lines : Span_Vectors.Vector; Length : Natural) return Boolean is
-     (not Lines.Is_Empty
-      and then Lines.First_Element.First = 0
-      and then Lines.Last_Element.Stop = Length);
+   function Is_Layout (Lines : Span_Vectors.Vector; Length : Natural) return Boolean
+   is (not Lines.Is_Empty and then Lines.First_Element.First = 0 and then Lines.Last_Element.Stop = Length);
    --  Whether Lines are the lines of a paragraph Length units long: the
    --  first starts it and the last ends it.
 
@@ -26,20 +23,16 @@ package CoreText.Wrapping is
    --  of its length: 100 KB takes most of a second. In windows of this
    --  size it takes milliseconds.
 
-   function Wrap
-     (Using : Fonts.Font; Text : Strings.Text; Width : Float)
-      return Span_Vectors.Vector
-     with Pre  => Fonts.Is_Open (Using) and then Strings.Is_Set (Text),
-          Post => Is_Layout (Wrap'Result, Strings.Length (Text));
+   function Wrap (Using : Fonts.Font; Text : Strings.Text; Width : Float) return Span_Vectors.Vector
+   with
+     Pre  => Fonts.Is_Open (Using) and then Strings.Is_Set (Text),
+     Post => Is_Layout (Wrap'Result, Strings.Length (Text));
    --  Break the paragraph Text in Using into lines no wider than Width
    --  pixels (a line may be wider where a single word is). The lines
    --  are contiguous, and an empty paragraph has one empty line.
 
-   function Wrap
-     (Using : Fonts.Font; Text : String; Width : Float)
-      return Span_Vectors.Vector
-     with Pre  => Fonts.Is_Open (Using),
-          Post => Is_Layout (Wrap'Result, UTF16_Length (Text));
+   function Wrap (Using : Fonts.Font; Text : String; Width : Float) return Span_Vectors.Vector
+   with Pre => Fonts.Is_Open (Using), Post => Is_Layout (Wrap'Result, UTF16_Length (Text));
    --  The same, setting Text first.
 
    procedure Extend
@@ -49,15 +42,15 @@ package CoreText.Wrapping is
       Lines       : in out Span_Vectors.Vector;
       Until_Count : Positive := Positive'Last;
       Until_Unit  : Natural := Natural'Last)
-     with Pre  => Fonts.Is_Open (Using) and then Strings.Is_Set (Text)
-                  and then (Lines.Is_Empty
-                            or else Lines.Last_Element.Stop
-                                    <= Strings.Length (Text)),
-          Post => not Lines.Is_Empty
-                  and then (Lines.Last_Element.Stop = Strings.Length (Text)
-                            or else (Natural (Lines.Length) >= Until_Count
-                                     and then Lines.Last_Element.Stop
-                                              > Until_Unit));
+   with
+     Pre  =>
+       Fonts.Is_Open (Using)
+       and then Strings.Is_Set (Text)
+       and then (Lines.Is_Empty or else Lines.Last_Element.Stop <= Strings.Length (Text)),
+     Post =>
+       not Lines.Is_Empty
+       and then (Lines.Last_Element.Stop = Strings.Length (Text)
+                 or else (Natural (Lines.Length) >= Until_Count and then Lines.Last_Element.Stop > Until_Unit));
    --  Lines, the first of the paragraph Text's, wrapped further, a
    --  window at a time: on until there are Until_Count of them and the
    --  last ends after unit Until_Unit, or the paragraph ends. So only
@@ -70,14 +63,16 @@ package CoreText.Wrapping is
       Width    : Float;
       Edit_At  : Natural;
       Old_Stop : Natural;
-      New_Stop : Natural)
-      return Span_Vectors.Vector
-     with Pre  => Fonts.Is_Open (Using) and then Strings.Is_Set (Text)
-                  and then not Old.Is_Empty
-                  and then Edit_At <= Old_Stop
-                  and then Edit_At <= New_Stop
-                  and then New_Stop <= Strings.Length (Text),
-          Post => Is_Layout (Rewrap'Result, Strings.Length (Text));
+      New_Stop : Natural) return Span_Vectors.Vector
+   with
+     Pre  =>
+       Fonts.Is_Open (Using)
+       and then Strings.Is_Set (Text)
+       and then not Old.Is_Empty
+       and then Edit_At <= Old_Stop
+       and then Edit_At <= New_Stop
+       and then New_Stop <= Strings.Length (Text),
+     Post => Is_Layout (Rewrap'Result, Strings.Length (Text));
    --  The lines of Text, an edit of a paragraph laid out as Old (at the
    --  same Width) which replaced Old's UTF-16 range [Edit_At, Old_Stop)
    --  with what is now [Edit_At, New_Stop). Re-breaks only from the line

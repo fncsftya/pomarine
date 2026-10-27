@@ -12,45 +12,39 @@ with Pomarine.Events;
 --  starts a drag, which lasts until the button is let go, wherever the
 --  pointer goes. The application takes the change, as it takes a
 --  button's click.
+
 package Pomarine.Widgets.Sliders is
 
    type Slider is new Widget with private;
 
    procedure Set_Value (Item : in out Slider; To : Float)
-     with Pre  => To in 0.0 .. 1.0,
-          Post => Is_Dragging (Item) or else Value (Item) = To;
+   with Pre => To in 0.0 .. 1.0, Post => Is_Dragging (Item) or else Value (Item) = To;
    --  Put the knob there, as the application's model has it. It says no
    --  Change, and is ignored while the knob is held, which
    --  the pointer moves.
 
    function Value (Item : Slider) return Float
-     with Post => Value'Result in 0.0 .. 1.0;
+   with Post => Value'Result in 0.0 .. 1.0;
 
    function Is_Dragging (Item : Slider) return Boolean;
    --  Whether the button is down from a press on it.
 
-   overriding procedure Handle
-     (Item    : in out Slider;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Slider; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Slider;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Slider; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Slider; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Slider; Hovered : Boolean);
 
-   overriding function Cursor (Item : Slider) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Slider) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe
-     (Item  : Slider;
-      Facts : in out Semantics.Description);
-   overriding procedure Perform
-     (Item    : in out Slider;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Describe (Item : Slider; Facts : in out Semantics.Description);
+   overriding
+   procedure Perform (Item : in out Slider; Request : Semantics.Request; Done : out Boolean);
 
    procedure Set_Focusable (Item : in out Slider; To : Boolean);
    --  Let it take the focus, by a click or from the application, and then
@@ -58,15 +52,14 @@ package Pomarine.Widgets.Sliders is
    --  to begin with, so that clicking it does not take the focus from what
    --  is being typed into.
 
-   overriding function Is_Focusable (Item : Slider) return Boolean;
+   overriding
+   function Is_Focusable (Item : Slider) return Boolean;
 
-   overriding procedure Focus_Changed
-     (Item : in out Slider; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Slider; Focused : Boolean);
 
-   overriding procedure Draw_Over
-     (Item   : in out Slider;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Slider; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
 private
 

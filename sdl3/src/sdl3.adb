@@ -5,8 +5,7 @@ package body SDL3 is
 
    procedure Raise_Last_Error (Context : String) is
    begin
-      raise SDL_Error with
-        Context & ": " & Interfaces.C.Strings.Value (SDL3.Thin.Get_Error);
+      raise SDL_Error with Context & ": " & Interfaces.C.Strings.Value (SDL3.Thin.Get_Error);
    end Raise_Last_Error;
 
    procedure Initialize is

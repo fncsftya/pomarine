@@ -4,6 +4,7 @@ with Pomarine.Widgets.Lifecycle;
 with Pomarine.Widgets.Nodes;
 with Pomarine.Widgets.Queueing;
 with Yoga.Nodes;
+
 package body Pomarine.Widgets.Overlaying is
 
    use Pomarine.Anchoring;
@@ -11,8 +12,8 @@ package body Pomarine.Widgets.Overlaying is
    use type Pomarine.Events.Event_Kind;
    use type Pomarine.Events.Key_Code;
 
-   function Slot_Of (Home : Tree; Id : Node_Id) return Node_Index is
-     (if Is_Live (Home, Id) then Id.Slot else 0);
+   function Slot_Of (Home : Tree; Id : Node_Id) return Node_Index
+   is (if Is_Live (Home, Id) then Id.Slot else 0);
 
    function Is_Modal_Content (Home : Tree; Slot : Node_Index) return Boolean is
    begin
@@ -102,8 +103,10 @@ package body Pomarine.Widgets.Overlaying is
             Kept := Kept + 1;
             Home.Overlays (Kept) := Home.Overlays (Index);
          elsif Home.Overlays (Index).How.Modal then
-            Home.Scope := (if Slot_Of (Home, Home.Overlays (Index).Saved_Scope) /= 0
-                           then Home.Overlays (Index).Saved_Scope else No_Node);
+            Home.Scope :=
+              (if Slot_Of (Home, Home.Overlays (Index).Saved_Scope) /= 0
+               then Home.Overlays (Index).Saved_Scope
+               else No_Node);
          end if;
       end loop;
       Home.Overlay_Count := Kept;
@@ -116,34 +119,38 @@ package body Pomarine.Widgets.Overlaying is
       Prune (Home);
       for Index in 1 .. Home.Overlay_Count loop
          declare
-            Item    : Overlay renames Home.Overlays (Index);
-            Slot    : constant Node_Index := Slot_Of (Home, Item.Content);
-            Anchor  : constant Node_Index :=
+            Item                       : Overlay renames Home.Overlays (Index);
+            Slot                       : constant Node_Index := Slot_Of (Home, Item.Content);
+            Anchor                     : constant Node_Index :=
               (if Item.Anchor = Placed_By_Widget then Slot_Of (Home, Item.Beside) else 0);
-            Margin  : constant Float := Item.Where.Margin * Home.Density;
-            Gap     : constant Float := Item.Where.Gap * Home.Density;
-            Cover   : Spot renames Table.Spot (Slot);
+            Margin                     : constant Float := Item.Where.Margin * Home.Density;
+            Gap                        : constant Float := Item.Where.Gap * Home.Density;
+            Cover                      : Spot renames Table.Spot (Slot);
             Rim_L, Rim_T, Rim_W, Rim_H : Float := 0.0;
             --  What it is placed by, in pixels.
-            Width   : Float := Cover.Wide;
-            Left, Top : Float;
-            Side    : Side_Kind := Item.Where.Side;
+            Width                      : Float := Cover.Wide;
+            Left, Top                  : Float;
+            Side                       : Side_Kind := Item.Where.Side;
 
-            function Along_Left (Room : Float) return Float is
-              (case Item.Where.Along is
+            function Along_Left (Room : Float) return Float
+            is (case Item.Where.Along is
                   when Start  => Rim_L,
                   when Middle => Rim_L + (Rim_W - Room) / 2.0,
                   when Finish => Rim_L + Rim_W - Room);
-            function Along_Top (Room : Float) return Float is
-              (case Item.Where.Along is
+            function Along_Top (Room : Float) return Float
+            is (case Item.Where.Along is
                   when Start  => Rim_T,
                   when Middle => Rim_T + (Rim_H - Room) / 2.0,
                   when Finish => Rim_T + Rim_H - Room);
-            function Opposite (Of_Side : Side_Kind) return Side_Kind is
-              (case Of_Side is when Below => Above, when Above => Below, when After => Before, when Before => After);
+            function Opposite (Of_Side : Side_Kind) return Side_Kind
+            is (case Of_Side is
+                  when Below  => Above,
+                  when Above  => Below,
+                  when After  => Before,
+                  when Before => After);
 
-            function Fits (On : Side_Kind; High_Of : Float) return Boolean is
-              (case On is
+            function Fits (On : Side_Kind; High_Of : Float) return Boolean
+            is (case On is
                   when Below  => Rim_T + Rim_H + Gap + High_Of <= High - Margin,
                   when Above  => Rim_T - Gap - High_Of >= Margin,
                   when After  => Rim_L + Rim_W + Gap + Width <= Wide - Margin,
@@ -159,9 +166,11 @@ package body Pomarine.Widgets.Overlaying is
                   Rim_T := Table.Spot (Anchor).Top;
                   Rim_W := Table.Spot (Anchor).Wide;
                   Rim_H := Table.Spot (Anchor).High;
-               when Placed_At_Point =>
+
+               when Placed_At_Point  =>
                   Rim_L := Item.Point_X;
                   Rim_T := Item.Point_Y;
+
                when Placed_In_Middle =>
                   null;
             end case;
@@ -176,10 +185,21 @@ package body Pomarine.Widgets.Overlaying is
                   Side := Opposite (Side);
                end if;
                case Side is
-                  when Below  => Left := Along_Left (Width); Top := Rim_T + Rim_H + Gap;
-                  when Above  => Left := Along_Left (Width); Top := Rim_T - Gap - Cover.High;
-                  when After  => Left := Rim_L + Rim_W + Gap; Top := Along_Top (Cover.High);
-                  when Before => Left := Rim_L - Gap - Width; Top := Along_Top (Cover.High);
+                  when Below  =>
+                     Left := Along_Left (Width);
+                     Top := Rim_T + Rim_H + Gap;
+
+                  when Above  =>
+                     Left := Along_Left (Width);
+                     Top := Rim_T - Gap - Cover.High;
+
+                  when After  =>
+                     Left := Rim_L + Rim_W + Gap;
+                     Top := Along_Top (Cover.High);
+
+                  when Before =>
+                     Left := Rim_L - Gap - Width;
+                     Top := Along_Top (Cover.High);
                end case;
             end if;
             --  Inside the window, as far as it will go.
@@ -219,11 +239,7 @@ package body Pomarine.Widgets.Overlaying is
       return Changed;
    end Position;
 
-   procedure Take_Input
-     (Home     : in out Tree;
-      Event    : Pomarine.Events.Event;
-      Over     : Node_Index;
-      Consumed : out Boolean)
+   procedure Take_Input (Home : in out Tree; Event : Pomarine.Events.Event; Over : Node_Index; Consumed : out Boolean)
    is
    begin
       Consumed := False;
@@ -236,8 +252,12 @@ package body Pomarine.Widgets.Overlaying is
          Mine    : constant Overlay := Home.Overlays (Top);
          Content : constant Node_Index := Slot_Of (Home, Mine.Content);
          Pointer : constant Boolean :=
-           Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Up | Pomarine.Events.Mouse_Move
-                         | Pomarine.Events.Mouse_Wheel | Pomarine.Events.Pinch;
+           Event.Kind
+           in Pomarine.Events.Mouse_Down
+            | Pomarine.Events.Mouse_Up
+            | Pomarine.Events.Mouse_Move
+            | Pomarine.Events.Mouse_Wheel
+            | Pomarine.Events.Pinch;
       begin
          if Event.Kind = Pomarine.Events.Key_Down then
             if Event.Key = Pomarine.Events.Key_Escape and then Mine.How.Escape then
@@ -255,8 +275,7 @@ package body Pomarine.Widgets.Overlaying is
          then
             declare
                On_Anchor : constant Boolean :=
-                 Mine.Anchor = Placed_By_Widget
-                 and then Focusing.Within (Home, Over, Slot_Of (Home, Mine.Beside));
+                 Mine.Anchor = Placed_By_Widget and then Focusing.Within (Home, Over, Slot_Of (Home, Mine.Beside));
                Passing   : constant Boolean := Mine.How.Pass_Through and then not On_Anchor and then not Mine.How.Modal;
             begin
                Remove (Home, Top, Told => True);

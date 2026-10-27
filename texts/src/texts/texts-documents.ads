@@ -11,6 +11,7 @@ with Ada.Strings.Unbounded;
 --  paragraphs costs their length and, once, their number. Converting
 --  between bytes and UTF-16 units costs about the distance from the
 --  last edit to the paragraph, the first time, and little after.
+
 package Texts.Documents is
 
    type Document is limited private;
@@ -27,36 +28,33 @@ package Texts.Documents is
    --  How many paragraphs: there is always one, perhaps empty.
 
    function Text (Item : Document; Para : Positive) return String
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
 
-   function Slice
-     (Item : Document; Para : Positive; First, Stop : Positive)
-      return String
-     with Pre => Para <= Count (Item) and then First <= Stop
-                 and then Stop <= Byte_Length (Item, Para) + 1;
+   function Slice (Item : Document; Para : Positive; First, Stop : Positive) return String
+   with Pre => Para <= Count (Item) and then First <= Stop and then Stop <= Byte_Length (Item, Para) + 1;
    --  The bytes First .. Stop - 1 of the paragraph's text: no more is
    --  copied.
 
    function Byte_Length (Item : Document; Para : Positive) return Natural
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
 
    function Length (Item : Document; Para : Positive) return Natural
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
    --  In UTF-16 units. A loaded paragraph's is counted when first asked
    --  for: Byte_Length is quicker, as an estimate.
 
    function Id (Item : Document; Para : Positive) return Paragraph_Id
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
 
    function Find (Item : Document; Name : Paragraph_Id) return Natural
-     with Post => Find'Result <= Count (Item);
+   with Post => Find'Result <= Count (Item);
    --  The paragraph with id Name, or 0 if none has it now.
 
    function Kind (Item : Document; Para : Positive) return Paragraph_Kind
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
 
    function Inset (Item : Document; Para : Positive) return Paragraph_Inset
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
 
    type Format is (Bold, Underline, Italic, Strikethrough, Faded, Sized, Faced, Linked, Versioned);
    --  Faded is text drawn part see-through. Sized is text of its own size
@@ -69,12 +67,12 @@ package Texts.Documents is
    type Format_Set is array (Format) of Boolean;
    No_Formats : constant Format_Set := [others => False];
 
-   package Version_Lists is new Ada.Containers.Vectors
-     (Positive, Ada.Strings.Unbounded.Unbounded_String, "=" => Ada.Strings.Unbounded."=");
+   package Version_Lists is new
+     Ada.Containers.Vectors (Positive, Ada.Strings.Unbounded.Unbounded_String, "=" => Ada.Strings.Unbounded."=");
 
    type Format_Run is record
       From, To : Position;
-      Style : Format;
+      Style    : Format;
       Choice   : Natural := 0;
       Versions : Version_Lists.Vector;
       --  Of a Versioned run: the versions in order, and which is the text,
@@ -85,31 +83,39 @@ package Texts.Documents is
 
    function Run_Count (Item : Document) return Natural;
    function Run (Item : Document; Index : Positive) return Format_Run
-     with Pre => Index <= Run_Count (Item);
+   with Pre => Index <= Run_Count (Item);
    function Has_Format (Item : Document; From, To : Position; Style : Format) return Boolean
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    procedure Set_Format (Item : in out Document; From, To : Position; Style : Format; Enabled : Boolean)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then Style not in Sized | Faced | Linked | Versioned,
-          Post => Has_Format (Item, From, To, Style) = Enabled;
+   with
+     Pre  =>
+       Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then From < To
+       and then Style not in Sized | Faced | Linked | Versioned,
+     Post => Has_Format (Item, From, To, Style) = Enabled;
 
    Largest_Size : constant := 999;
    --  Points.
 
    function Size_At (Item : Document; From, To : Position) return Natural
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    function Family_At (Item : Document; From, To : Position) return String
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    --  The size in points, or the family, of what is from From to To: of the
    --  text at From, or, if From = To, before it (what is typed there is of
    --  it); 0, or "", if it has none of its own.
 
    procedure Set_Size (Item : in out Document; From, To : Position; Points : Natural)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then Points <= Largest_Size;
+   with
+     Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To and then Points <= Largest_Size;
    procedure Set_Family (Item : in out Document; From, To : Position; Name : String)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then (for all C of Name => C not in '"' | '<' | '>' | '&' | ASCII.LF | ASCII.CR);
+   with
+     Pre =>
+       Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then From < To
+       and then (for all C of Name => C not in '"' | '<' | '>' | '&' | ASCII.LF | ASCII.CR);
    --  Make the text from From to To of that size, or family, over any other
    --  there; none (0 or "") to give it back its default. One step to undo.
 
@@ -121,15 +127,19 @@ package Texts.Documents is
    --  or control character in it, and no longer than Link_Capacity.
 
    function Link_At (Item : Document; From, To : Position) return String
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    --  The address the text at From links to, or, if From = To, the text
    --  before it; "" if it links to none.
 
    procedure Set_Link (Item : in out Document; From, To : Position; Address : String)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then Address'Length <= Link_Capacity
-                 and then (for all C of Address => C not in ASCII.LF | ASCII.CR),
-          Post => Link_At (Item, From, To) = Address;
+   with
+     Pre  =>
+       Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then From < To
+       and then Address'Length <= Link_Capacity
+       and then (for all C of Address => C not in ASCII.LF | ASCII.CR),
+     Post => Link_At (Item, From, To) = Address;
    --  Make the text from From to To a link to Address, over any link there;
    --  none ("") to take the link away. One step to undo.
 
@@ -148,23 +158,34 @@ package Texts.Documents is
    --  Raw as markup: with & < > as &amp; &lt; &gt;, and no line breaks.
 
    function Fragment (Item : Document; From, To : Position) return String
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From)
-                 and then From.Paragraph = To.Paragraph;
+   with
+     Pre =>
+       Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then not (To < From)
+       and then From.Paragraph = To.Paragraph;
    --  The text from From to To as markup, with its styles but not versions:
    --  what a version is kept as.
 
-   procedure Add_Version
-     (Item : in out Document; From, To : Position; Words : String)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then From.Paragraph = To.Paragraph and then Words'Length > 0;
+   procedure Add_Version (Item : in out Document; From, To : Position; Words : String)
+   with
+     Pre =>
+       Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then From < To
+       and then From.Paragraph = To.Paragraph
+       and then Words'Length > 0;
    --  Make Words, markup as Fragment gives, the text from From to To, and
    --  keep what was there as a version, as one step to undo. If a
    --  Versioned run is exactly From to To, Words is a new version of it;
    --  if not, it is made one, of two.
 
    procedure Choose_Version (Item : in out Document; Index : Positive; Choice : Positive)
-     with Pre => Index <= Run_Count (Item) and then Run (Item, Index).Style = Versioned
-                 and then Choice <= Natural (Run (Item, Index).Versions.Length);
+   with
+     Pre =>
+       Index <= Run_Count (Item)
+       and then Run (Item, Index).Style = Versioned
+       and then Choice <= Natural (Run (Item, Index).Versions.Length);
    --  Make the text of the Versioned run Index its version Choice, as one
    --  step to undo. What was the text is kept as its version.
 
@@ -190,44 +211,38 @@ package Texts.Documents is
 
    --  Positions
 
-   function Is_Boundary
-     (Item : Document; Para : Positive; Index : Positive) return Boolean
-     with Pre => Para <= Count (Item)
-                 and then Index <= Byte_Length (Item, Para) + 1;
+   function Is_Boundary (Item : Document; Para : Positive; Index : Positive) return Boolean
+   with Pre => Para <= Count (Item) and then Index <= Byte_Length (Item, Para) + 1;
    --  Whether byte Index is where a character starts, or the end.
 
-   function Is_Position (Item : Document; At_Point : Position)
-      return Boolean
+   function Is_Position (Item : Document; At_Point : Position) return Boolean
    is (At_Point.Paragraph <= Count (Item)
        and then At_Point.Index <= Byte_Length (Item, At_Point.Paragraph) + 1
        and then Is_Boundary (Item, At_Point.Paragraph, At_Point.Index));
 
    function Paragraph_End (Item : Document; Para : Positive) return Position
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
 
    function Text_End (Item : Document) return Position;
 
    function Between (Item : Document; From, To : Position) return String
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To)
-                 and then not (To < From);
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    --  The text from From to To, a line to each paragraph.
 
    function Whole (Item : Document) return String;
    --  All of it, a line to each paragraph.
 
-   function Units_Before
-     (Item : Document; Para : Positive; Index : Positive) return Natural
-     with Pre  => Para <= Count (Item)
-                  and then Index <= Byte_Length (Item, Para) + 1
-                  and then Is_Boundary (Item, Para, Index),
-          Post => Units_Before'Result <= Length (Item, Para);
+   function Units_Before (Item : Document; Para : Positive; Index : Positive) return Natural
+   with
+     Pre  =>
+       Para <= Count (Item) and then Index <= Byte_Length (Item, Para) + 1 and then Is_Boundary (Item, Para, Index),
+     Post => Units_Before'Result <= Length (Item, Para);
    --  The UTF-16 units before byte Index of the paragraph's text.
 
-   function Index_Of
-     (Item : Document; Para : Positive; Units : Natural) return Positive
-     with Pre  => Para <= Count (Item) and then Units <= Length (Item, Para),
-          Post => Index_Of'Result <= Byte_Length (Item, Para) + 1
-                  and then Is_Boundary (Item, Para, Index_Of'Result);
+   function Index_Of (Item : Document; Para : Positive; Units : Natural) return Positive
+   with
+     Pre  => Para <= Count (Item) and then Units <= Length (Item, Para),
+     Post => Index_Of'Result <= Byte_Length (Item, Para) + 1 and then Is_Boundary (Item, Para, Index_Of'Result);
    --  The byte index of the character that starts at UTF-16 unit Units,
    --  or that Units is inside, as the second of a surrogate pair is.
 
@@ -237,22 +252,25 @@ package Texts.Documents is
    --  Edits of the first three kinds in a row are undone together.
 
    procedure Replace
-     (Item     : in out Document;
-      From, To : Position;
-      By       : String;
-      Undo_As  : Edit_Kind := Other;
-      Recorded : Boolean := True;
+     (Item             : in out Document;
+      From, To         : Position;
+      By               : String;
+      Undo_As          : Edit_Kind := Other;
+      Recorded         : Boolean := True;
       Explicit_Formats : Boolean := False;
-      Formats : Format_Set := No_Formats;
-      Sizing  : Natural := 0;
-      Facing  : String := "")
-     with Pre  => Is_Position (Item, From) and then Is_Position (Item, To)
-                  and then not (To < From)
-                  and then (for all C of By => C /= ASCII.CR),
-          Post => Count (Item)
-                  = Count (Item)'Old - (To.Paragraph - From.Paragraph)
-                    + (End_After (From, By).Paragraph - From.Paragraph)
-                  and then Is_Position (Item, End_After (From, By));
+      Formats          : Format_Set := No_Formats;
+      Sizing           : Natural := 0;
+      Facing           : String := "")
+   with
+     Pre  =>
+       Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then not (To < From)
+       and then (for all C of By => C /= ASCII.CR),
+     Post =>
+       Count (Item)
+       = Count (Item)'Old - (To.Paragraph - From.Paragraph) + (End_After (From, By).Paragraph - From.Paragraph)
+       and then Is_Position (Item, End_After (From, By));
    --  Replace the text from From to To with By, a line to each paragraph;
    --  it ends at End_After (From, By). From's paragraph keeps its id and
    --  kind; the rest of those from From to To go; each line feed in By
@@ -265,23 +283,19 @@ package Texts.Documents is
    --  input method shows before it is typed, must be taken back before
    --  the next recorded one: the history does not allow for it.
 
-   procedure Set_Kind
-     (Item : in out Document; Para : Positive; To : Paragraph_Kind)
-     with Pre  => Para <= Count (Item),
-          Post => Kind (Item, Para) = To;
+   procedure Set_Kind (Item : in out Document; Para : Positive; To : Paragraph_Kind)
+   with Pre => Para <= Count (Item), Post => Kind (Item, Para) = To;
    --  An edit, which can be undone.
 
-   procedure Set_Inset
-     (Item : in out Document; Para : Positive; To : Paragraph_Inset)
-     with Pre  => Para <= Count (Item),
-          Post => Inset (Item, Para) = To;
+   procedure Set_Inset (Item : in out Document; Para : Positive; To : Paragraph_Inset)
+   with Pre => Para <= Count (Item), Post => Inset (Item, Para) = To;
    --  An edit, which can be undone. Stored as attributes of the paragraph.
 
    --  The history of edits
 
    procedure Begin_Step (Item : in out Document);
    procedure End_Step (Item : in out Document)
-     with Pre => In_Step (Item);
+   with Pre => In_Step (Item);
    --  The edits between are one step to undo, as for an application's
    --  command. Steps may nest: the outermost is the step.
 
@@ -291,19 +305,17 @@ package Texts.Documents is
    --  Make the next edit a step of its own, not joined to the last, as
    --  when a caret has moved between typing.
 
-   procedure Undo
-     (Item : in out Document;
-      From, To : out Position)
-     with Pre  => Can_Undo (Item) and then not In_Step (Item),
-          Post => Is_Position (Item, From) and then Is_Position (Item, To);
+   procedure Undo (Item : in out Document; From, To : out Position)
+   with
+     Pre  => Can_Undo (Item) and then not In_Step (Item),
+     Post => Is_Position (Item, From) and then Is_Position (Item, To);
    --  Take back the last step not taken back. From and To are around
    --  what it restored, as to select it.
 
-   procedure Redo
-     (Item : in out Document;
-      From, To : out Position)
-     with Pre  => Can_Redo (Item) and then not In_Step (Item),
-          Post => Is_Position (Item, From) and then Is_Position (Item, To);
+   procedure Redo (Item : in out Document; From, To : out Position)
+   with
+     Pre  => Can_Redo (Item) and then not In_Step (Item),
+     Post => Is_Position (Item, From) and then Is_Position (Item, To);
    --  Make the last step taken back again; From and To are around what
    --  it made.
 
@@ -328,7 +340,7 @@ package Texts.Documents is
    --  Of the text: one more for each change.
 
    function Oldest (Item : Document) return Version
-     with Post => Oldest'Result <= Current (Item);
+   with Post => Oldest'Result <= Current (Item);
    --  The earliest version the log goes back to: a view that last saw an
    --  earlier one must start again.
 
@@ -340,13 +352,13 @@ package Texts.Documents is
    --  it is showing this one.
 
    type Change is record
-      From, To   : Position;  --  the text replaced, as it was
-      Ending     : Position;  --  where what replaced it ends, now
-      From_Units : Natural := 0;
-      To_Units   : Natural := 0;  --  in To's paragraph, as it was
-      End_Units  : Natural := 0;  --  in Ending's paragraph, now
-      Old_Length : Natural := 0;  --  of From's paragraph, in units
-      Kind_Only  : Boolean := False;
+      From, To     : Position;  --  the text replaced, as it was
+      Ending       : Position;  --  where what replaced it ends, now
+      From_Units   : Natural := 0;
+      To_Units     : Natural := 0;  --  in To's paragraph, as it was
+      End_Units    : Natural := 0;  --  in Ending's paragraph, now
+      Old_Length   : Natural := 0;  --  of From's paragraph, in units
+      Kind_Only    : Boolean := False;
       --  Only From's paragraph's kind changed.
       Formats_Only : Boolean := False;
       --  Formatting changed; character positions remain unchanged.
@@ -355,7 +367,7 @@ package Texts.Documents is
    --  layout.
 
    function Change_After (Item : Document; Seen : Version) return Change
-     with Pre => Seen >= Oldest (Item) and then Seen < Current (Item);
+   with Pre => Seen >= Oldest (Item) and then Seen < Current (Item);
    --  The change that made the version after Seen.
 
    function Map (Item : Change; At_Point : Position) return Position;
@@ -395,8 +407,7 @@ private
 
    type Paragraph_Access is access Paragraph;
 
-   package Paragraph_Vectors is new Ada.Containers.Vectors
-     (Positive, Paragraph_Access);
+   package Paragraph_Vectors is new Ada.Containers.Vectors (Positive, Paragraph_Access);
 
    type Named is record
       Id    : Paragraph_Id := 1;
@@ -409,20 +420,20 @@ private
    package Format_Vectors is new Ada.Containers.Vectors (Positive, Format_Run);
 
    type Edit is record
-      Formats_Only : Boolean := False;
-      Format_End : Position;
+      Formats_Only             : Boolean := False;
+      Format_End               : Position;
       Old_Formats, New_Formats : Format_Vectors.Vector;
-      From      : Position;
-      Removed   : Ada.Strings.Unbounded.Unbounded_String;
-      Inserted  : Ada.Strings.Unbounded.Unbounded_String;
-      Gone      : Named_Vectors.Vector;
+      From                     : Position;
+      Removed                  : Ada.Strings.Unbounded.Unbounded_String;
+      Inserted                 : Ada.Strings.Unbounded.Unbounded_String;
+      Gone                     : Named_Vectors.Vector;
       --  The paragraphs Removed's line feeds ended, which went.
-      Made      : Named_Vectors.Vector;
+      Made                     : Named_Vectors.Vector;
       --  Those Inserted's started.
-      Kind      : Edit_Kind := Other;
-      Kind_Only : Boolean := False;
-      Old_Kind, New_Kind : Paragraph_Kind := Plain;
-      Old_Inset, New_Inset : Paragraph_Inset;
+      Kind                     : Edit_Kind := Other;
+      Kind_Only                : Boolean := False;
+      Old_Kind, New_Kind       : Paragraph_Kind := Plain;
+      Old_Inset, New_Inset     : Paragraph_Inset;
       --  Of From's paragraph, if Kind_Only (which is of its inset too).
    end record;
    --  Removed was replaced by Inserted, at From.
@@ -439,7 +450,7 @@ private
    package Change_Vectors is new Ada.Containers.Vectors (Positive, Change);
 
    type Document is new Ada.Finalization.Limited_Controlled with record
-      Formats : Format_Vectors.Vector;
+      Formats    : Format_Vectors.Vector;
       Paragraphs : Paragraph_Vectors.Vector;
       Next_Id    : Paragraph_Id := 1;
 
@@ -450,12 +461,14 @@ private
       Joining    : Boolean := False;
       --  The next edit may join the last.
 
-      Log        : Change_Vectors.Vector;
-      Base       : Version := 0;  --  the version before Log's first
-      Serial     : Positive := 1;
+      Log    : Change_Vectors.Vector;
+      Base   : Version := 0;  --  the version before Log's first
+      Serial : Positive := 1;
    end record;
 
-   overriding procedure Initialize (Item : in out Document);
-   overriding procedure Finalize (Item : in out Document);
+   overriding
+   procedure Initialize (Item : in out Document);
+   overriding
+   procedure Finalize (Item : in out Document);
 
 end Texts.Documents;

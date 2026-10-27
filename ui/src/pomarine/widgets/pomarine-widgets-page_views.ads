@@ -27,6 +27,7 @@ with SDL3.Windows.Renderers.Textures;
 --  to copy. With the highlighter (Set_Tool) a drag draws a freehand stroke on a page,
 --  as on a Picture; marks are of a page and fractions of its size, and so
 --  follow the zoom and can be kept elsewhere.
+
 package Pomarine.Widgets.Page_Views is
 
    use type Pomarine.Pages.Size_Array_Access;
@@ -64,7 +65,7 @@ package Pomarine.Widgets.Page_Views is
       Sizes  : Pomarine.Pages.Size_Array_Access;
       Source : Pomarine.Pages.Source_Access;
       Guess  : Boolean := False)
-     with Pre => Sizes /= null and then Source /= null;
+   with Pre => Sizes /= null and then Source /= null;
    --  Show the document, of Sizes'Length pages, those Source makes. Both
    --  must be there as long as it is shown. The first page is shown. The
    --  marks and selection are cleared. If Guess, Sizes are only a guess:
@@ -73,7 +74,7 @@ package Pomarine.Widgets.Page_Views is
    --  cleared) when it has said.
 
    procedure Clear_Document (Item : in out Page_View)
-     with Post => not Has_Document (Item);
+   with Post => not Has_Document (Item);
    --  Show nothing, and give back the pages.
 
    function Has_Document (Item : Page_View) return Boolean;
@@ -90,7 +91,7 @@ package Pomarine.Widgets.Page_Views is
    --  page being read; 0 if there is no document.
 
    procedure Show_Page (Item : in out Page_View; Page : Positive)
-     with Pre => Has_Document (Item) and then Page <= Page_Count (Item);
+   with Pre => Has_Document (Item) and then Page <= Page_Count (Item);
    --  Scroll to the top of the page, or as near as the end allows.
 
    function Scrolled (Item : Page_View) return Float;
@@ -98,15 +99,15 @@ package Pomarine.Widgets.Page_Views is
    --  of its height (as of the last draw).
 
    procedure Scroll_To (Item : in out Page_View; To : Float)
-     with Pre => To in 0.0 .. 1.0;
+   with Pre => To in 0.0 .. 1.0;
 
    function Scrolled_Across (Item : Page_View) return Float;
 
    procedure Scroll_Across_To (Item : in out Page_View; To : Float)
-     with Pre => To in 0.0 .. 1.0;
+   with Pre => To in 0.0 .. 1.0;
 
    procedure Set_Zoom (Item : in out Page_View; To : Float)
-     with Pre => To > 0.0, Post => Zoom (Item) = To;
+   with Pre => To > 0.0, Post => Zoom (Item) = To;
    --  Show the pages To times as wide as the box (1.0 to begin with).
 
    function Zoom (Item : Page_View) return Float;
@@ -120,14 +121,14 @@ package Pomarine.Widgets.Page_Views is
    function Tool (Item : Page_View) return Tools;
 
    procedure Set_Tool (Item : in out Page_View; To : Tools)
-     with Post => Tool (Item) = To and then not Is_Marking (Item);
+   with Post => Tool (Item) = To and then not Is_Marking (Item);
 
    function Is_Marking (Item : Page_View) return Boolean;
 
    function Mark_Count (Item : Page_View) return Natural;
 
    function Mark_At (Item : Page_View; Index : Positive) return Mark
-     with Pre => Index <= Mark_Count (Item);
+   with Pre => Index <= Mark_Count (Item);
 
    function Marks_Version (Item : Page_View) return Natural;
    --  Changes on making, erasing, undoing or redoing marks; not by Set_Marks.
@@ -140,13 +141,12 @@ package Pomarine.Widgets.Page_Views is
    --  One stroke or erasure per step. Undo during a drag cancels the preview.
 
    procedure Set_Marks
-     (Item : in out Page_View; To : Mark_Array;
-      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
-     with Post => Mark_Count (Item) = To'Length;
+     (Item : in out Page_View; To : Mark_Array; Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
+   with Post => Mark_Count (Item) = To'Length;
    --  Past must belong to To; omit it to start with no history.
 
    procedure Clear_Marks (Item : in out Page_View)
-     with Post => Mark_Count (Item) = 0;
+   with Post => Mark_Count (Item) = 0;
 
    --  Text
 
@@ -166,7 +166,7 @@ package Pomarine.Widgets.Page_Views is
    --  All the words of the page being read.
 
    procedure Clear_Selection (Item : in out Page_View)
-     with Post => not Has_Selection (Item);
+   with Post => not Has_Selection (Item);
 
    function Is_Over_Selection (Item : Page_View; X, Y : Float) return Boolean;
    --  Whether pixel X, Y is over a selected word.
@@ -180,37 +180,35 @@ package Pomarine.Widgets.Page_Views is
    function Search_Count (Item : Page_View) return Natural;
    function Search_Current (Item : Page_View) return Natural;
 
-   overriding procedure Draw
-     (Item   : in out Page_View;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Page_View; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Update
-     (Item : in out Page_View; Now : Pomarine.Events.Milliseconds);
+   overriding
+   procedure Update (Item : in out Page_View; Now : Pomarine.Events.Milliseconds);
 
-   overriding function Until_Update (Item : Page_View) return Integer;
+   overriding
+   function Until_Update (Item : Page_View) return Integer;
 
-   overriding procedure Handle_Command
-     (Item : in out Page_View; Tag : Integer; Done : out Boolean);
+   overriding
+   procedure Handle_Command (Item : in out Page_View; Tag : Integer; Done : out Boolean);
 
-   overriding procedure Handle
-     (Item    : in out Page_View;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Page_View; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding function Cursor (Item : Page_View) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Page_View) return SDL3.Cursors.Kind;
 
-   overriding function Is_Focusable (Item : Page_View) return Boolean;
+   overriding
+   function Is_Focusable (Item : Page_View) return Boolean;
 
-   overriding procedure Hover_Changed
-     (Item : in out Page_View; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Page_View; Hovered : Boolean);
 
-   overriding procedure Focus_Changed
-     (Item : in out Page_View; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Page_View; Focused : Boolean);
 
-   overriding procedure Describe
-     (Item  : Page_View;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Page_View; Facts : in out Semantics.Description);
 
 private
 
@@ -220,8 +218,7 @@ private
 
    type Float_Array_Access is access Float_Array;
 
-   type Image_Textures is
-     array (1 .. Max_Page_Images) of SDL3.Windows.Renderers.Textures.Texture;
+   type Image_Textures is array (1 .. Max_Page_Images) of SDL3.Windows.Renderers.Textures.Texture;
 
    type Slot is limited record
       Index   : Natural := 0;
@@ -240,42 +237,42 @@ private
    type Slot_Array is array (1 .. Cache_Size) of Slot;
 
    type Page_View is new Widget with record
-      Search_Found : Pomarine.Searches.Results;
-      Search_Term : Ada.Strings.Unbounded.Unbounded_String;
+      Search_Found            : Pomarine.Searches.Results;
+      Search_Term             : Ada.Strings.Unbounded.Unbounded_String;
       Search_Job, Search_Page : Natural := 0;
-      Sizes   : Pomarine.Pages.Size_Array_Access;
-      Source  : Pomarine.Pages.Source_Access;
-      Ratios  : Float_Array_Access;
+      Sizes                   : Pomarine.Pages.Size_Array_Access;
+      Source                  : Pomarine.Pages.Source_Access;
+      Ratios                  : Float_Array_Access;
       --  Ratios (I) is the height, of the width, of the pages before page I,
       --  one more than there are pages.
-      Cached  : Slot_Array;
-      Clock   : Natural := 0;
-      Measuring : Natural := 0;
+      Cached                  : Slot_Array;
+      Clock                   : Natural := 0;
+      Measuring               : Natural := 0;
       --  The ticket (see Pomarine.Page_Builds) of the sizes of the pages
       --  being asked for in the background, 0 if none.
-      Pending : Boolean := False;
+      Pending                 : Boolean := False;
       --  Pages in view are still to be made.
-      Down    : Float := 0.0;
+      Down                    : Float := 0.0;
       --  How far down the document, as a fraction of its height.
-      Wanted  : Natural := 0;
+      Wanted                  : Natural := 0;
       --  A page to scroll to when it is known how big they are, as at the
       --  first draw: 0 if none.
-      Across  : Float := 0.0;
-      Zoomed  : Float := 1.0;
-      Sel_Page : Natural := 0;
-      Anchor  : Natural := 0;
-      Head    : Natural := 0;
-      Held    : Boolean := False;
-      Drag_Words : Boolean := False;
-      Chosen  : Tools := Pictures.Pointer;
-      Marked  : Pomarine.Marks.Mark_Store;
-      Marks   : Natural := 0;
-      Version : Natural := 0;
-      Past : Pomarine.Marks.History;
-      Marking : Boolean := False;
-      Started : Float := 0.0;
-      Down_Bar   : Scrollbars.Bar;
-      Across_Bar : Scrollbars.Bar;
+      Across                  : Float := 0.0;
+      Zoomed                  : Float := 1.0;
+      Sel_Page                : Natural := 0;
+      Anchor                  : Natural := 0;
+      Head                    : Natural := 0;
+      Held                    : Boolean := False;
+      Drag_Words              : Boolean := False;
+      Chosen                  : Tools := Pictures.Pointer;
+      Marked                  : Pomarine.Marks.Mark_Store;
+      Marks                   : Natural := 0;
+      Version                 : Natural := 0;
+      Past                    : Pomarine.Marks.History;
+      Marking                 : Boolean := False;
+      Started                 : Float := 0.0;
+      Down_Bar                : Scrollbars.Bar;
+      Across_Bar              : Scrollbars.Bar;
    end record;
 
 end Pomarine.Widgets.Page_Views;

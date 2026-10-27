@@ -1,6 +1,7 @@
 with System;
 with Pomarine.Boxes;
 with Pomarine.Widgets.Layouts;
+
 package body Pomarine.Widgets.Splitters is
 
    use type Semantics.Action;
@@ -10,15 +11,14 @@ package body Pomarine.Widgets.Splitters is
    use type System.Address;
    use all type SDL3.Painters.Painter;
 
-   procedure Add
-     (Parent : in out Widget'Class;
-      Item   : in out Splitter;
-      Along  : Boolean := False) is
+   procedure Add (Parent : in out Widget'Class; Item : in out Splitter; Along : Boolean := False) is
    begin
       Item.Down_Bar := Along;
       Layouts.Add
-        (Parent, Item,
-         (if Along then Layouts.Style'(Height => Layouts.In_Points (Thickness), Shrink => 0.0, others => <>)
+        (Parent,
+         Item,
+         (if Along
+          then Layouts.Style'(Height => Layouts.In_Points (Thickness), Shrink => 0.0, others => <>)
           else Layouts.Style'(Width => Layouts.In_Points (Thickness), Shrink => 0.0, others => <>)));
    end Add;
 
@@ -81,13 +81,12 @@ package body Pomarine.Widgets.Splitters is
       end if;
    end Set_Focusable;
 
-   overriding function Is_Focusable (Item : Splitter) return Boolean is (Item.Focusable);
+   overriding
+   function Is_Focusable (Item : Splitter) return Boolean
+   is (Item.Focusable);
 
-   overriding procedure Handle
-     (Item    : in out Splitter;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   overriding
+   procedure Handle (Item : in out Splitter; Event : Pomarine.Events.Event; Handled : out Boolean) is
       Pixels : constant Float := Density (Item);
       Box    : constant Widget_Access := Before_Box (Item);
       X      : constant Float := Event.Mouse_X * Pixels;
@@ -105,6 +104,7 @@ package body Pomarine.Widgets.Splitters is
                Handled := True;
                Invalidate (Item);
             end if;
+
          when Pomarine.Events.Mouse_Move =>
             if Item.Held then
                --  Where the bar's start is to be, less where it was taken, from where the box starts.
@@ -115,55 +115,60 @@ package body Pomarine.Widgets.Splitters is
                   Said => True);
                Handled := True;
             end if;
-         when Pomarine.Events.Mouse_Up =>
+
+         when Pomarine.Events.Mouse_Up   =>
             if Event.Button = 1 and then Item.Held then
                Item.Held := False;
                Handled := True;
                Invalidate (Item);
             end if;
-         when Pomarine.Events.Key_Down =>
+
+         when Pomarine.Events.Key_Down   =>
             if Has_Focus (Item) and then not Event.Command then
                if Event.Key = (if Item.Down_Bar then Pomarine.Events.Key_Up_Arrow else Pomarine.Events.Key_Left_Arrow)
                then
                   Make_It (Item, Position (Item) - Key_Step, Said => True);
                   Handled := True;
-               elsif Event.Key = (if Item.Down_Bar then Pomarine.Events.Key_Down_Arrow
-                                  else Pomarine.Events.Key_Right_Arrow)
+               elsif Event.Key
+                 = (if Item.Down_Bar then Pomarine.Events.Key_Down_Arrow else Pomarine.Events.Key_Right_Arrow)
                then
                   Make_It (Item, Position (Item) + Key_Step, Said => True);
                   Handled := True;
                end if;
             end if;
-         when others =>
+
+         when others                     =>
             null;
       end case;
    end Handle;
 
-   overriding procedure Hover_Changed (Item : in out Splitter; Hovered : Boolean) is
+   overriding
+   procedure Hover_Changed (Item : in out Splitter; Hovered : Boolean) is
       pragma Unreferenced (Hovered);
    begin
       Invalidate (Item);
    end Hover_Changed;
 
-   overriding procedure Focus_Changed (Item : in out Splitter; Focused : Boolean) is
+   overriding
+   procedure Focus_Changed (Item : in out Splitter; Focused : Boolean) is
       pragma Unreferenced (Focused);
    begin
       Invalidate (Item);
    end Focus_Changed;
 
-   overriding function Cursor (Item : Splitter) return SDL3.Cursors.Kind is
-     (if Item.Down_Bar then SDL3.Cursors.Resize_Up_Down else SDL3.Cursors.Resize_Across);
+   overriding
+   function Cursor (Item : Splitter) return SDL3.Cursors.Kind
+   is (if Item.Down_Bar then SDL3.Cursors.Resize_Up_Down else SDL3.Cursors.Resize_Across);
 
-   overriding procedure Draw
-     (Item   : in out Splitter;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme)
-   is
+   overriding
+   procedure Draw (Item : in out Splitter; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
       Pixels : constant Float := Density (Item);
       Edge   : constant Float := Pomarine.Boxes.Edge (Pixels);
       Ink    : constant Themes.Color :=
-        (if Item.Held then Colors (Themes.Accent)
-         elsif Is_Hovered (Item) then Themes.Mix (Colors (Themes.Border), Colors (Themes.Foreground), 0.4)
+        (if Item.Held
+         then Colors (Themes.Accent)
+         elsif Is_Hovered (Item)
+         then Themes.Mix (Colors (Themes.Border), Colors (Themes.Foreground), 0.4)
          else Colors (Themes.Border));
    begin
       if Item.Down_Bar then
@@ -175,19 +180,24 @@ package body Pomarine.Widgets.Splitters is
       end if;
    end Draw;
 
-   overriding procedure Draw_Over
-     (Item   : in out Splitter;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme) is
+   overriding
+   procedure Draw_Over (Item : in out Splitter; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
    begin
       if Item.Focusable and then Is_Focus_Visible (Item) then
          Pomarine.Boxes.Outline
-           (Target, Colors (Themes.Focus), Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item),
-            Thick => Float'Max (1.0, Float'Rounding (Density (Item))), Density => Density (Item));
+           (Target,
+            Colors (Themes.Focus),
+            Left_Of (Item),
+            Top_Of (Item),
+            Width_Of (Item),
+            Height_Of (Item),
+            Thick   => Float'Max (1.0, Float'Rounding (Density (Item))),
+            Density => Density (Item));
       end if;
    end Draw_Over;
 
-   overriding procedure Describe (Item : Splitter; Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Splitter; Facts : in out Semantics.Description) is
    begin
       if Facts.Kind = Semantics.Unknown then
          Facts.Kind := Semantics.Separator;
@@ -196,10 +206,8 @@ package body Pomarine.Widgets.Splitters is
       Facts.Actions (Semantics.Decrement) := Item.Focusable;
    end Describe;
 
-   overriding procedure Perform
-     (Item    : in out Splitter;
-      Request : Semantics.Request;
-      Done    : out Boolean) is
+   overriding
+   procedure Perform (Item : in out Splitter; Request : Semantics.Request; Done : out Boolean) is
    begin
       Done := False;
       if Request.Doing = Semantics.Increment then

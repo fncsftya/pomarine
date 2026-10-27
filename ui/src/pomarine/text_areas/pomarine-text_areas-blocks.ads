@@ -1,10 +1,11 @@
 with Texts;
 
 --  Paragraphs marked as a list, and set in, as one step.
+
 private package Pomarine.Text_Areas.Blocks is
 
-   Bullet_Mark : constant String := [Standard.Character'Val (16#E2#), Standard.Character'Val (16#80#),
-      Standard.Character'Val (16#A2#), ' '];
+   Bullet_Mark : constant String :=
+     [Standard.Character'Val (16#E2#), Standard.Character'Val (16#80#), Standard.Character'Val (16#A2#), ' '];
 
    type Marker is record
       Lead   : Natural := 0;  --  spaces before it

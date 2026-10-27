@@ -10,6 +10,7 @@ package body Pomarine.Widgets.Commands is
       Set_Tag (Item, Command'Pos (Is_For), Index, Reflects => False);
    end Trigger;
 
-   function What (Event : Widget_Event) return Command is (Command'Val (Event.Tag));
+   function What (Event : Widget_Event) return Command
+   is (Command'Val (Event.Tag));
 
 end Pomarine.Widgets.Commands;

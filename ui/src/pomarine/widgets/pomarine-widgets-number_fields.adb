@@ -7,10 +7,10 @@ package body Pomarine.Widgets.Number_Fields is
    use type Pomarine.Events.Key_Code;
 
    function Parse (Text : String; Result : out Integer) return Boolean is
-      First : Integer := Text'First;
+      First    : Integer := Text'First;
       Negative : Boolean := False;
-      Acc : Integer := 0;
-      Limit : Integer := -Integer'Last;
+      Acc      : Integer := 0;
+      Limit    : Integer := -Integer'Last;
    begin
       Result := 0;
       if Text'Length = 0 then
@@ -53,13 +53,19 @@ package body Pomarine.Widgets.Number_Fields is
       return Parse (Text, Parsed) and then Parsed in Min .. Max;
    end Valid;
 
-   function Minimum (Item : Number_Field) return Integer is (Item.Low);
-   function Maximum (Item : Number_Field) return Integer is (Item.High);
-   function Value (Item : Number_Field) return Integer is (Item.Current);
-   function Draft (Item : Number_Field) return String is (Texts.Documents.Whole (Item.Doc));
-   function Can_Commit (Item : Number_Field) return Boolean is
-     (Is_Configured (Item) and then Is_Enabled (Item) and then Can_Edit (Item)
-      and then Valid (Draft (Item), Item.Low, Item.High));
+   function Minimum (Item : Number_Field) return Integer
+   is (Item.Low);
+   function Maximum (Item : Number_Field) return Integer
+   is (Item.High);
+   function Value (Item : Number_Field) return Integer
+   is (Item.Current);
+   function Draft (Item : Number_Field) return String
+   is (Texts.Documents.Whole (Item.Doc));
+   function Can_Commit (Item : Number_Field) return Boolean
+   is (Is_Configured (Item)
+       and then Is_Enabled (Item)
+       and then Can_Edit (Item)
+       and then Valid (Draft (Item), Item.Low, Item.High));
 
    procedure Restore (Item : in out Number_Field) is
       Text : constant String := Ada.Strings.Fixed.Trim (Integer'Image (Item.Current), Ada.Strings.Left);
@@ -78,14 +84,14 @@ package body Pomarine.Widgets.Number_Fields is
       end if;
    end Restore;
 
-   overriding procedure Configure (Item : in out Number_Field; Family : String; Size : Float) is
+   overriding
+   procedure Configure (Item : in out Number_Field; Family : String; Size : Float) is
    begin
       Configure (Item, Family, Size, Integer'First, Integer'Last, 0);
    end Configure;
 
    procedure Configure
-     (Item : in out Number_Field; Family : String; Size : Float;
-      Min : Integer; Max : Integer; Start : Integer := 0) is
+     (Item : in out Number_Field; Family : String; Size : Float; Min : Integer; Max : Integer; Start : Integer := 0) is
    begin
       Text_Fields.Configure (Text_Fields.Text_Field (Item), Family, Size);
       Item.Low := Min;
@@ -110,7 +116,7 @@ package body Pomarine.Widgets.Number_Fields is
 
    procedure Commit (Item : in out Number_Field) is
       Parsed : Integer;
-      Good : constant Boolean := Parse (Draft (Item), Parsed);
+      Good   : constant Boolean := Parse (Draft (Item), Parsed);
    begin
       pragma Assert (Good and then Parsed in Item.Low .. Item.High);
       if Parsed /= Item.Current then
@@ -120,10 +126,12 @@ package body Pomarine.Widgets.Number_Fields is
       Set_Invalid (Item, False);
    end Commit;
 
-   overriding procedure Handle
-     (Item : in out Number_Field; Event : Pomarine.Events.Event; Handled : out Boolean) is
+   overriding
+   procedure Handle (Item : in out Number_Field; Event : Pomarine.Events.Event; Handled : out Boolean) is
    begin
-      if Has_Focus (Item) and then Can_Edit (Item) and then Is_Enabled (Item)
+      if Has_Focus (Item)
+        and then Can_Edit (Item)
+        and then Is_Enabled (Item)
         and then Event.Kind = Pomarine.Events.Key_Down
         and then Event.Key in Pomarine.Events.Key_Return | Pomarine.Events.Key_Escape
       then
@@ -144,7 +152,8 @@ package body Pomarine.Widgets.Number_Fields is
       end if;
    end Handle;
 
-   overriding procedure Update (Item : in out Number_Field; Now : Pomarine.Events.Milliseconds) is
+   overriding
+   procedure Update (Item : in out Number_Field; Now : Pomarine.Events.Milliseconds) is
    begin
       Editors.Update (Editors.Editor (Item), Now);
       if Is_Configured (Item) and then not Text_Areas.Is_Composing (Area (Item).all) then
@@ -152,7 +161,8 @@ package body Pomarine.Widgets.Number_Fields is
       end if;
    end Update;
 
-   overriding procedure Focus_Changed (Item : in out Number_Field; Focused : Boolean) is
+   overriding
+   procedure Focus_Changed (Item : in out Number_Field; Focused : Boolean) is
    begin
       if not Focused and then Is_Configured (Item) then
          if Can_Commit (Item) then

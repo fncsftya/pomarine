@@ -1,4 +1,5 @@
 with Pomarine.Widgets.Nodes;
+
 package body Pomarine.Widgets.Queueing is
 
    use Pomarine.Widgets.Nodes;
@@ -49,27 +50,26 @@ package body Pomarine.Widgets.Queueing is
    end Deliver_All;
 
    function Made_Event
-     (Kind   : Event_Kind;
-      Tag    : Integer;
-      Index  : Natural;
-      Row    : Natural;
-      Across, Down : Float;
-      Action : Natural) return Widget_Event
+     (Kind : Event_Kind; Tag : Integer; Index : Natural; Row : Natural; Across, Down : Float; Action : Natural)
+      return Widget_Event
    is
       Result : Widget_Event (Kind);
    begin
       Result.Tag := Tag;
       Result.Index := Index;
       case Kind is
-         when Choose =>
+         when Choose               =>
             Result.Row := Row;
-         when Act =>
+
+         when Act                  =>
             Result.Row := Row;
             Result.Action := Action;
+
          when Drag | Move | Resize =>
             Result.Across := Across;
             Result.Down := Down;
-         when others =>
+
+         when others               =>
             null;
       end case;
       return Result;
@@ -83,14 +83,13 @@ package body Pomarine.Widgets.Queueing is
       Down   : Float := 0.0;
       Action : Natural := 0)
    is
-      Home   : constant Tree_Access := Item.Owner;
+      Home : constant Tree_Access := Item.Owner;
    begin
       if Home = null then
          return;
       end if;
       declare
-         Target : constant Listener_Access :=
-           (if Item.Own /= null then Item.Own else Home.Hearer);
+         Target : constant Listener_Access := (if Item.Own /= null then Item.Own else Home.Hearer);
       begin
          if Target = null and then not Has_Hook (Item, Kind) then
             return;
@@ -110,11 +109,7 @@ package body Pomarine.Widgets.Queueing is
       end;
    end Enqueue;
 
-   procedure Enqueue_Posted
-     (Item  : in out Widget'Class;
-      Using : Posted_Hook;
-      Code  : Natural := 0;
-      Value : Natural := 0)
+   procedure Enqueue_Posted (Item : in out Widget'Class; Using : Posted_Hook; Code : Natural := 0; Value : Natural := 0)
    is
       Home : constant Tree_Access := Item.Owner;
    begin

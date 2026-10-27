@@ -15,6 +15,7 @@ with SDL3.Windows.Renderers.Textures;
 --  size changes continuously, as when zooming, they are made at a few
 --  steps and scaled between, to keep the number of sizes down; once it
 --  is Settled they are made at the size.
+
 package Typeset.Glyph_Atlas is
 
    type Atlas is limited private;
@@ -29,7 +30,7 @@ package Typeset.Glyph_Atlas is
    --  are made as they are needed, so the atlas holds 4 MB of texture
    --  for each page in use, at most 32 MB.
 
-   Slots_Kept : constant := 2 ** 16;
+   Slots_Kept : constant := 2**16;
    --  Room to know where this many glyphs are, drawn or blank; it is
    --  made once, with the atlas. When it is three quarters full every
    --  page is emptied.
@@ -49,7 +50,7 @@ package Typeset.Glyph_Atlas is
       Size     : Float;
       Value    : SDL3.Windows.Renderers.Color;
       Settled  : Boolean)
-     with Pre => Scale > 0.0 and then Size > 0.0;
+   with Pre => Scale > 0.0 and then Size > 0.0;
    --  Draw a line of glyphs, its start X pixels and its baseline
    --  Baseline pixels from the target's top left. The glyphs' positions
    --  are in units that are Scale pixels each; their font is Size
@@ -67,12 +68,10 @@ package Typeset.Glyph_Atlas is
       Size     : Float;
       Value    : SDL3.Windows.Renderers.Color;
       Settled  : Boolean)
-     with Pre => Scale > 0.0 and then Size > 0.0;
+   with Pre => Scale > 0.0 and then Size > 0.0;
    --  The same, of a line as shaped.
 
-   procedure Flush
-     (Item   : in out Atlas;
-      Target : SDL3.Painters.Painter'Class);
+   procedure Flush (Item : in out Atlas; Target : SDL3.Painters.Painter'Class);
    --  Draw all the glyphs batched.
 
    function Glyphs_Made (Item : Atlas) return Natural;
@@ -85,10 +84,10 @@ private
    use SDL3.Windows.Renderers;
 
    type Slot is record
-      Page        : Natural := 0;  --  0 for a glyph with nothing to draw
-      X, Y, W, H  : Natural := 0;
-      Left, Top   : Integer := 0;
-      Color       : Boolean := False;
+      Page       : Natural := 0;  --  0 for a glyph with nothing to draw
+      X, Y, W, H : Natural := 0;
+      Left, Top  : Integer := 0;
+      Color      : Boolean := False;
    end record;
 
    No_Key : constant Interfaces.Unsigned_64 := 0;
@@ -120,15 +119,16 @@ private
    type Page_Array is array (1 .. Max_Pages) of Page_Record;
 
    type Atlas is new Ada.Finalization.Limited_Controlled with record
-      Pages  : Page_Array;
-      Count  : Natural := 0;
-      Slots  : Slot_Table_Access;
-      Filled : Natural := 0;  --  of Slots
-      Frame  : Natural := 0;
-      Made   : Natural := 0;
+      Pages   : Page_Array;
+      Count   : Natural := 0;
+      Slots   : Slot_Table_Access;
+      Filled  : Natural := 0;  --  of Slots
+      Frame   : Natural := 0;
+      Made    : Natural := 0;
       Scratch : CoreText.Shaping.Glyphs.Image;
    end record;
 
-   overriding procedure Finalize (Item : in out Atlas);
+   overriding
+   procedure Finalize (Item : in out Atlas);
 
 end Typeset.Glyph_Atlas;

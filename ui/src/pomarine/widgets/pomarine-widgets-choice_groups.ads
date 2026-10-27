@@ -16,6 +16,7 @@ with SDL3.Painters;
 --
 --  Each choice is as wide as the others (the width of the group over their number), or, in a column of radio buttons,
 --  as high as the others; Fit sets the height a group needs.
+
 package Pomarine.Widgets.Choice_Groups is
 
    type Look_Kind is (Tabs, Segments, Radios);
@@ -24,12 +25,10 @@ package Pomarine.Widgets.Choice_Groups is
 
    type Choice_Group is new Widget with private;
 
-   procedure Add
-     (Parent : in out Widget'Class;
-      Item   : in out Choice_Group;
-      As     : Look_Kind := Tabs)
-     with Pre => Is_Attached (Parent) and then not Is_Attached (Item) and then Child_Count (Item) = 0,
-          Post => Is_Attached (Item);
+   procedure Add (Parent : in out Widget'Class; Item : in out Choice_Group; As : Look_Kind := Tabs)
+   with
+     Pre  => Is_Attached (Parent) and then not Is_Attached (Item) and then Child_Count (Item) = 0,
+     Post => Is_Attached (Item);
    --  Add Item to Parent, as As says, as wide as its parent allows and as high as one line of choices (Fit).
 
    procedure Set_Look (Item : in out Choice_Group; To : Look_Kind);
@@ -45,25 +44,25 @@ package Pomarine.Widgets.Choice_Groups is
    --  After the others. The first is chosen.
 
    procedure Clear_Choices (Item : in out Choice_Group)
-     with Post => Choice_Count (Item) = 0 and then Selected (Item) = 0;
+   with Post => Choice_Count (Item) = 0 and then Selected (Item) = 0;
 
    function Choice_Count (Item : Choice_Group) return Natural;
 
    function Label (Item : Choice_Group; Index : Positive) return String
-     with Pre => Index <= Choice_Count (Item);
+   with Pre => Index <= Choice_Count (Item);
 
    procedure Set_Choice_Enabled (Item : in out Choice_Group; Index : Positive; To : Boolean)
-     with Pre => Index <= Choice_Count (Item);
+   with Pre => Index <= Choice_Count (Item);
 
    function Is_Choice_Enabled (Item : Choice_Group; Index : Positive) return Boolean
-     with Pre => Index <= Choice_Count (Item);
+   with Pre => Index <= Choice_Count (Item);
 
    procedure Select_Choice (Item : in out Choice_Group; Index : Positive)
-     with Pre => Index <= Choice_Count (Item), Post => Selected (Item) = Index;
+   with Pre => Index <= Choice_Count (Item), Post => Selected (Item) = Index;
    --  As the person would, but saying nothing.
 
    function Selected (Item : Choice_Group) return Natural
-     with Post => (Selected'Result = 0) = (Choice_Count (Item) = 0);
+   with Post => (Selected'Result = 0) = (Choice_Count (Item) = 0);
    --  Which is chosen; 0 only if there are none.
 
    procedure Set_Enabled (Item : in out Choice_Group; To : Boolean);
@@ -71,51 +70,49 @@ package Pomarine.Widgets.Choice_Groups is
    function Is_Enabled (Item : Choice_Group) return Boolean;
 
    procedure Fit (Item : in out Choice_Group)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Make it as high as its choices need: 32 points for tabs and segments, 24 for each radio button of a column.
 
    procedure Set_Focusable (Item : in out Choice_Group; To : Boolean);
 
-   overriding function Is_Focusable (Item : Choice_Group) return Boolean;
+   overriding
+   function Is_Focusable (Item : Choice_Group) return Boolean;
 
-   overriding function Focuses_On_Click (Item : Choice_Group) return Boolean is (False);
+   overriding
+   function Focuses_On_Click (Item : Choice_Group) return Boolean
+   is (False);
 
-   overriding procedure Handle
-     (Item    : in out Choice_Group;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Choice_Group; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Choice_Group;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Choice_Group; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Draw_Over
-     (Item   : in out Choice_Group;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Choice_Group; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed (Item : in out Choice_Group; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Choice_Group; Hovered : Boolean);
 
-   overriding procedure Focus_Changed (Item : in out Choice_Group; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Choice_Group; Focused : Boolean);
 
-   overriding function Cursor (Item : Choice_Group) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Choice_Group) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe (Item : Choice_Group; Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Choice_Group; Facts : in out Semantics.Description);
 
-   overriding function Part_Count (Item : Choice_Group) return Natural;
+   overriding
+   function Part_Count (Item : Choice_Group) return Natural;
 
-   overriding procedure Describe_Part
-     (Item   : Choice_Group;
-      Part   : Positive;
-      Facts  : in out Semantics.Description;
-      Bounds : out Semantics.Rectangle);
+   overriding
+   procedure Describe_Part
+     (Item : Choice_Group; Part : Positive; Facts : in out Semantics.Description; Bounds : out Semantics.Rectangle);
 
-   overriding procedure Perform_Part
-     (Item    : in out Choice_Group;
-      Part    : Positive;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Perform_Part
+     (Item : in out Choice_Group; Part : Positive; Request : Semantics.Request; Done : out Boolean);
 
 private
 

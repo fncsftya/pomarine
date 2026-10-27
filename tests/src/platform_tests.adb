@@ -12,10 +12,10 @@ package body Platform_Tests is
    package Widgets renames Pomarine.Widgets;
    package App renames Pomarine.Application;
 
-   function Image (Value : Integer) return String is
-     (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
+   function Image (Value : Integer) return String
+   is (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
 
-   Ran : Natural := 0;
+   Ran   : Natural := 0;
    Order : String (1 .. 8) := [others => '.'];
 
    procedure Count (Data : System.Address) is
@@ -25,7 +25,8 @@ package body Platform_Tests is
    end Count;
 
    procedure Mark (Data : System.Address) is
-      Which : Character with Import, Address => Data;
+      Which : Character
+      with Import, Address => Data;
    begin
       Order (Ran + 1) := Which;
       Ran := Ran + 1;
@@ -38,10 +39,10 @@ package body Platform_Tests is
    end Failing;
 
    procedure Posted_Work is
-      First : aliased constant Character := 'a';
+      First  : aliased constant Character := 'a';
       Second : aliased constant Character := 'b';
-      Third : aliased constant Character := 'c';
-      Kept : Boolean;
+      Third  : aliased constant Character := 'c';
+      Kept   : Boolean;
    begin
       Ran := 0;
       Goldens.Check_Text ("application-none", "FALSE", App.Is_Waiting'Image);
@@ -74,22 +75,18 @@ package body Platform_Tests is
          while App.Post (Count'Access) loop
             Room := Room + 1;
          end loop;
-         Goldens.Check_Text
-           ("application-full", "64 1", Image (Room) & " " & Image (App.Dropped - Before));
+         Goldens.Check_Text ("application-full", "64 1", Image (Room) & " " & Image (App.Dropped - Before));
          App.Run_Posted;
       end;
    end Posted_Work;
 
    type Ears is limited new Widgets.Listener with record
-      Tags : String (1 .. 8) := [others => '.'];
+      Tags  : String (1 .. 8) := [others => '.'];
       Count : Natural := 0;
    end record;
 
-   overriding procedure Handle_Event
-     (Self   : in out Ears;
-      Source : in out Widgets.Widget'Class;
-      Event  : Widgets.Widget_Event)
-   is
+   overriding
+   procedure Handle_Event (Self : in out Ears; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
       pragma Unreferenced (Source);
    begin
       Self.Count := Self.Count + 1;
@@ -126,8 +123,7 @@ package body Platform_Tests is
       Pomarine.Native_Menus.Choose (Bar, 4);
       Pomarine.Native_Menus.Pump (Bar, Tree);
       Widgets.Deliver (Tree);
-      Goldens.Check_Text
-        ("menus-discarded", "2 54", Image (Heard.Count) & " " & Heard.Tags (1 .. 2));
+      Goldens.Check_Text ("menus-discarded", "2 54", Image (Heard.Count) & " " & Heard.Tags (1 .. 2));
 
       --  Only the next Pump or the one after it: not a choice for ever.
       Heard.Count := 0;
@@ -141,16 +137,18 @@ package body Platform_Tests is
    end Menu_Choices;
 
    procedure System_Settings is
-      Motion : constant Boolean := Pomarine.System_Settings.Reduce_Motion;
+      Motion   : constant Boolean := Pomarine.System_Settings.Reduce_Motion;
       Contrast : constant Boolean := Pomarine.System_Settings.Increase_Contrast;
-      Clear : constant Boolean := Pomarine.System_Settings.Reduce_Transparency;
+      Clear    : constant Boolean := Pomarine.System_Settings.Reduce_Transparency;
    begin
       --  Whatever they are, they can be asked, and are the same twice.
       Goldens.Check_Text
-        ("settings-stable", "TRUE",
-         Boolean'Image (Motion = Pomarine.System_Settings.Reduce_Motion
-                        and then Contrast = Pomarine.System_Settings.Increase_Contrast
-                        and then Clear = Pomarine.System_Settings.Reduce_Transparency));
+        ("settings-stable",
+         "TRUE",
+         Boolean'Image
+           (Motion = Pomarine.System_Settings.Reduce_Motion
+            and then Contrast = Pomarine.System_Settings.Increase_Contrast
+            and then Clear = Pomarine.System_Settings.Reduce_Transparency));
    end System_Settings;
 
 end Platform_Tests;

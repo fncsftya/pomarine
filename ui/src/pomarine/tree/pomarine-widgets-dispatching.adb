@@ -2,6 +2,7 @@ with Pomarine.Widgets.Nodes;
 with Pomarine.Widgets.Focusing;
 with Pomarine.Widgets.Overlaying;
 with Pomarine.Widgets.Tipping;
+
 package body Pomarine.Widgets.Dispatching is
 
    use Pomarine.Widgets.Nodes;
@@ -23,9 +24,12 @@ package body Pomarine.Widgets.Dispatching is
          declare
             Box : Spot renames Table.Spot (Level);
          begin
-            exit when not Box.Visible
-              or else X < Box.Left or else X >= Box.Left + Box.Wide
-              or else Y < Box.Top or else Y >= Box.Top + Box.High;
+            exit when
+              not Box.Visible
+              or else X < Box.Left
+              or else X >= Box.Left + Box.Wide
+              or else Y < Box.Top
+              or else Y >= Box.Top + Box.High;
          end;
          Found := Level;
          declare
@@ -37,8 +41,10 @@ package body Pomarine.Widgets.Dispatching is
                   Box : Spot renames Table.Spot (Child);
                begin
                   if Box.Visible
-                    and then X >= Box.Left and then X < Box.Left + Box.Wide
-                    and then Y >= Box.Top and then Y < Box.Top + Box.High
+                    and then X >= Box.Left
+                    and then X < Box.Left + Box.Wide
+                    and then Y >= Box.Top
+                    and then Y < Box.Top + Box.High
                   then
                      Level := Child;
                   end if;
@@ -50,12 +56,7 @@ package body Pomarine.Widgets.Dispatching is
       return Found;
    end Hit_Slot;
 
-   procedure Bubble
-     (Home    : Tree;
-      From    : Node_Index;
-      Event   : Pomarine.Events.Event;
-      Taker   : out Node_Index)
-   is
+   procedure Bubble (Home : Tree; From : Node_Index; Event : Pomarine.Events.Event; Taker : out Node_Index) is
       Offered : Node_Index := From;
       Handled : Boolean;
    begin
@@ -73,19 +74,14 @@ package body Pomarine.Widgets.Dispatching is
    function Accepting (Home : Tree; From : Node_Index) return Node_Index is
       Climbing : Node_Index := From;
    begin
-      while Climbing /= 0
-        and then not Focuses_On_Click (Home.Nodes.Object (Climbing).all)
-      loop
+      while Climbing /= 0 and then not Focuses_On_Click (Home.Nodes.Object (Climbing).all) loop
          Climbing := Home.Nodes.Parent (Climbing);
       end loop;
       return Climbing;
    end Accepting;
 
    procedure Dispatch_Press
-     (Item    : in out Tree;
-      Event   : Pomarine.Events.Event;
-      Over    : Node_Index;
-      Handled : out Boolean)
+     (Item : in out Tree; Event : Pomarine.Events.Event; Over : Node_Index; Handled : out Boolean)
    is
       Accepts : constant Node_Index := Accepting (Item, Over);
       Taker   : Node_Index;
@@ -117,11 +113,7 @@ package body Pomarine.Widgets.Dispatching is
       end if;
    end Set_Input_Source;
 
-   procedure Dispatch_Keys
-     (Item    : in out Tree;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   procedure Dispatch_Keys (Item : in out Tree; Event : Pomarine.Events.Event; Handled : out Boolean) is
       Taker   : Node_Index;
       Offered : Node_Index;
    begin
@@ -140,8 +132,11 @@ package body Pomarine.Widgets.Dispatching is
          end loop;
       end if;
       --  Tab, when the tree is to move the focus by it.
-      if not Handled and then Item.Tab_Moves and then Event.Kind = Pomarine.Events.Key_Down
-        and then Event.Key = Pomarine.Events.Key_Tab and then not Event.Command
+      if not Handled
+        and then Item.Tab_Moves
+        and then Event.Kind = Pomarine.Events.Key_Down
+        and then Event.Key = Pomarine.Events.Key_Tab
+        and then not Event.Command
       then
          Focus_Next (Item, Backwards => Event.Shift);
          Handled := True;
@@ -150,9 +145,7 @@ package body Pomarine.Widgets.Dispatching is
       --  bound to commands.
       if not Handled and then Event.Kind = Pomarine.Events.Key_Down then
          for Each of Item.Keys (1 .. Item.Keys_Bound) loop
-            if Each.Key = Event.Key and then Each.Command = Event.Command
-              and then Each.Shift = Event.Shift
-            then
+            if Each.Key = Event.Key and then Each.Command = Event.Command and then Each.Shift = Event.Shift then
                Perform_Command (Item, Each.Tag, Handled);
                exit;
             end if;
@@ -160,20 +153,22 @@ package body Pomarine.Widgets.Dispatching is
       end if;
    end Dispatch_Keys;
 
-   procedure Dispatch_Event
-     (Item    : in out Tree;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
-      Over  : Node_Index;
-      Taker : Node_Index;
+   procedure Dispatch_Event (Item : in out Tree; Event : Pomarine.Events.Event; Handled : out Boolean) is
+      Over     : Node_Index;
+      Taker    : Node_Index;
       Consumed : Boolean;
    begin
       Handled := False;
       --  What floats over the tree sees the input first: Escape, a press outside it, what a modal one takes.
-      Over := (if Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Up | Pomarine.Events.Mouse_Move
-                                | Pomarine.Events.Mouse_Wheel | Pomarine.Events.Pinch
-               then Hit_Slot (Item, Event.Mouse_X * Item.Density, Event.Mouse_Y * Item.Density) else 0);
+      Over :=
+        (if Event.Kind
+            in Pomarine.Events.Mouse_Down
+             | Pomarine.Events.Mouse_Up
+             | Pomarine.Events.Mouse_Move
+             | Pomarine.Events.Mouse_Wheel
+             | Pomarine.Events.Pinch
+         then Hit_Slot (Item, Event.Mouse_X * Item.Density, Event.Mouse_Y * Item.Density)
+         else 0);
       if Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Key_Down | Pomarine.Events.Mouse_Wheel then
          Tipping.Pressed (Item);
       end if;
@@ -184,21 +179,17 @@ package body Pomarine.Widgets.Dispatching is
          return;
       end if;
       case Event.Kind is
-         when Pomarine.Events.Mouse_Down =>
+         when Pomarine.Events.Mouse_Down                                                                            =>
             Set_Input_Source (Item, Keyboard => False);
-            Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
-                              Event.Mouse_Y * Item.Density);
+            Over := Hit_Slot (Item, Event.Mouse_X * Item.Density, Event.Mouse_Y * Item.Density);
             Dispatch_Press (Item, Event, Over, Handled);
 
-         when Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up =>
-            Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
-                              Event.Mouse_Y * Item.Density);
+         when Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up                                                 =>
+            Over := Hit_Slot (Item, Event.Mouse_X * Item.Density, Event.Mouse_Y * Item.Density);
             Set_Hover (Item, Over);
             if Item.Capture /= 0 then
                Handle (Item.Nodes.Object (Item.Capture).all, Event, Handled);
-               if Event.Kind = Pomarine.Events.Mouse_Up
-                 and then Event.Button = Item.Capture_Button
-               then
+               if Event.Kind = Pomarine.Events.Mouse_Up and then Event.Button = Item.Capture_Button then
                   Item.Capture := 0;
                elsif Event.Kind = Pomarine.Events.Mouse_Move
                  and then Item.Capture_Button = 1
@@ -211,9 +202,8 @@ package body Pomarine.Widgets.Dispatching is
                Handled := Taker /= 0;
             end if;
 
-         when Pomarine.Events.Mouse_Wheel | Pomarine.Events.Pinch =>
-            Over := Hit_Slot (Item, Event.Mouse_X * Item.Density,
-                              Event.Mouse_Y * Item.Density);
+         when Pomarine.Events.Mouse_Wheel | Pomarine.Events.Pinch                                                   =>
+            Over := Hit_Slot (Item, Event.Mouse_X * Item.Density, Event.Mouse_Y * Item.Density);
             if Event.Kind = Pomarine.Events.Mouse_Wheel
               and then Item.Wheel_Taker /= 0
               and then Event.Time > 0
@@ -230,12 +220,13 @@ package body Pomarine.Widgets.Dispatching is
                Item.Wheel_Time := Event.Time;
             end if;
 
-         when Pomarine.Events.Key_Down | Pomarine.Events.Key_Up | Pomarine.Events.Text_Input
-            | Pomarine.Events.Text_Editing =>
+         when Pomarine.Events.Key_Down
+            | Pomarine.Events.Key_Up
+            | Pomarine.Events.Text_Input
+            | Pomarine.Events.Text_Editing                                                                          =>
             Dispatch_Keys (Item, Event, Handled);
 
-         when Pomarine.Events.Quit | Pomarine.Events.Redraw
-            | Pomarine.Events.Theme_Changed | Pomarine.Events.Other =>
+         when Pomarine.Events.Quit | Pomarine.Events.Redraw | Pomarine.Events.Theme_Changed | Pomarine.Events.Other =>
             null;
       end case;
       Deliver (Item);
@@ -243,8 +234,7 @@ package body Pomarine.Widgets.Dispatching is
 
    function Cursor_Wanted (Item : Tree) return SDL3.Cursors.Kind is
       use type SDL3.Cursors.Kind;
-      Asking : Node_Index :=
-        (if Item.Capture /= 0 then Item.Capture else Item.Hover);
+      Asking : Node_Index := (if Item.Capture /= 0 then Item.Capture else Item.Hover);
    begin
       while Asking /= 0 loop
          if Cursor (Item.Nodes.Object (Asking).all) /= SDL3.Cursors.Default then

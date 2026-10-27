@@ -1,6 +1,7 @@
 --  The tree's running animations (Pomarine.Widgets.Animate): start, stop and step them with the clock.
 --  A private child of Pomarine.Widgets: its operations are the parts of that package's body that are not
 --  its own interface, and are called from it.
+
 private package Pomarine.Widgets.Animations is
 
    function Eased (How : Easing; T : Float) return Float;

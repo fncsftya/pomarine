@@ -12,9 +12,10 @@ with Ada.Strings.Unbounded;
 --  allocated and no lifetime is shared. A view-model of several parts adds
 --  their versions: each change adds one to its own part's, so adds one to
 --  the sum.
+
 package Pomarine.View_Models is
 
-   type Version_Number is mod 2 ** 32;
+   type Version_Number is mod 2**32;
    --  Modular, so that counting changes never overflows: a number that is
    --  not what a view saw says something changed.
 
@@ -25,11 +26,11 @@ package Pomarine.View_Models is
    function Value (Self : Change_Counter) return Version_Number;
 
    procedure Bump (Self : in out Change_Counter)
-     with Post => Value (Self) = Value (Self)'Old + 1;
+   with Post => Value (Self) = Value (Self)'Old + 1;
    --  Something changed.
 
    function Starting_At (Number : Version_Number) return Change_Counter
-     with Post => Value (Starting_At'Result) = Number;
+   with Post => Value (Starting_At'Result) = Number;
    --  For a test that counts past the end.
 
    --  Seeing changes
@@ -61,13 +62,13 @@ package Pomarine.View_Models is
       function Version (Self : Property) return Version_Number;
 
       procedure Set (Self : in out Property; To : Element)
-        with Post => Version (Self) = Version (Self)'Old + (if Get (Self)'Old = To then 0 else 1)
-                     and then Get (Self) = To;
+      with
+        Post => Version (Self) = Version (Self)'Old + (if Get (Self)'Old = To then 0 else 1) and then Get (Self) = To;
       --  Put To there: a change only if it is not what was. So the view may
       --  set it from a widget every turn without every turn being a change.
 
       procedure Initialize (Self : out Property; To : Element)
-        with Post => Get (Self) = To and then Version (Self) = 0;
+      with Post => Get (Self) = To and then Version (Self) = 0;
       --  To begin with: a change of nothing.
 
    private
@@ -88,8 +89,7 @@ package Pomarine.View_Models is
    function Version (Self : Text_Property) return Version_Number;
 
    procedure Set (Self : in out Text_Property; To : String)
-     with Post => Version (Self) = Version (Self)'Old + (if Get (Self)'Old = To then 0 else 1)
-                  and then Get (Self) = To;
+   with Post => Version (Self) = Version (Self)'Old + (if Get (Self)'Old = To then 0 else 1) and then Get (Self) = To;
 
    --  Commands
 
@@ -111,7 +111,7 @@ package Pomarine.View_Models is
       --  one row's button can be on and another's off; 0 asks whether it is for some (or for none).
 
       procedure Execute (Self : in out Model; What : Command; Index : Natural := 0) is abstract
-        with Pre'Class => Can_Execute (Self, What, Index);
+      with Pre'Class => Can_Execute (Self, What, Index);
       --  Do it. Index is which of many, as the widget said (Event.Index): a
       --  row to open, a choice to take. 0 if it is not one of many.
 
@@ -120,14 +120,17 @@ package Pomarine.View_Models is
       --  from it, say how a command is done (Perform), and call Mark_Changed when something changed that no
       --  command did (a property set by a widget). Execute is Perform and a Mark_Changed.
 
-      overriding function Version (Self : Observed_Model) return Version_Number;
+      overriding
+      function Version (Self : Observed_Model) return Version_Number;
       --  The changes counted, and Parts_Version.
 
-      overriding function Can_Execute
-        (Self : Observed_Model; What : Command; Index : Natural := 0) return Boolean is (False);
+      overriding
+      function Can_Execute (Self : Observed_Model; What : Command; Index : Natural := 0) return Boolean
+      is (False);
       --  Nothing is possible until the model says what is: override it.
 
-      function Parts_Version (Self : Observed_Model) return Version_Number is (0);
+      function Parts_Version (Self : Observed_Model) return Version_Number
+      is (0);
       --  The versions of the parts that count themselves (a Text_Property, a list model): override it to
       --  add them. Anything a part changes, changes the model.
 
@@ -137,7 +140,8 @@ package Pomarine.View_Models is
       procedure Perform (Self : in out Observed_Model; What : Command; Index : Natural := 0) is abstract;
       --  Do What, as Execute says.
 
-      overriding procedure Execute (Self : in out Observed_Model; What : Command; Index : Natural := 0);
+      overriding
+      procedure Execute (Self : in out Observed_Model; What : Command; Index : Natural := 0);
       --  Perform it, then Mark_Changed.
 
    private
@@ -159,9 +163,11 @@ private
       Begun : Boolean := False;
    end record;
 
-   function Value (Self : Change_Counter) return Version_Number is (Self.Count);
+   function Value (Self : Change_Counter) return Version_Number
+   is (Self.Count);
 
-   function Starting_At (Number : Version_Number) return Change_Counter is (Count => Number);
+   function Starting_At (Number : Version_Number) return Change_Counter
+   is (Count => Number);
 
    type Text_Property is limited record
       Current : Ada.Strings.Unbounded.Unbounded_String;

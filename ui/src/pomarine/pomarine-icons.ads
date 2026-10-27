@@ -17,6 +17,7 @@ with SDL3.Windows.Renderers;
 --
 --  Declare a library after the renderer it draws to, and always draw it
 --  to that renderer.
+
 package Pomarine.Icons is
 
    Capacity : constant := Pomarine_Ui_Config.Icon_Capacity;
@@ -29,11 +30,13 @@ package Pomarine.Icons is
 
    No_Icon : constant Optional := 0;
 
-   function Shown (Which : Icon) return Optional is (Optional (Which))
-     with Post => Shown'Result /= No_Icon;
+   function Shown (Which : Icon) return Optional
+   is (Optional (Which))
+   with Post => Shown'Result /= No_Icon;
 
-   function Icon_Of (Item : Optional) return Icon is (Icon (Item))
-     with Pre => Item /= No_Icon;
+   function Icon_Of (Item : Optional) return Icon
+   is (Icon (Item))
+   with Pre => Item /= No_Icon;
 
    Check        : constant Icon := 1;
    Close        : constant Icon := 2;
@@ -45,9 +48,9 @@ package Pomarine.Icons is
    First_Custom : constant Icon := 6;
    --  The application's are Custom (0), Custom (1) and so on.
 
-   function Custom (Offset : Natural) return Icon is
-     (Icon (Natural (First_Custom) + Offset))
-     with Pre => Offset <= Natural (Capacity - First_Custom);
+   function Custom (Offset : Natural) return Icon
+   is (Icon (Natural (First_Custom) + Offset))
+   with Pre => Offset <= Natural (Capacity - First_Custom);
 
    File_Extension : constant String := ".svg";
 
@@ -59,7 +62,7 @@ package Pomarine.Icons is
    --  Where the files are. Icons made already are forgotten.
 
    procedure Set_File (Item : in out Library; Which : Icon; Name : String)
-     with Pre => Name'Length in 1 .. File_Capacity;
+   with Pre => Name'Length in 1 .. File_Capacity;
    --  The name of the file of Which, in the directory, with its extension.
    --  If made already, it is forgotten.
 
@@ -68,13 +71,13 @@ package Pomarine.Icons is
    --  icon's name in lower case with the extension. Empty if none.
 
    procedure Draw
-     (Item   : in out Library;
-      Target : SDL3.Painters.Painter'Class;
-      Which  : Icon;
-      Value  : SDL3.Windows.Renderers.Color;
+     (Item      : in out Library;
+      Target    : SDL3.Painters.Painter'Class;
+      Which     : Icon;
+      Value     : SDL3.Windows.Renderers.Color;
       Left, Top : Float;
-      Size   : Positive;
-      Drawn  : out Boolean);
+      Size      : Positive;
+      Drawn     : out Boolean);
    --  Draw it in colour Value, Size pixels square, with its top left at
    --  Left, Top. The file is read, and rasterized, the first time. Drawn
    --  says whether it was: not if there is no file, or it cannot be read

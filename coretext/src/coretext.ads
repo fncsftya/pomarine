@@ -5,6 +5,7 @@
 --  Strings are UTF-8 Ada Strings. CoreText indexes text in UTF-16 code
 --  units, and every index in this crate is one; UTF16_Length converts a
 --  string's length.
+
 package CoreText is
 
    Error : exception;
@@ -18,9 +19,9 @@ package CoreText is
    --  Whether Text is well-formed UTF-8 with no byte order mark.
 
    function Sanitized (Text : String) return String
-     with Post => Sanitized'Result'Length = Text'Length
-                  and then Sanitized'Result'First = 1
-                  and then Is_Clean (Sanitized'Result);
+   with
+     Post =>
+       Sanitized'Result'Length = Text'Length and then Sanitized'Result'First = 1 and then Is_Clean (Sanitized'Result);
    --  Text made safe for CoreFoundation, byte for byte: each byte that is
    --  not part of well-formed UTF-8 (a stray or truncated byte, an overlong
    --  form, a surrogate, a code point past U+10FFFF) becomes "?", and each

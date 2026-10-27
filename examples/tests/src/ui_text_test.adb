@@ -12,6 +12,7 @@ with Form_VM;
 
 --  What a bound text field keeps of the person's editing when the model shows it again, how the model's own
 --  text replaces it, and what an input method's composition does to either.
+
 procedure UI_Text_Test is
    package UI renames Pomarine.UI;
    package Testing renames Pomarine.Testing;
@@ -30,10 +31,10 @@ procedure UI_Text_Test is
    function Text_Part
      (Parent : Forms.Context'Class; Source : Forms.Text_Property; Replacing : Forms.Replacement) return UI.Layout
    is
-      Bound : aliased Forms.Component (Parent'Access);
-      Typed : constant UI.Field_Handle := Bound.Text_Field
-        (Source, Submit => Save, Name => "Text", Replacing => Replacing);
-      Saves : constant UI.Button_Handle := Bound.Button ("Save", Save);
+      Bound  : aliased Forms.Component (Parent'Access);
+      Typed  : constant UI.Field_Handle :=
+        Bound.Text_Field (Source, Submit => Save, Name => "Text", Replacing => Replacing);
+      Saves  : constant UI.Button_Handle := Bound.Button ("Save", Save);
       Result : constant UI.Layout := UI.Column ([UI.Place (Typed), UI.Place (Saves)], Gap => 8.0);
    begin
       Field_Handle := Typed;
@@ -44,11 +45,11 @@ procedure UI_Text_Test is
 
    --  A screen of one field, and what to look at it with.
 
-   function Area (Screen : UI.View) return not null access Areas.Text_Area is
-     (Editors.Area (Editors.Editor (UI.Widget_Of (Screen, Field_Handle).all)));
+   function Area (Screen : UI.View) return not null access Areas.Text_Area
+   is (Editors.Area (Editors.Editor (UI.Widget_Of (Screen, Field_Handle).all)));
 
-   function Document (Screen : UI.View) return not null access constant Docs.Document is
-     (Editors.Document (Editors.Editor (UI.Widget_Of (Screen, Field_Handle).all)));
+   function Document (Screen : UI.View) return not null access constant Docs.Document
+   is (Editors.Document (Editors.Editor (UI.Widget_Of (Screen, Field_Handle).all)));
 
    procedure Show
      (Tree      : aliased in out Widgets.Tree;
@@ -127,14 +128,14 @@ procedure UI_Text_Test is
    end A_Different_Text_Replaces_The_Document;
 
    procedure The_Caret_Goes_Where_The_Policy_Says is
-      Start_Tree : aliased Widgets.Tree;
-      Start_Model : aliased Form_VM.Model;
+      Start_Tree   : aliased Widgets.Tree;
+      Start_Model  : aliased Form_VM.Model;
       Start_Screen : UI.View (Start_Tree'Access);
       Start_Window : Testing.Session;
-      Kept_Tree : aliased Widgets.Tree;
-      Kept_Model : aliased Form_VM.Model;
-      Kept_Screen : UI.View (Kept_Tree'Access);
-      Kept_Window : Testing.Session;
+      Kept_Tree    : aliased Widgets.Tree;
+      Kept_Model   : aliased Form_VM.Model;
+      Kept_Screen  : UI.View (Kept_Tree'Access);
+      Kept_Window  : Testing.Session;
    begin
       Show (Start_Tree, Start_Model, Start_Screen, Start_Window, Form_UI.Counted, Forms.Caret_At_Start);
       Testing.Type_Text (Start_Window, "abcdef");

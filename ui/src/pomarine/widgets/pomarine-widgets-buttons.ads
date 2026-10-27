@@ -21,6 +21,7 @@ with Pomarine.Widgets.Layouts;
 --  focus, unless it is made to (Set_Focusable), so that clicking it does
 --  not take it from what is being typed into; with the focus, it has a
 --  ring in the theme's focus colour, and Return or Space clicks it.
+
 package Pomarine.Widgets.Buttons is
 
    type Button is new Widget with private;
@@ -55,7 +56,7 @@ package Pomarine.Widgets.Buttons is
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
       Underlined  : Boolean := False;
       Struck      : Boolean := False) return Settings
-     with Pre => Icon_Points >= 0.0;
+   with Pre => Icon_Points >= 0.0;
    --  What is not named is what a new button has. Icon_Points is in points,
    --  0.0 the usual. Captioned shows the label after the icon.
    --     Looks ("Save", Primary)
@@ -67,12 +68,8 @@ package Pomarine.Widgets.Buttons is
    --  swatched is left as it was. Damages nothing if it is as it was.
 
    procedure Add
-     (Parent : in out Widget'Class;
-      Item   : in out Button;
-      Using  : Settings;
-      Box    : Layouts.Style := (others => <>))
-     with Pre  => Is_Attached (Parent) and then not Is_Attached (Item),
-          Post => Is_Attached (Item);
+     (Parent : in out Widget'Class; Item : in out Button; Using : Settings; Box : Layouts.Style := (others => <>))
+   with Pre => Is_Attached (Parent) and then not Is_Attached (Item), Post => Is_Attached (Item);
    --  Add Item to Parent, as it looks and where it sits, in one line:
    --     Buttons.Add
    --       (Footer, Save, Buttons.Looks ("Save", Buttons.Primary), (Width => 70.0, Height => 32.0, others => <>));
@@ -85,8 +82,7 @@ package Pomarine.Widgets.Buttons is
    --  Show Text, in the debug font of SDL3.Windows.Renderers, scaled to
    --  the density, in the middle.
 
-   procedure Set_Label_Style
-     (Item : in out Button; Using : Line_Texts.Style; Underlined, Struck : Boolean := False);
+   procedure Set_Label_Style (Item : in out Button; Using : Line_Texts.Style; Underlined, Struck : Boolean := False);
    --  Choose the label font and optional decorations.
 
    procedure Set_Icon (Item : in out Button; To : Pomarine.Icons.Icon);
@@ -94,7 +90,7 @@ package Pomarine.Widgets.Buttons is
    --  icons and the icon can be drawn; the label otherwise.
 
    procedure Set_Icon_Size (Item : in out Button; Points : Float)
-     with Pre => Points > 0.0;
+   with Pre => Points > 0.0;
    --  Draw the icon Points a side, not the usual size.
 
    function Has_Icon (Item : Button) return Boolean;
@@ -121,7 +117,7 @@ package Pomarine.Widgets.Buttons is
    function Shape_Of (Item : Button) return Shape_Kind;
 
    procedure Set_Dropdown (Item : in out Button; To : Boolean)
-     with Post => Is_Dropdown (Item) = To;
+   with Post => Is_Dropdown (Item) = To;
    --  Set_Shape (Dropdown) or (Plain). It makes a split dropdown plain.
 
    function Is_Dropdown (Item : Button) return Boolean;
@@ -145,44 +141,41 @@ package Pomarine.Widgets.Buttons is
    function Is_Pressed (Item : Button) return Boolean;
    --  Whether the button is down, and over it.
 
-   overriding procedure Handle
-     (Item    : in out Button;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Button; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Button;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Button; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Button; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Button; Hovered : Boolean);
 
-   overriding function Cursor (Item : Button) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Button) return SDL3.Cursors.Kind;
 
-   overriding function Is_Focusable (Item : Button) return Boolean;
+   overriding
+   function Is_Focusable (Item : Button) return Boolean;
 
-   overriding function Focuses_On_Click (Item : Button) return Boolean is (False);
+   overriding
+   function Focuses_On_Click (Item : Button) return Boolean
+   is (False);
    --  Tab reaches it (if it is focusable), but a click does not move the focus.
 
-   overriding procedure Focus_Changed
-     (Item : in out Button; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Button; Focused : Boolean);
 
-   overriding procedure Describe
-     (Item  : Button;
-      Facts : in out Semantics.Description);
-   overriding procedure Perform
-     (Item    : in out Button;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Describe (Item : Button; Facts : in out Semantics.Description);
+   overriding
+   procedure Perform (Item : in out Button; Request : Semantics.Request; Done : out Boolean);
 
-   overriding procedure Command_State_Changed
-     (Item : in out Button; State : Command_State);
+   overriding
+   procedure Command_State_Changed (Item : in out Button; State : Command_State);
 
 private
 
    type Settings is record
-      Text : Ada.Strings.Unbounded.Unbounded_String;
+      Text        : Ada.Strings.Unbounded.Unbounded_String;
       Style       : Kind := Normal;
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
       Underlined  : Boolean := False;
@@ -195,27 +188,27 @@ private
    end record;
 
    type Button is new Widget with record
-      Text : Ada.Strings.Unbounded.Unbounded_String;
-      Style   : Kind := Normal;
+      Text        : Ada.Strings.Unbounded.Unbounded_String;
+      Style       : Kind := Normal;
       Label_Style : Line_Texts.Style := Line_Texts.Strong;
-      Underlined : Boolean := False;
-      Struck : Boolean := False;
-      Picture : Boolean := False;
-      Which   : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
+      Underlined  : Boolean := False;
+      Struck      : Boolean := False;
+      Picture     : Boolean := False;
+      Which       : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
       Icon_Points : Float := 0.0;  --  0.0: the usual size
-      Swatched : Boolean := False;
-      Swatch   : Themes.Slot := Themes.Primary;
-      Captioned : Boolean := False;
-      Badge     : Natural := 0;
-      Selected  : Boolean := False;
-      Shape     : Shape_Kind := Plain;
-      Enabled   : Boolean := True;
-      Focusable : Boolean := False;
-      Down    : Boolean := False;  --  pressed, and not yet let go
-      By_Command : Boolean := False;  --  selected as a command in force
-      Over_Caret : Boolean := False;  --  the pointer is over it
-      Down_Caret : Boolean := False;  --  the press was on it
-      Last_Caret : Boolean := False;  --  the last click was on it
+      Swatched    : Boolean := False;
+      Swatch      : Themes.Slot := Themes.Primary;
+      Captioned   : Boolean := False;
+      Badge       : Natural := 0;
+      Selected    : Boolean := False;
+      Shape       : Shape_Kind := Plain;
+      Enabled     : Boolean := True;
+      Focusable   : Boolean := False;
+      Down        : Boolean := False;  --  pressed, and not yet let go
+      By_Command  : Boolean := False;  --  selected as a command in force
+      Over_Caret  : Boolean := False;  --  the pointer is over it
+      Down_Caret  : Boolean := False;  --  the press was on it
+      Last_Caret  : Boolean := False;  --  the last click was on it
    end record;
 
 end Pomarine.Widgets.Buttons;

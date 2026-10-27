@@ -1,6 +1,7 @@
 with Ada.Strings.Unbounded;
 with Pomarine.Searches;
 with Texts.Documents;
+
 package body Pomarine.Text_Areas.Finding is
 
    package Docs renames Texts.Documents;

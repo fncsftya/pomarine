@@ -8,6 +8,7 @@ with System;
 --
 --  Posting wakes the loop (Pomarine.Events.Wake), so a window that waits for
 --  events is not left waiting.
+
 package Pomarine.Application is
 
    type Handler is access procedure (Data : System.Address);
@@ -15,8 +16,7 @@ package Pomarine.Application is
    Capacity : constant := 64;
    --  How many are kept before the window's thread runs them.
 
-   function Post (Run : not null Handler; Data : System.Address := System.Null_Address)
-      return Boolean;
+   function Post (Run : not null Handler; Data : System.Address := System.Null_Address) return Boolean;
    --  Have the window's thread call Run (Data). From any thread. False if
    --  there is no room (Capacity are waiting): nothing is kept; try again
    --  later, or do without. Data must be there when it is run.

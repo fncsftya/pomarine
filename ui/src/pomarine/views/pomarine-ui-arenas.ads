@@ -23,6 +23,7 @@ with System.Storage_Pools.Subpools;
 --     Item : constant Label_Ref := new (Home) Labels.Label;
 --     ...
 --     Arenas.Destroy (Home);
+
 package Pomarine.UI.Arenas is
 
    package Subpools renames System.Storage_Pools.Subpools;
@@ -37,7 +38,7 @@ package Pomarine.UI.Arenas is
    --  A new, empty arena.
 
    procedure Destroy (Item : in out Handle)
-     with Post => Item = null;
+   with Post => Item = null;
    --  Finalize what is in it, then free it. Does nothing for null.
 
    function Live_Arenas return Natural;
@@ -49,25 +50,31 @@ package Pomarine.UI.Arenas is
 
    function Block_Count (Item : not null Handle) return Natural;
 
-   overriding function Create_Subpool (Self : in out Pool_Type) return not null Handle;
+   overriding
+   function Create_Subpool (Self : in out Pool_Type) return not null Handle;
 
-   overriding procedure Allocate_From_Subpool
+   overriding
+   procedure Allocate_From_Subpool
      (Self                     : in out Pool_Type;
       Storage_Address          : out System.Address;
       Size_In_Storage_Elements : System.Storage_Elements.Storage_Count;
       Alignment                : System.Storage_Elements.Storage_Count;
       Subpool                  : not null Handle);
 
-   overriding procedure Deallocate_Subpool (Self : in out Pool_Type; Subpool : in out Handle);
+   overriding
+   procedure Deallocate_Subpool (Self : in out Pool_Type; Subpool : in out Handle);
 
-   overriding procedure Deallocate
+   overriding
+   procedure Deallocate
      (Self                     : in out Pool_Type;
       Storage_Address          : System.Address;
       Size_In_Storage_Elements : System.Storage_Elements.Storage_Count;
-      Alignment                : System.Storage_Elements.Storage_Count) is null;
+      Alignment                : System.Storage_Elements.Storage_Count)
+   is null;
    --  An object is given back with its arena.
 
-   overriding function Default_Subpool_For_Pool (Self : in out Pool_Type) return not null Handle;
+   overriding
+   function Default_Subpool_For_Pool (Self : in out Pool_Type) return not null Handle;
    --  Raises Program_Error: every allocation names its arena.
    Pool : Pool_Type;
    --  Stateless: everything it knows is in the subpools.

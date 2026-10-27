@@ -5,6 +5,7 @@ with Pomarine.Boxes;
 --  fill it with, or none, to show what is behind; an outline, and a
 --  shadow (see Pomarine.Boxes), if it is to stand out; and a ring over what is
 --  in it, as of what is chosen.
+
 package Pomarine.Widgets.Panels is
 
    type Panel is new Widget with private;
@@ -22,10 +23,9 @@ package Pomarine.Widgets.Panels is
    function Has_Fill (Item : Panel) return Boolean;
 
    function Fill (Item : Panel) return Themes.Slot
-     with Pre => Has_Fill (Item);
+   with Pre => Has_Fill (Item);
 
-   procedure Set_Border
-     (Item : in out Panel; Value : Themes.Slot; Dashed : Boolean := False);
+   procedure Set_Border (Item : in out Panel; Value : Themes.Slot; Dashed : Boolean := False);
    --  Outline the face a point wide in Value, in dashes if Dashed. What
    --  is in it is laid over the outline unless it is padded clear of it.
 
@@ -40,11 +40,11 @@ package Pomarine.Widgets.Panels is
    procedure Clear_Ring (Item : in out Panel);
 
    procedure Set_Radius
-     (Item    : in out Panel;
-      Value   : Float;
-      Round   : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners;
-      Framed  : Boolean := False)
-     with Pre => Value >= 0.0;
+     (Item   : in out Panel;
+      Value  : Float;
+      Round  : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners;
+      Framed : Boolean := False)
+   with Pre => Value >= 0.0;
    --  Round the corners (those in Round) of the face, its outline and its
    --  shadow, by Value points. What is in it is laid over the corners as
    --  square as it is, so, if Framed, the outline is drawn again over it,
@@ -54,28 +54,24 @@ package Pomarine.Widgets.Panels is
 
    Ring_Width : constant Float := 2.0;
 
-   overriding procedure Draw
-     (Item   : in out Panel;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Panel; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Draw_Over
-     (Item   : in out Panel;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Panel; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
 private
 
    type Panel is new Widget with record
-      Look   : Pomarine.Boxes.Look;  --  its flags; its colours are the slots below
+      Look        : Pomarine.Boxes.Look;  --  its flags; its colours are the slots below
       Fill_Slot   : Themes.Slot := Themes.Page;
       Fill_Fixed  : Boolean := False;  --  whether Fill_Color is the fill
       Fill_Color  : Themes.Color := (0, 0, 0, 255);
       Border_Slot : Themes.Slot := Themes.Border;
       Shadow_Slot : Themes.Slot := Themes.Shadow;
-      Framed : Boolean := False;
-      Ringed : Boolean := False;
-      Ring_Slot : Themes.Slot := Themes.Focus;
+      Framed      : Boolean := False;
+      Ringed      : Boolean := False;
+      Ring_Slot   : Themes.Slot := Themes.Focus;
    end record;
 
 end Pomarine.Widgets.Panels;

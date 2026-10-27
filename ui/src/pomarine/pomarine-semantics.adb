@@ -5,9 +5,7 @@ package body Pomarine.Semantics is
    begin
       --  Not in the middle of a UTF-8 character: back to where one starts.
       if Last < To'Length then
-         while Last > 0
-           and then Character'Pos (To (To'First + Last)) in 16#80# .. 16#BF#
-         loop
+         while Last > 0 and then Character'Pos (To (To'First + Last)) in 16#80# .. 16#BF# loop
             Last := Last - 1;
          end loop;
       end if;
@@ -19,9 +17,7 @@ package body Pomarine.Semantics is
       Last : Natural := Natural'Min (To'Length, Value_Capacity);
    begin
       if Last < To'Length then
-         while Last > 0
-           and then Character'Pos (To (To'First + Last)) in 16#80# .. 16#BF#
-         loop
+         while Last > 0 and then Character'Pos (To (To'First + Last)) in 16#80# .. 16#BF# loop
             Last := Last - 1;
          end loop;
       end if;
@@ -44,8 +40,8 @@ package body Pomarine.Semantics is
       Set (Item.Help, To);
    end Help_As;
 
-   function Image (Item : Role) return String is
-     (case Item is
+   function Image (Item : Role) return String
+   is (case Item is
          when Unknown              => "element",
          when Window               => "window",
          when Group                => "group",

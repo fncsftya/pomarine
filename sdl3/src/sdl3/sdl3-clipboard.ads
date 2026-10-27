@@ -1,4 +1,5 @@
 --  The system's clipboard, for text. SDL must be initialized.
+
 package SDL3.Clipboard is
 
    function Text return String;

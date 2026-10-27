@@ -4,14 +4,14 @@ with Pomarine.Widgets;
 
 --  A listener that keeps what the widgets said, for a test to ask who said
 --  what, as it asks the widgets themselves of their state.
+
 package Pomarine.Testing.Hearers is
 
    type Hearer is limited new Pomarine.Widgets.Listener with private;
 
-   overriding procedure Handle_Event
-     (Self   : in out Hearer;
-      Source : in out Pomarine.Widgets.Widget'Class;
-      Event  : Pomarine.Widgets.Widget_Event);
+   overriding
+   procedure Handle_Event
+     (Self : in out Hearer; Source : in out Pomarine.Widgets.Widget'Class; Event : Pomarine.Widgets.Widget_Event);
 
    procedure Take
      (Self   : in out Hearer;

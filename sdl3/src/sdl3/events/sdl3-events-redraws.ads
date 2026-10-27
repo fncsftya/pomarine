@@ -13,7 +13,7 @@ package SDL3.Events.Redraws is
    --  runs on the thread pumping events. Ends when it goes out of scope.
 
    procedure Install (Item : in out Watch; Target : aliased in out Context)
-     with Pre => not Is_Installed (Item), Post => Is_Installed (Item);
+   with Pre => not Is_Installed (Item), Post => Is_Installed (Item);
    --  Have Redraw called with Target. Target must outlive Item.
 
    function Is_Installed (Item : Watch) return Boolean;
@@ -24,6 +24,7 @@ private
       Data : System.Address := System.Null_Address;
    end record;
 
-   overriding procedure Finalize (Item : in out Watch);
+   overriding
+   procedure Finalize (Item : in out Watch);
 
 end SDL3.Events.Redraws;

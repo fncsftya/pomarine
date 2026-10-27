@@ -32,6 +32,7 @@ with Pomarine.Widgets.Tooltips;
 --  own, in Specimens, which the caller declares before the view that places them. What opens over the window (a
 --  popover, a dialog, a tooltip that shows itself) is added to the tree's root after the screen is mounted:
 --  the Popover and Dialog buttons open them.
+
 package Gallery is
 
    package UI renames Pomarine.UI;
@@ -52,42 +53,39 @@ package Gallery is
      Gallery_UI.Choosing (Gallery_VM.Selected_Item'Access, Gallery_VM.Select_Item'Access);
 
    type Specimens is limited record
-      Slider  : Pomarine.Widgets.Sliders.Slider;
-      Choice  : Pomarine.Widgets.Selects.Select_Field;
-      Tag     : Pomarine.Widgets.Chips.Chip;
-      Count   : Pomarine.Widgets.Badges.Badge;
-      Menu    : Pomarine.Widgets.Menus.Menu;
-      Sample_Tip : Pomarine.Widgets.Tooltips.Tooltip;
-      Message : Pomarine.Widgets.Toasts.Toast;
-      Views   : Pomarine.Widgets.Choice_Groups.Choice_Group;
-      Alignment : Pomarine.Widgets.Choice_Groups.Choice_Group;
-      Mode : Pomarine.Widgets.Choice_Groups.Choice_Group;
-      Quantity : Pomarine.Widgets.Number_Fields.Number_Field;
-      Sample_Doc : aliased Texts.Documents.Document;
-      Sample_Editor : Pomarine.Widgets.Editors.Editor;
-      Context_Button : Pomarine.Widgets.Buttons.Button;
-      Context_Menu : Pomarine.Widgets.Menus.Menu;
-      Copies  : Pomarine.Widgets.Steppers.Stepper;
-      Advanced : Pomarine.Widgets.Disclosures.Disclosure;
-      Side_Pane, Main_Pane : Pomarine.Widgets.Panels.Panel;
-      Divider : Pomarine.Widgets.Splitters.Splitter;
-      Note_1, Note_2 : Pomarine.Widgets.Labels.Label;
+      Slider                  : Pomarine.Widgets.Sliders.Slider;
+      Choice                  : Pomarine.Widgets.Selects.Select_Field;
+      Tag                     : Pomarine.Widgets.Chips.Chip;
+      Count                   : Pomarine.Widgets.Badges.Badge;
+      Menu                    : Pomarine.Widgets.Menus.Menu;
+      Sample_Tip              : Pomarine.Widgets.Tooltips.Tooltip;
+      Message                 : Pomarine.Widgets.Toasts.Toast;
+      Views                   : Pomarine.Widgets.Choice_Groups.Choice_Group;
+      Alignment               : Pomarine.Widgets.Choice_Groups.Choice_Group;
+      Mode                    : Pomarine.Widgets.Choice_Groups.Choice_Group;
+      Quantity                : Pomarine.Widgets.Number_Fields.Number_Field;
+      Sample_Doc              : aliased Texts.Documents.Document;
+      Sample_Editor           : Pomarine.Widgets.Editors.Editor;
+      Context_Button          : Pomarine.Widgets.Buttons.Button;
+      Context_Menu            : Pomarine.Widgets.Menus.Menu;
+      Copies                  : Pomarine.Widgets.Steppers.Stepper;
+      Advanced                : Pomarine.Widgets.Disclosures.Disclosure;
+      Side_Pane, Main_Pane    : Pomarine.Widgets.Panels.Panel;
+      Divider                 : Pomarine.Widgets.Splitters.Splitter;
+      Note_1, Note_2          : Pomarine.Widgets.Labels.Label;
       Info_Button, Ask_Button : Pomarine.Widgets.Buttons.Button;
-      Info    : Pomarine.Widgets.Popovers.Popover;
-      Info_Note : Pomarine.Widgets.Labels.Label;
-      Ask     : Pomarine.Widgets.Dialogs.Dialog;
-      Hover_Tip : Pomarine.Widgets.Tooltips.Tooltip;
+      Info                    : Pomarine.Widgets.Popovers.Popover;
+      Info_Note               : Pomarine.Widgets.Labels.Label;
+      Ask                     : Pomarine.Widgets.Dialogs.Dialog;
+      Hover_Tip               : Pomarine.Widgets.Tooltips.Tooltip;
    end record;
 
-   Width  : constant := 720;
-   Height : constant := 960;
+   Width          : constant := 720;
+   Height         : constant := 960;
    Initial_Height : constant := 770;
    --  Full-sheet test size and initial native window height, in points. Shorter windows scroll.
 
-   procedure Build
-     (Screen : in out UI.View;
-      Model  : not null access Gallery_VM.Model;
-      Parts  : in out Specimens);
+   procedure Build (Screen : in out UI.View; Model : not null access Gallery_VM.Model; Parts : in out Specimens);
    --  Make the screen of Model and Parts in Screen and mount it. Both must be there as long as Screen is used.
 
 end Gallery;

@@ -16,12 +16,7 @@ package body UI_Tests is
 
    --  A screen of the todo example in a window of that size, drawn in software.
 
-   procedure Draw
-     (Name   : String;
-      Width  : Positive;
-      Height : Positive;
-      Used   : Boolean)
-   is
+   procedure Draw (Name : String; Width : Positive; Height : Positive; Used : Boolean) is
       Target : Renderers.Renderer;  --  before the tree that draws to it
       Board  : Pomarine.Clipboards.Memory_Clipboard;
       Tree   : aliased Widgets.Tree;

@@ -2,6 +2,7 @@
 --  sheet: as it opens, after it is used, in the dark theme and at twice the density, and what an assistive
 --  technology is told of it. A change to any widget, to the layout or to the theme shows in these first.
 --  See Goldens.
+
 package Gallery_Tests is
 
    procedure Opens;

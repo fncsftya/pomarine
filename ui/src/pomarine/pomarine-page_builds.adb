@@ -28,12 +28,14 @@ package body Pomarine.Page_Builds is
 
    protected Board is
       procedure Add
-        (Source : Pomarine.Pages.Source_Access; Index : Positive; Count : Natural;
-         Job : out Ticket; Wake : out Boolean);
+        (Source : Pomarine.Pages.Source_Access;
+         Index  : Positive;
+         Count  : Natural;
+         Job    : out Ticket;
+         Wake   : out Boolean);
       --  Wake: the task was idle and is now to look for work.
       procedure Claim
-        (Job : out Natural; Source : out Pomarine.Pages.Source_Access; Index : out Positive;
-         Count : out Natural);
+        (Job : out Natural; Source : out Pomarine.Pages.Source_Access; Index : out Positive; Count : out Natural);
       --  The next job to make, or 0, when the task is idle.
       procedure Finish (Job : Ticket; Ok : Boolean);
       procedure Cancel (Job : Ticket; Release : out Boolean; Wait : out Boolean);
@@ -51,8 +53,8 @@ package body Pomarine.Page_Builds is
    protected body Board is
 
       procedure Add
-        (Source : Pomarine.Pages.Source_Access; Index : Positive; Count : Natural;
-         Job : out Ticket; Wake : out Boolean) is
+        (Source : Pomarine.Pages.Source_Access; Index : Positive; Count : Natural; Job : out Ticket; Wake : out Boolean)
+      is
       begin
          Job := 1;
          while Jobs (Job).State /= Free loop
@@ -68,14 +70,12 @@ package body Pomarine.Page_Builds is
       end Add;
 
       procedure Claim
-        (Job : out Natural; Source : out Pomarine.Pages.Source_Access; Index : out Positive;
-         Count : out Natural) is
+        (Job : out Natural; Source : out Pomarine.Pages.Source_Access; Index : out Positive; Count : out Natural)
+      is
          Best : Natural := 0;
       begin
          for Each in Ticket loop
-            if Jobs (Each).State = Waiting
-              and then (Best = 0 or else Jobs (Each).Order < Jobs (Best).Order)
-            then
+            if Jobs (Each).State = Waiting and then (Best = 0 or else Jobs (Each).Order < Jobs (Best).Order) then
                Best := Each;
             end if;
          end loop;
@@ -112,20 +112,19 @@ package body Pomarine.Page_Builds is
          Jobs (Job).State := Free;
       end Take;
 
-      function Standing (Job : Ticket) return States is
-        (case Jobs (Job).State is
+      function Standing (Job : Ticket) return States
+      is (case Jobs (Job).State is
             when Ready  => Done,
             when Broken => Failed,
             when others => Working);
 
-      function Busy return Boolean is
-        (for some Each of Jobs => Each.State in Waiting | Running);
+      function Busy return Boolean
+      is (for some Each of Jobs => Each.State in Waiting | Running);
 
    end Board;
 
    task Worker
-     with Storage_Size => 8 * 1024 * 1024
-   is
+     with Storage_Size => 8 * 1024 * 1024 is
       entry Run;
    end Worker;
 
@@ -185,11 +184,7 @@ package body Pomarine.Page_Builds is
       end loop;
    end Worker;
 
-   procedure Request
-     (Source : Pomarine.Pages.Source_Access;
-      Index  : Positive;
-      Job    : out Ticket)
-   is
+   procedure Request (Source : Pomarine.Pages.Source_Access; Index : Positive; Job : out Ticket) is
       Wake : Boolean;
    begin
       Board.Add (Source, Index, 0, Job, Wake);
@@ -198,11 +193,7 @@ package body Pomarine.Page_Builds is
       end if;
    end Request;
 
-   procedure Request_Sizes
-     (Source : Pomarine.Pages.Source_Access;
-      Count  : Positive;
-      Job    : out Ticket)
-   is
+   procedure Request_Sizes (Source : Pomarine.Pages.Source_Access; Count : Positive; Job : out Ticket) is
       Wake : Boolean;
    begin
       Board.Add (Source, 1, Count, Job, Wake);
@@ -211,21 +202,17 @@ package body Pomarine.Page_Builds is
       end if;
    end Request_Sizes;
 
-   procedure Take_Sizes
-     (Job   : Ticket;
-      Sizes : out Pomarine.Pages.Size_Array_Access) is
+   procedure Take_Sizes (Job : Ticket; Sizes : out Pomarine.Pages.Size_Array_Access) is
    begin
       Sizes := Measured (Job);
       Measured (Job) := null;
       Board.Take (Job);
    end Take_Sizes;
 
-   function State (Job : Ticket) return States is (Board.Standing (Job));
+   function State (Job : Ticket) return States
+   is (Board.Standing (Job));
 
-   procedure Take
-     (Job     : Ticket;
-      Content : out Pomarine.Pages.Page_Access;
-      Found   : out Result_Access) is
+   procedure Take (Job : Ticket; Content : out Pomarine.Pages.Page_Access; Found : out Result_Access) is
    begin
       Content := Contents (Job);
       Found := Founds (Job);

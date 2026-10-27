@@ -1,4 +1,5 @@
 with Ada.Strings.Fixed;
+
 package body Pomarine.Widgets.Progress_Bars is
 
    use type Semantics.Role;
@@ -23,27 +24,27 @@ package body Pomarine.Widgets.Progress_Bars is
       end if;
    end Set_Over;
 
-   function Value (Item : Progress_Bar) return Float is (Item.Fraction);
+   function Value (Item : Progress_Bar) return Float
+   is (Item.Fraction);
 
-   overriding procedure Draw
-     (Item   : in out Progress_Bar;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme) is
+   overriding
+   procedure Draw (Item : in out Progress_Bar; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
       Ground : constant Themes.Color := Colors (if Item.Inked then Item.Surface else Themes.Background);
       Ink    : constant Themes.Color := Colors (Themes.Foreground);
    begin
       SDL3.Painters.Fill_Rect
-        (Target, Themes.Mix (Ground, Ink, 0.2),
-         Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item));
+        (Target, Themes.Mix (Ground, Ink, 0.2), Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item));
       SDL3.Painters.Fill_Rect
-        (Target, Colors (if Item.Inked then Item.Fill else Themes.Accent),
-         Left_Of (Item), Top_Of (Item),
-         Float'Rounding (Width_Of (Item) * Item.Fraction), Height_Of (Item));
+        (Target,
+         Colors (if Item.Inked then Item.Fill else Themes.Accent),
+         Left_Of (Item),
+         Top_Of (Item),
+         Float'Rounding (Width_Of (Item) * Item.Fraction),
+         Height_Of (Item));
    end Draw;
 
-   overriding procedure Describe
-     (Item  : Progress_Bar;
-      Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Progress_Bar; Facts : in out Semantics.Description) is
    begin
       if Facts.Kind = Semantics.Unknown then
          Facts.Kind := Semantics.Progress_Indicator;
@@ -53,8 +54,7 @@ package body Pomarine.Widgets.Progress_Bars is
       Facts.Minimum := 0.0;
       Facts.Maximum := 1.0;
       Semantics.Value_As
-        (Facts, Ada.Strings.Fixed.Trim
-                  (Integer'Image (Integer (Item.Fraction * 100.0)), Ada.Strings.Left) & "%");
+        (Facts, Ada.Strings.Fixed.Trim (Integer'Image (Integer (Item.Fraction * 100.0)), Ada.Strings.Left) & "%");
    end Describe;
 
 end Pomarine.Widgets.Progress_Bars;

@@ -29,11 +29,10 @@ with Widget_Tests;
 --  Draws widgets and text areas by themselves, in various setups, and
 --  compares what they draw with golden images: golden [part of a test's
 --  name]. See Goldens.
+
 procedure Golden is
 
-   Filter : constant String :=
-     (if Ada.Command_Line.Argument_Count > 0
-      then Ada.Command_Line.Argument (1) else "");
+   Filter : constant String := (if Ada.Command_Line.Argument_Count > 0 then Ada.Command_Line.Argument (1) else "");
 
    type Test_Procedure is access procedure;
 
@@ -62,8 +61,7 @@ begin
    Run ("document-steps", Document_Tests.Steps'Access);
    Run ("document-joining-edits", Document_Tests.Joining_Edits'Access);
    Run ("document-units", Document_Tests.Units'Access);
-   Run ("document-against-a-string",
-        Document_Tests.Against_A_String'Access);
+   Run ("document-against-a-string", Document_Tests.Against_A_String'Access);
    Run ("document-mapping", Document_Tests.Mapping'Access);
 
    Run ("layout-lines-after-edits", Document_Tests.Lines_After_Edits'Access);
@@ -89,8 +87,7 @@ begin
    Run ("textarea-words", Text_Area_Tests.Words'Access);
    Run ("textarea-dragged", Text_Area_Tests.Dragged'Access);
    Run ("textarea-bar", Text_Area_Tests.Scroll_Bar'Access);
-   Run ("textarea-inactive-selection",
-        Text_Area_Tests.Inactive_Selection'Access);
+   Run ("textarea-inactive-selection", Text_Area_Tests.Inactive_Selection'Access);
    Run ("textarea-blink", Text_Area_Tests.Blinking'Access);
    Run ("textarea-composing", Text_Area_Tests.Composing'Access);
    Run ("textarea-two-views", Text_Area_Tests.Two_Views'Access);
@@ -241,8 +238,12 @@ begin
    Run ("pictures-following", Picture_Tests.Following_The_Picture'Access);
 
    Ada.Text_IO.Put_Line
-     (Ran'Image & " tests:" & Natural'Image (Goldens.Passed)
-      & " checks passed," & Natural'Image (Goldens.Failed) & " failed");
+     (Ran'Image
+      & " tests:"
+      & Natural'Image (Goldens.Passed)
+      & " checks passed,"
+      & Natural'Image (Goldens.Failed)
+      & " failed");
    if Ran = 0 or else Goldens.Failed > 0 then
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    end if;

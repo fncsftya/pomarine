@@ -8,6 +8,7 @@ with Todo_VM;
 --
 --  The model is the caller's (Todo_GUI declares it before the view and the tree it is shown in); the
 --  view owns every widget, binding and document, and finalizes them.
+
 package Todo is
 
    package UI renames Pomarine.UI;
@@ -17,8 +18,7 @@ package Todo is
    package Todo_UI is new UI.Contexts (Todo_VM.Commands, Todo_VM.Model);
 
    Task_Summary : constant Todo_UI.Text_Property := Todo_UI.Showing (Todo_VM.Summary'Access);
-   Task_Draft   : constant Todo_UI.Text_Property :=
-     Todo_UI.Editing (Todo_VM.Draft'Access, Todo_VM.Set_Draft'Access);
+   Task_Draft   : constant Todo_UI.Text_Property := Todo_UI.Editing (Todo_VM.Draft'Access, Todo_VM.Set_Draft'Access);
    Task_Count   : constant Todo_UI.Count_Property := Todo_UI.Counting (Todo_VM.Count'Access);
    Task_Rows    : constant Todo_UI.Rows_Property := Todo_UI.Listing (Todo_VM.Row_Model'Access);
    Task_Choice  : constant Todo_UI.Choice_Property :=

@@ -30,6 +30,7 @@ with Pomarine.Semantics;
 --  for a double click on a row, and Submit for Return; Selected says which.
 --  It is as high as the layout makes it: it does not size itself to its
 --  rows.
+
 package Pomarine.Widgets.Lists is
 
    Default_Row_Height : constant Float := 28.0;
@@ -42,7 +43,7 @@ package Pomarine.Widgets.Lists is
    --  used. The selection is forgotten.
 
    procedure Set_Row_Height (Item : in out List; Points : Float)
-     with Pre => Points >= 12.0;
+   with Pre => Points >= 12.0;
 
    function Selected (Item : List) return Natural;
    --  The row that is chosen; 0 if none, or if it is gone from the model.
@@ -67,7 +68,7 @@ package Pomarine.Widgets.Lists is
    --  Scroll, if need be, to show Row.
 
    procedure Scroll_Smoothly (Item : in out List; To : Float; Milliseconds : Natural := 180)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Scroll to show the rows from To points down, over Milliseconds (see
    --  Pomarine.Widgets.Animate); at once if the system asks for less
    --  movement. Reveal, the keys and an assistive technology's scrolling
@@ -77,7 +78,7 @@ package Pomarine.Widgets.Lists is
    --  How far the rows have moved up, in points.
 
    function Button_Part (Row_Id : Positive; Action : Positive) return Positive
-     with Pre => Action <= Pomarine.Models.Max_Actions;
+   with Pre => Action <= Pomarine.Models.Max_Actions;
    --  The number of the part of an assistive technology that is the
    --  Actionth button of the row with the id Row_Id (see Part_Id).
 
@@ -85,73 +86,65 @@ package Pomarine.Widgets.Lists is
    function Last_Shown (Item : List) return Natural;
    --  The rows drawn, in whole or in part: 0 and 0 if none.
 
-   overriding procedure Draw
-     (Item   : in out List;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out List; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Draw_Over
-     (Item   : in out List;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out List; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Handle
-     (Item    : in out List;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out List; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Update
-     (Item : in out List; Now : Pomarine.Events.Milliseconds);
+   overriding
+   procedure Update (Item : in out List; Now : Pomarine.Events.Milliseconds);
 
-   overriding procedure Hover_Changed (Item : in out List; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out List; Hovered : Boolean);
 
-   overriding function Is_Focusable (Item : List) return Boolean;
+   overriding
+   function Is_Focusable (Item : List) return Boolean;
 
-   overriding procedure Focus_Changed (Item : in out List; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out List; Focused : Boolean);
 
-   overriding function Cursor (Item : List) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : List) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe
-     (Item  : List;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : List; Facts : in out Semantics.Description);
 
-   overriding procedure Perform
-     (Item    : in out List;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Perform (Item : in out List; Request : Semantics.Request; Done : out Boolean);
 
-   overriding function Part_Count (Item : List) return Natural;
+   overriding
+   function Part_Count (Item : List) return Natural;
 
-   overriding function Part_Number (Item : List; Index : Positive) return Positive;
+   overriding
+   function Part_Number (Item : List; Index : Positive) return Positive;
 
-   overriding procedure Describe_Part
-     (Item   : List;
-      Part   : Positive;
-      Facts  : in out Semantics.Description;
-      Bounds : out Semantics.Rectangle);
+   overriding
+   procedure Describe_Part
+     (Item : List; Part : Positive; Facts : in out Semantics.Description; Bounds : out Semantics.Rectangle);
 
-   overriding procedure Perform_Part
-     (Item    : in out List;
-      Part    : Positive;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Perform_Part (Item : in out List; Part : Positive; Request : Semantics.Request; Done : out Boolean);
 
 private
 
    type List is new Widget with record
-      Model     : Pomarine.Models.Model_Access;
-      Seen      : Natural := 0;
+      Model       : Pomarine.Models.Model_Access;
+      Seen        : Natural := 0;
       --  The model's version when it was last looked at.
-      Row_Points : Float := Default_Row_Height;
-      Moved     : Float := 0.0;
+      Row_Points  : Float := Default_Row_Height;
+      Moved       : Float := 0.0;
       --  How far the rows have moved up, in points.
-      Chosen    : Natural := 0;
+      Chosen      : Natural := 0;
       --  The id of the chosen row; 0 for none.
-      Over      : Natural := 0;
+      Over        : Natural := 0;
       Over_Action : Natural := 0;
       --  The row under the pointer.
-      Has_Focus : Boolean := False;
-      Bar       : Scrollbars.Bar;
+      Has_Focus   : Boolean := False;
+      Bar         : Scrollbars.Bar;
    end record;
 
 end Pomarine.Widgets.Lists;

@@ -10,6 +10,7 @@ with Reentry;
 
 --  What happens when something arrives while the view is synchronizing, and when the person and the model both
 --  change the same text in one turn.
+
 procedure UI_Reentry_Test is
    package UI renames Pomarine.UI;
    package Testing renames Pomarine.Testing;

@@ -33,8 +33,8 @@ package body Listener_Tests is
    Height  : constant := 200;
    --  In points.
 
-   function Image (Value : Integer) return String is
-     (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
+   function Image (Value : Integer) return String
+   is (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
 
    --  What a listener heard.
 
@@ -45,10 +45,9 @@ package body Listener_Tests is
       --  If not null, removed from its tree when anything is heard.
    end record;
 
-   overriding procedure Handle_Event
-     (Self   : in out Recorder;
-      Source : in out Widgets.Widget'Class;
-      Event  : Widgets.Widget_Event) is
+   overriding
+   procedure Handle_Event (Self : in out Recorder; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   is
    begin
       if Self.Count < Self.Seen'Last then
          Self.Count := Self.Count + 1;
@@ -71,13 +70,16 @@ package body Listener_Tests is
       end Add;
    begin
       for K in 1 .. Item.Count loop
-         Add (Widgets.Event_Kind'Image (Item.Seen (K).Kind)
-              & " tag" & Image (Item.Seen (K).Tag)
-              & " index" & Image (Item.Seen (K).Index)
-              & (if Item.Seen (K).Kind in Widgets.Choose
-                      and then Item.Seen (K).Row > 0
-                 then " row" & Image (Item.Seen (K).Row) else "")
-              & "; ");
+         Add
+           (Widgets.Event_Kind'Image (Item.Seen (K).Kind)
+            & " tag"
+            & Image (Item.Seen (K).Tag)
+            & " index"
+            & Image (Item.Seen (K).Index)
+            & (if Item.Seen (K).Kind in Widgets.Choose and then Item.Seen (K).Row > 0
+               then " row" & Image (Item.Seen (K).Row)
+               else "")
+            & "; ");
       end loop;
       return Text (1 .. Last);
    end Heard;
@@ -99,10 +101,7 @@ package body Listener_Tests is
 
    procedure Open (Item : in out Fixture) is
    begin
-      Renderers.Create_Offscreen
-        (Item.Target,
-         Positive (Float (Width) * Density),
-         Positive (Float (Height) * Density));
+      Renderers.Create_Offscreen (Item.Target, Positive (Float (Width) * Density), Positive (Float (Height) * Density));
       Docs.Load (Item.Doc, "x");
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
@@ -125,11 +124,11 @@ package body Listener_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
    end Open;
 
-   function Middle_X (Part : Widgets.Widget'Class) return Float is
-     ((Widgets.Left_Of (Part) + Widgets.Width_Of (Part) / 2.0) / Density);
+   function Middle_X (Part : Widgets.Widget'Class) return Float
+   is ((Widgets.Left_Of (Part) + Widgets.Width_Of (Part) / 2.0) / Density);
 
-   function Middle_Y (Part : Widgets.Widget'Class) return Float is
-     ((Widgets.Top_Of (Part) + Widgets.Height_Of (Part) / 2.0) / Density);
+   function Middle_Y (Part : Widgets.Widget'Class) return Float
+   is ((Widgets.Top_Of (Part) + Widgets.Height_Of (Part) / 2.0) / Density);
 
    procedure Send (Item : in out Fixture; Event : Events.Event) is
       Handled : Boolean;
@@ -144,14 +143,12 @@ package body Listener_Tests is
 
    procedure Press (Item : in out Fixture; X, Y : Float; Clicks : Natural := 1) is
    begin
-      Send (Item, (Kind => Events.Mouse_Down, Button => 1, Clicks => Clicks,
-                   Mouse_X => X, Mouse_Y => Y, others => <>));
+      Send (Item, (Kind => Events.Mouse_Down, Button => 1, Clicks => Clicks, Mouse_X => X, Mouse_Y => Y, others => <>));
    end Press;
 
    procedure Release (Item : in out Fixture; X, Y : Float) is
    begin
-      Send (Item, (Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y,
-                   others => <>));
+      Send (Item, (Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y, others => <>));
    end Release;
 
    procedure Click_On (Item : in out Fixture; Part : Widgets.Widget'Class) is
@@ -193,18 +190,15 @@ package body Listener_Tests is
       Open (Item);
       --  A press and let go on a grip: it was let go, and then clicked.
       Click_On (Item, Item.Grip);
-      Goldens.Check_Text
-        ("listener-grip-release", "RELEASE tag-1 index0; CLICK tag-1 index0; ", Heard (Item.Ears));
+      Goldens.Check_Text ("listener-grip-release", "RELEASE tag-1 index0; CLICK tag-1 index0; ", Heard (Item.Ears));
       --  Let go elsewhere, it is let go all the same, and not clicked.
       Item.Ears.Count := 0;
       Move_To (Item, Middle_X (Item.Grip), Middle_Y (Item.Grip));
       Press (Item, Middle_X (Item.Grip), Middle_Y (Item.Grip));
-      Send (Item, (Kind => Events.Mouse_Move, Mouse_X => 290.0, Mouse_Y => 190.0, Left_Held => True,
-                   others => <>));
+      Send (Item, (Kind => Events.Mouse_Move, Mouse_X => 290.0, Mouse_Y => 190.0, Left_Held => True, others => <>));
       Release (Item, 290.0, 190.0);
       Goldens.Check_Text
-        ("listener-grip-let-go-elsewhere", "DRAG tag-1 index0; RELEASE tag-1 index0; ",
-         Heard (Item.Ears));
+        ("listener-grip-let-go-elsewhere", "DRAG tag-1 index0; RELEASE tag-1 index0; ", Heard (Item.Ears));
    end Grip_Release;
 
    procedure Command_Tags is
@@ -219,33 +213,29 @@ package body Listener_Tests is
       Click_On (Item, Item.First);
       Goldens.Check_Text
         ("listener-commands",
-         Command'Image (Cmd.What (Item.Ears.Seen (1))) & Item.Ears.Seen (1).Index'Image
-         & "," & Command'Image (Cmd.What (Item.Ears.Seen (2))),
+         Command'Image (Cmd.What (Item.Ears.Seen (1)))
+         & Item.Ears.Seen (1).Index'Image
+         & ","
+         & Command'Image (Cmd.What (Item.Ears.Seen (2))),
          "RENAME_CARD 5,OPEN_SETTINGS");
-      Goldens.Check_Text
-        ("listener-bound", "TRUE", Boolean'Image (Cmd.Is_Bound (Item.Ears.Seen (1))));
+      Goldens.Check_Text ("listener-bound", "TRUE", Boolean'Image (Cmd.Is_Bound (Item.Ears.Seen (1))));
       Widgets.Set_Tag (Item.Tick, Widgets.No_Tag);
       Click_On (Item, Item.Tick);
-      Goldens.Check_Text
-        ("listener-unbound-tag", "FALSE", Boolean'Image (Cmd.Is_Bound (Item.Ears.Seen (3))));
+      Goldens.Check_Text ("listener-unbound-tag", "FALSE", Boolean'Image (Cmd.Is_Bound (Item.Ears.Seen (3))));
    end Command_Tags;
 
    procedure Own_Listener is
-      Item   : Fixture;
-      Mine   : aliased Recorder;
+      Item : Fixture;
+      Mine : aliased Recorder;
    begin
       Open (Item);
       Widgets.Set_Listener (Item.First, Mine'Unchecked_Access);
       Click_On (Item, Item.First);
       Click_On (Item, Item.Second);
-      Goldens.Check_Text
-        ("listener-own",
-         Image (Mine.Count) & "/" & Image (Item.Ears.Count), "1/1");
+      Goldens.Check_Text ("listener-own", Image (Mine.Count) & "/" & Image (Item.Ears.Count), "1/1");
       Widgets.Set_Listener (Item.First, null);
       Click_On (Item, Item.First);
-      Goldens.Check_Text
-        ("listener-own-cleared",
-         Image (Mine.Count) & "/" & Image (Item.Ears.Count), "1/2");
+      Goldens.Check_Text ("listener-own-cleared", Image (Mine.Count) & "/" & Image (Item.Ears.Count), "1/2");
    end Own_Listener;
 
    procedure Deferred is
@@ -258,8 +248,7 @@ package body Listener_Tests is
         ("listener-deferred-removed",
          Boolean'Image (Widgets.Is_Attached (Item.First)) & " " & Heard (Item.Ears),
          "FALSE CLICK tag-1 index0; ");
-      Goldens.Check_Text
-        ("listener-deferred-children", "4", Image (Widgets.Child_Count (Item.Root)));
+      Goldens.Check_Text ("listener-deferred-children", "4", Image (Widgets.Child_Count (Item.Root)));
    end Deferred;
 
    procedure Controls is
@@ -280,16 +269,16 @@ package body Listener_Tests is
       Release (Item, Middle_X (Item.Grip) + 5.0, Middle_Y (Item.Grip) + 2.0);
       Goldens.Check_Text
         ("listener-grip",
-         "DOUBLE_CLICK tag2 index9; DRAG tag2 index9; RELEASE tag2 index9; CLICK tag2 index9; ", Heard (Item.Ears));
+         "DOUBLE_CLICK tag2 index9; DRAG tag2 index9; RELEASE tag2 index9; CLICK tag2 index9; ",
+         Heard (Item.Ears));
       Goldens.Check_Text
         ("listener-drag-distance",
-         "5.0 2.0", Float'Image (Item.Ears.Seen (2).Across)(2 .. 4) & " "
-         & Float'Image (Item.Ears.Seen (2).Down)(2 .. 4));
+         "5.0 2.0",
+         Float'Image (Item.Ears.Seen (2).Across) (2 .. 4) & " " & Float'Image (Item.Ears.Seen (2).Down) (2 .. 4));
 
       Item.Ears.Count := 0;
       Widgets.Focus (Item.Field);
-      Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, others => <>), Handled);
+      Widgets.Dispatch (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, others => <>), Handled);
       Goldens.Check_Text ("listener-submit", "SUBMIT tag3 index0; ", Heard (Item.Ears));
    end Controls;
 
@@ -301,17 +290,13 @@ package body Listener_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
       Goldens.Check_Text
         ("layouts-points",
-         Image (Integer (Widgets.Width_Of (Item.First))) & "x"
-         & Image (Integer (Widgets.Height_Of (Item.First))),
+         Image (Integer (Widgets.Width_Of (Item.First))) & "x" & Image (Integer (Widgets.Height_Of (Item.First))),
          "160x48");
       Goldens.Check_Text
         ("layouts-padding",
-         Image (Integer (Widgets.Left_Of (Item.First))) & ","
-         & Image (Integer (Widgets.Top_Of (Item.First))),
+         Image (Integer (Widgets.Left_Of (Item.First))) & "," & Image (Integer (Widgets.Top_Of (Item.First))),
          "8,8");
-      Goldens.Check_Text
-        ("layouts-gap",
-         Image (Integer (Widgets.Top_Of (Item.Second))), "64");
+      Goldens.Check_Text ("layouts-gap", Image (Integer (Widgets.Top_Of (Item.Second))), "64");
       Layouts.Set_Layout (Item.First, Width => Layouts.Hairline);
       Widgets.Layout (Item.Tree, Item.Target);
       Goldens.Check_Text
@@ -320,18 +305,20 @@ package body Listener_Tests is
          Image (Integer (Pomarine.Boxes.Edge (Density))));
       --  A negative edge in pixels is not a hairline or a shadow's room, whatever its size.
       Layouts.Set_Layout
-        (Item.First, Width => 80.0, Margin => (Left => -2.0, others => <>),
-         Unit => Layouts.Device_Pixels);
+        (Item.First, Width => 80.0, Margin => (Left => -2.0, others => <>), Unit => Layouts.Device_Pixels);
       Widgets.Layout (Item.Tree, Item.Target);
-      Goldens.Check_Text
-        ("layouts-negative-pixels", "6", Image (Integer (Widgets.Left_Of (Item.First))));
+      Goldens.Check_Text ("layouts-negative-pixels", "6", Image (Integer (Widgets.Left_Of (Item.First))));
       Layouts.Set_Layout
-        (Item.Second, Padding => (Right => Layouts.Shadow_Room, others => <>),
-         Width => 50.0, Height => 20.0, Shadowed => Layouts.On);
+        (Item.Second,
+         Padding  => (Right => Layouts.Shadow_Room, others => <>),
+         Width    => 50.0,
+         Height   => 20.0,
+         Shadowed => Layouts.On);
       Widgets.Layout (Item.Tree, Item.Target);
       Goldens.Check_Text
         ("layouts-order",
-         Image (Widgets.Child_Count (Item.Root)) & " "
+         Image (Widgets.Child_Count (Item.Root))
+         & " "
          & Boolean'Image (Widgets.Child_At (Item.Root, 1) = Item.First'Unchecked_Access)
          & Boolean'Image (Widgets.Child_At (Item.Root, 4) = Item.Grip'Unchecked_Access),
          "5 TRUETRUE");

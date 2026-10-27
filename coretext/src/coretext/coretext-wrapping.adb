@@ -12,17 +12,12 @@ package body CoreText.Wrapping is
    --  it ends the paragraph), so that what follows a line's break was in
    --  view when it was chosen.
 
-   function Typesetter
-     (Using : Fonts.Font; Text : Strings.Text; From, Stop : Natural)
-      return Thin.Ref;
+   function Typesetter (Using : Fonts.Font; Text : Strings.Text; From, Stop : Natural) return Thin.Ref;
    --  A typesetter over the UTF-16 range [From, Stop) of Text, which is
    --  Length units long. Release it.
 
-   function Typesetter
-     (Using : Fonts.Font; Text : Strings.Text; From, Stop : Natural)
-      return Thin.Ref
-   is
-      Attr : Thin.Ref;
+   function Typesetter (Using : Fonts.Font; Text : Strings.Text; From, Stop : Natural) return Thin.Ref is
+      Attr   : Thin.Ref;
       Result : Thin.Ref;
    begin
       Attr := Strings.Attributed (Text, Using, From, Stop);
@@ -37,39 +32,39 @@ package body CoreText.Wrapping is
       return Result;
    end Typesetter;
 
-   function Suggest_Break
-     (Setter : Thin.Ref; Start : Natural; Width : Float) return Natural is
-     (Start + Natural'Max
-        (1, Natural (Thin.CT_Typesetter_Suggest_Line_Break
-                       (Setter, Interfaces.C.long (Start),
-                        Interfaces.C.double (Width)))));
+   function Suggest_Break (Setter : Thin.Ref; Start : Natural; Width : Float) return Natural
+   is (Start
+       + Natural'Max
+           (1,
+            Natural
+              (Thin.CT_Typesetter_Suggest_Line_Break
+                 (Setter, Interfaces.C.long (Start), Interfaces.C.double (Width)))));
    --  Where Setter would end a line starting at its index Start. At
    --  least one unit on, so that wrapping always advances.
 
    procedure Window_Lines
-     (Using  : Fonts.Font;
-      Text   : Strings.Text;
+     (Using              : Fonts.Font;
+      Text               : Strings.Text;
       From, Stop, Length : Natural;
-      Width  : Float;
-      Result : in out Span_Vectors.Vector);
+      Width              : Float;
+      Result             : in out Span_Vectors.Vector);
    --  Break the UTF-16 range [From, Stop) of Text into lines from From,
    --  appending them to Result and stopping before any line that reaches
    --  within Margin of Stop (unless Stop is Length, the paragraph's end).
 
    procedure Window_Lines
-     (Using  : Fonts.Font;
-      Text   : Strings.Text;
+     (Using              : Fonts.Font;
+      Text               : Strings.Text;
       From, Stop, Length : Natural;
-      Width  : Float;
-      Result : in out Span_Vectors.Vector)
+      Width              : Float;
+      Result             : in out Span_Vectors.Vector)
    is
       Setter : Thin.Ref := Typesetter (Using, Text, From, Stop);
       Start  : Natural := From;
    begin
       while Start < Stop loop
          declare
-            Last : constant Natural :=
-              From + Suggest_Break (Setter, Start - From, Width);
+            Last : constant Natural := From + Suggest_Break (Setter, Start - From, Width);
          begin
             exit when Stop < Length and then Last > Stop - Margin;
             Result.Append (Span'(First => Start, Stop => Last));
@@ -82,28 +77,28 @@ package body CoreText.Wrapping is
    generic
       with function Stops (Item : Span) return Boolean;
    procedure Lines_From
-     (Using    : Fonts.Font;
-      Text     : Strings.Text;
+     (Using        : Fonts.Font;
+      Text         : Strings.Text;
       From, Length : Natural;
-      Width    : Float;
-      First_Size : Positive;
-      Result   : in out Span_Vectors.Vector;
-      Stopped  : out Boolean;
-      Stopped_At : out Span);
+      Width        : Float;
+      First_Size   : Positive;
+      Result       : in out Span_Vectors.Vector;
+      Stopped      : out Boolean;
+      Stopped_At   : out Span);
    --  Append the lines of paragraph Text, Length units long, from the
    --  line start From to its end, a window at a time, the first
    --  First_Size units long. Stops after the first line for which Stops
    --  is true, setting Stopped and Stopped_At to it.
 
    procedure Lines_From
-     (Using    : Fonts.Font;
-      Text     : Strings.Text;
+     (Using        : Fonts.Font;
+      Text         : Strings.Text;
       From, Length : Natural;
-      Width    : Float;
-      First_Size : Positive;
-      Result   : in out Span_Vectors.Vector;
-      Stopped  : out Boolean;
-      Stopped_At : out Span)
+      Width        : Float;
+      First_Size   : Positive;
+      Result       : in out Span_Vectors.Vector;
+      Stopped      : out Boolean;
+      Stopped_At   : out Span)
    is
       Start : Natural := From;
       Size  : Positive := First_Size;
@@ -115,12 +110,11 @@ package body CoreText.Wrapping is
             Got  : Span_Vectors.Vector;
             Used : Natural := 0;
          begin
-            Window_Lines
-              (Using, Text, Start, Natural'Min (Length, Start + Size),
-               Length, Width, Got);
+            Window_Lines (Using, Text, Start, Natural'Min (Length, Start + Size), Length, Width, Got);
 
             if Got.Is_Empty then
                Size := 2 * Size;  --  a line longer than the window
+
             else
                for Item of Got loop
                   Used := Used + 1;
@@ -138,13 +132,11 @@ package body CoreText.Wrapping is
       end loop;
    end Lines_From;
 
-   function Never (Item : Span) return Boolean is (Item.First = Natural'Last);
+   function Never (Item : Span) return Boolean
+   is (Item.First = Natural'Last);
    --  Never true: no line starts at the largest Natural.
 
-   function Wrap
-     (Using : Fonts.Font; Text : Strings.Text; Width : Float)
-      return Span_Vectors.Vector
-   is
+   function Wrap (Using : Fonts.Font; Text : Strings.Text; Width : Float) return Span_Vectors.Vector is
       procedure All_Lines is new Lines_From (Never);
 
       Length  : constant Natural := Strings.Length (Text);
@@ -155,17 +147,12 @@ package body CoreText.Wrapping is
       if Length = 0 then
          Result.Append (Span'(First => 0, Stop => 0));
       else
-         All_Lines
-           (Using, Text, 0, Length, Width, Window,
-            Result, Stopped, Where);
+         All_Lines (Using, Text, 0, Length, Width, Window, Result, Stopped, Where);
       end if;
       return Result;
    end Wrap;
 
-   function Wrap
-     (Using : Fonts.Font; Text : String; Width : Float)
-      return Span_Vectors.Vector
-   is
+   function Wrap (Using : Fonts.Font; Text : String; Width : Float) return Span_Vectors.Vector is
       Held : Strings.Text;
    begin
       Strings.Set (Held, Text);
@@ -182,9 +169,8 @@ package body CoreText.Wrapping is
    is
       Length : constant Natural := Strings.Length (Text);
 
-      function Enough (Item : Span) return Boolean is
-        (Natural (Lines.Length) >= Until_Count
-         and then Item.Stop > Until_Unit);
+      function Enough (Item : Span) return Boolean
+      is (Natural (Lines.Length) >= Until_Count and then Item.Stop > Until_Unit);
 
       procedure More_Lines is new Lines_From (Enough);
 
@@ -195,24 +181,24 @@ package body CoreText.Wrapping is
          if Lines.Is_Empty then
             Lines.Append (Span'(First => 0, Stop => 0));
          end if;
-      elsif Lines.Is_Empty
-        or else (Lines.Last_Element.Stop < Length
-                 and then not Enough (Lines.Last_Element))
-      then
+      elsif Lines.Is_Empty or else (Lines.Last_Element.Stop < Length and then not Enough (Lines.Last_Element)) then
          More_Lines
-           (Using, Text,
+           (Using,
+            Text,
             (if Lines.Is_Empty then 0 else Lines.Last_Element.Stop),
-            Length, Width, Window, Lines, Stopped, Where);
+            Length,
+            Width,
+            Window,
+            Lines,
+            Stopped,
+            Where);
       end if;
    end Extend;
 
-   function Line_Starting_At
-     (Lines : Span_Vectors.Vector; Unit : Natural) return Natural;
+   function Line_Starting_At (Lines : Span_Vectors.Vector; Unit : Natural) return Natural;
    --  The index of the line of Lines (sorted) that starts at Unit, or 0.
 
-   function Line_Starting_At
-     (Lines : Span_Vectors.Vector; Unit : Natural) return Natural
-   is
+   function Line_Starting_At (Lines : Span_Vectors.Vector; Unit : Natural) return Natural is
       Low  : Natural := Lines.First_Index;
       High : Integer := Lines.Last_Index;
    begin
@@ -240,10 +226,9 @@ package body CoreText.Wrapping is
       Width    : Float;
       Edit_At  : Natural;
       Old_Stop : Natural;
-      New_Stop : Natural)
-      return Span_Vectors.Vector
+      New_Stop : Natural) return Span_Vectors.Vector
    is
-      Length : constant Natural := Strings.Length (Text);
+      Length      : constant Natural := Strings.Length (Text);
       Delta_Units : constant Integer := New_Stop - Old_Stop;
 
       --  The line holding the edit, and one before: an edit at a line's
@@ -254,22 +239,19 @@ package body CoreText.Wrapping is
          return Wrap (Using, Text, Width);
       end if;
 
-      while Edit_Line > Old.First_Index
-        and then Old (Edit_Line).First > Edit_At
-      loop
+      while Edit_Line > Old.First_Index and then Old (Edit_Line).First > Edit_At loop
          Edit_Line := Edit_Line - 1;
       end loop;
 
       declare
-         Restart : constant Positive :=
-           Positive'Max (Old.First_Index, Edit_Line - 1);
+         Restart : constant Positive := Positive'Max (Old.First_Index, Edit_Line - 1);
 
          --  Where Old's breaks resume: a line ending at or past the
          --  edit where an old line started has the old text after it.
-         function Resumes (Item : Span) return Boolean is
-           (Item.Stop >= New_Stop
-            and then Item.Stop - Delta_Units >= 0
-            and then Line_Starting_At (Old, Item.Stop - Delta_Units) /= 0);
+         function Resumes (Item : Span) return Boolean
+         is (Item.Stop >= New_Stop
+             and then Item.Stop - Delta_Units >= 0
+             and then Line_Starting_At (Old, Item.Stop - Delta_Units) /= 0);
 
          procedure Fresh_Lines is new Lines_From (Resumes);
 
@@ -282,18 +264,11 @@ package body CoreText.Wrapping is
          end loop;
 
          --  Breaks usually resume within a few lines, so start small.
-         Fresh_Lines
-           (Using, Text, Old (Restart).First, Length,
-            Width, Window / 4, Result, Stopped, Where);
+         Fresh_Lines (Using, Text, Old (Restart).First, Length, Width, Window / 4, Result, Stopped, Where);
 
          if Stopped then
-            for Index in
-              Line_Starting_At (Old, Where.Stop - Delta_Units)
-                .. Old.Last_Index
-            loop
-               Result.Append
-                 (Span'(First => Old (Index).First + Delta_Units,
-                        Stop  => Old (Index).Stop + Delta_Units));
+            for Index in Line_Starting_At (Old, Where.Stop - Delta_Units) .. Old.Last_Index loop
+               Result.Append (Span'(First => Old (Index).First + Delta_Units, Stop => Old (Index).Stop + Delta_Units));
             end loop;
          end if;
          return Result;

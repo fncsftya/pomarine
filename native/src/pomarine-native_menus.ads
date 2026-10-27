@@ -15,6 +15,7 @@ with Pomarine.Widgets;
 --  The system's own application menu (About, Hide, Quit) stays first; the
 --  menus here follow it. Everything is on the window's thread, and a
 --  menu has to be made before it is shown.
+
 package Pomarine.Native_Menus is
 
    type Menu_Bar is limited private;
@@ -26,14 +27,14 @@ package Pomarine.Native_Menus is
    --  Items the bar keeps of its own, to know what each is for.
 
    procedure Install (Item : in out Menu_Bar)
-     with Post => Is_Installed (Item);
+   with Post => Is_Installed (Item);
    --  Make ready to add menus and hear what is chosen. Item must not be
    --  moved or copied while installed (it is limited, so cannot be).
 
    function Is_Installed (Item : Menu_Bar) return Boolean;
 
    procedure Add_Menu (Item : in out Menu_Bar; Title : String; Result : out Menu)
-     with Pre => Is_Installed (Item);
+   with Pre => Is_Installed (Item);
    --  A menu after those there are, in the bar.
 
    procedure Add_Item
@@ -46,23 +47,21 @@ package Pomarine.Native_Menus is
       Shift   : Boolean := False;
       Option  : Boolean := False;
       Control : Boolean := False)
-     with Pre => Is_Installed (Item) and then Tag /= Widgets.No_Tag;
+   with Pre => Is_Installed (Item) and then Tag /= Widgets.No_Tag;
    --  An item that says Tag when chosen. Key is its key equivalent (a
    --  character, in lower case for a letter) with the keys held that are
    --  true: Command to begin with, as Command-S.
 
    procedure Add_Separator (Item : in out Menu_Bar; To : Menu)
-     with Pre => Is_Installed (Item);
+   with Pre => Is_Installed (Item);
 
-   procedure Update_States
-     (Item      : in out Menu_Bar;
-      Validator : Widgets.Command_Validator)
-     with Pre => Is_Installed (Item);
+   procedure Update_States (Item : in out Menu_Bar; Validator : Widgets.Command_Validator)
+   with Pre => Is_Installed (Item);
    --  Make each item as the validator says its command is: left out,
    --  dimmed, ticked, or as usual.
 
    procedure Update_States (Item : in out Menu_Bar; Tree : Widgets.Tree)
-     with Pre => Is_Installed (Item);
+   with Pre => Is_Installed (Item);
    --  As above, as the tree's own validator says (Widgets.Command_State_Of).
 
    function Is_Waiting (Item : Menu_Bar) return Boolean;

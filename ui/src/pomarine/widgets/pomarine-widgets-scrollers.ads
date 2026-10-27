@@ -11,6 +11,7 @@ with Pomarine.Scrollbars;
 --
 --  It moves the child by the child's position, so the child's own style
 --  must leave that to it.
+
 package Pomarine.Widgets.Scrollers is
 
    Points_Per_Notch : constant Float := 24.0;
@@ -28,44 +29,37 @@ package Pomarine.Widgets.Scrollers is
    --  at the top of the box.
 
    procedure Scroll_To (Item : in out Scroller; To : Float)
-     with Pre => Is_Attached (Item) and then Child_Count (Item) = 1;
+   with Pre => Is_Attached (Item) and then Child_Count (Item) = 1;
    --  Show the child from To points down, no further than shows its end,
    --  as of the last layout, and no less than its start.
 
    procedure Scroll_Smoothly (Item : in out Scroller; To : Float; Milliseconds : Natural := 180)
-     with Pre => Is_Attached (Item) and then Child_Count (Item) = 1;
+   with Pre => Is_Attached (Item) and then Child_Count (Item) = 1;
    --  As Scroll_To, over Milliseconds, as an animation of the tree's (see
    --  Pomarine.Widgets.Animate): at once if the system asks for less
    --  movement.
 
-   overriding procedure Draw_Over
-     (Item   : in out Scroller;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Scroller; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
    --  Its scroll bar, over the child.
 
-   overriding procedure Hover_Changed
-     (Item : in out Scroller; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Scroller; Hovered : Boolean);
 
-   overriding procedure Handle
-     (Item    : in out Scroller;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Scroller; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Describe
-     (Item  : Scroller;
-      Facts : in out Semantics.Description);
-   overriding procedure Perform
-     (Item    : in out Scroller;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Describe (Item : Scroller; Facts : in out Semantics.Description);
+   overriding
+   procedure Perform (Item : in out Scroller; Request : Semantics.Request; Done : out Boolean);
 
 private
 
    type Scroller is new Widget with record
-      Moved : Float := 0.0;
+      Moved  : Float := 0.0;
       Across : Boolean := False;
-      Bar   : Scrollbars.Bar;
+      Bar    : Scrollbars.Bar;
    end record;
 
 end Pomarine.Widgets.Scrollers;

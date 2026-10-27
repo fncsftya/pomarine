@@ -6,6 +6,7 @@ with Ada.Strings.Unbounded;
 --  in a dark square (as how many there are of what a button opens); or a
 --  tag, faint small text in a tinted box, outlined (as when a source's
 --  picture was taken). It takes no events.
+
 package Pomarine.Widgets.Badges is
 
    type Kind is (Number, Tag);
@@ -15,7 +16,7 @@ package Pomarine.Widgets.Badges is
    procedure Set_Kind (Item : in out Badge; To : Kind);
 
    procedure Set_Count (Item : in out Badge; To : Natural)
-     with Post => Count_Of (Item) = To;
+   with Post => Count_Of (Item) = To;
    --  Of a count: what it shows.
 
    function Count_Of (Item : Badge) return Natural;
@@ -26,7 +27,7 @@ package Pomarine.Widgets.Badges is
    function Text (Item : Badge) return String;
 
    function Natural_Width (Item : Badge) return Float
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  In points: as wide as what it shows, and its padding, as the tree's
    --  text measures it (a square, for a count of one figure).
 
@@ -34,14 +35,11 @@ package Pomarine.Widgets.Badges is
    --  In points, a side of the square of a count; a tag is as high as its
    --  box.
 
-   overriding procedure Draw
-     (Item   : in out Badge;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Badge; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Describe
-     (Item  : Badge;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Badge; Facts : in out Semantics.Description);
 
 private
 

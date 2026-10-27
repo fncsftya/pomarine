@@ -10,6 +10,7 @@ with Pomarine_Ui_Config;
 --  A widget describes itself by filling in a Description. Nothing in it is
 --  kept: it is made when the description is wanted, and only for the
 --  widgets that have changed.
+
 package Pomarine.Semantics is
 
    type Role is
@@ -93,13 +94,13 @@ package Pomarine.Semantics is
    Empty : constant Text;
 
    procedure Set (Item : out Text; To : String)
-     with Post => Length (Item) <= Text_Capacity;
+   with Post => Length (Item) <= Text_Capacity;
    --  Keep To, cut to fit.
 
    function To_String (Item : Long_Text) return String;
    function Length (Item : Long_Text) return Natural;
    procedure Set (Item : out Long_Text; To : String)
-     with Post => Length (Item) <= Value_Capacity;
+   with Post => Length (Item) <= Value_Capacity;
 
    type Text_Place is record
       Part       : Natural := 0;
@@ -109,34 +110,34 @@ package Pomarine.Semantics is
    end record;
 
    type Description is record
-      Kind        : Role := Unknown;
-      Name        : Text;
+      Kind          : Role := Unknown;
+      Name          : Text;
       --  What it is called: a button's label, a field's caption.
-      Value       : Long_Text;
+      Value         : Long_Text;
       --  What it holds: a field's text, a slider's reading.
-      Help        : Text;
+      Help          : Text;
       --  More than the name, said after it.
-      Disabled    : Boolean := False;
-      Focusable   : Boolean := False;
-      Selected    : Boolean := False;
-      Expanded    : Boolean := False;
-      Has_Expanded : Boolean := False;
+      Disabled      : Boolean := False;
+      Focusable     : Boolean := False;
+      Selected      : Boolean := False;
+      Expanded      : Boolean := False;
+      Has_Expanded  : Boolean := False;
       --  Whether Expanded is to be said at all.
-      Read_Only   : Boolean := False;
-      Invalid     : Boolean := False;
-      Modal       : Boolean := False;
-      Live        : Boolean := False;
+      Read_Only     : Boolean := False;
+      Invalid       : Boolean := False;
+      Modal         : Boolean := False;
+      Live          : Boolean := False;
       --  A change to it is read out as it happens.
-      Checked     : Toggle := Not_Toggled;
-      Actions     : Action_Set := No_Actions;
-      Has_Number  : Boolean := False;
-      Number      : Float := 0.0;
-      Minimum     : Float := 0.0;
-      Maximum     : Float := 1.0;
-      Step        : Float := 0.0;
+      Checked       : Toggle := Not_Toggled;
+      Actions       : Action_Set := No_Actions;
+      Has_Number    : Boolean := False;
+      Number        : Float := 0.0;
+      Minimum       : Float := 0.0;
+      Maximum       : Float := 1.0;
+      Step          : Float := 0.0;
       --  A slider's or a progress bar's reading, and its range.
-      Position    : Natural := 0;
-      Set_Size    : Natural := 0;
+      Position      : Natural := 0;
+      Set_Size      : Natural := 0;
       --  Of a row of a list that is not all there: which it is of how many.
       Has_Selection : Boolean := False;
       Anchor, Caret : Text_Place;
@@ -151,27 +152,27 @@ package Pomarine.Semantics is
    --  A node's place, in points from the top left of its window.
 
    type Request is record
-      Doing   : Action := Click;
-      Number  : Float := 0.0;
+      Doing                   : Action := Click;
+      Number                  : Float := 0.0;
       --  For Set_Value of a number.
-      Contents : Text;
+      Contents                : Text;
       --  For Set_Value of text, and Replace_Selected_Text.
-      Has_Text : Boolean := False;
+      Has_Text                : Boolean := False;
       Anchor_Part, Focus_Part : Natural := 0;
-      Anchor, Focus : Natural := 0;
+      Anchor, Focus           : Natural := 0;
       --  For Set_Text_Selection: where it runs between, each a Text_Run
       --  (by its number) and a number of characters into it.
    end record;
 
-   function Is_Named (Item : Description) return Boolean is
-     (Length (Item.Name) > 0);
+   function Is_Named (Item : Description) return Boolean
+   is (Length (Item.Name) > 0);
 
    procedure Name_As (Item : in out Description; To : String);
    procedure Value_As (Item : in out Description; To : String);
    procedure Help_As (Item : in out Description; To : String);
 
-   function Can (Item : Description; Doing : Action) return Boolean is
-     (Item.Actions (Doing));
+   function Can (Item : Description; Doing : Action) return Boolean
+   is (Item.Actions (Doing));
 
    function Image (Item : Role) return String;
    --  The role's name, as a person would say it: "button",
@@ -194,16 +195,19 @@ private
 
    Empty : constant Text := (Used => 0, Chars => [others => ' ']);
 
-   function To_String (Item : Long_Text) return String is
-     (Item.Chars (1 .. Item.Used));
+   function To_String (Item : Long_Text) return String
+   is (Item.Chars (1 .. Item.Used));
 
-   function Length (Item : Long_Text) return Natural is (Item.Used);
+   function Length (Item : Long_Text) return Natural
+   is (Item.Used);
 
-   function Empty_Text return Text is (Empty);
+   function Empty_Text return Text
+   is (Empty);
 
-   function To_String (Item : Text) return String is
-     (Item.Chars (1 .. Item.Used));
+   function To_String (Item : Text) return String
+   is (Item.Chars (1 .. Item.Used));
 
-   function Length (Item : Text) return Natural is (Item.Used);
+   function Length (Item : Text) return Natural
+   is (Item.Used);
 
 end Pomarine.Semantics;

@@ -1,4 +1,5 @@
 --  Ada-style interface to SDL3. The C binding is hidden in SDL3.Thin.
+
 package SDL3 is
 
    SDL_Error : exception;

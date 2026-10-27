@@ -10,48 +10,30 @@ package body Pomarine.Widgets.Canvases.Callbacks is
    function To_Address is new Ada.Unchecked_Conversion (Select_Handler, System.Address);
    function To_Address is new Ada.Unchecked_Conversion (Delete_Handler, System.Address);
 
-   procedure Run_Select
-     (Self, Proc  : System.Address;
-      Source      : in out Widget'Class;
-      Code, Value : Natural);
+   procedure Run_Select (Self, Proc : System.Address; Source : in out Widget'Class; Code, Value : Natural);
 
-   procedure Run_Select
-     (Self, Proc  : System.Address;
-      Source      : in out Widget'Class;
-      Code, Value : Natural)
-   is
+   procedure Run_Select (Self, Proc : System.Address; Source : in out Widget'Class; Code, Value : Natural) is
       pragma Unreferenced (Code);
    begin
       To_Select (Proc) (To_Context (Self).all, Canvas'Class (Source), Value);
    end Run_Select;
 
-   procedure Run_Delete
-     (Self, Proc  : System.Address;
-      Source      : in out Widget'Class;
-      Code, Value : Natural);
+   procedure Run_Delete (Self, Proc : System.Address; Source : in out Widget'Class; Code, Value : Natural);
 
-   procedure Run_Delete
-     (Self, Proc  : System.Address;
-      Source      : in out Widget'Class;
-      Code, Value : Natural)
-   is
+   procedure Run_Delete (Self, Proc : System.Address; Source : in out Widget'Class; Code, Value : Natural) is
       pragma Unreferenced (Code, Value);
    begin
       To_Delete (Proc) (To_Context (Self).all, Canvas'Class (Source));
    end Run_Delete;
 
-   procedure On_Select
-     (Item    : in out Canvas'Class;
-      Self    : not null access Context;
-      Do_This : not null Select_Handler) is
+   procedure On_Select (Item : in out Canvas'Class; Self : not null access Context; Do_This : not null Select_Handler)
+   is
    begin
       Item.Select_Hook := (Run_Select'Unrestricted_Access, Self.all'Address, To_Address (Do_This));
    end On_Select;
 
-   procedure On_Delete
-     (Item    : in out Canvas'Class;
-      Self    : not null access Context;
-      Do_This : not null Delete_Handler) is
+   procedure On_Delete (Item : in out Canvas'Class; Self : not null access Context; Do_This : not null Delete_Handler)
+   is
    begin
       Item.Delete_Hook := (Run_Delete'Unrestricted_Access, Self.all'Address, To_Address (Do_This));
    end On_Delete;

@@ -1,13 +1,14 @@
 with SDL3.Windows;
 with SDL3.Windows.Renderers;
+
 package body Pomarine.Widgets.Labels is
 
    use type Semantics.Role;
 
    use type Themes.Slot;
 
-   function Text_Length (Item : Label) return Natural is
-     (Ada.Strings.Unbounded.Length (Item.Content));
+   function Text_Length (Item : Label) return Natural
+   is (Ada.Strings.Unbounded.Length (Item.Content));
 
    use SDL3.Windows.Renderers;
 
@@ -17,9 +18,8 @@ package body Pomarine.Widgets.Labels is
    Icon_Gap  : constant Float := 6.0;
    --  In points: of an icon before the text, and between them.
 
-   function Icon_Room (Item : Label) return Float is
-     (if Item.Iconed then (Icon_Size + Icon_Gap) * Density (Item) * Item.Scaled
-      else 0.0);
+   function Icon_Room (Item : Label) return Float
+   is (if Item.Iconed then (Icon_Size + Icon_Gap) * Density (Item) * Item.Scaled else 0.0);
 
    procedure Set_Text (Item : in out Label; Value : String) is
    begin
@@ -68,7 +68,8 @@ package body Pomarine.Widgets.Labels is
       Set_Measured (Item, To);
    end Set_Intrinsic;
 
-   overriding procedure Measure
+   overriding
+   procedure Measure
      (Item      : in out Label;
       Room_Wide : Float;
       Wide_Mode : Yoga.Nodes.Measure_Mode;
@@ -84,7 +85,8 @@ package body Pomarine.Widgets.Labels is
          Item.Measure_Pixels := Density (Item);
          if Text_Lines (Item) /= null then
             Item.Measure_Wide :=
-              (if Text_Length (Item) = 0 then 0.0
+              (if Text_Length (Item) = 0
+               then 0.0
                else Line_Texts.Width (Text_Lines (Item).all, Text (Item), Pixels, Item.Using))
               + Icon_Room (Item);
             Item.Measure_High := Line_Texts.Height (Text_Lines (Item).all, Pixels, Item.Using);
@@ -141,32 +143,30 @@ package body Pomarine.Widgets.Labels is
       end if;
    end Set_Scale;
 
-   function Style (Item : Label) return Line_Texts.Style is (Item.Using);
+   function Style (Item : Label) return Line_Texts.Style
+   is (Item.Using);
 
-   function Text (Item : Label) return String is
-     (Ada.Strings.Unbounded.To_String (Item.Content));
+   function Text (Item : Label) return String
+   is (Ada.Strings.Unbounded.To_String (Item.Content));
 
-   Ellipsis : constant String :=
-     [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A6#)];
+   Ellipsis : constant String := [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A6#)];
    --  In UTF-8.
 
    procedure Fit (Item : in out Label);
    --  Find how much of the text fits its box, as it is now.
 
    procedure Fit (Item : in out Label) is
-      Scale : constant Float := Density (Item) * Item.Scaled;
-      Room  : constant Float := Width_Of (Item) - Icon_Room (Item);
-      Whole : constant String := Text (Item);
+      Scale       : constant Float := Density (Item) * Item.Scaled;
+      Room        : constant Float := Width_Of (Item) - Icon_Room (Item);
+      Whole       : constant String := Text (Item);
       Item_Length : constant Natural := Whole'Length;
 
-      function Wide (Length : Natural; Cut : Boolean) return Float is
-        (Line_Texts.Width
-           (Text_Lines (Item).all,
-            Whole (1 .. Length) & (if Cut then Ellipsis else ""),
-            Scale, Item.Using));
+      function Wide (Length : Natural; Cut : Boolean) return Float
+      is (Line_Texts.Width
+            (Text_Lines (Item).all, Whole (1 .. Length) & (if Cut then Ellipsis else ""), Scale, Item.Using));
 
-      function Starts_Character (Index : Positive) return Boolean is
-        (Character'Pos (Whole (Index)) not in 16#80# .. 16#BF#);
+      function Starts_Character (Index : Positive) return Boolean
+      is (Character'Pos (Whole (Index)) not in 16#80# .. 16#BF#);
       --  Not a continuation byte of UTF-8: a place to cut before.
 
       Fits, Over : Natural;
@@ -192,9 +192,7 @@ package body Pomarine.Widgets.Labels is
             end if;
          end;
       end loop;
-      while Fits > 0 and then Fits < Item_Length
-        and then not Starts_Character (Fits + 1)
-      loop
+      while Fits > 0 and then Fits < Item_Length and then not Starts_Character (Fits + 1) loop
          Fits := Fits - 1;
       end loop;
       while Fits > 0 and then Whole (Fits) = ' ' loop
@@ -204,77 +202,73 @@ package body Pomarine.Widgets.Labels is
       Item.Fit_Cut := True;
    end Fit;
 
-   overriding procedure Draw
-     (Item   : in out Label;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme)
-   is
-      Scale : constant Positive :=
-        Positive (Float'Max (1.0, Float'Rounding (Density (Item))));
+   overriding
+   procedure Draw (Item : in out Label; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
+      Scale : constant Positive := Positive (Float'Max (1.0, Float'Rounding (Density (Item))));
       High  : constant Float := Float (Debug_Text_Size * Scale);
       Ink   : constant Themes.Color :=
-        (if Item.Inked then Themes.Resolve (Colors, Item.Ink)
-         else Colors (Themes.Foreground));
+        (if Item.Inked then Themes.Resolve (Colors, Item.Ink) else Colors (Themes.Foreground));
    begin
       if Text_Length (Item) > 0 and then Text_Lines (Item) /= null then
          if Item.Fit_Width /= Width_Of (Item) then
             Fit (Item);
          end if;
          declare
-            Shown : constant String :=
-              Text (Item) (1 .. Item.Fit_Length)
-              & (if Item.Fit_Cut then Ellipsis else "");
-            Room : constant Float :=
+            Shown : constant String := Text (Item) (1 .. Item.Fit_Length) & (if Item.Fit_Cut then Ellipsis else "");
+            Room  : constant Float :=
               (if Item.Centered or else Item.Trailing
-               then Float'Max
-                      (0.0,
-                       Width_Of (Item) - Icon_Room (Item)
-                       - Line_Texts.Width
-                           (Text_Lines (Item).all, Shown,
-                            Density (Item) * Item.Scaled, Item.Using))
+               then
+                 Float'Max
+                   (0.0,
+                    Width_Of (Item)
+                    - Icon_Room (Item)
+                    - Line_Texts.Width (Text_Lines (Item).all, Shown, Density (Item) * Item.Scaled, Item.Using))
                else 0.0);
-            Start : constant Float :=
-              Left_Of (Item) + (if Item.Centered then Room / 2.0 else Room);
+            Start : constant Float := Left_Of (Item) + (if Item.Centered then Room / 2.0 else Room);
          begin
             if Item.Iconed and then Icon_Library (Item) /= null then
                declare
-                  Size  : constant Positive :=
-                    Positive
-                      (Float'Rounding
-                         (Icon_Size * Density (Item) * Item.Scaled));
+                  Size  : constant Positive := Positive (Float'Rounding (Icon_Size * Density (Item) * Item.Scaled));
                   Drawn : Boolean;
                begin
                   Pomarine.Icons.Draw
-                    (Icon_Library (Item).all, Target, Item.Which, Ink,
+                    (Icon_Library (Item).all,
+                     Target,
+                     Item.Which,
+                     Ink,
                      Float'Rounding (Start),
-                     Float'Rounding
-                       (Top_Of (Item) + (Height_Of (Item) - Float (Size))
-                                        / 2.0),
-                     Size, Drawn);
+                     Float'Rounding (Top_Of (Item) + (Height_Of (Item) - Float (Size)) / 2.0),
+                     Size,
+                     Drawn);
                end;
             end if;
             Line_Texts.Draw
-              (Text_Lines (Item).all, Target, Ink, Shown,
+              (Text_Lines (Item).all,
+               Target,
+               Ink,
+               Shown,
                Start + Icon_Room (Item),
                Top_Of (Item) + Height_Of (Item) / 2.0,
-               Density (Item) * Item.Scaled, Item.Using);
+               Density (Item) * Item.Scaled,
+               Item.Using);
          end;
       elsif Text_Length (Item) > 0 then
          Draw_Text
-           (Target, Ink,
+           (Target,
+            Ink,
             Float'Rounding (Left_Of (Item)),
             Float'Rounding (Top_Of (Item) + (Height_Of (Item) - High) / 2.0),
-            Text (Item), Scale);
+            Text (Item),
+            Scale);
       end if;
    end Draw;
 
-   overriding procedure Describe
-     (Item  : Label;
-      Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Label; Facts : in out Semantics.Description) is
    begin
       if Facts.Kind = Semantics.Unknown then
-         Facts.Kind := (if Item.Using in Line_Texts.Heading | Line_Texts.Display
-                        then Semantics.Heading else Semantics.Label);
+         Facts.Kind :=
+           (if Item.Using in Line_Texts.Heading | Line_Texts.Display then Semantics.Heading else Semantics.Label);
       end if;
       Semantics.Name_As (Facts, Text (Item));
    end Describe;

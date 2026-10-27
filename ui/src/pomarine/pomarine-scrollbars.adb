@@ -1,4 +1,5 @@
 with Pomarine.Boxes;
+
 package body Pomarine.Scrollbars is
 
    use type Pomarine.Events.Event_Kind;
@@ -12,39 +13,34 @@ package body Pomarine.Scrollbars is
       Free    : Float := 0.0;  --  how far it can go
    end record;
 
-   function Along (Within : Metrics) return Float is
-     (if Within.Horizontal then Within.Width else Within.Height);
+   function Along (Within : Metrics) return Float
+   is (if Within.Horizontal then Within.Width else Within.Height);
 
-   function Across (Within : Metrics) return Float is
-     (if Within.Horizontal then Within.Height else Within.Width);
+   function Across (Within : Metrics) return Float
+   is (if Within.Horizontal then Within.Height else Within.Width);
 
-   function Thick (Within : Metrics) return Float is
-     (Float'Min (Across (Within),
-                 Float'Rounding (Thickness * Within.Density)));
+   function Thick (Within : Metrics) return Float
+   is (Float'Min (Across (Within), Float'Rounding (Thickness * Within.Density)));
 
    function Parts_Of (Within : Metrics) return Parts is
       Button : constant Float := Thick (Within);
       Track  : constant Float := Along (Within) - 2.0 * Button;
       Least  : constant Float := Shortest * Within.Density;
    begin
-      if Within.Total <= Within.Shown or else Within.Total <= 0.0
-        or else Track < Least
-      then
+      if Within.Total <= Within.Shown or else Within.Total <= 0.0 or else Track < Least then
          return (others => <>);
       end if;
       declare
-         Length : constant Float :=
-           Float'Rounding
-             (Float'Max (Least, Track * Within.Shown / Within.Total));
+         Length : constant Float := Float'Rounding (Float'Max (Least, Track * Within.Shown / Within.Total));
          Free   : constant Float := Track - Length;
-         Moved  : constant Float :=
-           Float'Min
-             (1.0,
-              Float'Max (0.0, Within.Start / (Within.Total - Within.Shown)));
+         Moved  : constant Float := Float'Min (1.0, Float'Max (0.0, Within.Start / (Within.Total - Within.Shown)));
       begin
-         return (Present => True, Button => Button,
-                 Offset => Button + Float'Rounding (Free * Moved),
-                 Length => Length, Free => Free);
+         return
+           (Present => True,
+            Button  => Button,
+            Offset  => Button + Float'Rounding (Free * Moved),
+            Length  => Length,
+            Free    => Free);
       end;
    end Parts_Of;
 
@@ -53,27 +49,18 @@ package body Pomarine.Scrollbars is
       Item.Pane := Over;
    end Set_Pane;
 
-   function Is_Showing (Item : Bar) return Boolean is
-     (Item.Pane or else Item.Grabbing or else Item.Pressing /= None);
+   function Is_Showing (Item : Bar) return Boolean
+   is (Item.Pane or else Item.Grabbing or else Item.Pressing /= None);
 
-   function Is_Held (Item : Bar) return Boolean is
-     (Item.Grabbing or else Item.Pressing /= None);
+   function Is_Held (Item : Bar) return Boolean
+   is (Item.Grabbing or else Item.Pressing /= None);
 
-   procedure Draw
-     (Item   : Bar;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme;
-      Within : Metrics)
-   is
+   procedure Draw (Item : Bar; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme; Within : Metrics) is
       Place : constant Parts := Parts_Of (Within);
       Wide  : constant Float := Thick (Within);
       Edge  : constant Float := Pomarine.Boxes.Edge (Within.Density);
-      Left  : constant Float :=
-        (if Within.Horizontal then Within.Left
-         else Within.Left + Within.Width - Wide);
-      Top   : constant Float :=
-        (if Within.Horizontal then Within.Top + Within.Height - Wide
-         else Within.Top);
+      Left  : constant Float := (if Within.Horizontal then Within.Left else Within.Left + Within.Width - Wide);
+      Top   : constant Float := (if Within.Horizontal then Within.Top + Within.Height - Wide else Within.Top);
 
       procedure Box (From, Length : Float; X, Y, W, H : out Float);
       --  The part From along the bar, Length long, across all of it.
@@ -98,15 +85,22 @@ package body Pomarine.Scrollbars is
       begin
          Box (From, Length, X, Y, W, H);
          Pomarine.Boxes.Draw_Control
-           (Target, Colors, Colors (Themes.Face), Colors (Themes.Border),
+           (Target,
+            Colors,
+            Colors (Themes.Face),
+            Colors (Themes.Border),
             (Themes.Highlight (Colors (Themes.Face)), Themes.Shadow_Of (Colors (Themes.Face))),
-            X, Y, W, H, Within.Density, Sunken => Pressed);
+            X,
+            Y,
+            W,
+            H,
+            Within.Density,
+            Sunken => Pressed);
       end Raised;
 
       procedure Arrow_On (From : Float; Which : Arrow) is
          --  A triangle of rows of pixels, pointing the way it scrolls.
-         Rows  : constant Natural :=
-           Natural (Float'Rounding (2.5 * Within.Density));
+         Rows       : constant Natural := Natural (Float'Rounding (2.5 * Within.Density));
          X, Y, W, H : Float;
       begin
          Raised (From, Place.Button, Item.Pressing = Which);
@@ -114,23 +108,25 @@ package body Pomarine.Scrollbars is
          for Row in 0 .. Rows - 1 loop
             declare
                Span : constant Float := Float (2 * Row + 1);
-               Step : constant Float :=
-                 (if Which = Back then Float (Row)
-                  else Float (Rows - 1 - Row));
+               Step : constant Float := (if Which = Back then Float (Row) else Float (Rows - 1 - Row));
                --  From the point of the arrow, at the end it points to.
             begin
                if Within.Horizontal then
                   Fill_Rect
-                    (Target, Colors (Themes.Foreground),
+                    (Target,
+                     Colors (Themes.Foreground),
                      Float'Rounding (X + (W - Float (Rows)) / 2.0) + Step,
                      Float'Rounding (Y + (H - Span) / 2.0),
-                     1.0, Span);
+                     1.0,
+                     Span);
                else
                   Fill_Rect
-                    (Target, Colors (Themes.Foreground),
+                    (Target,
+                     Colors (Themes.Foreground),
                      Float'Rounding (X + (W - Span) / 2.0),
                      Float'Rounding (Y + (H - Float (Rows)) / 2.0) + Step,
-                     Span, 1.0);
+                     Span,
+                     1.0);
                end if;
             end;
          end loop;
@@ -163,35 +159,26 @@ package body Pomarine.Scrollbars is
       To      : out Float;
       Changed : out Boolean)
    is
-      Place : constant Parts := Parts_Of (Within);
-      X     : constant Float := Event.Mouse_X * Within.Density;
-      Y     : constant Float := Event.Mouse_Y * Within.Density;
-      Point : constant Float := (if Within.Horizontal then X else Y);
-      Cross : constant Float := (if Within.Horizontal then Y else X);
-      First : constant Float :=
-        (if Within.Horizontal then Within.Left else Within.Top);
-      Far   : constant Float :=
-        (if Within.Horizontal then Within.Top + Within.Height
-         else Within.Left + Within.Width);
+      Place   : constant Parts := Parts_Of (Within);
+      X       : constant Float := Event.Mouse_X * Within.Density;
+      Y       : constant Float := Event.Mouse_Y * Within.Density;
+      Point   : constant Float := (if Within.Horizontal then X else Y);
+      Cross   : constant Float := (if Within.Horizontal then Y else X);
+      First   : constant Float := (if Within.Horizontal then Within.Left else Within.Top);
+      Far     : constant Float :=
+        (if Within.Horizontal then Within.Top + Within.Height else Within.Left + Within.Width);
       Is_Over : constant Boolean :=
-        Place.Present
-        and then Cross in Far - Thick (Within) .. Far
-        and then Point in First .. First + Along (Within);
-      Before : constant Bar := Item;
-      Most   : constant Float := Within.Total - Within.Shown;
+        Place.Present and then Cross in Far - Thick (Within) .. Far and then Point in First .. First + Along (Within);
+      Before  : constant Bar := Item;
+      Most    : constant Float := Within.Total - Within.Shown;
 
-      function Start_For return Float is
-        (if Place.Free <= 0.0 then 0.0
-         else Float'Min
-                (1.0,
-                 Float'Max
-                   (0.0,
-                    (Point - First - Place.Button - Item.Grab)
-                    / Place.Free))
-              * Most);
+      function Start_For return Float
+      is (if Place.Free <= 0.0
+          then 0.0
+          else Float'Min (1.0, Float'Max (0.0, (Point - First - Place.Button - Item.Grab) / Place.Free)) * Most);
 
-      function Stepped (By : Float) return Float is
-        (Float'Min (Most, Float'Max (0.0, Within.Start + By)));
+      function Stepped (By : Float) return Float
+      is (Float'Min (Most, Float'Max (0.0, Within.Start + By)));
    begin
       Taken := False;
       Moved := False;
@@ -212,13 +199,10 @@ package body Pomarine.Scrollbars is
                else
                   declare
                      On_Thumb : constant Boolean :=
-                       Point in First + Place.Offset
-                                .. First + Place.Offset + Place.Length;
+                       Point in First + Place.Offset .. First + Place.Offset + Place.Length;
                   begin
                      Item.Grabbing := True;
-                     Item.Grab :=
-                       (if On_Thumb then Point - First - Place.Offset
-                        else Place.Length / 2.0);
+                     Item.Grab := (if On_Thumb then Point - First - Place.Offset else Place.Length / 2.0);
                      if not On_Thumb then
                         Moved := True;
                         To := Start_For;
@@ -226,6 +210,7 @@ package body Pomarine.Scrollbars is
                   end;
                end if;
             end if;
+
          when Pomarine.Events.Mouse_Move =>
             if Item.Grabbing then
                if Event.Left_Held then
@@ -242,13 +227,15 @@ package body Pomarine.Scrollbars is
                   Item.Pressing := None;
                end if;
             end if;
-         when Pomarine.Events.Mouse_Up =>
+
+         when Pomarine.Events.Mouse_Up   =>
             if Event.Button = 1 and then Is_Held (Item) then
                Item.Grabbing := False;
                Item.Pressing := None;
                Taken := True;
             end if;
-         when others =>
+
+         when others                     =>
             null;
       end case;
       Changed := Item /= Before;

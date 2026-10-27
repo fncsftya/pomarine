@@ -2,6 +2,7 @@ with Pomarine.View_Models;
 
 --  A model of choices, for the tests of the controls of Pomarine.UI: a radio pair, a switch, a job that
 --  goes on, and what is shown only while it does.
+
 package Options_VM is
 
    type Command is (Pick_Light, Pick_Dark, Toggle_Sync, Start, Finish, Open_Card);
@@ -10,9 +11,12 @@ package Options_VM is
 
    type Model is limited new Commands.Model with private;
 
-   overriding function Version (Self : Model) return Pomarine.View_Models.Version_Number;
-   overriding function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding procedure Execute (Self : in out Model; What : Command; Index : Natural := 0);
+   overriding
+   function Version (Self : Model) return Pomarine.View_Models.Version_Number;
+   overriding
+   function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
+   overriding
+   procedure Execute (Self : in out Model; What : Command; Index : Natural := 0);
 
    function Caption (Self : Model) return String;
    function Dark (Self : Model) return Boolean;

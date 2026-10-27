@@ -33,18 +33,14 @@ package body Picture_Tests is
    --  Any picture will do: the words are made up.
 
    --  Three lines of words, where a picture's text would be.
-   Text_Of_Words : constant String :=
-     "alphabetagammadeltaepsilonzeta";
+   Text_Of_Words : constant String := "alphabetagammadeltaepsilonzeta";
 
    Found : aliased Pomarine.Words.Result;
 
-   procedure Word
-     (Index : Positive; First, Last, Line : Positive;
-      Left, Top, Wide : Float) is
+   procedure Word (Index : Positive; First, Last, Line : Positive; Left, Top, Wide : Float) is
    begin
       Found.Words (Index) :=
-        (Line => Line, First => First, Last => Last,
-         Left => Left, Top => Top, Width => Wide, Height => 0.06);
+        (Line => Line, First => First, Last => Last, Left => Left, Top => Top, Width => Wide, Height => 0.06);
    end Word;
 
    procedure Make_Words is
@@ -72,10 +68,7 @@ package body Picture_Tests is
    procedure Open (Item : in out Fixture) is
    begin
       Make_Words;
-      Renderers.Create_Offscreen
-        (Item.Target,
-         Positive (Float (Width) * Density),
-         Positive (Float (Height) * Density));
+      Renderers.Create_Offscreen (Item.Target, Positive (Float (Width) * Density), Positive (Float (Height) * Density));
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
       Widgets.Set_Root (Item.Tree, Item.Root);
@@ -93,43 +86,37 @@ package body Picture_Tests is
 
    --  Where, in points, the middle of a word is.
 
-   function At_X (Item : Fixture; Index : Positive) return Float is
-     (Float (Pictures.Word_Box (Item.Picture, Index).Left
-             + Pictures.Word_Box (Item.Picture, Index).Width / 2) / Density);
+   function At_X (Item : Fixture; Index : Positive) return Float
+   is (Float (Pictures.Word_Box (Item.Picture, Index).Left + Pictures.Word_Box (Item.Picture, Index).Width / 2)
+       / Density);
 
-   function At_Y (Item : Fixture; Index : Positive) return Float is
-     (Float (Pictures.Word_Box (Item.Picture, Index).Top
-             + Pictures.Word_Box (Item.Picture, Index).Height / 2) / Density);
+   function At_Y (Item : Fixture; Index : Positive) return Float
+   is (Float (Pictures.Word_Box (Item.Picture, Index).Top + Pictures.Word_Box (Item.Picture, Index).Height / 2)
+       / Density);
 
-   procedure Send
-     (Item : in out Fixture; Event : Events.Event; Taken : Boolean) is
+   procedure Send (Item : in out Fixture; Event : Events.Event; Taken : Boolean) is
       Handled : Boolean;
    begin
       Widgets.Dispatch (Item.Tree, Event, Handled);
-      pragma Assert
-        (Handled = Taken, "an event was not taken as it should be");
+      pragma Assert (Handled = Taken, "an event was not taken as it should be");
       Widgets.Paint (Item.Tree, Item.Target, Colors);
    end Send;
 
-   function Press (X, Y : Float; Clicks : Natural := 1) return Events.Event is
-     ((Kind => Events.Mouse_Down, Button => 1, Clicks => Clicks,
-       Mouse_X => X, Mouse_Y => Y, others => <>));
+   function Press (X, Y : Float; Clicks : Natural := 1) return Events.Event
+   is ((Kind => Events.Mouse_Down, Button => 1, Clicks => Clicks, Mouse_X => X, Mouse_Y => Y, others => <>));
 
-   function Move (X, Y : Float) return Events.Event is
-     ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y,
-       Left_Held => True, others => <>));
+   function Move (X, Y : Float) return Events.Event
+   is ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, Left_Held => True, others => <>));
 
-   function Release (X, Y : Float) return Events.Event is
-     ((Kind => Events.Mouse_Up, Button => 1,
-       Mouse_X => X, Mouse_Y => Y, others => <>));
+   function Release (X, Y : Float) return Events.Event
+   is ((Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y, others => <>));
 
-   function Chord (Key : Events.Key_Code) return Events.Event is
-     ((Kind => Events.Key_Down, Key => Key, Command => True, others => <>));
+   function Chord (Key : Events.Key_Code) return Events.Event
+   is ((Kind => Events.Key_Down, Key => Key, Command => True, others => <>));
 
    procedure Check_Selected (Name, Expected : String; Item : Fixture) is
    begin
-      Goldens.Check_Text
-        (Name, Expected, Pictures.Selected_Text (Item.Picture));
+      Goldens.Check_Text (Name, Expected, Pictures.Selected_Text (Item.Picture));
    end Check_Selected;
 
    procedure Selecting is
@@ -138,20 +125,15 @@ package body Picture_Tests is
    begin
       Open (Item);
       Images.Read (Plain, Item.Target);
-      Goldens.Check_Text
-        ("picture-words", " 6",
-         Natural'Image (Pictures.Word_Count (Item.Picture)));
-      Goldens.Check_Text
-        ("picture-none-selected", "",
-         Pictures.Selected_Text (Item.Picture));
+      Goldens.Check_Text ("picture-words", " 6", Natural'Image (Pictures.Word_Count (Item.Picture)));
+      Goldens.Check_Text ("picture-none-selected", "", Pictures.Selected_Text (Item.Picture));
 
       --  A drag from one word to another selects those between, in
       --  reading order, with a space within a line and a break between.
       Send (Item, Press (At_X (Item, 2), At_Y (Item, 2)), Taken => True);
       Send (Item, Move (At_X (Item, 4), At_Y (Item, 4)), Taken => True);
       Send (Item, Release (At_X (Item, 4), At_Y (Item, 4)), Taken => True);
-      Check_Selected
-        ("picture-dragged", "beta gamma" & ASCII.LF & "delta", Item);
+      Check_Selected ("picture-dragged", "beta gamma" & ASCII.LF & "delta", Item);
       declare
          Drawn : Images.Image;
       begin
@@ -163,17 +145,13 @@ package body Picture_Tests is
       Send (Item, Press (At_X (Item, 4), At_Y (Item, 4)), Taken => True);
       Send (Item, Move (At_X (Item, 2), At_Y (Item, 2)), Taken => True);
       Send (Item, Release (At_X (Item, 2), At_Y (Item, 2)), Taken => True);
-      Check_Selected
-        ("picture-dragged-back", "beta gamma" & ASCII.LF & "delta", Item);
+      Check_Selected ("picture-dragged-back", "beta gamma" & ASCII.LF & "delta", Item);
 
       --  Off the words, a drag goes to the nearest.
       Send (Item, Press (At_X (Item, 1), At_Y (Item, 1)), Taken => True);
-      Send
-        (Item, Move (At_X (Item, 6), At_Y (Item, 6) + 12.0), Taken => True);
+      Send (Item, Move (At_X (Item, 6), At_Y (Item, 6) + 12.0), Taken => True);
       Send (Item, Release (At_X (Item, 6), At_Y (Item, 6)), Taken => True);
-      Check_Selected
-        ("picture-dragged-off", "alpha beta gamma" & ASCII.LF & "delta epsilon"
-         & ASCII.LF & "zeta", Item);
+      Check_Selected ("picture-dragged-off", "alpha beta gamma" & ASCII.LF & "delta epsilon" & ASCII.LF & "zeta", Item);
 
       --  A double click is a word, a triple a line.
       Send (Item, Press (At_X (Item, 5), At_Y (Item, 5), 2), Taken => True);
@@ -193,15 +171,11 @@ package body Picture_Tests is
 
       --  Copied.
       Send (Item, Chord (Events.Key_C), Taken => True);
-      Goldens.Check_Text
-        ("picture-copied", "delta epsilon", Pomarine.Clipboards.Text (Item.Board));
+      Goldens.Check_Text ("picture-copied", "delta epsilon", Pomarine.Clipboards.Text (Item.Board));
 
       --  All, then none: a click that is on no word clears it.
       Send (Item, Chord (Events.Key_A), Taken => True);
-      Check_Selected
-        ("picture-all",
-         "alpha beta gamma" & ASCII.LF & "delta epsilon" & ASCII.LF & "zeta",
-         Item);
+      Check_Selected ("picture-all", "alpha beta gamma" & ASCII.LF & "delta epsilon" & ASCII.LF & "zeta", Item);
       Send (Item, Press (1.0, 1.0), Taken => False);
       Check_Selected ("picture-cleared", "", Item);
       declare
@@ -214,16 +188,24 @@ package body Picture_Tests is
    end Selecting;
 
    type Empty_Source is new Pomarine.Pages.Source with null record;
-   overriding procedure Build
-     (Item : in out Empty_Source; Index : Positive; Content : out Pomarine.Pages.Page_Access;
-      Words : in out Pomarine.Words.Result; Ok : out Boolean);
-   overriding procedure Measure
-     (Item : in out Empty_Source; Count : Positive; Sizes : out Pomarine.Pages.Size_Array_Access;
-      Ok : out Boolean);
+   overriding
+   procedure Build
+     (Item    : in out Empty_Source;
+      Index   : Positive;
+      Content : out Pomarine.Pages.Page_Access;
+      Words   : in out Pomarine.Words.Result;
+      Ok      : out Boolean);
+   overriding
+   procedure Measure
+     (Item : in out Empty_Source; Count : Positive; Sizes : out Pomarine.Pages.Size_Array_Access; Ok : out Boolean);
 
-   overriding procedure Build
-     (Item : in out Empty_Source; Index : Positive; Content : out Pomarine.Pages.Page_Access;
-      Words : in out Pomarine.Words.Result; Ok : out Boolean)
+   overriding
+   procedure Build
+     (Item    : in out Empty_Source;
+      Index   : Positive;
+      Content : out Pomarine.Pages.Page_Access;
+      Words   : in out Pomarine.Words.Result;
+      Ok      : out Boolean)
    is
       pragma Unreferenced (Item, Index, Words);
    begin
@@ -231,9 +213,9 @@ package body Picture_Tests is
       Ok := False;
    end Build;
 
-   overriding procedure Measure
-     (Item : in out Empty_Source; Count : Positive; Sizes : out Pomarine.Pages.Size_Array_Access;
-      Ok : out Boolean)
+   overriding
+   procedure Measure
+     (Item : in out Empty_Source; Count : Positive; Sizes : out Pomarine.Pages.Size_Array_Access; Ok : out Boolean)
    is
       pragma Unreferenced (Item, Count);
    begin
@@ -245,12 +227,12 @@ package body Picture_Tests is
 
    procedure Freehand_Pages is
       package Views renames Pomarine.Widgets.Page_Views;
-      Tree : Widgets.Tree;
+      Tree   : Widgets.Tree;
       Target : Renderers.Renderer;
-      Root : aliased Pomarine.Widgets.Panels.Panel;
-      View : aliased Views.Page_View;
-      Sizes : Pomarine.Pages.Size_Array_Access := new Pomarine.Pages.Size_Array'[(360.0, 500.0)];
-      Taken : Boolean;
+      Root   : aliased Pomarine.Widgets.Panels.Panel;
+      View   : aliased Views.Page_View;
+      Sizes  : Pomarine.Pages.Size_Array_Access := new Pomarine.Pages.Size_Array'[(360.0, 500.0)];
+      Taken  : Boolean;
       procedure Send_Page (Event : Events.Event) is
       begin
          Widgets.Dispatch (Tree, Event, Taken);
@@ -297,7 +279,7 @@ package body Picture_Tests is
    end Freehand_Pages;
 
    procedure Freehand is
-      Item : Fixture;
+      Item  : Fixture;
       Trace : Pomarine.Mark_Paths.Path;
       use type Pomarine.Mark_Paths.Point;
    begin
@@ -323,7 +305,7 @@ package body Picture_Tests is
       --  Retracing a mark has exactly the same pixels as drawing it once.
       declare
          Original : constant Pictures.Mark := Pictures.Mark_At (Item.Picture, 1);
-         Drawn : Images.Image;
+         Drawn    : Images.Image;
       begin
          Pictures.Set_Marks (Item.Picture, [Original, Original]);
          Widgets.Paint (Item.Tree, Item.Target, Colors);
@@ -352,16 +334,18 @@ package body Picture_Tests is
       declare
          Dark_Page, Once, Twice : Images.Image;
          use type Renderers.Color_Component;
-         File : constant String := Goldens.Scratch ("picture-dark-source.png");
-         Band : constant Pictures.Mark := (Left => 0.0, Right => 1.0, Y => 0.25, others => <>);
-         Ink, Paper : Renderers.Color;
+         File                   : constant String := Goldens.Scratch ("picture-dark-source.png");
+         Band                   : constant Pictures.Mark := (Left => 0.0, Right => 1.0, Y => 0.25, others => <>);
+         Ink, Paper             : Renderers.Color;
       begin
          Images.Create (Dark_Page, 720, 400);
          for Y in 0 .. 399 loop
             for X in 0 .. 719 loop
                Images.Set_Pixel
-                 (Dark_Page, X, Y, (if X in 50 .. 200 and then Y in 90 .. 110
-                                then (255, 255, 255, 255) else (20, 20, 20, 255)));
+                 (Dark_Page,
+                  X,
+                  Y,
+                  (if X in 50 .. 200 and then Y in 90 .. 110 then (255, 255, 255, 255) else (20, 20, 20, 255)));
             end loop;
          end loop;
          Images.Save_PNG (Dark_Page, File);
@@ -390,15 +374,15 @@ package body Picture_Tests is
       pragma Assert (Trace.Count <= Pomarine.Mark_Paths.Max_Points);
       pragma Assert (Trace.Points (1) = Pomarine.Mark_Paths.Point'(0.0, 0.0));
       pragma Assert (Trace.Points (Trace.Count).X = 1.0);
-      pragma Assert (Pomarine.Mark_Paths.Contains (Trace, 100.0, Trace.Points (Trace.Count).Y * 100.0,
-                                                 100.0, 100.0, 2.0));
+      pragma
+        Assert (Pomarine.Mark_Paths.Contains (Trace, 100.0, Trace.Points (Trace.Count).Y * 100.0, 100.0, 100.0, 2.0));
    end Freehand;
 
    procedure Undoing_Marks is
-      Item : Fixture;
-      Taken : Boolean;
+      Item          : Fixture;
+      Taken         : Boolean;
       First, Second : Pictures.Mark;
-      Version : Natural;
+      Version       : Natural;
       use type Pomarine.Marks.Mark;
    begin
       Open (Item);
@@ -426,8 +410,10 @@ package body Picture_Tests is
       pragma Assert (Pictures.Marks_Version (Item.Picture) = Version);
       Widgets.Perform_Command (Item.Tree, Widgets.Edit_Redo, Taken);
       pragma Assert (Taken and then Pictures.Mark_Count (Item.Picture) = 1);
-      Send (Item, (Kind => Events.Key_Down, Key => Events.Key_Z, Command => True, Shift => True,
-                   others => <>), Taken => True);
+      Send
+        (Item,
+         (Kind => Events.Key_Down, Key => Events.Key_Z, Command => True, Shift => True, others => <>),
+         Taken => True);
       pragma Assert (Pictures.Mark_At (Item.Picture, 2) = Second);
 
       Pictures.Set_Tool (Item.Picture, Pictures.Eraser);
@@ -499,8 +485,12 @@ package body Picture_Tests is
       --  Scrolled across: the same again.
       Send
         (Item,
-         (Kind => Events.Mouse_Wheel, Wheel_X => -3.0, Wheel_Y => 0.0,
-          Mouse_X => 100.0, Mouse_Y => 100.0, others => <>),
+         (Kind    => Events.Mouse_Wheel,
+          Wheel_X => -3.0,
+          Wheel_Y => 0.0,
+          Mouse_X => 100.0,
+          Mouse_Y => 100.0,
+          others  => <>),
          Taken => True);
       Send (Item, Press (At_X (Item, 2), At_Y (Item, 2), 2), Taken => True);
       Send (Item, Release (At_X (Item, 2), At_Y (Item, 2)), Taken => True);

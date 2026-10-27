@@ -14,19 +14,23 @@ package body Form_VM is
       U.Append (Self.Log, (if U.Length (Self.Log) = 0 then "" else " ") & Text);
    end Note;
 
-   overriding function Version (Self : Model) return VM.Version_Number is
-     (VM.Value (Self.Changed) + VM.Version (Self.Text));
+   overriding
+   function Version (Self : Model) return VM.Version_Number
+   is (VM.Value (Self.Changed) + VM.Version (Self.Text));
 
-   function Name_Version (Self : Model) return VM.Version_Number is (VM.Version (Self.Text));
+   function Name_Version (Self : Model) return VM.Version_Number
+   is (VM.Version (Self.Text));
 
-   function Saved_Version (Self : Model) return VM.Version_Number is (VM.Value (Self.Changed));
+   function Saved_Version (Self : Model) return VM.Version_Number
+   is (VM.Value (Self.Changed));
 
    procedure Touch (Self : in out Model) is
    begin
       VM.Bump (Self.Changed);
    end Touch;
 
-   function Name (Self : Model) return String is (VM.Get (Self.Text));
+   function Name (Self : Model) return String
+   is (VM.Get (Self.Text));
 
    function Normalized (Self : Model; Value : String) return String is
       First : Positive := Value'First;
@@ -60,10 +64,14 @@ package body Form_VM is
       Self.Loud := To;
    end Shouting;
 
-   function Saved_Count (Self : Model) return Natural is (Self.Saved);
-   function Last_Saved (Self : Model) return String is (U.To_String (Self.Last));
-   function Status (Self : Model) return String is (Image (Self.Saved) & " saved");
-   function Journal (Self : Model) return String is (U.To_String (Self.Log));
+   function Saved_Count (Self : Model) return Natural
+   is (Self.Saved);
+   function Last_Saved (Self : Model) return String
+   is (U.To_String (Self.Last));
+   function Status (Self : Model) return String
+   is (Image (Self.Saved) & " saved");
+   function Journal (Self : Model) return String
+   is (U.To_String (Self.Log));
 
    procedure Forget_Journal (Self : in out Model) is
    begin
@@ -75,17 +83,19 @@ package body Form_VM is
       VM.Set (Self.Text, Normalized (Self, Value));
    end Change_From_Elsewhere;
 
-   overriding function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean is
-     (Index = 0 and then
-        (case What is
-           when Save => Name (Self)'Length > 0,
-           when Reset => Name (Self)'Length > 0 or else Self.Saved > 0));
+   overriding
+   function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean
+   is (Index = 0
+       and then (case What is
+                   when Save  => Name (Self)'Length > 0,
+                   when Reset => Name (Self)'Length > 0 or else Self.Saved > 0));
 
-   overriding procedure Execute (Self : in out Model; What : Command; Index : Natural := 0) is
+   overriding
+   procedure Execute (Self : in out Model; What : Command; Index : Natural := 0) is
       pragma Unreferenced (Index);
    begin
       case What is
-         when Save =>
+         when Save  =>
             Note (Self, "save(" & Name (Self) & ")");
             if Inside_Save /= null then
                Inside_Save.all;
@@ -93,6 +103,7 @@ package body Form_VM is
             Self.Saved := Self.Saved + 1;
             Self.Last := U.To_Unbounded_String (Name (Self));
             VM.Set (Self.Text, "");
+
          when Reset =>
             Note (Self, "reset");
             Self.Saved := 0;

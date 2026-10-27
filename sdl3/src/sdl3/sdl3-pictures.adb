@@ -10,8 +10,7 @@ package body SDL3.Pictures is
    use type Thin.Surface_Access;
    use type Interfaces.Unsigned_32;
 
-   Signature : constant array (1 .. 8) of Interfaces.Unsigned_8 :=
-     [137, 80, 78, 71, 13, 10, 26, 10];
+   Signature : constant array (1 .. 8) of Interfaces.Unsigned_8 := [137, 80, 78, 71, 13, 10, 26, 10];
    --  Where a PNG file begins; then the IHDR chunk, whose first fields
    --  are the width and height, four bytes each, most significant first.
 
@@ -21,13 +20,10 @@ package body SDL3.Pictures is
       Header : Stream_Element_Array (1 .. 24);
       Last   : Stream_Element_Offset;
 
-      function Number (First : Stream_Element_Offset)
-         return Interfaces.Unsigned_32
+      function Number (First : Stream_Element_Offset) return Interfaces.Unsigned_32
       is (Interfaces.Shift_Left (Interfaces.Unsigned_32 (Header (First)), 24)
-          or Interfaces.Shift_Left
-               (Interfaces.Unsigned_32 (Header (First + 1)), 16)
-          or Interfaces.Shift_Left
-               (Interfaces.Unsigned_32 (Header (First + 2)), 8)
+          or Interfaces.Shift_Left (Interfaces.Unsigned_32 (Header (First + 1)), 16)
+          or Interfaces.Shift_Left (Interfaces.Unsigned_32 (Header (First + 2)), 8)
           or Interfaces.Unsigned_32 (Header (First + 3)));
    begin
       Wide := 0;
@@ -36,9 +32,7 @@ package body SDL3.Pictures is
       Stream_IO.Read (File, Header, Last);
       Stream_IO.Close (File);
       if Last = Header'Last
-        and then (for all I in Signature'Range =>
-                    Header (Stream_Element_Offset (I))
-                    = Stream_Element (Signature (I)))
+        and then (for all I in Signature'Range => Header (Stream_Element_Offset (I)) = Stream_Element (Signature (I)))
         and then Header (13 .. 16) = [73, 72, 68, 82]  --  "IHDR"
         and then Number (17) in 1 .. 65_536
         and then Number (21) in 1 .. 65_536
@@ -47,8 +41,7 @@ package body SDL3.Pictures is
          High := Natural (Number (21));
       end if;
    exception
-      when Ada.IO_Exceptions.Name_Error | Ada.IO_Exceptions.Use_Error
-         | Ada.IO_Exceptions.End_Error =>
+      when Ada.IO_Exceptions.Name_Error | Ada.IO_Exceptions.Use_Error | Ada.IO_Exceptions.End_Error =>
          if Stream_IO.Is_Open (File) then
             Stream_IO.Close (File);
          end if;
@@ -62,8 +55,8 @@ package body SDL3.Pictures is
 
    function Sampled_Dark (Surface : Thin.Surface_Access) return Boolean is
       type Source_Bytes is array (Natural) of Interfaces.Unsigned_8;
-      Source : Source_Bytes
-        with Import, Address => Surface.Pixels;
+      Source  : Source_Bytes
+      with Import, Address => Surface.Pixels;
       Columns : constant Positive := Positive (Surface.W);
       Rows    : constant Positive := Positive (Surface.H);
       Step_X  : constant Positive := Positive'Max (1, Columns / 64);
@@ -74,12 +67,13 @@ package body SDL3.Pictures is
       for Y in 0 .. (Rows - 1) / Step_Y loop
          for X in 0 .. (Columns - 1) / Step_X loop
             declare
-               At_Pixel : constant Natural :=
-                 Y * Step_Y * Natural (Surface.Pitch) + 4 * X * Step_X;
+               At_Pixel : constant Natural := Y * Step_Y * Natural (Surface.Pitch) + 4 * X * Step_X;
             begin
-               Total := Total + Natural (Source (At_Pixel))
-                        + Natural (Source (At_Pixel + 1))
-                        + Natural (Source (At_Pixel + 2));
+               Total :=
+                 Total
+                 + Natural (Source (At_Pixel))
+                 + Natural (Source (At_Pixel + 1))
+                 + Natural (Source (At_Pixel + 2));
                Count := Count + 3;
             end;
          end loop;
@@ -87,9 +81,7 @@ package body SDL3.Pictures is
       return Total / Count < 128;
    end Sampled_Dark;
 
-   procedure Decode
-     (Item : in out Decoded; File_Name : String; Dark : out Boolean)
-   is
+   procedure Decode (Item : in out Decoded; File_Name : String; Dark : out Boolean) is
       use Interfaces.C.Strings;
       Name   : chars_ptr := New_String (File_Name);
       Loaded : constant Thin.Surface_Access := Thin.Load_PNG (Name);
@@ -101,9 +93,9 @@ package body SDL3.Pictures is
          Errors.Raise_Last_Error ("SDL_LoadPNG " & File_Name);
       end if;
       Plain :=
-        (if Loaded.Format = Thin.Pixel_Format_RGBA32 then Loaded
-         else Thin.Convert_Surface (Loaded.all'Address,
-                                    Thin.Pixel_Format_RGBA32));
+        (if Loaded.Format = Thin.Pixel_Format_RGBA32
+         then Loaded
+         else Thin.Convert_Surface (Loaded.all'Address, Thin.Pixel_Format_RGBA32));
       if Plain /= Loaded then
          Thin.Destroy_Surface (Loaded.all'Address);
       end if;
@@ -114,20 +106,20 @@ package body SDL3.Pictures is
       Dark := Sampled_Dark (Plain);
    end Decode;
 
-   function Is_Empty (Item : Decoded) return Boolean is
-     (Item.Surface = null);
+   function Is_Empty (Item : Decoded) return Boolean
+   is (Item.Surface = null);
 
-   function Width (Item : Decoded) return Positive is
-     (Positive (Item.Surface.W));
+   function Width (Item : Decoded) return Positive
+   is (Positive (Item.Surface.W));
 
-   function Height (Item : Decoded) return Positive is
-     (Positive (Item.Surface.H));
+   function Height (Item : Decoded) return Positive
+   is (Positive (Item.Surface.H));
 
-   function Pixels (Item : Decoded) return System.Address is
-     (Item.Surface.Pixels);
+   function Pixels (Item : Decoded) return System.Address
+   is (Item.Surface.Pixels);
 
-   function Pitch (Item : Decoded) return Positive is
-     (Positive (Item.Surface.Pitch));
+   function Pitch (Item : Decoded) return Positive
+   is (Positive (Item.Surface.Pitch));
 
    procedure Release (Item : in out Decoded) is
    begin
@@ -137,7 +129,8 @@ package body SDL3.Pictures is
       end if;
    end Release;
 
-   overriding procedure Finalize (Item : in out Decoded) is
+   overriding
+   procedure Finalize (Item : in out Decoded) is
    begin
       Release (Item);
    end Finalize;

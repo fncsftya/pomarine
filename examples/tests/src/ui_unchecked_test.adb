@@ -11,6 +11,7 @@ with Form_VM;
 --  checks off (see TESTING.md). A handle that has outlived its scope, one of another view, a control placed
 --  twice and a layout of a scope that is gone are each refused by a test the program makes itself, before
 --  any storage is looked at.
+
 procedure UI_Unchecked_Test is
    package UI renames Pomarine.UI;
    package Widgets renames Pomarine.Widgets;
@@ -32,7 +33,8 @@ procedure UI_Unchecked_Test is
       return 0;
    end Remember;
 
-   function Boom return Integer is (Integer'Value ("not a number"));
+   function Boom return Integer
+   is (Integer'Value ("not a number"));
 
    function Leaking_Part (Parent : Forms.Context'Class) return UI.Layout is
       Bound : aliased Forms.Component (Parent'Access);
@@ -111,8 +113,9 @@ begin
          Expect (UI.Check (First, Yours.Layout) = UI.Foreign_Layout, "a layout of another view would be mounted");
 
          --  Twice, and a tree that is unchanged by the refusal.
-         Expect (UI.Check (First, UI.Row ([Mine.Layout, UI.Place (Mine.Save)])) = UI.Duplicate_Placement,
-                 "a control would be placed twice");
+         Expect
+           (UI.Check (First, UI.Row ([Mine.Layout, UI.Place (Mine.Save)])) = UI.Duplicate_Placement,
+            "a control would be placed twice");
          begin
             UI.Mount (First, UI.Row ([Mine.Layout, Mine.Layout]));
             Expect (False, "a screen with a control twice was mounted");

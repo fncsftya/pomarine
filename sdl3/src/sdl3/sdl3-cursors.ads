@@ -1,8 +1,8 @@
 --  The pointer's shape, from the system's own.
+
 package SDL3.Cursors is
 
-   type Kind is (Default, Move, Pointer, Resize, Crosshair, Resize_Across, Resize_Up_Down,
-                 Grab, Grabbing, Text);
+   type Kind is (Default, Move, Pointer, Resize, Crosshair, Resize_Across, Resize_Up_Down, Grab, Grabbing, Text);
    --  Default: the arrow. Move: four arrows, for what is being dragged or
    --  panned. Pointer: a hand, for what can be clicked. Resize: two arrows
    --  across a diagonal, for what is sized by a corner. Crosshair: for what

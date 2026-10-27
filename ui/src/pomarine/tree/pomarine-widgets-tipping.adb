@@ -1,5 +1,6 @@
 with Pomarine.Widgets.Nodes;
 with Pomarine.Widgets.Overlaying;
+
 package body Pomarine.Widgets.Tipping is
 
    use Pomarine.Widgets.Nodes;
@@ -42,7 +43,9 @@ package body Pomarine.Widgets.Tipping is
             Home.Tip_Over := Over_Id;
             Home.Tip_Since := Now;
             Home.Tip_Quiet := False;
-         elsif Over /= 0 and then not Home.Tip_Shown and then not Home.Tip_Quiet
+         elsif Over /= 0
+           and then not Home.Tip_Shown
+           and then not Home.Tip_Quiet
            and then Now - Home.Tip_Since >= Pomarine.Events.Milliseconds (Home.Tip_Delay)
          then
             declare
@@ -58,13 +61,15 @@ package body Pomarine.Widgets.Tipping is
 
    function Wait (Home : Tree) return Integer is
    begin
-      if Home.Tip_Present = null or else Home.Tip_Over = No_Node or else Home.Tip_Shown or else Home.Tip_Quiet
+      if Home.Tip_Present = null
+        or else Home.Tip_Over = No_Node
+        or else Home.Tip_Shown
+        or else Home.Tip_Quiet
         or else not Is_Live (Home, Home.Tip_Id)
       then
          return -1;
       end if;
-      return Integer'Max
-        (0, Home.Tip_Delay - Integer (Home.Clock - Home.Tip_Since));
+      return Integer'Max (0, Home.Tip_Delay - Integer (Home.Clock - Home.Tip_Since));
    end Wait;
 
    procedure Pressed (Home : in out Tree) is

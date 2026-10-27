@@ -5,17 +5,17 @@ with SDL3.Windows;
 with SDL3.Windows.Renderers;
 with SDL3.Pictures;
 with SDL3.Pictures.Jobs;
+
 package body Pomarine.Widgets.Pictures is
 
    use type Semantics.Role;
 
    function Clamped_Mark (Left, Right, Y : Float) return Mark is
-      function Unit (Value : Float) return Float is
-        (Float'Min (1.0, Float'Max (0.0, Value)));
+      function Unit (Value : Float) return Float
+      is (Float'Min (1.0, Float'Max (0.0, Value)));
    begin
-      return (Left  => Unit (Left),
-              Right => Float'Max (Unit (Left), Unit (Right)),
-              Y     => Unit (Y), Trace => <>, Page => <>);
+      return
+        (Left => Unit (Left), Right => Float'Max (Unit (Left), Unit (Right)), Y => Unit (Y), Trace => <>, Page => <>);
    end Clamped_Mark;
 
    package Textures renames SDL3.Windows.Renderers.Textures;
@@ -41,16 +41,20 @@ package body Pomarine.Widgets.Pictures is
    use type Pomarine.Events.Key_Code;
    use type Pomarine.Words.Result_Access;
 
-   function File_Name (Item : Picture) return String is
-     (Item.Name (1 .. Item.Length));
+   function File_Name (Item : Picture) return String
+   is (Item.Name (1 .. Item.Length));
 
-   function Has_Picture (Item : Picture) return Boolean is (Item.Loaded);
+   function Has_Picture (Item : Picture) return Boolean
+   is (Item.Loaded);
 
-   function Has_Failed (Item : Picture) return Boolean is (Item.Failed);
+   function Has_Failed (Item : Picture) return Boolean
+   is (Item.Failed);
 
-   function Scrolled (Item : Picture) return Float is (Item.Down);
+   function Scrolled (Item : Picture) return Float
+   is (Item.Down);
 
-   function Scrolled_Across (Item : Picture) return Float is (Item.Across);
+   function Scrolled_Across (Item : Picture) return Float
+   is (Item.Across);
 
    procedure Scroll_Across_To (Item : in out Picture; To : Float) is
    begin
@@ -60,21 +64,27 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Scroll_Across_To;
 
-   function Zoom (Item : Picture) return Float is (Item.Zoomed);
+   function Zoom (Item : Picture) return Float
+   is (Item.Zoomed);
 
-   function Tool (Item : Picture) return Tools is (Item.Chosen);
+   function Tool (Item : Picture) return Tools
+   is (Item.Chosen);
 
-   function Is_Marking (Item : Picture) return Boolean is (Item.Marking);
+   function Is_Marking (Item : Picture) return Boolean
+   is (Item.Marking);
 
-   function Mark_Count (Item : Picture) return Natural is (Item.Marks);
+   function Mark_Count (Item : Picture) return Natural
+   is (Item.Marks);
 
-   function Mark_At (Item : Picture; Index : Positive) return Mark is
-     (Item.Marked.Data (Index));
+   function Mark_At (Item : Picture; Index : Positive) return Mark
+   is (Item.Marked.Data (Index));
 
-   function Marks_Version (Item : Picture) return Natural is (Item.Version);
+   function Marks_Version (Item : Picture) return Natural
+   is (Item.Version);
 
-   overriding function Cursor (Item : Picture) return SDL3.Cursors.Kind is
-     (case Item.Chosen is
+   overriding
+   function Cursor (Item : Picture) return SDL3.Cursors.Kind
+   is (case Item.Chosen is
          when Highlighter => SDL3.Cursors.Crosshair,
          when Eraser      => SDL3.Cursors.Pointer,
          when Pointer     => SDL3.Cursors.Default);
@@ -90,9 +100,12 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Set_Tool;
 
-   function History_Of (Item : Picture) return Pomarine.Marks.History is (Item.Past);
-   function Can_Undo (Item : Picture) return Boolean is (Pomarine.Marks.Can_Undo (Item.Past));
-   function Can_Redo (Item : Picture) return Boolean is (Pomarine.Marks.Can_Redo (Item.Past));
+   function History_Of (Item : Picture) return Pomarine.Marks.History
+   is (Item.Past);
+   function Can_Undo (Item : Picture) return Boolean
+   is (Pomarine.Marks.Can_Undo (Item.Past));
+   function Can_Redo (Item : Picture) return Boolean
+   is (Pomarine.Marks.Can_Redo (Item.Past));
 
    procedure Undo (Item : in out Picture) is
    begin
@@ -121,8 +134,8 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Redo;
 
-   overriding procedure Handle_Command
-     (Item : in out Picture; Tag : Integer; Done : out Boolean) is
+   overriding
+   procedure Handle_Command (Item : in out Picture; Tag : Integer; Done : out Boolean) is
    begin
       Done := True;
       if Tag = Edit_Undo then
@@ -135,8 +148,7 @@ package body Pomarine.Widgets.Pictures is
    end Handle_Command;
 
    procedure Set_Marks
-     (Item : in out Picture; To : Mark_Array;
-      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History) is
+     (Item : in out Picture; To : Mark_Array; Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History) is
    begin
       Item.Marking := False;
       Item.Past := Past;
@@ -161,20 +173,20 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Clear_Marks;
 
-   function Has_Words (Item : Picture) return Boolean is
-     (Item.Found /= null and then Item.Found.Count > 0);
+   function Has_Words (Item : Picture) return Boolean
+   is (Item.Found /= null and then Item.Found.Count > 0);
 
-   function Word_Count (Item : Picture) return Natural is
-     (if Item.Found = null then 0 else Item.Found.Count);
+   function Word_Count (Item : Picture) return Natural
+   is (if Item.Found = null then 0 else Item.Found.Count);
 
-   function Has_Selection (Item : Picture) return Boolean is
-     (Item.Anchor > 0 and then Item.Head > 0);
+   function Has_Selection (Item : Picture) return Boolean
+   is (Item.Anchor > 0 and then Item.Head > 0);
 
-   function First_Selected (Item : Picture) return Natural is
-     (Natural'Min (Item.Anchor, Item.Head));
+   function First_Selected (Item : Picture) return Natural
+   is (Natural'Min (Item.Anchor, Item.Head));
 
-   function Last_Selected (Item : Picture) return Natural is
-     (Natural'Max (Item.Anchor, Item.Head));
+   function Last_Selected (Item : Picture) return Natural
+   is (Natural'Max (Item.Anchor, Item.Head));
 
    function Selected_Text (Item : Picture) return String is
       Result : Ada.Strings.Unbounded.Unbounded_String;
@@ -189,10 +201,7 @@ package body Pomarine.Widgets.Pictures is
       end if;
       for Index in First_Selected (Item) .. Last_Selected (Item) loop
          if Index > First_Selected (Item) then
-            Append
-              (if Item.Found.Words (Index).Line
-                    = Item.Found.Words (Index - 1).Line
-               then " " else [ASCII.LF]);
+            Append (if Item.Found.Words (Index).Line = Item.Found.Words (Index - 1).Line then " " else [ASCII.LF]);
          end if;
          Append (Pomarine.Words.Image (Item.Found.Words (Index), Item.Found.all));
       end loop;
@@ -222,8 +231,7 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Select_All;
 
-   procedure Set_Words
-     (Item : in out Picture; Found : Pomarine.Words.Result_Access) is
+   procedure Set_Words (Item : in out Picture; Found : Pomarine.Words.Result_Access) is
    begin
       Item.Found := Found;
       Item.Held := False;
@@ -232,34 +240,36 @@ package body Pomarine.Widgets.Pictures is
 
    --  Where the picture is, in pixels, as of the last draw.
 
-   function Wide_Of (Item : Picture) return Float is
-     (Width_Of (Item) * Item.Zoomed);
+   function Wide_Of (Item : Picture) return Float
+   is (Width_Of (Item) * Item.Zoomed);
 
-   function Down_Metrics (Item : Picture) return Scrollbars.Metrics is
-     (Left    => Left_Of (Item), Top => Top_Of (Item),
-      Width   => Width_Of (Item), Height => Height_Of (Item),
-      Density => Density (Item),
-      Start   => Item.Down * Item.Fitted,
-      Shown   => Height_Of (Item),
-      Total   => Item.Fitted,
-      Horizontal => False);
+   function Down_Metrics (Item : Picture) return Scrollbars.Metrics
+   is (Left       => Left_Of (Item),
+       Top        => Top_Of (Item),
+       Width      => Width_Of (Item),
+       Height     => Height_Of (Item),
+       Density    => Density (Item),
+       Start      => Item.Down * Item.Fitted,
+       Shown      => Height_Of (Item),
+       Total      => Item.Fitted,
+       Horizontal => False);
 
-   function Across_Metrics (Item : Picture) return Scrollbars.Metrics is
-     (Left    => Left_Of (Item), Top => Top_Of (Item),
-      Width   => Width_Of (Item), Height => Height_Of (Item),
-      Density => Density (Item),
-      Start   =>
-        Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)),
-      Shown   => Width_Of (Item),
-      Total   => Wide_Of (Item),
-      Horizontal => True);
+   function Across_Metrics (Item : Picture) return Scrollbars.Metrics
+   is (Left       => Left_Of (Item),
+       Top        => Top_Of (Item),
+       Width      => Width_Of (Item),
+       Height     => Height_Of (Item),
+       Density    => Density (Item),
+       Start      => Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)),
+       Shown      => Width_Of (Item),
+       Total      => Wide_Of (Item),
+       Horizontal => True);
 
-   function Origin_X (Item : Picture) return Float is
-     (Left_Of (Item)
-      - Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)));
+   function Origin_X (Item : Picture) return Float
+   is (Left_Of (Item) - Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)));
 
-   function Origin_Y (Item : Picture) return Float is
-     (Top_Of (Item) - Item.Down * Item.Fitted);
+   function Origin_Y (Item : Picture) return Float
+   is (Top_Of (Item) - Item.Down * Item.Fitted);
 
    function Word_Box (Item : Picture; Index : Positive) return Pixel_Box is
       Each : Pomarine.Words.Word renames Item.Found.Words (Index);
@@ -274,13 +284,12 @@ package body Pomarine.Widgets.Pictures is
          Height => Integer (Each.Height * Item.Fitted));
    end Word_Box;
 
-   function Along (Item : Picture; X : Float) return Float is
-     (Float'Min
-        (1.0, Float'Max (0.0, (X - Origin_X (Item)) / Wide_Of (Item))));
+   function Along (Item : Picture; X : Float) return Float
+   is (Float'Min (1.0, Float'Max (0.0, (X - Origin_X (Item)) / Wide_Of (Item))));
    --  How far across the picture the pixel X is, clamped to it.
 
-   function Down_Of (Item : Picture; Y : Float) return Float is
-     (Float'Min (1.0, Float'Max (0.0, (Y - Origin_Y (Item)) / Item.Fitted)));
+   function Down_Of (Item : Picture; Y : Float) return Float
+   is (Float'Min (1.0, Float'Max (0.0, (Y - Origin_Y (Item)) / Item.Fitted)));
 
    procedure Extend_Mark (Item : in out Picture; X, Y : Float) is
       Each : Mark renames Item.Marked.Data (Item.Marks + 1);
@@ -293,13 +302,17 @@ package body Pomarine.Widgets.Pictures is
       Half   : constant Float := Mark_Height * Wide_Of (Item) / 2.0;
    begin
       for Index in reverse 1 .. Item.Marks loop
-         if (Item.Marked.Data (Index).Trace.Count > 0 and then
-             Mark_Paths.Contains (Item.Marked.Data (Index).Trace, X - Origin_X (Item), Y - Origin_Y (Item),
-                                  Wide_Of (Item), Item.Fitted, Half))
+         if (Item.Marked.Data (Index).Trace.Count > 0
+             and then Mark_Paths.Contains
+                        (Item.Marked.Data (Index).Trace,
+                         X - Origin_X (Item),
+                         Y - Origin_Y (Item),
+                         Wide_Of (Item),
+                         Item.Fitted,
+                         Half))
            or else (Item.Marked.Data (Index).Trace.Count = 0
-           and then Across in Item.Marked.Data (Index).Left .. Item.Marked.Data (Index).Right
-           and then abs (Y - (Origin_Y (Item)
-                              + Item.Marked.Data (Index).Y * Item.Fitted)) <= Half)
+                    and then Across in Item.Marked.Data (Index).Left .. Item.Marked.Data (Index).Right
+                    and then abs (Y - (Origin_Y (Item) + Item.Marked.Data (Index).Y * Item.Fitted)) <= Half)
          then
             return Index;
          end if;
@@ -308,27 +321,20 @@ package body Pomarine.Widgets.Pictures is
    end Mark_Under;
    --  The latest mark at pixel X, Y, 0 if none.
 
-   procedure Handle_Marking
-     (Item    : in out Picture;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   procedure Handle_Marking (Item : in out Picture; Event : Pomarine.Events.Event; Handled : out Boolean) is
       X : constant Float := Event.Mouse_X * Density (Item);
       Y : constant Float := Event.Mouse_Y * Density (Item);
    begin
       Handled := False;
       case Event.Kind is
          when Pomarine.Events.Mouse_Down =>
-            if Event.Button = 1 and then Contains (Item, X, Y)
-              and then Item.Chosen = Eraser
-            then
+            if Event.Button = 1 and then Contains (Item, X, Y) and then Item.Chosen = Eraser then
                declare
                   Under : constant Natural := Mark_Under (Item, X, Y);
                begin
                   if Under > 0 then
                      Pomarine.Marks.Record_Remove (Item.Past, Item.Marked.Data (Under), Under);
-                     Item.Marked.Data (Under .. Item.Marks - 1) :=
-                       Item.Marked.Data (Under + 1 .. Item.Marks);
+                     Item.Marked.Data (Under .. Item.Marks - 1) := Item.Marked.Data (Under + 1 .. Item.Marks);
                      Item.Marks := Item.Marks - 1;
                      Item.Version := Item.Version + 1;
                      Invalidate (Item);
@@ -346,19 +352,20 @@ package body Pomarine.Widgets.Pictures is
                Invalidate (Item);
                Handled := True;
             end if;
+
          when Pomarine.Events.Mouse_Move =>
             if Item.Marking then
                Extend_Mark (Item, X, Y);
                Invalidate (Item);
                Handled := True;
             end if;
-         when Pomarine.Events.Mouse_Up =>
+
+         when Pomarine.Events.Mouse_Up   =>
             if Item.Marking and then Event.Button = 1 then
                Item.Marking := False;
                Extend_Mark (Item, X, Y);
                --  A click, that went nowhere, marks nothing.
-               if Item.Marked.Data (Item.Marks + 1).Trace.Count > 1
-               then
+               if Item.Marked.Data (Item.Marks + 1).Trace.Count > 1 then
                   Item.Marks := Item.Marks + 1;
                   Pomarine.Marks.Record_Add (Item.Past, Item.Marked.Data (Item.Marks), Item.Marks);
                   Item.Version := Item.Version + 1;
@@ -366,19 +373,17 @@ package body Pomarine.Widgets.Pictures is
                Invalidate (Item);
                Handled := True;
             end if;
-         when others =>
+
+         when others                     =>
             null;
       end case;
    end Handle_Marking;
 
-   function Gap (From, To, At_Point : Float) return Float is
-     (if At_Point < From then From - At_Point
-      elsif At_Point > To then At_Point - To else 0.0);
+   function Gap (From, To, At_Point : Float) return Float
+   is (if At_Point < From then From - At_Point elsif At_Point > To then At_Point - To else 0.0);
    --  How far a point is from the span From .. To.
 
-   function Word_At
-     (Item : Picture; X, Y : Float; Nearest : Boolean) return Natural
-   is
+   function Word_At (Item : Picture; X, Y : Float; Nearest : Boolean) return Natural is
       Best     : Natural := 0;
       Best_Gap : Float := Float'Last;
       Wide     : constant Float := Wide_Of (Item);
@@ -391,12 +396,9 @@ package body Pomarine.Widgets.Pictures is
       for Index in 1 .. Item.Found.Count loop
          declare
             Each   : Pomarine.Words.Word renames Item.Found.Words (Index);
-            Across : constant Float :=
-              Gap (Left + Each.Left * Wide,
-                   Left + (Each.Left + Each.Width) * Wide, X);
+            Across : constant Float := Gap (Left + Each.Left * Wide, Left + (Each.Left + Each.Width) * Wide, X);
             Down   : constant Float :=
-              Gap (Top + Each.Top * Item.Fitted,
-                   Top + (Each.Top + Each.Height) * Item.Fitted, Y);
+              Gap (Top + Each.Top * Item.Fitted, Top + (Each.Top + Each.Height) * Item.Fitted, Y);
             --  Down counts for more: the nearest on its line is the one
             --  wanted, before one above or below.
             Away   : constant Float := Across + 4.0 * Down;
@@ -410,12 +412,10 @@ package body Pomarine.Widgets.Pictures is
       return (if Nearest or else Best_Gap = 0.0 then Best else 0);
    end Word_At;
 
-   function Is_Over_Selection (Item : Picture; X, Y : Float) return Boolean
-   is
+   function Is_Over_Selection (Item : Picture; X, Y : Float) return Boolean is
       Under : constant Natural := Word_At (Item, X, Y, Nearest => False);
    begin
-      return Has_Selection (Item) and then Under > 0
-        and then Under in First_Selected (Item) .. Last_Selected (Item);
+      return Has_Selection (Item) and then Under > 0 and then Under in First_Selected (Item) .. Last_Selected (Item);
    end Is_Over_Selection;
 
    procedure Copy (Item : Picture) is
@@ -433,20 +433,18 @@ package body Pomarine.Widgets.Pictures is
       while First > 1 and then Item.Found.Words (First - 1).Line = Line loop
          First := First - 1;
       end loop;
-      while Last < Item.Found.Count
-        and then Item.Found.Words (Last + 1).Line = Line
-      loop
+      while Last < Item.Found.Count and then Item.Found.Words (Last + 1).Line = Line loop
          Last := Last + 1;
       end loop;
       Select_Range (Item, First, Last);
    end Select_Line;
 
-   overriding function Is_Focusable (Item : Picture) return Boolean is
-     (Item.Length > 0);
+   overriding
+   function Is_Focusable (Item : Picture) return Boolean
+   is (Item.Length > 0);
 
-   overriding procedure Focus_Changed
-     (Item : in out Picture; Focused : Boolean)
-   is
+   overriding
+   procedure Focus_Changed (Item : in out Picture; Focused : Boolean) is
       pragma Unreferenced (Focused);
    begin
       if Has_Selection (Item) then
@@ -510,17 +508,18 @@ package body Pomarine.Widgets.Pictures is
       Item.Failed := False;
    end Unload;
 
-   function Furthest (Item : Picture; High : Float) return Float is
-     (if Item.Fitted <= 0.0 then 1.0
-      elsif High > 0.0 and then Item.Fitted > High
-      then 1.0 - High / Item.Fitted else 0.0);
+   function Furthest (Item : Picture; High : Float) return Float
+   is (if Item.Fitted <= 0.0
+       then 1.0
+       elsif High > 0.0 and then Item.Fitted > High
+       then 1.0 - High / Item.Fitted
+       else 0.0);
    --  The most Down can be, for a box High pixels high, so that the
    --  picture's end is at the box's; 1.0 until the size of the picture is
    --  known, when it is drawn.
 
    procedure Scroll_To (Item : in out Picture; To : Float) is
-      Wanted : constant Float :=
-        Float'Min (To, Furthest (Item, Height_Of (Item)));
+      Wanted : constant Float := Float'Min (To, Furthest (Item, Height_Of (Item)));
    begin
       if Wanted /= Item.Down then
          Item.Down := Wanted;
@@ -528,9 +527,8 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Scroll_To;
 
-   overriding procedure Update
-     (Item : in out Picture; Now : Pomarine.Events.Milliseconds)
-   is
+   overriding
+   procedure Update (Item : in out Picture; Now : Pomarine.Events.Milliseconds) is
       pragma Unreferenced (Now);
    begin
       --  It is read; draw it.
@@ -539,9 +537,9 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Update;
 
-   overriding function Until_Update (Item : Picture) return Integer is
-     (if Item.Job /= 0 and then Jobs.State (Item.Job) = Jobs.Working
-      then Poll else -1);
+   overriding
+   function Until_Update (Item : Picture) return Integer
+   is (if Item.Job /= 0 and then Jobs.State (Item.Job) = Jobs.Working then Poll else -1);
 
    procedure Search (Item : in out Picture; Term : String) is
    begin
@@ -559,8 +557,7 @@ package body Pomarine.Widgets.Pictures is
          if B.Hit = Item.Search_Found.Current then
             Scroll_To (Item, B.Top);
             if Wide_Of (Item) > Width_Of (Item) then
-               Scroll_Across_To (Item, Float'Min (1.0,
-                 B.Left * Wide_Of (Item) / (Wide_Of (Item) - Width_Of (Item))));
+               Scroll_Across_To (Item, Float'Min (1.0, B.Left * Wide_Of (Item) / (Wide_Of (Item) - Width_Of (Item))));
             end if;
             exit;
          end if;
@@ -568,20 +565,17 @@ package body Pomarine.Widgets.Pictures is
       Invalidate (Item);
    end Search_Step;
 
-   function Search_Count (Item : Picture) return Natural is (Natural (Item.Search_Found.Matches.Length));
-   function Search_Current (Item : Picture) return Natural is (Item.Search_Found.Current);
+   function Search_Count (Item : Picture) return Natural
+   is (Natural (Item.Search_Found.Matches.Length));
+   function Search_Current (Item : Picture) return Natural
+   is (Item.Search_Found.Current);
 
-   overriding procedure Draw
-     (Item   : in out Picture;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme)
-   is
+   overriding
+   procedure Draw (Item : in out Picture; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
       Box  : constant Float := Width_Of (Item);
       Wide : constant Float := Box * Item.Zoomed;
    begin
-      SDL3.Painters.Fill_Rect
-        (Target, Themes.Paper,
-         Left_Of (Item), Top_Of (Item), Box, Height_Of (Item));
+      SDL3.Painters.Fill_Rect (Target, Themes.Paper, Left_Of (Item), Top_Of (Item), Box, Height_Of (Item));
       if Item.Length = 0 or else Item.Failed then
          return;
       end if;
@@ -606,21 +600,20 @@ package body Pomarine.Widgets.Pictures is
       end if;
       --  As tall as it will be, before it is there.
       if Item.Loaded then
-         Item.Fitted :=
-           Wide * Float (Textures.Height (Item.Pixels))
-             / Float (Textures.Width (Item.Pixels));
+         Item.Fitted := Wide * Float (Textures.Height (Item.Pixels)) / Float (Textures.Width (Item.Pixels));
       elsif Item.Wide > 0 then
          Item.Fitted := Wide * Float (Item.High) / Float (Item.Wide);
       end if;
-      Item.Down :=
-        Float'Min (Item.Down, Furthest (Item, Height_Of (Item)));
+      Item.Down := Float'Min (Item.Down, Furthest (Item, Height_Of (Item)));
       Item.Across := Float'Min (Item.Across, 1.0);
       if Item.Loaded then
          SDL3.Painters.Draw_Scaled
-           (Target, Item.Pixels,
+           (Target,
+            Item.Pixels,
             Left_Of (Item) - Item.Across * Float'Max (0.0, Wide - Box),
             Top_Of (Item) - Item.Down * Item.Fitted,
-            Wide, Item.Fitted);
+            Wide,
+            Item.Fitted);
       end if;
       declare
          Left : constant Float := Origin_X (Item);
@@ -631,16 +624,22 @@ package body Pomarine.Widgets.Pictures is
             --  Multiplication tints white lettering on dark paper without
             --  brightening its background or washing the lettering out.
             Pomarine.Marks.Drawing.Draw
-              (Item.Marked.Data (1 .. Item.Marks + (if Item.Marking then 1 else 0)), 1,
-               Target, Colors (Themes.Marker), SDL3.Windows.Renderers.Multiply,
-               Left, Top, Wide, Item.Fitted, High / 2.0);
+              (Item.Marked.Data (1 .. Item.Marks + (if Item.Marking then 1 else 0)),
+               1,
+               Target,
+               Colors (Themes.Marker),
+               SDL3.Windows.Renderers.Multiply,
+               Left,
+               Top,
+               Wide,
+               Item.Fitted,
+               High / 2.0);
          end if;
       end;
       if Has_Selection (Item) then
          declare
             Tint : SDL3.Windows.Renderers.Color :=
-              (if Has_Focus (Item) then Colors (Themes.Selection)
-               else Themes.Inactive_Selection (Colors));
+              (if Has_Focus (Item) then Colors (Themes.Selection) else Themes.Inactive_Selection (Colors));
             Left : constant Float := Origin_X (Item);
             Top  : constant Float := Origin_Y (Item);
          begin
@@ -650,53 +649,42 @@ package body Pomarine.Widgets.Pictures is
                   Each : Pomarine.Words.Word renames Item.Found.Words (Index);
                begin
                   SDL3.Painters.Fill_Rect
-                    (Target, Tint,
-                     Left + Each.Left * Wide, Top + Each.Top * Item.Fitted,
-                     Each.Width * Wide, Each.Height * Item.Fitted);
+                    (Target,
+                     Tint,
+                     Left + Each.Left * Wide,
+                     Top + Each.Top * Item.Fitted,
+                     Each.Width * Wide,
+                     Each.Height * Item.Fitted);
                end;
             end loop;
          end;
       end if;
-      Pomarine.Searches.Draw
-        (Item.Search_Found, Target, 1, Origin_X (Item), Origin_Y (Item), Wide, Item.Fitted);
+      Pomarine.Searches.Draw (Item.Search_Found, Target, 1, Origin_X (Item), Origin_Y (Item), Wide, Item.Fitted);
       Scrollbars.Draw (Item.Down_Bar, Target, Colors, Down_Metrics (Item));
-      Scrollbars.Draw
-        (Item.Across_Bar, Target, Colors, Across_Metrics (Item));
+      Scrollbars.Draw (Item.Across_Bar, Target, Colors, Across_Metrics (Item));
    end Draw;
 
-   overriding procedure Hover_Changed
-     (Item : in out Picture; Hovered : Boolean) is
+   overriding
+   procedure Hover_Changed (Item : in out Picture; Hovered : Boolean) is
    begin
       Scrollbars.Set_Pane (Item.Down_Bar, Hovered);
       Scrollbars.Set_Pane (Item.Across_Bar, Hovered);
       Invalidate (Item);
    end Hover_Changed;
 
-   procedure Handle_Bars
-     (Item    : in out Picture;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   procedure Handle_Bars (Item : in out Picture; Event : Pomarine.Events.Event; Handled : out Boolean) is
       Moved, Changed, Other_Changed : Boolean;
-      Other_Taken, Other_Moved : Boolean;
-      To, Other_To : Float;
+      Other_Taken, Other_Moved      : Boolean;
+      To, Other_To                  : Float;
    begin
-      Scrollbars.Handle
-        (Item.Down_Bar, Event, Down_Metrics (Item), Handled, Moved, To,
-         Changed);
+      Scrollbars.Handle (Item.Down_Bar, Event, Down_Metrics (Item), Handled, Moved, To, Changed);
       if Moved then
-         Scroll_To
-           (Item, Float'Min (1.0, Float'Max (0.0, To / Item.Fitted)));
+         Scroll_To (Item, Float'Min (1.0, Float'Max (0.0, To / Item.Fitted)));
       end if;
       Scrollbars.Handle
-        (Item.Across_Bar, Event, Across_Metrics (Item), Other_Taken,
-         Other_Moved, Other_To, Other_Changed);
+        (Item.Across_Bar, Event, Across_Metrics (Item), Other_Taken, Other_Moved, Other_To, Other_Changed);
       if Other_Moved then
-         Item.Across :=
-           Float'Min
-             (1.0,
-              Float'Max
-                (0.0, Other_To / (Wide_Of (Item) - Width_Of (Item))));
+         Item.Across := Float'Min (1.0, Float'Max (0.0, Other_To / (Wide_Of (Item) - Width_Of (Item))));
       end if;
       Handled := Handled or else Other_Taken;
       if Changed or else Moved or else Other_Changed or else Other_Moved then
@@ -704,22 +692,20 @@ package body Pomarine.Widgets.Pictures is
       end if;
    end Handle_Bars;
 
-   overriding procedure Handle
-     (Item    : in out Picture;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean) is
+   overriding
+   procedure Handle (Item : in out Picture; Event : Pomarine.Events.Event; Handled : out Boolean) is
    begin
       Handled := False;
-      if Event.Kind = Pomarine.Events.Key_Down and then Event.Command and then not Event.Option
+      if Event.Kind = Pomarine.Events.Key_Down
+        and then Event.Command
+        and then not Event.Option
         and then Event.Key = Pomarine.Events.Key_Z
       then
          Handle_Command (Item, (if Event.Shift then Edit_Redo else Edit_Undo), Handled);
          return;
       end if;
       if Item.Fitted > 0.0
-        and then Event.Kind in Pomarine.Events.Mouse_Down
-                             | Pomarine.Events.Mouse_Move
-                             | Pomarine.Events.Mouse_Up
+        and then Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up
       then
          Handle_Bars (Item, Event, Handled);
          if Handled then
@@ -736,15 +722,11 @@ package body Pomarine.Widgets.Pictures is
          case Event.Kind is
             when Pomarine.Events.Mouse_Down =>
                if Event.Button = 1
-                 and then Contains
-                            (Item, Event.Mouse_X * Density (Item),
-                             Event.Mouse_Y * Density (Item))
+                 and then Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item))
                then
                   declare
                      Under : constant Natural :=
-                       Word_At
-                         (Item, Event.Mouse_X * Density (Item),
-                          Event.Mouse_Y * Density (Item), Nearest => False);
+                       Word_At (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item), Nearest => False);
                   begin
                      if Under = 0 then
                         Clear_Selection (Item);
@@ -764,38 +746,39 @@ package body Pomarine.Widgets.Pictures is
                      end if;
                   end;
                end if;
+
             when Pomarine.Events.Mouse_Move =>
                if Item.Held then
                   declare
                      Under : constant Natural :=
-                       Word_At
-                         (Item, Event.Mouse_X * Density (Item),
-                          Event.Mouse_Y * Density (Item), Nearest => True);
+                       Word_At (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item), Nearest => True);
                   begin
                      Select_Range
-                       (Item, Item.Anchor,
-                        (if Under = Item.Anchor and then not Item.Drag_Words then 0 else Under));
+                       (Item, Item.Anchor, (if Under = Item.Anchor and then not Item.Drag_Words then 0 else Under));
                      Handled := True;
                   end;
                end if;
-            when Pomarine.Events.Mouse_Up =>
+
+            when Pomarine.Events.Mouse_Up   =>
                if Item.Held and then Event.Button = 1 then
                   Item.Held := False;
                   Handled := True;
                end if;
-            when Pomarine.Events.Key_Down =>
-               if Event.Command and then Event.Key = Pomarine.Events.Key_C
+
+            when Pomarine.Events.Key_Down   =>
+               if Event.Command
+                 and then Event.Key = Pomarine.Events.Key_C
                  and then Has_Selection (Item)
                  and then Clipboard (Item) /= null
                then
                   Clipboard (Item).Set_Text (Selected_Text (Item));
                   Handled := True;
-               elsif Event.Command and then Event.Key = Pomarine.Events.Key_A
-               then
+               elsif Event.Command and then Event.Key = Pomarine.Events.Key_A then
                   Select_All (Item);
                   Handled := True;
                end if;
-            when others =>
+
+            when others                     =>
                null;
          end case;
          if Handled then
@@ -810,26 +793,19 @@ package body Pomarine.Widgets.Pictures is
                  Float'Max
                    (0.0,
                     Item.Across
-                    - Event.Wheel_X * Points_Per_Notch * Density (Item)
-                      / (Width_Of (Item) * (Item.Zoomed - 1.0))));
+                    - Event.Wheel_X * Points_Per_Notch * Density (Item) / (Width_Of (Item) * (Item.Zoomed - 1.0))));
             Invalidate (Item);
          end if;
          Scroll_To
            (Item,
             Float'Min
-              (1.0,
-               Float'Max
-                 (0.0,
-                  Item.Down
-                  - Event.Wheel_Y * Points_Per_Notch * Density (Item)
-                    / Item.Fitted)));
+              (1.0, Float'Max (0.0, Item.Down - Event.Wheel_Y * Points_Per_Notch * Density (Item) / Item.Fitted)));
          Handled := True;
       end if;
    end Handle;
 
-   overriding procedure Describe
-     (Item  : Picture;
-      Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Picture; Facts : in out Semantics.Description) is
    begin
       if Facts.Kind = Semantics.Unknown then
          Facts.Kind := Semantics.Image;

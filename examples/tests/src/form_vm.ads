@@ -3,6 +3,7 @@ with Pomarine.View_Models;
 
 --  A model with a text, for the tests of Pomarine.UI: it can normalize what it is given, be changed from
 --  elsewhere, and keeps a journal of what was done to it and in what order.
+
 package Form_VM is
 
    type Command is (Save, Reset);
@@ -10,9 +11,12 @@ package Form_VM is
 
    type Model is limited new Commands.Model with private;
 
-   overriding function Version (Self : Model) return Pomarine.View_Models.Version_Number;
-   overriding function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding procedure Execute (Self : in out Model; What : Command; Index : Natural := 0);
+   overriding
+   function Version (Self : Model) return Pomarine.View_Models.Version_Number;
+   overriding
+   function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
+   overriding
+   procedure Execute (Self : in out Model; What : Command; Index : Natural := 0);
 
    type Hook is access procedure;
 

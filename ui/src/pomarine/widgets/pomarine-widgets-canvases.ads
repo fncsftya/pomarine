@@ -14,6 +14,7 @@ with Pomarine.Events;
 --  =, - and 0 (zoom in, out, and back to 1) about the middle. Dragging
 --  with the middle button pans it, and shows the move cursor while it does.
 --  Zooming stays within limits.
+
 package Pomarine.Widgets.Canvases is
 
    Min_Zoom : constant Float := 0.1;
@@ -36,9 +37,8 @@ package Pomarine.Widgets.Canvases is
    --  Move what is seen by Across and Down points, to the right and
    --  down.
 
-   procedure Zoom_By
-     (Item : in out Canvas; Factor : Float; About_X, About_Y : Float)
-     with Pre => Factor > 0.0;
+   procedure Zoom_By (Item : in out Canvas; Factor : Float; About_X, About_Y : Float)
+   with Pre => Factor > 0.0;
    --  Multiply the zoom by Factor, within limits, keeping the point
    --  About_X, About_Y (in points from the top left of its box) where it is.
 
@@ -46,8 +46,8 @@ package Pomarine.Widgets.Canvases is
    function To_Canvas_Y (Item : Canvas; Point : Float) return Float;
    --  The canvas unit at Point points from the left or top of the box.
 
-   function To_Screen (Unit, Scale, Origin : Float) return Float is
-     (Origin + Unit * Scale);
+   function To_Screen (Unit, Scale, Origin : Float) return Float
+   is (Origin + Unit * Scale);
    --  Points from the left or top of the box of a canvas unit, for a
    --  canvas zoomed by Scale whose origin is Origin points from there: for a
    --  canvas as it was seen (see Zoom and Origin_X) rather than as it is.
@@ -61,12 +61,12 @@ package Pomarine.Widgets.Canvases is
 
    type Line is record
       From_X, From_Y, To_X, To_Y : Float := 0.0;
-      Tag   : Natural := 0;
+      Tag                        : Natural := 0;
       --  What the application calls it, to be told which is selected.
-      Dash  : Dashes := Solid;
-      Arrow : Boolean := False;
+      Dash                       : Dashes := Solid;
+      Arrow                      : Boolean := False;
       --  An arrowhead at the To end.
-      Ink   : Themes.Slot := Themes.Foreground;
+      Ink                        : Themes.Slot := Themes.Foreground;
    end record;
    --  A straight line between two places, in canvas units.
 
@@ -89,8 +89,7 @@ package Pomarine.Widgets.Canvases is
    --  Backspace or Delete with one selected, is heard with
    --  Pomarine.Widgets.Canvases.Callbacks.
 
-   procedure Set_Ghost
-     (Item : in out Canvas; From_X, From_Y : Float; To_X, To_Y : Float);
+   procedure Set_Ghost (Item : in out Canvas; From_X, From_Y : Float; To_X, To_Y : Float);
    --  Draw a faint line over everything on the canvas, as of one being
    --  dragged out: from a place on the canvas (in canvas units) to the
    --  pointer (in points of the window).
@@ -99,50 +98,44 @@ package Pomarine.Widgets.Canvases is
 
    function Has_Ghost (Item : Canvas) return Boolean;
 
-   overriding procedure Placed
-     (Item : in out Canvas; Left, Top, Width, Height : Float);
+   overriding
+   procedure Placed (Item : in out Canvas; Left, Top, Width, Height : Float);
 
-   overriding procedure Draw
-     (Item   : in out Canvas;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Canvas; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Draw_Over
-     (Item   : in out Canvas;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Canvas; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Handle
-     (Item    : in out Canvas;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Canvas; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding function Cursor (Item : Canvas) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Canvas) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe
-     (Item  : Canvas;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Canvas; Facts : in out Semantics.Description);
 
 private
 
    package Line_Vectors is new Ada.Containers.Vectors (Positive, Line);
 
    type Canvas is new Widget with record
-      Scale   : Float := 1.0;
-      Across  : Float := 0.0;
-      Down    : Float := 0.0;
+      Scale          : Float := 1.0;
+      Across         : Float := 0.0;
+      Down           : Float := 0.0;
       --  Of the origin, in points.
-      Centered : Boolean := False;
+      Centered       : Boolean := False;
       --  Whether the origin has been put in the middle.
-      Panning : Boolean := False;
+      Panning        : Boolean := False;
       Last_X, Last_Y : Float := 0.0;
       --  Where the pointer was, in points, while it pans.
-      Lines      : Line_Vectors.Vector;
-      Chosen     : Natural := 0;
-      Select_Hook : Posted_Hook;
-      Delete_Hook : Posted_Hook;
-      Ghosted    : Boolean := False;
-      Ghost_From : Line;
+      Lines          : Line_Vectors.Vector;
+      Chosen         : Natural := 0;
+      Select_Hook    : Posted_Hook;
+      Delete_Hook    : Posted_Hook;
+      Ghosted        : Boolean := False;
+      Ghost_From     : Line;
       --  The ghost: From_X, From_Y are in canvas units, To_X, To_Y in
       --  points of the window.
    end record;

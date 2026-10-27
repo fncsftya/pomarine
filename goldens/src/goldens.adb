@@ -12,23 +12,23 @@ package body Goldens is
    Passes   : Natural := 0;
    Failures : Natural := 0;
 
-   function Root return String is
-     (Ada.Directories.Containing_Directory
-        (Ada.Directories.Containing_Directory
-           (Ada.Directories.Full_Name (Ada.Command_Line.Command_Name))));
+   function Root return String
+   is (Ada.Directories.Containing_Directory
+         (Ada.Directories.Containing_Directory (Ada.Directories.Full_Name (Ada.Command_Line.Command_Name))));
    --  Of the tests: the program is in bin/ there.
 
-   function Golden_Dir return String is (Root & "/golden");
-   function Output_Dir return String is (Root & "/out");
+   function Golden_Dir return String
+   is (Root & "/golden");
+   function Output_Dir return String
+   is (Root & "/out");
 
-   function Updating return Boolean is
-     (Ada.Environment_Variables.Exists ("UPDATE_GOLDEN")
-      and then Ada.Environment_Variables.Value ("UPDATE_GOLDEN") = "1");
+   function Updating return Boolean
+   is (Ada.Environment_Variables.Exists ("UPDATE_GOLDEN")
+       and then Ada.Environment_Variables.Value ("UPDATE_GOLDEN") = "1");
 
    procedure Save (Item : Images.Image; Path : String) is
    begin
-      Ada.Directories.Create_Path
-        (Ada.Directories.Containing_Directory (Path));
+      Ada.Directories.Create_Path (Ada.Directories.Containing_Directory (Path));
       Images.Save_PNG (Item, Path);
    end Save;
 
@@ -52,20 +52,20 @@ package body Goldens is
       Ada.Text_IO.Put_Line ("FAIL  " & Name & ": " & Why);
    end Fail;
 
-   function Delta_Of (A, B : Color) return Natural is
-     (Natural'Max
-        (Natural'Max (Natural (abs (Integer (A.Red) - Integer (B.Red))),
-                      Natural (abs (Integer (A.Green) - Integer (B.Green)))),
-         Natural'Max (Natural (abs (Integer (A.Blue) - Integer (B.Blue))),
-                      Natural (abs (Integer (A.Alpha) - Integer (B.Alpha))))));
+   function Delta_Of (A, B : Color) return Natural
+   is (Natural'Max
+         (Natural'Max
+            (Natural (abs (Integer (A.Red) - Integer (B.Red))), Natural (abs (Integer (A.Green) - Integer (B.Green)))),
+          Natural'Max
+            (Natural (abs (Integer (A.Blue) - Integer (B.Blue))),
+             Natural (abs (Integer (A.Alpha) - Integer (B.Alpha))))));
    --  The most any channel differs by.
 
-   function Same_Size (A, B : Images.Image) return Boolean is
-     (Images.Width (A) = Images.Width (B)
-      and then Images.Height (A) = Images.Height (B));
+   function Same_Size (A, B : Images.Image) return Boolean
+   is (Images.Width (A) = Images.Width (B) and then Images.Height (A) = Images.Height (B));
 
-   function Size_Of (Item : Images.Image) return String is
-     (Images.Width (Item)'Image & " x" & Images.Height (Item)'Image);
+   function Size_Of (Item : Images.Image) return String
+   is (Images.Width (Item)'Image & " x" & Images.Height (Item)'Image);
 
    procedure Compare
      (Expected, Actual : Images.Image;
@@ -73,7 +73,7 @@ package body Goldens is
       Diff             : in out Images.Image;
       Differing        : out Natural;
       Max_Delta        : out Natural)
-     with Pre => Same_Size (Expected, Actual);
+   with Pre => Same_Size (Expected, Actual);
    --  Count the pixels that differ by more than Tolerance, and make Diff:
    --  them in red, over Expected dimmed.
 
@@ -99,9 +99,7 @@ package body Goldens is
                   Differing := Differing + 1;
                   Images.Set_Pixel (Diff, X, Y, (255, 0, 0, 255));
                else
-                  Images.Set_Pixel
-                    (Diff, X, Y,
-                     (Was.Red / 4, Was.Green / 4, Was.Blue / 4, 255));
+                  Images.Set_Pixel (Diff, X, Y, (Was.Red / 4, Was.Green / 4, Was.Blue / 4, 255));
                end if;
             end;
          end loop;
@@ -128,19 +126,16 @@ package body Goldens is
       Against       : String;
       Keep_Expected : Boolean)
    is
-      Actual_Path   : constant String :=
-        Output_Dir & "/" & Name & "-actual.png";
+      Actual_Path   : constant String := Output_Dir & "/" & Name & "-actual.png";
       Diff_Path     : constant String := Output_Dir & "/" & Name & "-diff.png";
-      Expected_Path : constant String :=
-        Output_Dir & "/" & Name & "-expected.png";
+      Expected_Path : constant String := Output_Dir & "/" & Name & "-expected.png";
       Diff          : Images.Image;
       Differing     : Natural;
       Max_Delta     : Natural;
    begin
       if not Same_Size (Expected, Actual) then
          Save (Actual, Actual_Path);
-         Fail (Name, "size" & Size_Of (Actual) & ", " & Against
-               & Size_Of (Expected) & "; see " & Actual_Path);
+         Fail (Name, "size" & Size_Of (Actual) & ", " & Against & Size_Of (Expected) & "; see " & Actual_Path);
          return;
       end if;
 
@@ -149,28 +144,32 @@ package body Goldens is
          Remove (Actual_Path);
          Remove (Diff_Path);
          Remove (Expected_Path);
-         Pass (Name, (if Differing > 0 or else Max_Delta > 0
-                      then " (" & Differing'Image & " pixels differ, by up to"
-                           & Max_Delta'Image & ")"
-                      else ""));
+         Pass
+           (Name,
+            (if Differing > 0 or else Max_Delta > 0
+             then " (" & Differing'Image & " pixels differ, by up to" & Max_Delta'Image & ")"
+             else ""));
       else
          Save (Actual, Actual_Path);
          Save (Diff, Diff_Path);
          if Keep_Expected then
             Save (Expected, Expected_Path);
          end if;
-         Fail (Name, Differing'Image & " pixels differ from " & Against
-               & " (by up to" & Max_Delta'Image & "); see " & Actual_Path
-               & " and " & Diff_Path);
+         Fail
+           (Name,
+            Differing'Image
+            & " pixels differ from "
+            & Against
+            & " (by up to"
+            & Max_Delta'Image
+            & "); see "
+            & Actual_Path
+            & " and "
+            & Diff_Path);
       end if;
    end Judge;
 
-   procedure Check
-     (Name          : String;
-      Actual        : Images.Image;
-      Tolerance     : Natural := 0;
-      Max_Differing : Natural := 0)
-   is
+   procedure Check (Name : String; Actual : Images.Image; Tolerance : Natural := 0; Max_Differing : Natural := 0) is
       Golden_Path : constant String := Golden_Dir & "/" & Name & ".png";
    begin
       if Updating then
@@ -178,21 +177,25 @@ package body Goldens is
          Pass (Name, " (golden written)");
       elsif not Ada.Directories.Exists (Golden_Path) then
          declare
-            Actual_Path : constant String :=
-              Output_Dir & "/" & Name & "-actual.png";
+            Actual_Path : constant String := Output_Dir & "/" & Name & "-actual.png";
          begin
             Save (Actual, Actual_Path);
-            Fail (Name, "no golden image " & Golden_Path & "; what is drawn "
-                  & "is " & Actual_Path & ". If it looks right, run with "
-                  & "UPDATE_GOLDEN=1.");
+            Fail
+              (Name,
+               "no golden image "
+               & Golden_Path
+               & "; what is drawn "
+               & "is "
+               & Actual_Path
+               & ". If it looks right, run with "
+               & "UPDATE_GOLDEN=1.");
          end;
       else
          declare
             Golden : Images.Image;
          begin
             Images.Load_PNG (Golden, Golden_Path);
-            Judge (Name, Golden, Actual, Tolerance, Max_Differing,
-                   Against => "the golden", Keep_Expected => False);
+            Judge (Name, Golden, Actual, Tolerance, Max_Differing, Against => "the golden", Keep_Expected => False);
          end;
       end if;
    end Check;
@@ -204,8 +207,7 @@ package body Goldens is
       Tolerance     : Natural := 0;
       Max_Differing : Natural := 0) is
    begin
-      Judge (Name, Expected, Actual, Tolerance, Max_Differing,
-             Against => "what was expected", Keep_Expected => True);
+      Judge (Name, Expected, Actual, Tolerance, Max_Differing, Against => "what was expected", Keep_Expected => True);
    end Check_Same;
 
    procedure Check_Text (Name : String; Expected, Actual : String) is
@@ -223,7 +225,9 @@ package body Goldens is
       return Output_Dir & "/" & Name;
    end Scratch;
 
-   function Passed return Natural is (Passes);
-   function Failed return Natural is (Failures);
+   function Passed return Natural
+   is (Passes);
+   function Failed return Natural
+   is (Failures);
 
 end Goldens;

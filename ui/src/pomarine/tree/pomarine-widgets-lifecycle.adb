@@ -1,5 +1,6 @@
 with Pomarine.Widgets.Adding;
 with Pomarine.Widgets.Focusing;
+
 package body Pomarine.Widgets.Lifecycle is
 
    use Pomarine.Widgets.Adding;
@@ -37,8 +38,7 @@ package body Pomarine.Widgets.Lifecycle is
       if Table.Parent (Item.Slot) /= 0 then
          Table.Semantics_Dirty (Table.Parent (Item.Slot)) := True;
       end if;
-      Yoga.Nodes.Set_Display
-        (Table.Yoga_Node (Item.Slot), (if To then Yoga.Flex else Yoga.None));
+      Yoga.Nodes.Set_Display (Table.Yoga_Node (Item.Slot), (if To then Yoga.Flex else Yoga.None));
       Request_Layout (Item);
    end Show_Or_Hide;
 
@@ -75,13 +75,12 @@ package body Pomarine.Widgets.Lifecycle is
       Invalidate (Item);
       Request_Layout (Item);
       Unlink (Owner.all, Slot);
-      Yoga.Nodes.Delete
-        (Owner.Nodes.Yoga_Node (Above), Owner.Nodes.Yoga_Node (Slot));
+      Yoga.Nodes.Delete (Owner.Nodes.Yoga_Node (Above), Owner.Nodes.Yoga_Node (Slot));
       Give_Back_All (Owner.all, Slot);
    end Take_Out;
 
    procedure Bring_Forward (Item : in out Widget'Class) is
-      Table  : Node_Table renames Item.Owner.Nodes.all;
+      Table   : Node_Table renames Item.Owner.Nodes.all;
       Raising : constant Node_Index := Item.Slot;
       Above   : constant Node_Index := Table.Parent (Raising);
       Before  : Node_Index := Table.First (Above);

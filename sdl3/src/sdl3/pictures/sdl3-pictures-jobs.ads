@@ -9,6 +9,7 @@ with SDL3.Windows.Renderers.Textures;
 --  kind, in the order asked.
 --
 --  Only one thread, the caller's, may use the subprograms here.
+
 package SDL3.Pictures.Jobs is
 
    Max_Jobs : constant := 32;
@@ -23,9 +24,8 @@ package SDL3.Pictures.Jobs is
    --  Working: waiting or being read. Done: the picture is there to
    --  Finish. Failed: the file could not be read; Cancel the ticket.
 
-   procedure Request
-     (File_Name : String; Urgent : Boolean; Job : out Ticket)
-     with Pre => File_Name'Length in 1 .. Max_Path;
+   procedure Request (File_Name : String; Urgent : Boolean; Job : out Ticket)
+   with Pre => File_Name'Length in 1 .. Max_Path;
    --  Begin to read the PNG file. The state is Working. Raises
    --  Program_Error if there are Max_Jobs outstanding.
 
@@ -39,7 +39,7 @@ package SDL3.Pictures.Jobs is
       Into   : in out SDL3.Windows.Renderers.Textures.Texture;
       Target : SDL3.Windows.Renderers.Renderer;
       Dark   : out Boolean)
-     with Pre => State (Job) = Done;
+   with Pre => State (Job) = Done;
    --  Replace Into with the picture, drawn smoothed by Target. Dark is
    --  as for Decode. The ticket is used up.
 

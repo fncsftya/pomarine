@@ -25,9 +25,11 @@ package body Pomarine.View_Models is
 
    package body Properties is
 
-      function Get (Self : Property) return Element is (Self.Current);
+      function Get (Self : Property) return Element
+      is (Self.Current);
 
-      function Version (Self : Property) return Version_Number is (Value (Self.Count));
+      function Version (Self : Property) return Version_Number
+      is (Value (Self.Count));
 
       procedure Set (Self : in out Property; To : Element) is
       begin
@@ -47,15 +49,17 @@ package body Pomarine.View_Models is
 
    package body Command_Models is
 
-      overriding function Version (Self : Observed_Model) return Version_Number is
-        (Self.Changes + Parts_Version (Observed_Model'Class (Self)));
+      overriding
+      function Version (Self : Observed_Model) return Version_Number
+      is (Self.Changes + Parts_Version (Observed_Model'Class (Self)));
 
       procedure Mark_Changed (Self : in out Observed_Model) is
       begin
          Self.Changes := Self.Changes + 1;
       end Mark_Changed;
 
-      overriding procedure Execute (Self : in out Observed_Model; What : Command; Index : Natural := 0) is
+      overriding
+      procedure Execute (Self : in out Observed_Model; What : Command; Index : Natural := 0) is
       begin
          --  The precondition of Model is not checked of a call through this one by every compiler, so it is here.
          pragma Assert (Can_Execute (Observed_Model'Class (Self), What, Index), "command not possible now");
@@ -65,9 +69,11 @@ package body Pomarine.View_Models is
 
    end Command_Models;
 
-   function Get (Self : Text_Property) return String is (Unbounded.To_String (Self.Current));
+   function Get (Self : Text_Property) return String
+   is (Unbounded.To_String (Self.Current));
 
-   function Version (Self : Text_Property) return Version_Number is (Value (Self.Count));
+   function Version (Self : Text_Property) return Version_Number
+   is (Value (Self.Count));
 
    procedure Set (Self : in out Text_Property; To : String) is
    begin

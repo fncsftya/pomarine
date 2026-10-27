@@ -14,6 +14,7 @@ with SDL3.Painters;
 --
 --  A Splitter is across its parent's flow if that is a row (it is a bar that divides left from right) and along it
 --  if it is a column.
+
 package Pomarine.Widgets.Splitters is
 
    Thickness : constant Float := 6.0;
@@ -24,59 +25,56 @@ package Pomarine.Widgets.Splitters is
 
    type Splitter is new Widget with private;
 
-   procedure Add
-     (Parent : in out Widget'Class;
-      Item   : in out Splitter;
-      Along  : Boolean := False)
-     with Pre => Is_Attached (Parent) and then not Is_Attached (Item) and then Child_Count (Item) = 0,
-          Post => Is_Attached (Item);
+   procedure Add (Parent : in out Widget'Class; Item : in out Splitter; Along : Boolean := False)
+   with
+     Pre  => Is_Attached (Parent) and then not Is_Attached (Item) and then Child_Count (Item) = 0,
+     Post => Is_Attached (Item);
    --  Add Item to Parent after the box it divides from the next. Along: it is for a column (the bar is across
    --  it, and drags up and down); a row's is the other.
 
    procedure Set_Limits (Item : in out Splitter; Least, Most : Float)
-     with Pre => Least >= 0.0 and then Most >= Least;
+   with Pre => Least >= 0.0 and then Most >= Least;
    --  The least and the most, in points, that the box before it may be made; 80 and 100000 to begin with.
 
    function Position (Item : Splitter) return Float;
    --  In points: how wide (or high) the box before it is, as it was last laid out.
 
    procedure Set_Position (Item : in out Splitter; To : Float)
-     with Pre => Is_Attached (Item) and then To >= 0.0;
+   with Pre => Is_Attached (Item) and then To >= 0.0;
    --  Make the box before it To points, within the limits, saying nothing.
 
    procedure Set_Focusable (Item : in out Splitter; To : Boolean);
 
-   overriding function Is_Focusable (Item : Splitter) return Boolean;
+   overriding
+   function Is_Focusable (Item : Splitter) return Boolean;
 
-   overriding function Focuses_On_Click (Item : Splitter) return Boolean is (False);
+   overriding
+   function Focuses_On_Click (Item : Splitter) return Boolean
+   is (False);
 
-   overriding procedure Handle
-     (Item    : in out Splitter;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Splitter; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Splitter;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Splitter; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Draw_Over
-     (Item   : in out Splitter;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Splitter; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed (Item : in out Splitter; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Splitter; Hovered : Boolean);
 
-   overriding procedure Focus_Changed (Item : in out Splitter; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Splitter; Focused : Boolean);
 
-   overriding function Cursor (Item : Splitter) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Splitter) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe (Item : Splitter; Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Splitter; Facts : in out Semantics.Description);
 
-   overriding procedure Perform
-     (Item    : in out Splitter;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Perform (Item : in out Splitter; Request : Semantics.Request; Done : out Boolean);
 
 private
 

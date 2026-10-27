@@ -83,33 +83,40 @@ package body Pomarine.UI is
          end if;
       end Remove;
 
-      function Find (Number : Natural) return View_Ref is
-        (if Number in 1 .. Natural (Items.Length) then Items (Number) else null);
+      function Find (Number : Natural) return View_Ref
+      is (if Number in 1 .. Natural (Items.Length) then Items (Number) else null);
 
-      function Live return Natural is (Alive);
+      function Live return Natural
+      is (Alive);
 
    end Registry;
 
-   function Find_View (Number : Natural) return View_Ref is (Registry.Find (Number));
+   function Find_View (Number : Natural) return View_Ref
+   is (Registry.Find (Number));
 
-   function Live_Views return Natural is (Registry.Live);
+   function Live_Views return Natural
+   is (Registry.Live);
 
-   function Number_Of (Item : View) return Natural is (Item.Number);
+   function Number_Of (Item : View) return Natural
+   is (Item.Number);
 
-   function Is_Mounted (Item : View) return Boolean is (Item.Mounted);
+   function Is_Mounted (Item : View) return Boolean
+   is (Item.Mounted);
 
    --  Scopes
 
-   function Scope_Count (Item : View'Class) return Natural is (Natural (Item.Scopes.Length));
+   function Scope_Count (Item : View'Class) return Natural
+   is (Natural (Item.Scopes.Length));
 
-   function Ref_Of (Item : View'Class; Slot : Positive) return Scope_Ref is
-     ((View => Item.Number, Slot => Slot, Generation => Item.Scopes (Slot).Generation));
+   function Ref_Of (Item : View'Class; Slot : Positive) return Scope_Ref
+   is ((View => Item.Number, Slot => Slot, Generation => Item.Scopes (Slot).Generation));
 
-   function Is_Live (Item : View; Scope : Scope_Ref) return Boolean is
-     (Scope.View = Item.Number and then Item.Number /= 0
-      and then Scope.Slot in 1 .. Scope_Count (Item)
-      and then Item.Scopes (Scope.Slot).State /= Free
-      and then Item.Scopes (Scope.Slot).Generation = Scope.Generation);
+   function Is_Live (Item : View; Scope : Scope_Ref) return Boolean
+   is (Scope.View = Item.Number
+       and then Item.Number /= 0
+       and then Scope.Slot in 1 .. Scope_Count (Item)
+       and then Item.Scopes (Scope.Slot).State /= Free
+       and then Item.Scopes (Scope.Slot).Generation = Scope.Generation);
 
    procedure Require_Live (Item : View'Class; Scope : Scope_Ref) is
    begin
@@ -136,7 +143,8 @@ package body Pomarine.UI is
       return Item.Scopes (Scope.Slot).Arena;
    end Arena_Of;
 
-   function Root_Scope (Item : View) return Scope_Ref is (Ref_Of (Item, Item.Root_Scope));
+   function Root_Scope (Item : View) return Scope_Ref
+   is (Ref_Of (Item, Item.Root_Scope));
 
    function New_Scope (Item : in out View'Class; Parent : Natural; State : Scope_State) return Positive is
       Slot : Natural := Item.Free_Scope;
@@ -386,18 +394,13 @@ package body Pomarine.UI is
    end New_Label;
 
    function New_Button
-     (Item      : in out View;
-      Scope     : Scope_Ref;
-      Caption   : String;
-      Kind      : Buttons.Kind;
-      Focusable : Boolean := False) return Button_Handle is
-     (New_Button (Item, Scope, Buttons.Looks (Caption, Kind, Focusable => Focusable)));
+     (Item : in out View; Scope : Scope_Ref; Caption : String; Kind : Buttons.Kind; Focusable : Boolean := False)
+      return Button_Handle
+   is (New_Button (Item, Scope, Buttons.Looks (Caption, Kind, Focusable => Focusable)));
 
    function New_Button
-     (Item  : in out View;
-      Scope : Scope_Ref;
-      Look  : Buttons.Settings;
-      Unheard : Boolean := False) return Button_Handle is
+     (Item : in out View; Scope : Scope_Ref; Look : Buttons.Settings; Unheard : Boolean := False) return Button_Handle
+   is
    begin
       Require_Open (Item, Scope);
       declare
@@ -458,17 +461,17 @@ package body Pomarine.UI is
       end loop;
    end Refuse_Second_Borrow;
 
-   function Borrow_Label
-     (Item : in out View; Scope : Scope_Ref; Existing : in out Labels.Label) return Label_Handle is
+   function Borrow_Label (Item : in out View; Scope : Scope_Ref; Existing : in out Labels.Label) return Label_Handle is
    begin
       Require_Open (Item, Scope);
       Refuse_Second_Borrow (Item, Existing'Unchecked_Access);
-      return Label_Handle
-        (Register (Item, Scope, Label_Control, Existing'Unchecked_Access, null, False, Widgets.Click, False));
+      return
+        Label_Handle
+          (Register (Item, Scope, Label_Control, Existing'Unchecked_Access, null, False, Widgets.Click, False));
    end Borrow_Label;
 
-   function Borrow_Button
-     (Item : in out View; Scope : Scope_Ref; Existing : in out Buttons.Button) return Button_Handle is
+   function Borrow_Button (Item : in out View; Scope : Scope_Ref; Existing : in out Buttons.Button) return Button_Handle
+   is
    begin
       Require_Open (Item, Scope);
       Refuse_Second_Borrow (Item, Existing'Unchecked_Access);
@@ -491,16 +494,22 @@ package body Pomarine.UI is
       Refuse_Second_Borrow (Item, Existing'Unchecked_Access);
       declare
          Handle : constant Handle_Data :=
-           Register (Item, Scope, Field_Control, Existing'Unchecked_Access, Backing'Unchecked_Access, False,
-                     Widgets.Submit, True);
+           Register
+             (Item,
+              Scope,
+              Field_Control,
+              Existing'Unchecked_Access,
+              Backing'Unchecked_Access,
+              False,
+              Widgets.Submit,
+              True);
       begin
          Syncing.Install (Item, Existing, Widgets.Submit);
          return Field_Handle (Handle);
       end;
    end Borrow_Field;
 
-   function Borrow_List
-     (Item : in out View; Scope : Scope_Ref; Existing : in out Lists.List) return List_Handle is
+   function Borrow_List (Item : in out View; Scope : Scope_Ref; Existing : in out Lists.List) return List_Handle is
    begin
       Require_Open (Item, Scope);
       Refuse_Second_Borrow (Item, Existing'Unchecked_Access);
@@ -513,8 +522,8 @@ package body Pomarine.UI is
       end;
    end Borrow_List;
 
-   function New_Check
-     (Item : in out View; Scope : Scope_Ref; Caption : String; Form : Checks.Kind) return Check_Handle is
+   function New_Check (Item : in out View; Scope : Scope_Ref; Caption : String; Form : Checks.Kind) return Check_Handle
+   is
    begin
       Require_Open (Item, Scope);
       declare
@@ -550,8 +559,8 @@ package body Pomarine.UI is
    type Grip_Store is access Grips.Grip;
    for Grip_Store'Storage_Pool use Arenas.Pool;
 
-   function New_Grip (Item : in out View; Scope : Scope_Ref; Look : Grip_Look; Unheard : Boolean := False)
-     return Grip_Handle is
+   function New_Grip
+     (Item : in out View; Scope : Scope_Ref; Look : Grip_Look; Unheard : Boolean := False) return Grip_Handle is
    begin
       Require_Open (Item, Scope);
       declare
@@ -607,15 +616,17 @@ package body Pomarine.UI is
    begin
       Require_Open (Item, Scope);
       Refuse_Second_Borrow (Item, Existing'Unchecked_Access);
-      return Widget_Handle
-        (Register (Item, Scope, Custom_Control, Existing'Unchecked_Access, null, False, Widgets.Click, False));
+      return
+        Widget_Handle
+          (Register (Item, Scope, Custom_Control, Existing'Unchecked_Access, null, False, Widgets.Click, False));
    end Borrow_Widget;
 
    --  Handles
 
    function Resolve (Item : View; Handle : Handle_Data; Kind : Control_Kind) return Widgets.Widget_Access is
    begin
-      if Handle.View /= Item.Number or else Item.Number = 0
+      if Handle.View /= Item.Number
+        or else Item.Number = 0
         or else Handle.Slot not in 1 .. Natural (Item.Controls.Length)
       then
          return null;
@@ -641,26 +652,26 @@ package body Pomarine.UI is
       end if;
    end Require_Handle;
 
-   function Is_Live (Item : View; Handle : Label_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Label_Control) /= null);
-   function Is_Live (Item : View; Handle : Button_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Button_Control) /= null);
-   function Is_Live (Item : View; Handle : Field_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Field_Control) /= null);
-   function Is_Live (Item : View; Handle : List_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), List_Control) /= null);
-   function Is_Live (Item : View; Handle : Check_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Check_Control) /= null);
-   function Is_Live (Item : View; Handle : Switch_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Switch_Control) /= null);
-   function Is_Live (Item : View; Handle : Progress_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Progress_Control) /= null);
-   function Is_Live (Item : View; Handle : Widget_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Custom_Control) /= null);
-   function Is_Live (Item : View; Handle : Grip_Handle) return Boolean is
-     (Resolve (Item, Handle_Data (Handle), Grip_Control) /= null);
-   function Is_Live (Item : View; Screen : Layout) return Boolean is
-     (Screen.Node = null or else Is_Live (Item, Screen.Scope));
+   function Is_Live (Item : View; Handle : Label_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Label_Control) /= null);
+   function Is_Live (Item : View; Handle : Button_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Button_Control) /= null);
+   function Is_Live (Item : View; Handle : Field_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Field_Control) /= null);
+   function Is_Live (Item : View; Handle : List_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), List_Control) /= null);
+   function Is_Live (Item : View; Handle : Check_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Check_Control) /= null);
+   function Is_Live (Item : View; Handle : Switch_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Switch_Control) /= null);
+   function Is_Live (Item : View; Handle : Progress_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Progress_Control) /= null);
+   function Is_Live (Item : View; Handle : Widget_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Custom_Control) /= null);
+   function Is_Live (Item : View; Handle : Grip_Handle) return Boolean
+   is (Resolve (Item, Handle_Data (Handle), Grip_Control) /= null);
+   function Is_Live (Item : View; Screen : Layout) return Boolean
+   is (Screen.Node = null or else Is_Live (Item, Screen.Scope));
 
    function Widget_Of (Item : View; Handle : Label_Handle) return not null access Labels.Label is
    begin
@@ -710,15 +721,24 @@ package body Pomarine.UI is
       return Resolve (Item, Handle_Data (Handle), Custom_Control);
    end Widget_Of;
 
-   function Any (Item : Label_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : Button_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : Field_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : List_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : Check_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : Switch_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : Progress_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : Widget_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
-   function Any (Item : Grip_Handle) return Control_Ref is ((Which => Handle_Data (Item)));
+   function Any (Item : Label_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : Button_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : Field_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : List_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : Check_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : Switch_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : Progress_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : Widget_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
+   function Any (Item : Grip_Handle) return Control_Ref
+   is ((Which => Handle_Data (Item)));
 
    function Widget_Of (Item : View; Handle : Grip_Handle) return not null access Grips.Grip is
    begin
@@ -732,14 +752,16 @@ package body Pomarine.UI is
       return Item.Controls (Handle.Slot).Document;
    end Document_Of;
 
-   function Focus_Of (Item : Field_Handle) return Focus_Target is ((Which => Handle_Data (Item)));
-   function Focus_Of (Item : Button_Handle) return Focus_Target is ((Which => Handle_Data (Item)));
-   function Reveal_Of (Item : List_Handle) return Reveal_Target is ((Which => Handle_Data (Item)));
+   function Focus_Of (Item : Field_Handle) return Focus_Target
+   is ((Which => Handle_Data (Item)));
+   function Focus_Of (Item : Button_Handle) return Focus_Target
+   is ((Which => Handle_Data (Item)));
+   function Reveal_Of (Item : List_Handle) return Reveal_Target
+   is ((Which => Handle_Data (Item)));
 
    procedure Set_Focus_Initially (Item : in out View; Target : Focus_Target) is
    begin
-      if Resolve (Item, Target.Which, Field_Control) = null
-        and then Resolve (Item, Target.Which, Button_Control) = null
+      if Resolve (Item, Target.Which, Field_Control) = null and then Resolve (Item, Target.Which, Button_Control) = null
       then
          Require_Handle (Item, Target.Which, Field_Control);
       end if;
@@ -791,22 +813,25 @@ package body Pomarine.UI is
       return Count;
    end Live_Bindings;
 
-   function Control_Slots (Item : View) return Natural is (Natural (Item.Controls.Length));
+   function Control_Slots (Item : View) return Natural
+   is (Natural (Item.Controls.Length));
 
-   function Queued_Events (Item : View) return Natural is (Natural (Item.Pending.Length));
+   function Queued_Events (Item : View) return Natural
+   is (Natural (Item.Pending.Length));
 
    --  Layouts
 
-   function Sides_Of (Edge : Layouts.Length) return Layouts.Sides is ((others => Edge));
+   function Sides_Of (Edge : Layouts.Length) return Layouts.Sides
+   is ((others => Edge));
 
    function Described
-     (Kind    : Node_Kind;
-      Box     : Layouts.Style;
-      Control : Handle_Data;
-      Items   : Layout_Array;
-      Owner   : Natural;
+     (Kind       : Node_Kind;
+      Box        : Layouts.Style;
+      Control    : Handle_Data;
+      Items      : Layout_Array;
+      Owner      : Natural;
       Appearance : Container_Look := Plain;
-      Across  : Boolean := False) return Layout
+      Across     : Boolean := False) return Layout
    is
       Home : constant View_Ref := Find_View (Owner);
    begin
@@ -819,25 +844,36 @@ package body Pomarine.UI is
       declare
          Where : constant Scope_Ref := Ref_Of (Home.all, Home.Top_Scope);
          Made  : constant Node_Store :=
-           new (Home.Scopes (Home.Top_Scope).Arena)
-             Layout_Node'(Count => Items'Length, Kind => Kind, Box => Box, Control => Control,
-                          Made => null, Exact => False, Appearance => Appearance, Across => Across, Name => null,
-                          Items => Items);
+           new (Home.Scopes (Home.Top_Scope).Arena) Layout_Node'
+             (Count      => Items'Length,
+              Kind       => Kind,
+              Box        => Box,
+              Control    => Control,
+              Made       => null,
+              Exact      => False,
+              Appearance => Appearance,
+              Across     => Across,
+              Name       => null,
+              Items      => Items);
       begin
          return (Scope => Where, Node => Made.all'Unchecked_Access);
       end;
    end Described;
 
-   function Placed_Layout (Handle : Handle_Data; Box : Layouts.Style; Exact : Boolean := False) return Layout is
-     (if Exact
-      then Styled (Described (Placed, Box, Handle, [1 .. 0 => Nothing], Handle.View), Box)
-      else Described (Placed, Box, Handle, [1 .. 0 => Nothing], Handle.View));
+   function Placed_Layout (Handle : Handle_Data; Box : Layouts.Style; Exact : Boolean := False) return Layout
+   is (if Exact
+       then Styled (Described (Placed, Box, Handle, [1 .. 0 => Nothing], Handle.View), Box)
+       else Described (Placed, Box, Handle, [1 .. 0 => Nothing], Handle.View));
 
    function Box_Of
-     (Grow, Shrink : Layouts.Weight; Width, Height, Margin : Layouts.Length; Align : Align_Kind)
-      return Layouts.Style is
-     ((Grow => Grow, Shrink => Shrink, Width => Width, Height => Height, Margin => Sides_Of (Margin),
-       Align_Self => Align, others => <>));
+     (Grow, Shrink : Layouts.Weight; Width, Height, Margin : Layouts.Length; Align : Align_Kind) return Layouts.Style
+   is ((Grow       => Grow,
+        Shrink     => Shrink,
+        Width      => Width,
+        Height     => Height,
+        Margin     => Sides_Of (Margin),
+        Align_Self => Align,
+        others     => <>));
 
    function Place
      (Item   : Label_Handle;
@@ -847,8 +883,8 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Button_Handle;
@@ -858,8 +894,8 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Field_Handle;
@@ -869,8 +905,8 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : List_Handle;
@@ -880,8 +916,8 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Check_Handle;
@@ -891,8 +927,8 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Switch_Handle;
@@ -902,8 +938,8 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Progress_Handle;
@@ -913,8 +949,8 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Place
      (Item   : Widget_Handle;
@@ -924,29 +960,42 @@ package body Pomarine.UI is
       Height : Layouts.Length := Unset;
       Margin : Layouts.Length := Unset;
       Align  : Align_Kind := Layouts.As_Is;
-      Exact  : Boolean := False) return Layout is
-     (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
+      Exact  : Boolean := False) return Layout
+   is (Placed_Layout (Handle_Data (Item), Box_Of (Grow, Shrink, Width, Height, Margin, Align), Exact));
 
    function Held_Layout
-     (Handle : Handle_Data; Items : Layout_Array; Flow : Layouts.Flow_Kind;
+     (Handle       : Handle_Data;
+      Items        : Layout_Array;
+      Flow         : Layouts.Flow_Kind;
       Gap, Padding : Layouts.Length;
-      Align : Align_Kind; Spread : Spread_Kind) return Layout is
-     (Described
-        (Held, (Flow => Flow, Gap => Gap, Padding => Sides_Of (Padding), Align => Align, Spread => Spread,
-                others => <>),
-         Handle, Items, Handle.View));
+      Align        : Align_Kind;
+      Spread       : Spread_Kind) return Layout
+   is (Described
+         (Held,
+          (Flow => Flow, Gap => Gap, Padding => Sides_Of (Padding), Align => Align, Spread => Spread, others => <>),
+          Handle,
+          Items,
+          Handle.View));
 
    function Hold
-     (Item : Widget_Handle; Items : Layout_Array; Flow : Layouts.Flow_Kind := Layouts.Column;
-      Gap : Layouts.Length := Unset; Padding : Layouts.Length := Unset; Align : Align_Kind := Layouts.As_Is;
-      Spread : Spread_Kind := Layouts.As_Is) return Layout is
-     (Held_Layout (Handle_Data (Item), Items, Flow, Gap, Padding, Align, Spread));
+     (Item    : Widget_Handle;
+      Items   : Layout_Array;
+      Flow    : Layouts.Flow_Kind := Layouts.Column;
+      Gap     : Layouts.Length := Unset;
+      Padding : Layouts.Length := Unset;
+      Align   : Align_Kind := Layouts.As_Is;
+      Spread  : Spread_Kind := Layouts.As_Is) return Layout
+   is (Held_Layout (Handle_Data (Item), Items, Flow, Gap, Padding, Align, Spread));
 
    function Hold
-     (Item : Grip_Handle; Items : Layout_Array; Flow : Layouts.Flow_Kind := Layouts.Column;
-      Gap : Layouts.Length := Unset; Padding : Layouts.Length := Unset; Align : Align_Kind := Layouts.As_Is;
-      Spread : Spread_Kind := Layouts.As_Is) return Layout is
-     (Held_Layout (Handle_Data (Item), Items, Flow, Gap, Padding, Align, Spread));
+     (Item    : Grip_Handle;
+      Items   : Layout_Array;
+      Flow    : Layouts.Flow_Kind := Layouts.Column;
+      Gap     : Layouts.Length := Unset;
+      Padding : Layouts.Length := Unset;
+      Align   : Align_Kind := Layouts.As_Is;
+      Spread  : Spread_Kind := Layouts.As_Is) return Layout
+   is (Held_Layout (Handle_Data (Item), Items, Flow, Gap, Padding, Align, Spread));
 
    function Called (Item : Layout; Name : String) return Layout is
    begin
@@ -983,11 +1032,9 @@ package body Pomarine.UI is
          end if;
          declare
             Box  : Layouts.Style := Using;
-            Made : constant Node_Store :=
-              new (Home.Scopes (Item.Scope.Slot).Arena) Layout_Node'(Item.Node.all);
+            Made : constant Node_Store := new (Home.Scopes (Item.Scope.Slot).Arena) Layout_Node'(Item.Node.all);
          begin
-            if Item.Node.Kind in Row_Of | Column_Of | Scroll_Of | Held
-              and then Layouts."=" (Box.Flow, Layouts.As_Is)
+            if Item.Node.Kind in Row_Of | Column_Of | Scroll_Of | Held and then Layouts."=" (Box.Flow, Layouts.As_Is)
             then
                Box.Flow := Item.Node.Box.Flow;
             end if;
@@ -998,7 +1045,8 @@ package body Pomarine.UI is
       end;
    end Styled;
 
-   function Is_Embedded (Item : View) return Boolean is (Item.Embedded);
+   function Is_Embedded (Item : View) return Boolean
+   is (Item.Embedded);
 
    function Borrowed_Before (Item : View; Existing : Widgets.Widget'Class) return Widget_Handle is
    begin
@@ -1015,12 +1063,14 @@ package body Pomarine.UI is
    function Handle_Of (Item : in out View; Existing : in out Widgets.Widget'Class) return Widget_Handle is
       Before : constant Widget_Handle := Borrowed_Before (Item, Existing);
    begin
-      return (if Before /= Widget_Handle'(others => <>)
-              then Before else Widget_Handle'(Borrow_Widget (Item, Root_Scope (Item), Existing)));
+      return
+        (if Before /= Widget_Handle'(others => <>)
+         then Before
+         else Widget_Handle'(Borrow_Widget (Item, Root_Scope (Item), Existing)));
    end Handle_Of;
 
-   function Put (Item : in out View; Existing : in out Widgets.Widget'Class) return Layout is
-     (Place (Handle_Of (Item, Existing), Layouts.Unchanged, Layouts.Unchanged, Unset, Unset, Unset, Layouts.As_Is));
+   function Put (Item : in out View; Existing : in out Widgets.Widget'Class) return Layout
+   is (Place (Handle_Of (Item, Existing), Layouts.Unchanged, Layouts.Unchanged, Unset, Unset, Unset, Layouts.As_Is));
 
    function Put_In
      (Item     : in out View;
@@ -1030,27 +1080,32 @@ package body Pomarine.UI is
       Gap      : Layouts.Length := Unset;
       Padding  : Layouts.Length := Unset;
       Align    : Align_Kind := Layouts.As_Is;
-      Spread   : Spread_Kind := Layouts.As_Is) return Layout is
-     (Hold (Handle_Of (Item, Existing), Items, Flow, Gap, Padding, Align, Spread));
+      Spread   : Spread_Kind := Layouts.As_Is) return Layout
+   is (Hold (Handle_Of (Item, Existing), Items, Flow, Gap, Padding, Align, Spread));
 
-   function Fragment (Item : View; Items : Layout_Array) return Layout is
-     (Described (Siblings, (others => <>), (others => <>), Items, Item.Number));
+   function Fragment (Item : View; Items : Layout_Array) return Layout
+   is (Described (Siblings, (others => <>), (others => <>), Items, Item.Number));
 
-   function Spacer (Item : View; Appearance : Container_Look := Plain) return Layout is
-     (Described (Column_Of, (Flow => Layouts.Column, others => <>), (others => <>), [1 .. 0 => Nothing],
-                 Item.Number, Appearance));
+   function Spacer (Item : View; Appearance : Container_Look := Plain) return Layout
+   is (Described
+         (Column_Of,
+          (Flow => Layouts.Column, others => <>),
+          (others => <>),
+          [1 .. 0 => Nothing],
+          Item.Number,
+          Appearance));
 
    function Container
-     (Kind    : Node_Kind;
-      Items   : Layout_Array;
-      Flow    : Layouts.Flow_Kind;
-      Gap, Padding : Layouts.Length;
-      Align   : Align_Kind;
-      Spread  : Spread_Kind;
-      Grow : Layouts.Weight;
+     (Kind          : Node_Kind;
+      Items         : Layout_Array;
+      Flow          : Layouts.Flow_Kind;
+      Gap, Padding  : Layouts.Length;
+      Align         : Align_Kind;
+      Spread        : Spread_Kind;
+      Grow          : Layouts.Weight;
       Width, Height : Layouts.Length;
-      Appearance : Container_Look := Plain;
-      Across : Boolean := False) return Layout
+      Appearance    : Container_Look := Plain;
+      Across        : Boolean := False) return Layout
    is
       Owner : Natural := 0;
    begin
@@ -1063,45 +1118,68 @@ package body Pomarine.UI is
       if Owner = 0 then
          return Nothing;
       end if;
-      return Described
-        (Kind, (Flow => Flow, Gap => Gap, Padding => Sides_Of (Padding), Align => Align, Spread => Spread,
-                Grow => Grow, Width => Width, Height => Height, others => <>),
-         (others => <>), Items, Owner, Appearance, Across);
+      return
+        Described
+          (Kind,
+           (Flow    => Flow,
+            Gap     => Gap,
+            Padding => Sides_Of (Padding),
+            Align   => Align,
+            Spread  => Spread,
+            Grow    => Grow,
+            Width   => Width,
+            Height  => Height,
+            others  => <>),
+           (others => <>),
+           Items,
+           Owner,
+           Appearance,
+           Across);
    end Container;
 
    function Row
-     (Items   : Layout_Array;
-      Gap     : Layouts.Length := Unset;
-      Padding : Layouts.Length := Unset;
-      Align   : Align_Kind := Layouts.Center;
-      Spread  : Spread_Kind := Layouts.As_Is;
-      Grow    : Layouts.Weight := Layouts.Unchanged;
-      Width   : Layouts.Length := Unset;
-      Height  : Layouts.Length := Unset;
-      Appearance : Container_Look := Plain) return Layout is
-     (Container (Row_Of, Items, Layouts.Row, Gap, Padding, Align, Spread, Grow, Width, Height, Appearance));
+     (Items      : Layout_Array;
+      Gap        : Layouts.Length := Unset;
+      Padding    : Layouts.Length := Unset;
+      Align      : Align_Kind := Layouts.Center;
+      Spread     : Spread_Kind := Layouts.As_Is;
+      Grow       : Layouts.Weight := Layouts.Unchanged;
+      Width      : Layouts.Length := Unset;
+      Height     : Layouts.Length := Unset;
+      Appearance : Container_Look := Plain) return Layout
+   is (Container (Row_Of, Items, Layouts.Row, Gap, Padding, Align, Spread, Grow, Width, Height, Appearance));
 
    function Column
-     (Items   : Layout_Array;
-      Gap     : Layouts.Length := Unset;
-      Padding : Layouts.Length := Unset;
-      Align   : Align_Kind := Layouts.As_Is;
-      Spread  : Spread_Kind := Layouts.As_Is;
-      Grow    : Layouts.Weight := Layouts.Unchanged;
-      Width   : Layouts.Length := Unset;
-      Height  : Layouts.Length := Unset;
-      Appearance : Container_Look := Plain) return Layout is
-     (Container (Column_Of, Items, Layouts.Column, Gap, Padding, Align, Spread, Grow, Width, Height, Appearance));
+     (Items      : Layout_Array;
+      Gap        : Layouts.Length := Unset;
+      Padding    : Layouts.Length := Unset;
+      Align      : Align_Kind := Layouts.As_Is;
+      Spread     : Spread_Kind := Layouts.As_Is;
+      Grow       : Layouts.Weight := Layouts.Unchanged;
+      Width      : Layouts.Length := Unset;
+      Height     : Layouts.Length := Unset;
+      Appearance : Container_Look := Plain) return Layout
+   is (Container (Column_Of, Items, Layouts.Column, Gap, Padding, Align, Spread, Grow, Width, Height, Appearance));
 
    function Scroll
      (Content : Layout;
       Across  : Boolean := False;
       Grow    : Layouts.Weight := Layouts.Unchanged;
       Width   : Layouts.Length := Unset;
-      Height  : Layouts.Length := Unset) return Layout is
-     (Container
-        (Scroll_Of, [Content], Layouts.Column, Unset, Unset, Layouts.As_Is, Layouts.As_Is, Grow, Width, Height,
-         Plain, Across));
+      Height  : Layouts.Length := Unset) return Layout
+   is (Container
+         (Scroll_Of,
+          [Content],
+          Layouts.Column,
+          Unset,
+          Unset,
+          Layouts.As_Is,
+          Layouts.As_Is,
+          Grow,
+          Width,
+          Height,
+          Plain,
+          Across));
 
    --  Checking a screen. Marks tell a control placed twice from a layout
    --  used twice.
@@ -1116,9 +1194,10 @@ package body Pomarine.UI is
          return Stale_Layout;
       end if;
       case Part.Node.Kind is
-         when Empty =>
+         when Empty                                     =>
             return No_Problem;
-         when Placed =>
+
+         when Placed                                    =>
             declare
                Handle : Handle_Data renames Part.Node.Control;
             begin
@@ -1143,7 +1222,8 @@ package body Pomarine.UI is
                end;
                return No_Problem;
             end;
-         when Held =>
+
+         when Held                                      =>
             declare
                Handle : Handle_Data renames Part.Node.Control;
             begin
@@ -1162,9 +1242,7 @@ package body Pomarine.UI is
                      return Duplicate_Placement;
                   end if;
                   Control.Marked := Item.Epoch;
-                  if Widgets.Is_Attached (Control.Widget.all)
-                    or else Widgets.Child_Count (Control.Widget.all) /= 0
-                  then
+                  if Widgets.Is_Attached (Control.Widget.all) or else Widgets.Child_Count (Control.Widget.all) /= 0 then
                      return Attachment_Conflict;
                   end if;
                end;
@@ -1179,6 +1257,7 @@ package body Pomarine.UI is
                end;
             end loop;
             return No_Problem;
+
          when Row_Of | Column_Of | Scroll_Of | Siblings =>
             for Child of Part.Node.Items loop
                declare
@@ -1206,8 +1285,8 @@ package body Pomarine.UI is
       return Check_Node (Item, Screen);
    end Check_Screen;
 
-   function Check (Item : in out View; Screen : Layout) return Mount_Problem is
-     (Check_Screen (Item, Screen, Embedded => False));
+   function Check (Item : in out View; Screen : Layout) return Mount_Problem
+   is (Check_Screen (Item, Screen, Embedded => False));
 
    --  Mounting
 
@@ -1270,26 +1349,30 @@ package body Pomarine.UI is
       Result : Layouts.Style := Box;
    begin
       case Control.Kind is
-         when Button_Control =>
+         when Button_Control                                 =>
             if not Layouts.Is_Set (Result.Width) then
                Result.Width := 80.0;
             end if;
             if not Layouts.Is_Set (Result.Height) then
                Result.Height := 32.0;
             end if;
-         when Field_Control =>
+
+         when Field_Control                                  =>
             if not Layouts.Is_Set (Result.Height) then
                Result.Height := 38.0;
             end if;
+
          when Label_Control | Check_Control | Switch_Control =>
             if not Layouts.Is_Set (Result.Height) then
                Result.Height := 24.0;
             end if;
-         when Progress_Control =>
+
+         when Progress_Control                               =>
             if not Layouts.Is_Set (Result.Height) then
                Result.Height := 8.0;
             end if;
-         when others =>
+
+         when others                                         =>
             null;
       end case;
       return Result;
@@ -1307,13 +1390,14 @@ package body Pomarine.UI is
    type Panel_Array is array (Positive range <>) of Widgets.Widget_Access;
 
    procedure Attach_Node
-     (Item   : in out View;
-      Parent : in out Widgets.Widget'Class;
-      Part   : Layout;
-      Wrapped : Panel_Array;
-      Next   : in out Natural;
+     (Item     : in out View;
+      Parent   : in out Widgets.Widget'Class;
+      Part     : Layout;
+      Wrapped  : Panel_Array;
+      Next     : in out Natural;
       Attached : in out Natural;
-      Before : Widgets.Widget_Access := null) is
+      Before   : Widgets.Widget_Access := null)
+   is
 
       procedure Put (Child : in out Widgets.Widget'Class; Box : Layouts.Style) is
       begin
@@ -1328,16 +1412,18 @@ package body Pomarine.UI is
          return;
       end if;
       case Part.Node.Kind is
-         when Empty =>
+         when Empty                          =>
             null;
-         when Placed =>
+
+         when Placed                         =>
             declare
                Control : Control_Record renames Item.Controls (Part.Node.Control.Slot);
             begin
                Fault_Check (Item, Attached);
                Put (Control.Widget.all, (if Part.Node.Exact then Part.Node.Box else Styled (Control, Part.Node.Box)));
             end;
-         when Held =>
+
+         when Held                           =>
             declare
                Control : Control_Record renames Item.Controls (Part.Node.Control.Slot);
             begin
@@ -1348,10 +1434,12 @@ package body Pomarine.UI is
                   Attach_Node (Item, Control.Widget.all, Child, Wrapped, Next, Attached);
                end loop;
             end;
-         when Siblings =>
+
+         when Siblings                       =>
             for Child of Part.Node.Items loop
                Attach_Node (Item, Parent, Child, Wrapped, Next, Attached, Before);
             end loop;
+
          when Row_Of | Column_Of | Scroll_Of =>
             Next := Next + 1;
             declare
@@ -1413,19 +1501,19 @@ package body Pomarine.UI is
       --  Prepare: everything that can fail for want of storage, before the
       --  tree is touched.
       declare
-         Needed : Natural := 0;
+         Needed   : Natural := 0;
          Attached : Natural := 0;
-         Next   : Natural := 0;
+         Next     : Natural := 0;
       begin
          Count_Panels (Screen, Needed);
          Item.Mount_Arena := Arenas.Make;
          declare
-            Home   : constant Subpools.Subpool_Handle := Item.Mount_Arena;
-            Root   : constant Root_Store := new (Home) Widgets.Bindings.Sync_Root;
+            Home    : constant Subpools.Subpool_Handle := Item.Mount_Arena;
+            Root    : constant Root_Store := new (Home) Widgets.Bindings.Sync_Root;
             Wrapped : Panel_Array (1 .. Natural'Max (Needed, 1));
-            Kinds  : Kind_Array (1 .. Natural'Max (Needed, 1));
-            Filled : Natural := 0;
-            Top    : constant Boolean := Screen.Node.Kind in Row_Of | Column_Of;
+            Kinds   : Kind_Array (1 .. Natural'Max (Needed, 1));
+            Filled  : Natural := 0;
+            Top     : constant Boolean := Screen.Node.Kind in Row_Of | Column_Of;
          begin
             Item.Root := Root.all'Unchecked_Access;
             Note_Kinds (Screen, Kinds, Filled);
@@ -1524,32 +1612,20 @@ package body Pomarine.UI is
    end Undo_Attachments;
 
    procedure Mount_Late
-     (Item   : in out View;
-      Parent : in out Widgets.Widget'Class;
-      Screen : Layout;
-      Before : Widgets.Widget_Access);
+     (Item : in out View; Parent : in out Widgets.Widget'Class; Screen : Layout; Before : Widgets.Widget_Access);
 
-   procedure Mount_Into
-     (Item   : in out View;
-      Parent : in out Widgets.Widget'Class;
-      Screen : Layout) is
+   procedure Mount_Into (Item : in out View; Parent : in out Widgets.Widget'Class; Screen : Layout) is
    begin
       Mount_Late (Item, Parent, Screen, null);
    end Mount_Into;
 
-   procedure Mount_Before
-     (Item   : in out View;
-      Before : in out Widgets.Widget'Class;
-      Screen : Layout) is
+   procedure Mount_Before (Item : in out View; Before : in out Widgets.Widget'Class; Screen : Layout) is
    begin
       Mount_Late (Item, Widgets.Parent_Of (Before).all, Screen, Before'Unchecked_Access);
    end Mount_Before;
 
    procedure Mount_Late
-     (Item   : in out View;
-      Parent : in out Widgets.Widget'Class;
-      Screen : Layout;
-      Before : Widgets.Widget_Access)
+     (Item : in out View; Parent : in out Widgets.Widget'Class; Screen : Layout; Before : Widgets.Widget_Access)
    is
       Problem : constant Mount_Problem := Check_Screen (Item, Screen, Embedded => True);
       Late    : constant Boolean := Item.Mounted;
@@ -1593,9 +1669,7 @@ package body Pomarine.UI is
                end if;
             end loop;
             Item.Embedded := True;
-            Attach_Node
-              (Item, Parent, Screen, Wrapped, Next, Attached,
-               Before);
+            Attach_Node (Item, Parent, Screen, Wrapped, Next, Attached, Before);
             if not Late and then Screen.Node.Kind in Row_Of | Column_Of | Scroll_Of then
                Item.Screen_Top := Wrapped (1);
             end if;
@@ -1641,25 +1715,28 @@ package body Pomarine.UI is
       Item.Next_Tag := First;
    end Use_Tags_From;
 
-   function Owns_Tag (Item : View; Tag : Integer) return Boolean is (Item.Commands.Contains (Tag));
+   function Owns_Tag (Item : View; Tag : Integer) return Boolean
+   is (Item.Commands.Contains (Tag));
 
-   function Command_State (Item : View; Tag : Integer; Index : Natural) return Widgets.Command_State is
-     (Syncing.Validate (Item, Tag, Index));
+   function Command_State (Item : View; Tag : Integer; Index : Natural) return Widgets.Command_State
+   is (Syncing.Validate (Item, Tag, Index));
 
    procedure Synchronize (Item : in out View) is
    begin
       Syncing.Synchronize (Item);
    end Synchronize;
 
-   function Screen_Panel (Item : View) return access Widgets.Widget'Class is (Item.Screen_Top);
+   function Screen_Panel (Item : View) return access Widgets.Widget'Class
+   is (Item.Screen_Top);
 
-   function Has_Named (Item : View; Name : String) return Boolean is (Item.Names.Contains (Name));
+   function Has_Named (Item : View; Name : String) return Boolean
+   is (Item.Names.Contains (Name));
 
-   function Named (Item : View; Name : String) return not null access Widgets.Widget'Class is
-     (Item.Names (Name));
+   function Named (Item : View; Name : String) return not null access Widgets.Widget'Class
+   is (Item.Names (Name));
 
-   function Panel_Of (Item : View; Part : Layout) return access Widgets.Widget'Class is
-     (if Part.Node = null or else not Is_Live (Item, Part.Scope) then null else Part.Node.Made);
+   function Panel_Of (Item : View; Part : Layout) return access Widgets.Widget'Class
+   is (if Part.Node = null or else not Is_Live (Item, Part.Scope) then null else Part.Node.Made);
 
    procedure Inject_Fault (Item : in out View; Placements : Natural) is
    begin
@@ -1668,7 +1745,8 @@ package body Pomarine.UI is
 
    --  The view's life
 
-   overriding procedure Initialize (Item : in out View) is
+   overriding
+   procedure Initialize (Item : in out View) is
    begin
       Item.Judge.Owner := Item'Unchecked_Access;
       Registry.Add (Item'Unchecked_Access, Item.Number);
@@ -1676,7 +1754,8 @@ package body Pomarine.UI is
       Item.Top_Scope := Item.Root_Scope;
    end Initialize;
 
-   overriding procedure Finalize (Item : in out View) is
+   overriding
+   procedure Finalize (Item : in out View) is
    begin
       if Item.Number = 0 then
          return;
@@ -1706,10 +1785,12 @@ package body Pomarine.UI is
       Item.Number := 0;
    end Finalize;
 
-   overriding function Validate (Self : Hub; Tag : Integer; Index : Natural) return Widgets.Command_State is
-     (if Self.Owner = null then Widgets.Not_Offered else Syncing.Validate (Self.Owner.all, Tag, Index));
+   overriding
+   function Validate (Self : Hub; Tag : Integer; Index : Natural) return Widgets.Command_State
+   is (if Self.Owner = null then Widgets.Not_Offered else Syncing.Validate (Self.Owner.all, Tag, Index));
 
-   overriding procedure Sync (Self : in out Hub) is
+   overriding
+   procedure Sync (Self : in out Hub) is
    begin
       if Self.Owner /= null then
          Syncing.Synchronize (Self.Owner.all);

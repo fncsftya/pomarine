@@ -12,6 +12,7 @@ with Pomarine.Events;
 --  pin that a drag is to end on, if there is one, as Is_Hovered says; the
 --  application says that pins may be ended on (Set_Accepting), and those
 --  the pointer is over are drawn with a border to show it.
+
 package Pomarine.Widgets.Pins is
 
    Diameter : constant Float := 14.0;
@@ -28,7 +29,7 @@ package Pomarine.Widgets.Pins is
    --  Whether the button is down from a press on it.
 
    procedure Cancel (Item : in out Pin)
-     with Post => not Is_Held (Item);
+   with Post => not Is_Held (Item);
    --  Forget a press, as when it is hidden and so will not be told the
    --  button is let go.
 
@@ -37,19 +38,17 @@ package Pomarine.Widgets.Pins is
    --  Where the pointer was last, in points of the window, while it is
    --  held.
 
-   overriding procedure Handle
-     (Item    : in out Pin;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Pin; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Pin;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Pin; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed (Item : in out Pin; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Pin; Hovered : Boolean);
 
-   overriding function Cursor (Item : Pin) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Pin) return SDL3.Cursors.Kind;
 
 private
 

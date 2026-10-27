@@ -1,22 +1,29 @@
 with Yoga.Nodes;
+
 package body Pomarine.Widgets.Scrollers is
 
    use type Semantics.Role;
 
    use type Pomarine.Events.Event_Kind;
 
-   function Offset (Item : Scroller) return Float is (Item.Moved);
+   function Offset (Item : Scroller) return Float
+   is (Item.Moved);
 
-   function Bar_Metrics (Item : Scroller) return Scrollbars.Metrics is
-     (Left    => Left_Of (Item), Top => Top_Of (Item),
-      Width   => Width_Of (Item), Height => Height_Of (Item),
-      Density => Density (Item),
-      Start   => Item.Moved * Density (Item),
-      Shown   => (if Item.Across then Width_Of (Item) else Height_Of (Item)),
-      Total   => (if Child_Count (Item) /= 1 then 0.0
-                  elsif Item.Across then Width_Of (Child_At (Item, 1).all)
-                  else Height_Of (Child_At (Item, 1).all)),
-      Horizontal => Item.Across);
+   function Bar_Metrics (Item : Scroller) return Scrollbars.Metrics
+   is (Left       => Left_Of (Item),
+       Top        => Top_Of (Item),
+       Width      => Width_Of (Item),
+       Height     => Height_Of (Item),
+       Density    => Density (Item),
+       Start      => Item.Moved * Density (Item),
+       Shown      => (if Item.Across then Width_Of (Item) else Height_Of (Item)),
+       Total      =>
+         (if Child_Count (Item) /= 1
+          then 0.0
+          elsif Item.Across
+          then Width_Of (Child_At (Item, 1).all)
+          else Height_Of (Child_At (Item, 1).all)),
+       Horizontal => Item.Across);
 
    procedure Set_Across (Item : in out Scroller; Across : Boolean) is
    begin
@@ -29,17 +36,14 @@ package body Pomarine.Widgets.Scrollers is
       Hidden : constant Float :=
         Float'Max
           (0.0,
-           (if Item.Across
-            then Width_Of (Child.all) - Width_Of (Item)
-            else Height_Of (Child.all) - Height_Of (Item)) / Pixels);
+           (if Item.Across then Width_Of (Child.all) - Width_Of (Item) else Height_Of (Child.all) - Height_Of (Item))
+           / Pixels);
       --  How much of the child is out of the box.
       Wanted : constant Float := Float'Min (Hidden, Float'Max (0.0, To));
    begin
       if Wanted /= Item.Moved then
          Item.Moved := Wanted;
-         Yoga.Nodes.Set_Position
-           (Node (Child.all), (if Item.Across then Yoga.Left else Yoga.Top),
-            -Wanted * Pixels);
+         Yoga.Nodes.Set_Position (Node (Child.all), (if Item.Across then Yoga.Left else Yoga.Top), -Wanted * Pixels);
          Request_Layout (Item);
       end if;
    end Scroll_To;
@@ -58,41 +62,33 @@ package body Pomarine.Widgets.Scrollers is
       Animate (Item, Item.Moved, To, Milliseconds, Ease_Out, Offset_Step'Access);
    end Scroll_Smoothly;
 
-   overriding procedure Draw_Over
-     (Item   : in out Scroller;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme) is
+   overriding
+   procedure Draw_Over (Item : in out Scroller; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
    begin
       if Child_Count (Item) = 1 then
          Scrollbars.Draw (Item.Bar, Target, Colors, Bar_Metrics (Item));
       end if;
    end Draw_Over;
 
-   overriding procedure Hover_Changed
-     (Item : in out Scroller; Hovered : Boolean) is
+   overriding
+   procedure Hover_Changed (Item : in out Scroller; Hovered : Boolean) is
    begin
       Scrollbars.Set_Pane (Item.Bar, Hovered);
       Invalidate (Item);
    end Hover_Changed;
 
-   overriding procedure Handle
-     (Item    : in out Scroller;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean) is
+   overriding
+   procedure Handle (Item : in out Scroller; Event : Pomarine.Events.Event; Handled : out Boolean) is
    begin
       Handled := False;
       if Child_Count (Item) = 1
-        and then Event.Kind in Pomarine.Events.Mouse_Down
-                             | Pomarine.Events.Mouse_Move
-                             | Pomarine.Events.Mouse_Up
+        and then Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up
       then
          declare
             Moved, Changed : Boolean;
-            To : Float;
+            To             : Float;
          begin
-            Scrollbars.Handle
-              (Item.Bar, Event, Bar_Metrics (Item), Handled, Moved, To,
-               Changed);
+            Scrollbars.Handle (Item.Bar, Event, Bar_Metrics (Item), Handled, Moved, To, Changed);
             if Moved then
                Scroll_To (Item, To / Density (Item));
             end if;
@@ -104,21 +100,17 @@ package body Pomarine.Widgets.Scrollers is
             end if;
          end;
       end if;
-      if Event.Kind = Pomarine.Events.Mouse_Wheel
-        and then Child_Count (Item) = 1
-      then
+      if Event.Kind = Pomarine.Events.Mouse_Wheel and then Child_Count (Item) = 1 then
          Scroll_To
            (Item,
             Item.Moved
-            - (if Item.Across and then Event.Wheel_X /= 0.0
-               then Event.Wheel_X else Event.Wheel_Y) * Points_Per_Notch);
+            - (if Item.Across and then Event.Wheel_X /= 0.0 then Event.Wheel_X else Event.Wheel_Y) * Points_Per_Notch);
          Handled := True;
       end if;
    end Handle;
 
-   overriding procedure Describe
-     (Item  : Scroller;
-      Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Scroller; Facts : in out Semantics.Description) is
    begin
       if Facts.Kind = Semantics.Unknown then
          Facts.Kind := Semantics.Scroll_View;
@@ -129,24 +121,22 @@ package body Pomarine.Widgets.Scrollers is
       Facts.Actions (Semantics.Scroll_Right) := Item.Across;
    end Describe;
 
-   overriding procedure Perform
-     (Item    : in out Scroller;
-      Request : Semantics.Request;
-      Done    : out Boolean)
-   is
-      Page : constant Float := 0.9 * (if Item.Across then Width_Of (Item) else Height_Of (Item))
-        / Density (Item);
+   overriding
+   procedure Perform (Item : in out Scroller; Request : Semantics.Request; Done : out Boolean) is
+      Page : constant Float := 0.9 * (if Item.Across then Width_Of (Item) else Height_Of (Item)) / Density (Item);
    begin
       Done := Child_Count (Item) = 1;
       if not Done then
          return;
       end if;
       case Request.Doing is
-         when Semantics.Scroll_Up | Semantics.Scroll_Left =>
+         when Semantics.Scroll_Up | Semantics.Scroll_Left    =>
             Scroll_Smoothly (Item, Item.Moved - Page);
+
          when Semantics.Scroll_Down | Semantics.Scroll_Right =>
             Scroll_Smoothly (Item, Item.Moved + Page);
-         when others =>
+
+         when others                                         =>
             Done := False;
       end case;
    end Perform;

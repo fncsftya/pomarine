@@ -16,9 +16,13 @@ package body Surface_Tests is
       Last : E.Event;
       Seen : Natural := 0;
    end record;
-   overriding function Is_Focusable (Item : Probe) return Boolean is (True);
-   overriding procedure Handle (Item : in out Probe; Event : E.Event; Handled : out Boolean);
-   overriding procedure Handle (Item : in out Probe; Event : E.Event; Handled : out Boolean) is
+   overriding
+   function Is_Focusable (Item : Probe) return Boolean
+   is (True);
+   overriding
+   procedure Handle (Item : in out Probe; Event : E.Event; Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Probe; Event : E.Event; Handled : out Boolean) is
    begin
       Item.Last := Event;
       Item.Seen := Item.Seen + 1;
@@ -26,21 +30,20 @@ package body Surface_Tests is
    end Handle;
 
    --  Inject through SDL's real queue so decoding and the public event conversion are both exercised.
-   type Raw_Event is array (0 .. 31) of Interfaces.Unsigned_32
-     with Convention => C, Alignment => 8;
+   type Raw_Event is array (0 .. 31) of Interfaces.Unsigned_32 with Convention => C, Alignment => 8;
    function Push (Raw : System.Address) return Interfaces.C.C_bool
-     with Import, Convention => C, External_Name => "SDL_PushEvent";
+   with Import, Convention => C, External_Name => "SDL_PushEvent";
    procedure Set_Modifiers (Mask : Interfaces.Unsigned_16)
-     with Import, Convention => C, External_Name => "SDL_SetModState";
+   with Import, Convention => C, External_Name => "SDL_SetModState";
 
    procedure Input is
-      Tree : W.Tree;
-      Root : aliased W.Panels.Panel;
+      Tree          : W.Tree;
+      Root          : aliased W.Panels.Panel;
       First, Second : aliased Probe;
-      Handled : Boolean;
-      Raw : aliased Raw_Event := [others => 0];
-      Event : E.Event;
-      Found : Boolean;
+      Handled       : Boolean;
+      Raw           : aliased Raw_Event := [others => 0];
+      Event         : E.Event;
+      Found         : Boolean;
       use type E.Key_Code;
    begin
       SDL3.Initialize;
@@ -104,7 +107,8 @@ package body Surface_Tests is
          end;
          raise Program_Error with "File_Path must reject Idle";
       exception
-         when Ada.Assertions.Assertion_Error => null;
+         when Ada.Assertions.Assertion_Error =>
+            null;
       end;
    end Input;
 end Surface_Tests;

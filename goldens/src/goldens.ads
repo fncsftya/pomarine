@@ -12,16 +12,13 @@ with SDL3.Windows.Renderers.Images;
 --  by default no pixel may differ. CoreText may rasterize a little
 --  differently on another release of macOS: then loosen Tolerance or
 --  Max_Differing for the test, or regenerate the goldens.
+
 package Goldens is
 
    package Images renames SDL3.Windows.Renderers.Images;
 
-   procedure Check
-     (Name          : String;
-      Actual        : Images.Image;
-      Tolerance     : Natural := 0;
-      Max_Differing : Natural := 0)
-     with Pre => Name'Length > 0 and then not Images.Is_Empty (Actual);
+   procedure Check (Name : String; Actual : Images.Image; Tolerance : Natural := 0; Max_Differing : Natural := 0)
+   with Pre => Name'Length > 0 and then not Images.Is_Empty (Actual);
    --  That Actual is the golden image Name: no more than Max_Differing
    --  pixels with a channel more than Tolerance (of 255) off.
 
@@ -31,19 +28,17 @@ package Goldens is
       Actual        : Images.Image;
       Tolerance     : Natural := 0;
       Max_Differing : Natural := 0)
-     with Pre => Name'Length > 0
-                 and then not Images.Is_Empty (Expected)
-                 and then not Images.Is_Empty (Actual);
+   with Pre => Name'Length > 0 and then not Images.Is_Empty (Expected) and then not Images.Is_Empty (Actual);
    --  That two renders, which should look alike, do: as Check, against
    --  Expected rather than a golden. A mismatch also writes
    --  out/<name>-expected.png.
 
    procedure Check_Text (Name : String; Expected, Actual : String)
-     with Pre => Name'Length > 0;
+   with Pre => Name'Length > 0;
    --  That Actual is Expected: for what a test checks besides pictures.
 
    function Scratch (Name : String) return String
-     with Pre => Name'Length > 0;
+   with Pre => Name'Length > 0;
    --  The path of a file Name in out/, for a test to write and read.
 
    function Passed return Natural;

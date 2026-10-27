@@ -17,6 +17,7 @@ with Pomarine.Themes;
 --  several sizes: text_area_bench [paragraphs ...]. Each edit is timed by
 --  itself (the model) and with the frame drawn after it, into a hidden
 --  window on the GPU.
+
 procedure Text_Area_Bench is
    package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
@@ -32,29 +33,25 @@ procedure Text_Area_Bench is
       Shown : String (1 .. 10);
    begin
       Ada.Float_Text_IO.Put (Shown, Millis, Aft => 3, Exp => 0);
-      Put_Line ("  " & What & (1 .. Integer'Max (1, 44 - What'Length) => ' ')
-                & Shown & " ms");
+      Put_Line ("  " & What & (1 .. Integer'Max (1, 44 - What'Length) => ' ') & Shown & " ms");
    end Report;
 
-   function Key
-     (Code : Events.Key_Code; Command, Shift : Boolean := False)
-      return Events.Event is
-     ((Kind => Events.Key_Down, Key => Code, Command => Command,
-       Shift => Shift, others => <>));
+   function Key (Code : Events.Key_Code; Command, Shift : Boolean := False) return Events.Event
+   is ((Kind => Events.Key_Down, Key => Code, Command => Command, Shift => Shift, others => <>));
 
    Win    : SDL3.Windows.Window;
    Target : Renderers.Renderer;  --  after Win: it is destroyed first
 
    procedure Measure (Text : String) is
-      Paragraphs : Positive := 1;
-      Doc   : aliased Docs.Document;
-      Area  : Text_Areas.Text_Area;  --  after Target and Doc
-      Board : Pomarine.Clipboards.Memory_Clipboard;
+      Paragraphs    : Positive := 1;
+      Doc           : aliased Docs.Document;
+      Area          : Text_Areas.Text_Area;  --  after Target and Doc
+      Board         : Pomarine.Clipboards.Memory_Clipboard;
       Width, Height : Natural;
-      Density : constant Float := SDL3.Windows.Pixel_Density (Win);
+      Density       : constant Float := SDL3.Windows.Pixel_Density (Win);
 
       Longest, Longest_Length : Natural := 0;
-      Longest_Middle : Positive := 1;
+      Longest_Middle          : Positive := 1;
       --  The longest paragraph, its length in bytes, and a character
       --  boundary half way along it
 
@@ -70,10 +67,7 @@ procedure Text_Area_Bench is
          Text_Areas.Draw (Area, SDL3.Painters.To (Target), Colors);
       end Draw;
 
-      function Each
-        (Times : Positive; Action : not null access procedure;
-         Drawn : Boolean := False) return Float
-      is
+      function Each (Times : Positive; Action : not null access procedure; Drawn : Boolean := False) return Float is
          Spent : Duration := 0.0;
       begin
          --  Present waits for the display, even without vsync: it is not
@@ -95,9 +89,9 @@ procedure Text_Area_Bench is
          return Float (Spent) * 1000.0 / Float (Times);
       end Each;
 
-      procedure Both (What : String; Times : Positive;
-                      Action : not null access procedure;
-                      Set_Up : access procedure := null) is
+      procedure Both
+        (What : String; Times : Positive; Action : not null access procedure; Set_Up : access procedure := null)
+      is
          Model : Float;
       begin
          if Set_Up /= null then
@@ -117,15 +111,13 @@ procedure Text_Area_Bench is
          --  Edits may have joined or split paragraphs.
          Send (Key (Events.Key_Down_Arrow, Command => True));
          Count := Text_Areas.Caret (Area).Paragraph;
-         Text_Areas.Select_Range
-           (Area, ((Count + 1) / 2, 1), ((Count + 1) / 2, 1));
+         Text_Areas.Select_Range (Area, ((Count + 1) / 2, 1), ((Count + 1) / 2, 1));
       end At_Middle;
 
       procedure In_Longest is
       begin
          if Text_Areas.Is_Position (Area, (Longest, Longest_Middle)) then
-            Text_Areas.Select_Range
-              (Area, (Longest, Longest_Middle), (Longest, Longest_Middle));
+            Text_Areas.Select_Range (Area, (Longest, Longest_Middle), (Longest, Longest_Middle));
          end if;
       end In_Longest;
 
@@ -205,8 +197,8 @@ procedure Text_Area_Bench is
    begin
       --  The longest paragraph
       declare
-         Para  : Positive := 1;
-         Since : Natural := 0;
+         Para                 : Positive := 1;
+         Since                : Natural := 0;
          Start, Longest_Start : Positive := Text'First;
       begin
          for I in Text'Range loop
@@ -225,47 +217,38 @@ procedure Text_Area_Bench is
          end loop;
          Paragraphs := Para;
          Longest_Middle := Natural'Max (1, Longest_Length / 2);
-         while Character'Pos (Text (Longest_Start + Longest_Middle - 1))
-               in 16#80# .. 16#BF#
-         loop
+         while Character'Pos (Text (Longest_Start + Longest_Middle - 1)) in 16#80# .. 16#BF# loop
             Longest_Middle := Longest_Middle - 1;
          end loop;
       end;
 
-      Put_Line (Paragraphs'Image & " paragraphs,"
-                & Natural'Image (Text'Length / 1024) & " KB; the longest"
-                & Natural'Image (Longest_Length / 1024) & " KB");
+      Put_Line
+        (Paragraphs'Image
+         & " paragraphs,"
+         & Natural'Image (Text'Length / 1024)
+         & " KB; the longest"
+         & Natural'Image (Longest_Length / 1024)
+         & " KB");
 
       Renderers.Output_Size (Target, Width, Height);
       Started := Clock;
       Docs.Load (Doc, Text);
       Text_Areas.Configure (Area, "Georgia", 18.0, 640.0, 8.0);
-      Text_Areas.Place
-        (Area, 32.0, 32.0, Float (Width) - 64.0, Float (Height) - 128.0,
-         Density);
+      Text_Areas.Place (Area, 32.0, 32.0, Float (Width) - 64.0, Float (Height) - 128.0, Density);
       Text_Areas.Attach (Area, Doc'Unchecked_Access);
       Text_Areas.Set_Focus (Area, True);
-      Report ("configure and load", Float
-                (To_Duration (Clock - Started)) * 1000.0);
+      Report ("configure and load", Float (To_Duration (Clock - Started)) * 1000.0);
       Report ("first frame", Each (1, Nothing'Access, Drawn => True));
       Report ("frame, nothing changed", Each (50, Nothing'Access, True));
 
-      Both ("typing, mid-document, each", 100, Type_Character'Access,
-            At_Middle'Access);
-      Both ("backspace, mid-document, each", 100, Backspace'Access,
-            At_Middle'Access);
-      Both ("typing, in the longest paragraph, each", 100,
-            Type_Character'Access, In_Longest'Access);
-      Both ("arrow right, in the longest paragraph, each", 100,
-            Right'Access, In_Longest'Access);
-      Both ("return (new paragraph), mid-document, each", 50,
-            Return_Key'Access, At_Middle'Access);
-      Both ("arrow down, mid-document, each", 100, Down'Access,
-            At_Middle'Access);
-      Both ("shift-arrow down, growing a selection, each", 30,
-            Shift_Down'Access, At_Middle'Access);
-      Report ("command-down and -up (to the ends and back)",
-              Each (5, To_End'Access, Drawn => True));
+      Both ("typing, mid-document, each", 100, Type_Character'Access, At_Middle'Access);
+      Both ("backspace, mid-document, each", 100, Backspace'Access, At_Middle'Access);
+      Both ("typing, in the longest paragraph, each", 100, Type_Character'Access, In_Longest'Access);
+      Both ("arrow right, in the longest paragraph, each", 100, Right'Access, In_Longest'Access);
+      Both ("return (new paragraph), mid-document, each", 50, Return_Key'Access, At_Middle'Access);
+      Both ("arrow down, mid-document, each", 100, Down'Access, At_Middle'Access);
+      Both ("shift-arrow down, growing a selection, each", 30, Shift_Down'Access, At_Middle'Access);
+      Report ("command-down and -up (to the ends and back)", Each (5, To_End'Access, Drawn => True));
       Report ("select all and copy", Each (1, Select_All_Copy'Access));
       Report ("all the text, as to save it", Each (5, Whole_Text'Access));
       Report ("select all and delete", Each (1, Delete_All'Access));
@@ -275,12 +258,11 @@ procedure Text_Area_Bench is
    end Measure;
 
    function Short_Lines (Count : Positive) return String is
-      Line : constant String := "A short paragraph, as in a list or a script.";
+      Line   : constant String := "A short paragraph, as in a list or a script.";
       Result : String (1 .. Count * (Line'Length + 1));
    begin
       for K in 0 .. Count - 1 loop
-         Result (K * (Line'Length + 1) + 1 .. (K + 1) * (Line'Length + 1)) :=
-           Line & ASCII.LF;
+         Result (K * (Line'Length + 1) + 1 .. (K + 1) * (Line'Length + 1)) := Line & ASCII.LF;
       end loop;
       return Result (1 .. Result'Last - 1);
    end Short_Lines;
@@ -300,17 +282,14 @@ procedure Text_Area_Bench is
    Sizes : constant array (1 .. 3) of Positive := [20, 1_000, 10_000];
 begin
    SDL3.Initialize;
-   SDL3.Windows.Create
-     (Win, "bench", 1000, 800, High_Density => True, Hidden => True);
+   SDL3.Windows.Create (Win, "bench", 1000, 800, High_Density => True, Hidden => True);
    Renderers.Create (Target, Win, VSync => False);
-   if Ada.Command_Line.Argument_Count > 0
-     and then Ada.Command_Line.Argument (1) = "profile-load"
-   then
+   if Ada.Command_Line.Argument_Count > 0 and then Ada.Command_Line.Argument (1) = "profile-load" then
       --  Loading many short paragraphs, for a profiler to watch.
       declare
          Doc_Text : constant String := Short_Lines (100_000);
-         Doc   : aliased Docs.Document;
-         Area  : Text_Areas.Text_Area;
+         Doc      : aliased Docs.Document;
+         Area     : Text_Areas.Text_Area;
       begin
          Text_Areas.Configure (Area, "Georgia", 18.0, 640.0, 8.0);
          Text_Areas.Place (Area, 32.0, 32.0, 1900.0, 1400.0, 2.0);
@@ -319,16 +298,14 @@ begin
             Text_Areas.Attach (Area, Doc'Unchecked_Access);
          end loop;
       end;
-   elsif Ada.Command_Line.Argument_Count > 0
-     and then Ada.Command_Line.Argument (1) = "profile"
-   then
+   elsif Ada.Command_Line.Argument_Count > 0 and then Ada.Command_Line.Argument (1) = "profile" then
       --  Typing in a long paragraph, for a profiler to watch.
       declare
          Doc_Text : constant String := One_Long (1_000_000);
-         Doc   : aliased Docs.Document;
-         Area  : Text_Areas.Text_Area;
-         Board : Pomarine.Clipboards.Memory_Clipboard;
-         Handled : Boolean;
+         Doc      : aliased Docs.Document;
+         Area     : Text_Areas.Text_Area;
+         Board    : Pomarine.Clipboards.Memory_Clipboard;
+         Handled  : Boolean;
       begin
          Docs.Load (Doc, Doc_Text);
          Text_Areas.Configure (Area, "Georgia", 18.0, 640.0, 8.0);
@@ -337,17 +314,14 @@ begin
          Text_Areas.Set_Focus (Area, True);
          Text_Areas.Select_Range (Area, (1, 500_000), (1, 500_000));
          for K in 1 .. 2_000 loop
-            Text_Areas.Handle
-              (Area, Events.Text_Event ("x"), Board, Handled);
+            Text_Areas.Handle (Area, Events.Text_Event ("x"), Board, Handled);
             Renderers.Clear (Target, Colors (Pomarine.Themes.Background));
             Text_Areas.Draw (Area, SDL3.Painters.To (Target), Colors);
          end loop;
       end;
    elsif Ada.Command_Line.Argument_Count > 0 then
       for K in 1 .. Ada.Command_Line.Argument_Count loop
-         Measure
-           (Typeset.Samples.Document
-              (Positive'Value (Ada.Command_Line.Argument (K))));
+         Measure (Typeset.Samples.Document (Positive'Value (Ada.Command_Line.Argument (K))));
       end loop;
    else
       for Size of Sizes loop

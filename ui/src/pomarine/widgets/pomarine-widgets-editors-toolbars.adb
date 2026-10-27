@@ -2,6 +2,7 @@ with Ada.Characters.Handling;
 with Yoga.Nodes;
 with Pomarine.Widgets.Editors.Metrics;
 with Pomarine.Widgets.Editors.Choosers;
+
 package body Pomarine.Widgets.Editors.Toolbars is
 
    package Docs renames Texts.Documents;
@@ -11,16 +12,16 @@ package body Pomarine.Widgets.Editors.Toolbars is
    use Pomarine.Widgets.Editors.Metrics;
    use Pomarine.Widgets.Editors.Choosers;
 
-   function Tip_Text (Item : Editor; Tool : Tool_Number) return String is
-     (Buttons.Label (Item.Tools (Tool))
-      & (if Item.Keys (Tool) = ASCII.NUL then ""
-         else "  " & Command_Mark & Ada.Characters.Handling.To_Upper (Item.Keys (Tool))));
+   function Tip_Text (Item : Editor; Tool : Tool_Number) return String
+   is (Buttons.Label (Item.Tools (Tool))
+       & (if Item.Keys (Tool) = ASCII.NUL
+          then ""
+          else "  " & Command_Mark & Ada.Characters.Handling.To_Upper (Item.Keys (Tool))));
 
    function Tool_For_Key (Item : Editor; Key : Pomarine.Events.Key_Code) return Natural is
    begin
       for Tool in 1 .. Item.Tool_Total loop
-         if Item.Keys (Tool) /= ASCII.NUL
-           and then Key = Pomarine.Events.Key_Code (Character'Pos (Item.Keys (Tool)))
+         if Item.Keys (Tool) /= ASCII.NUL and then Key = Pomarine.Events.Key_Code (Character'Pos (Item.Keys (Tool)))
          then
             return Tool;
          end if;
@@ -51,10 +52,8 @@ package body Pomarine.Widgets.Editors.Toolbars is
                   Yoga.Nodes.Set_Position_Type (Node (Item.Tip), Yoga.Absolute);
                end if;
                Yoga.Nodes.Set_Position (Node (Item.Tip), Yoga.Left, Tool_Left (Which) * Pixels);
-               Yoga.Nodes.Set_Position
-                 (Node (Item.Tip), Yoga.Top, (Toolbar_Top + Button_High + Tip_Gap) * Pixels);
-               Yoga.Nodes.Set_Width
-                 (Node (Item.Tip), Float'Rounding (Tooltips.Natural_Width (Item.Tip) * Pixels));
+               Yoga.Nodes.Set_Position (Node (Item.Tip), Yoga.Top, (Toolbar_Top + Button_High + Tip_Gap) * Pixels);
+               Yoga.Nodes.Set_Width (Node (Item.Tip), Float'Rounding (Tooltips.Natural_Width (Item.Tip) * Pixels));
                Yoga.Nodes.Set_Height (Node (Item.Tip), Tooltips.Height * Pixels);
                Set_Visible (Item.Tip, True);
                Item.Tip_Shown := True;
@@ -68,9 +67,11 @@ package body Pomarine.Widgets.Editors.Toolbars is
       end if;
    end Refresh_Tip;
 
-   function Toolbar_Wanted (Item : Editor) return Boolean is
-     (Has_Document (Item) and then Is_Attached (Item) and then Item.Enabled
-      and then Text_Areas.Has_Toolbar (Item.Text));
+   function Toolbar_Wanted (Item : Editor) return Boolean
+   is (Has_Document (Item)
+       and then Is_Attached (Item)
+       and then Item.Enabled
+       and then Text_Areas.Has_Toolbar (Item.Text));
 
    Bullet_Label : constant String := [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#A2#)];
    Quote_Label  : constant String := [Character'Val (16#E2#), Character'Val (16#80#), Character'Val (16#9C#)];
@@ -79,8 +80,7 @@ package body Pomarine.Widgets.Editors.Toolbars is
    Arrow_Out    : constant String := [Character'Val (16#E2#), Character'Val (16#86#), Character'Val (16#97#)];
    --  U+2022, U+201C, U+2190, U+2192 and U+2197 in UTF-8.
 
-   procedure Place_Select
-     (Item : in out Editor; Part : in out Selects.Select_Field; Name : String; Left, Wide : Float)
+   procedure Place_Select (Item : in out Editor; Part : in out Selects.Select_Field; Name : String; Left, Wide : Float)
    is
       Pixels : constant Float := Density (Item);
    begin
@@ -107,32 +107,44 @@ package body Pomarine.Widgets.Editors.Toolbars is
          begin
             if not Is_Attached (Part) then
                Buttons.Set_Label
-                 (Part, (case Style is
-                            when Docs.Bold => "B", when Docs.Italic => "I",
-                            when Docs.Underline => "U", when Docs.Strikethrough => "S",
-                            when Docs.Faded => "F", when Docs.Sized => "Z", when Docs.Faced => "Y",
-                            when Docs.Linked => "L", when Docs.Versioned => "V"));
+                 (Part,
+                  (case Style is
+                     when Docs.Bold          => "B",
+                     when Docs.Italic        => "I",
+                     when Docs.Underline     => "U",
+                     when Docs.Strikethrough => "S",
+                     when Docs.Faded         => "F",
+                     when Docs.Sized         => "Z",
+                     when Docs.Faced         => "Y",
+                     when Docs.Linked        => "L",
+                     when Docs.Versioned     => "V"));
                Buttons.Set_Label_Style
-                 (Part, (case Style is
-                            when Docs.Bold => Line_Texts.Serif_Bold,
-                            when Docs.Italic => Line_Texts.Serif_Italic,
-                            when others => Line_Texts.Serif_Label),
-                  Underlined => Style = Docs.Underline, Struck => Style = Docs.Strikethrough);
+                 (Part,
+                  (case Style is
+                     when Docs.Bold   => Line_Texts.Serif_Bold,
+                     when Docs.Italic => Line_Texts.Serif_Italic,
+                     when others      => Line_Texts.Serif_Label),
+                  Underlined => Style = Docs.Underline,
+                  Struck     => Style = Docs.Strikethrough);
                Set_Accessible_Name
-                 (Part, (case Style is
-                            when Docs.Bold => "Bold", when Docs.Italic => "Italic",
-                            when Docs.Underline => "Underline",
-                            when Docs.Strikethrough => "Strikethrough",
-                            when Docs.Faded => "Faded", when Docs.Sized => "Size", when Docs.Faced => "Family",
-                            when Docs.Linked => "Link", when Docs.Versioned => "Versions"));
+                 (Part,
+                  (case Style is
+                     when Docs.Bold          => "Bold",
+                     when Docs.Italic        => "Italic",
+                     when Docs.Underline     => "Underline",
+                     when Docs.Strikethrough => "Strikethrough",
+                     when Docs.Faded         => "Faded",
+                     when Docs.Sized         => "Size",
+                     when Docs.Faced         => "Family",
+                     when Docs.Linked        => "Link",
+                     when Docs.Versioned     => "Versions"));
                Buttons.Set_Enabled (Part, True);
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
             end if;
             Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
             Yoga.Nodes.Set_Position
-              (Node (Part), Yoga.Left,
-               (Toolbar_Left + Float (Place) * (Button_Wide + Button_Gap)) * Pixels);
+              (Node (Part), Yoga.Left, (Toolbar_Left + Float (Place) * (Button_Wide + Button_Gap)) * Pixels);
             Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, Toolbar_Top * Pixels);
             Yoga.Nodes.Set_Width (Node (Part), Button_Wide * Pixels);
             Yoga.Nodes.Set_Height (Node (Part), Button_High * Pixels);
@@ -144,21 +156,31 @@ package body Pomarine.Widgets.Editors.Toolbars is
          begin
             if not Is_Attached (Part) then
                Buttons.Set_Label
-                 (Part, (case Action is
-                            when Bulleted => Bullet_Label, when Numbered => "1.", when Quoted => Quote_Label,
-                            when Outdent => Arrow_Left, when Indent => Arrow_Right, when Link => Arrow_Out));
+                 (Part,
+                  (case Action is
+                     when Bulleted => Bullet_Label,
+                     when Numbered => "1.",
+                     when Quoted   => Quote_Label,
+                     when Outdent  => Arrow_Left,
+                     when Indent   => Arrow_Right,
+                     when Link     => Arrow_Out));
                Set_Accessible_Name
-                 (Part, (case Action is
-                            when Bulleted => "Bulleted list", when Numbered => "Numbered list",
-                            when Quoted => "Quotation", when Outdent => "Decrease indent",
-                            when Indent => "Increase indent", when Link => "Link"));
+                 (Part,
+                  (case Action is
+                     when Bulleted => "Bulleted list",
+                     when Numbered => "Numbered list",
+                     when Quoted   => "Quotation",
+                     when Outdent  => "Decrease indent",
+                     when Indent   => "Increase indent",
+                     when Link     => "Link"));
                Buttons.Set_Enabled (Part, True);
                Set_Listener (Part, Item'Unchecked_Access);
                Add (Item, Part);
             end if;
             Yoga.Nodes.Set_Position_Type (Node (Part), Yoga.Absolute);
             Yoga.Nodes.Set_Position
-              (Node (Part), Yoga.Left,
+              (Node (Part),
+               Yoga.Left,
                (Edit_Left + Float (Edit_Action'Pos (Action)) * (Button_Wide + Button_Gap)) * Pixels);
             Yoga.Nodes.Set_Position (Node (Part), Yoga.Top, Toolbar_Top * Pixels);
             Yoga.Nodes.Set_Width (Node (Part), Button_Wide * Pixels);
@@ -196,8 +218,8 @@ package body Pomarine.Widgets.Editors.Toolbars is
             Buttons.Set_Selected (Item.Toolbar (Style), Text_Areas.Format_Active (Item.Text, Style));
          end loop;
          declare
-            Reserved : constant Float := Toolbar_Left;
-            Fits     : constant Boolean := Width_Of (Item) >= (Tools_End (Item) + Reserved) * Density (Item);
+            Reserved  : constant Float := Toolbar_Left;
+            Fits      : constant Boolean := Width_Of (Item) >= (Tools_End (Item) + Reserved) * Density (Item);
             Edits_Fit : constant Boolean := Width_Of (Item) >= (Lists_End + Reserved) * Density (Item);
             Link_Fits : constant Boolean := Width_Of (Item) >= (Edit_End + Reserved) * Density (Item);
             Fonts_Fit : constant Boolean := Width_Of (Item) >= (Font_End + Reserved) * Density (Item);
@@ -224,9 +246,11 @@ package body Pomarine.Widgets.Editors.Toolbars is
                   Buttons.Set_Selected
                     (Item.Editing (Action),
                      Text_Areas.Block_Active
-                       (Item.Text, (case Action is when Bulleted => Text_Areas.Bullets,
-                                                   when Numbered => Text_Areas.Numbers,
-                                                   when others => Text_Areas.Quote)));
+                       (Item.Text,
+                        (case Action is
+                           when Bulleted => Text_Areas.Bullets,
+                           when Numbered => Text_Areas.Numbers,
+                           when others   => Text_Areas.Quote)));
                end loop;
                Say (Item.Style_Box, Style_Name (Text_Areas.Paragraph_Style (Item.Text)));
                Buttons.Set_Enabled

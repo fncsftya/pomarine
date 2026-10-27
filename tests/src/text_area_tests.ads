@@ -1,5 +1,6 @@
 --  Golden-image tests of a text area by itself: what it draws as it is
 --  typed into, edited, clicked, scrolled and zoomed. See Goldens.
+
 package Text_Area_Tests is
 
    procedure Empty;

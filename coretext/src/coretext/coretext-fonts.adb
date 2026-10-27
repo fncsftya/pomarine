@@ -14,13 +14,14 @@ package body CoreText.Fonts is
    --  these takes its colour from the drawing context.
 
    function Text_Attributes (Handle : Thin.Ref) return Thin.Ref is
-      Keys   : aliased array (1 .. 2) of System.Address :=
-        [Thin.Font_Attribute_Name, Thin.Foreground_From_Context];
-      Values : aliased array (1 .. 2) of System.Address :=
-        [Handle, Thin.Boolean_True];
+      Keys   : aliased array (1 .. 2) of System.Address := [Thin.Font_Attribute_Name, Thin.Foreground_From_Context];
+      Values : aliased array (1 .. 2) of System.Address := [Handle, Thin.Boolean_True];
       Result : constant Thin.Ref :=
         Thin.CF_Dictionary_Create
-          (Thin.Null_Ref, Keys'Address, Values'Address, 2,
+          (Thin.Null_Ref,
+           Keys'Address,
+           Values'Address,
+           2,
            Thin.Dictionary_Key_Callbacks'Address,
            Thin.Dictionary_Value_Callbacks'Address);
    begin
@@ -33,8 +34,7 @@ package body CoreText.Fonts is
    procedure Open (Item : in out Font; Family : String; At_Size : Float) is
       Name   : Thin.Ref := Core.Create_String (Family);
       Handle : constant Thin.Ref :=
-        Thin.CT_Font_Create_With_Name
-          (Name, Interfaces.C.double (At_Size), System.Null_Address);
+        Thin.CT_Font_Create_With_Name (Name, Interfaces.C.double (At_Size), System.Null_Address);
       Fam    : Thin.Ref;
    begin
       Core.Release (Name);
@@ -52,8 +52,7 @@ package body CoreText.Fonts is
 
       Fam := Thin.CT_Font_Copy_Family_Name (Handle);
       if Fam /= Thin.Null_Ref then
-         Item.Family :=
-           Ada.Strings.Unbounded.To_Unbounded_String (Core.To_Ada (Fam));
+         Item.Family := Ada.Strings.Unbounded.To_Unbounded_String (Core.To_Ada (Fam));
          Core.Release (Fam);
       end if;
    end Open;
@@ -62,8 +61,7 @@ package body CoreText.Fonts is
       Bytes : aliased constant String := Path;
       Where : Thin.Ref :=
         Thin.CF_URL_Create_From_File_System_Representation
-          (Thin.Null_Ref, Bytes'Address, Interfaces.C.long (Bytes'Length),
-           Thin.C_False);
+          (Thin.Null_Ref, Bytes'Address, Interfaces.C.long (Bytes'Length), Thin.C_False);
    begin
       if Where = Thin.Null_Ref then
          Registered := False;
@@ -71,8 +69,7 @@ package body CoreText.Fonts is
       end if;
       Registered :=
         Boolean
-          (Thin.CT_Font_Manager_Register_Fonts_For_URL
-             (Where, Thin.Font_Manager_Scope_Process, System.Null_Address));
+          (Thin.CT_Font_Manager_Register_Fonts_For_URL (Where, Thin.Font_Manager_Scope_Process, System.Null_Address));
       Core.Release (Where);
    end Register;
 
@@ -83,34 +80,38 @@ package body CoreText.Fonts is
       Item.Family := Ada.Strings.Unbounded.Null_Unbounded_String;
    end Close;
 
-   overriding procedure Finalize (Item : in out Font) is
+   overriding
+   procedure Finalize (Item : in out Font) is
    begin
       Close (Item);
    end Finalize;
 
-   function Is_Open (Item : Font) return Boolean is
-     (Item.Handle /= System.Null_Address);
+   function Is_Open (Item : Font) return Boolean
+   is (Item.Handle /= System.Null_Address);
 
-   function Family_Name (Item : Font) return String is
-     (Ada.Strings.Unbounded.To_String (Item.Family));
+   function Family_Name (Item : Font) return String
+   is (Ada.Strings.Unbounded.To_String (Item.Family));
 
-   function Size (Item : Font) return Float is (Item.Pixels);
-   function Ascent (Item : Font) return Float is (Item.Up);
-   function Descent (Item : Font) return Float is (Item.Down);
-   function Leading (Item : Font) return Float is (Item.Gap);
+   function Size (Item : Font) return Float
+   is (Item.Pixels);
+   function Ascent (Item : Font) return Float
+   is (Item.Up);
+   function Descent (Item : Font) return Float
+   is (Item.Down);
+   function Leading (Item : Font) return Float
+   is (Item.Gap);
 
-   function Line_Height (Item : Font) return Float is
-     (Item.Up + Item.Down + Item.Gap);
+   function Line_Height (Item : Font) return Float
+   is (Item.Up + Item.Down + Item.Gap);
 
-   function Attributes (Item : Font) return System.Address is (Item.Attrs);
+   function Attributes (Item : Font) return System.Address
+   is (Item.Attrs);
 
    function Families return Family_Vectors.Vector is
-      function Before (Left, Right : String) return Boolean is
-        (Ada.Characters.Handling.To_Lower (Left)
-         < Ada.Characters.Handling.To_Lower (Right)
-         or else (Ada.Characters.Handling.To_Lower (Left)
-                  = Ada.Characters.Handling.To_Lower (Right)
-                  and then Left < Right));
+      function Before (Left, Right : String) return Boolean
+      is (Ada.Characters.Handling.To_Lower (Left) < Ada.Characters.Handling.To_Lower (Right)
+          or else (Ada.Characters.Handling.To_Lower (Left) = Ada.Characters.Handling.To_Lower (Right)
+                   and then Left < Right));
 
       package Sorting is new Family_Vectors.Generic_Sorting (Before);
 
@@ -124,8 +125,7 @@ package body CoreText.Fonts is
 
       for I in 0 .. Thin.CF_Array_Get_Count (Names) - 1 loop
          declare
-            Name : constant String :=
-              Core.To_Ada (Thin.CF_Array_Get_Value_At_Index (Names, I));
+            Name : constant String := Core.To_Ada (Thin.CF_Array_Get_Value_At_Index (Names, I));
          begin
             if Name'Length > 0 and then Name (Name'First) /= '.' then
                Sorted.Append (Name);

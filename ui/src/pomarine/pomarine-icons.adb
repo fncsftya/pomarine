@@ -1,21 +1,27 @@
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
+
 package body Pomarine.Icons is
 
    package Textures renames SDL3.Windows.Renderers.Textures;
 
    use Ada.Strings.Unbounded;
 
-   function File_Name (Item : Library; Which : Icon) return String is
-     (if Item.Names (Which).Length > 0
-      then Item.Names (Which).Text (1 .. Item.Names (Which).Length)
-      elsif Which = Check then "check" & File_Extension
-      elsif Which = Close then "close" & File_Extension
-      elsif Which = Minimize then "minimize" & File_Extension
-      elsif Which = Chevron_Down then "chevron_down" & File_Extension
-      elsif Which = Chevron_Up then "chevron_up" & File_Extension
-      else "");
+   function File_Name (Item : Library; Which : Icon) return String
+   is (if Item.Names (Which).Length > 0
+       then Item.Names (Which).Text (1 .. Item.Names (Which).Length)
+       elsif Which = Check
+       then "check" & File_Extension
+       elsif Which = Close
+       then "close" & File_Extension
+       elsif Which = Minimize
+       then "minimize" & File_Extension
+       elsif Which = Chevron_Down
+       then "chevron_down" & File_Extension
+       elsif Which = Chevron_Up
+       then "chevron_up" & File_Extension
+       else "");
 
    procedure Forget (Each : in out Made) is
    begin
@@ -40,28 +46,21 @@ package body Pomarine.Icons is
    end Set_Directory;
 
    procedure Make
-     (Item   : in out Library;
-      Target : SDL3.Painters.Painter'Class;
-      Which  : Icon;
-      Size   : Positive;
+     (Item    : in out Library;
+      Target  : SDL3.Painters.Painter'Class;
+      Which   : Icon;
+      Size    : Positive;
       Made_It : out Boolean);
    --  Have the icon Size pixels square, if it can be.
 
    procedure Make
-     (Item   : in out Library;
-      Target : SDL3.Painters.Painter'Class;
-      Which  : Icon;
-      Size   : Positive;
-      Made_It : out Boolean)
+     (Item : in out Library; Target : SDL3.Painters.Painter'Class; Which : Icon; Size : Positive; Made_It : out Boolean)
    is
       Each : Made renames Item.Icons (Which);
-      Path : constant String :=
-        To_String (Item.Folder) & "/" & File_Name (Item, Which);
+      Path : constant String := To_String (Item.Folder) & "/" & File_Name (Item, Which);
    begin
       Made_It := Each.Size = Size;
-      if Made_It or else Each.Failed = Size or else Item.Folder = ""
-        or else File_Name (Item, Which) = ""
-      then
+      if Made_It or else Each.Failed = Size or else Item.Folder = "" or else File_Name (Item, Which) = "" then
          return;
       end if;
 
@@ -77,23 +76,21 @@ package body Pomarine.Icons is
       when Problem : others =>
          Ada.Text_IO.Put_Line
            (Ada.Text_IO.Standard_Error,
-            "Could not make icon " & Path & ": "
-            & Ada.Exceptions.Exception_Message (Problem));
+            "Could not make icon " & Path & ": " & Ada.Exceptions.Exception_Message (Problem));
    end Make;
 
    procedure Draw
-     (Item   : in out Library;
-      Target : SDL3.Painters.Painter'Class;
-      Which  : Icon;
-      Value  : SDL3.Windows.Renderers.Color;
+     (Item      : in out Library;
+      Target    : SDL3.Painters.Painter'Class;
+      Which     : Icon;
+      Value     : SDL3.Windows.Renderers.Color;
       Left, Top : Float;
-      Size   : Positive;
-      Drawn  : out Boolean) is
+      Size      : Positive;
+      Drawn     : out Boolean) is
    begin
       Make (Item, Target, Which, Size, Drawn);
       if Drawn then
-         SDL3.Painters.Draw_Tinted
-           (Target, Item.Icons (Which).Image, Left, Top, Value);
+         SDL3.Painters.Draw_Tinted (Target, Item.Icons (Which).Image, Left, Top, Value);
       end if;
    end Draw;
 

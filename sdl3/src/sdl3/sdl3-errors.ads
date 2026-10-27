@@ -3,7 +3,7 @@ with Interfaces.C;
 private package SDL3.Errors is
 
    procedure Raise_Last_Error (Context : String)
-     with No_Return;
+   with No_Return;
    --  Raise SDL_Error with Context and SDL's current error string.
 
    procedure Check (Ok : Interfaces.C.C_bool; Context : String);

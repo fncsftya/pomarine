@@ -11,6 +11,7 @@ with Pomarine.Events;
 --  A click on it turns it over, a change for the application to take, as
 --  it takes a button's click. Turned off (Set_Enabled), it is faint and
 --  takes nothing.
+
 package Pomarine.Widgets.Switches is
 
    type Switch is new Widget with private;
@@ -20,7 +21,7 @@ package Pomarine.Widgets.Switches is
    function Label (Item : Switch) return String;
 
    procedure Set_On (Item : in out Switch; To : Boolean)
-     with Post => Is_On (Item) = To;
+   with Post => Is_On (Item) = To;
    --  As the application's model has it. It is not a change to take.
 
    function Is_On (Item : Switch) return Boolean;
@@ -33,31 +34,25 @@ package Pomarine.Widgets.Switches is
    Track_Height : constant Float := 16.0;
    --  In points.
 
-   overriding procedure Handle
-     (Item    : in out Switch;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Switch; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Switch;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Switch; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Switch; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Switch; Hovered : Boolean);
 
-   overriding function Cursor (Item : Switch) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Switch) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe
-     (Item  : Switch;
-      Facts : in out Semantics.Description);
-   overriding procedure Perform
-     (Item    : in out Switch;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Describe (Item : Switch; Facts : in out Semantics.Description);
+   overriding
+   procedure Perform (Item : in out Switch; Request : Semantics.Request; Done : out Boolean);
 
-   overriding procedure Command_State_Changed
-     (Item : in out Switch; State : Command_State);
+   overriding
+   procedure Command_State_Changed (Item : in out Switch; State : Command_State);
 
    procedure Set_Focusable (Item : in out Switch; To : Boolean);
    --  Let it take the focus, by a click or from the application, and then
@@ -65,29 +60,30 @@ package Pomarine.Widgets.Switches is
    --  to begin with, so that clicking it does not take the focus from what
    --  is being typed into.
 
-   overriding function Is_Focusable (Item : Switch) return Boolean;
+   overriding
+   function Is_Focusable (Item : Switch) return Boolean;
 
-   overriding function Focuses_On_Click (Item : Switch) return Boolean is (False);
+   overriding
+   function Focuses_On_Click (Item : Switch) return Boolean
+   is (False);
    --  Tab reaches it (if it is focusable), but a click does not move the focus.
 
-   overriding procedure Focus_Changed
-     (Item : in out Switch; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Switch; Focused : Boolean);
 
-   overriding procedure Draw_Over
-     (Item   : in out Switch;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Switch; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
 private
 
    type Switch is new Widget with record
-      Text : Ada.Strings.Unbounded.Unbounded_String;
+      Text    : Ada.Strings.Unbounded.Unbounded_String;
       On      : Boolean := False;
       Enabled : Boolean := True;
       Down    : Boolean := False;
 
       By_Command : Boolean := False;
-      Focusable : Boolean := False;
+      Focusable  : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Switches;

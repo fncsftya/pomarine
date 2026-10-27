@@ -60,19 +60,24 @@ package body Keyboard_Tests is
    procedure Press (Item : in out Fixture; Key : Events.Key_Code; Shift : Boolean := False) is
       Handled : Boolean;
    begin
-      Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Key_Down, Key => Key, Shift => Shift, others => <>), Handled);
+      Widgets.Dispatch (Item.Tree, (Kind => Events.Key_Down, Key => Key, Shift => Shift, others => <>), Handled);
    end Press;
 
    function Who (Item : in out Fixture) return String is
       Focused : constant Widgets.Widget_Access := Widgets.Focus_Of (Item.Tree);
    begin
-      return (if Focused = null then "none"
-              elsif Focused = Item.Save'Unchecked_Access then "save"
-              elsif Focused = Item.Wrap'Unchecked_Access then "wrap"
-              elsif Focused = Item.Power'Unchecked_Access then "power"
-              elsif Focused = Item.Volume'Unchecked_Access then "volume"
-              else "other");
+      return
+        (if Focused = null
+         then "none"
+         elsif Focused = Item.Save'Unchecked_Access
+         then "save"
+         elsif Focused = Item.Wrap'Unchecked_Access
+         then "wrap"
+         elsif Focused = Item.Power'Unchecked_Access
+         then "power"
+         elsif Focused = Item.Volume'Unchecked_Access
+         then "volume"
+         else "other");
    end Who;
 
    procedure Tab_Order is
@@ -119,15 +124,14 @@ package body Keyboard_Tests is
       Press (Item, Events.Key_Right_Arrow);
       Press (Item, Events.Key_Right_Arrow);
       Goldens.Check_Text
-        ("keyboard-slider", "60",
-         Ada.Strings.Fixed.Trim (Integer'Image (Integer (Widgets.Sliders.Value (Item.Volume) * 100.0)),
-                                 Ada.Strings.Left));
+        ("keyboard-slider",
+         "60",
+         Ada.Strings.Fixed.Trim
+           (Integer'Image (Integer (Widgets.Sliders.Value (Item.Volume) * 100.0)), Ada.Strings.Left));
       Press (Item, Events.Key_Home);
-      Goldens.Check_Text
-        ("keyboard-slider-home", "0.0", Float'Image (Widgets.Sliders.Value (Item.Volume)) (2 .. 4));
+      Goldens.Check_Text ("keyboard-slider-home", "0.0", Float'Image (Widgets.Sliders.Value (Item.Volume)) (2 .. 4));
       Press (Item, Events.Key_End);
-      Goldens.Check_Text
-        ("keyboard-slider-end", "1.0", Float'Image (Widgets.Sliders.Value (Item.Volume)) (2 .. 4));
+      Goldens.Check_Text ("keyboard-slider-end", "1.0", Float'Image (Widgets.Sliders.Value (Item.Volume)) (2 .. 4));
 
       --  A button with the focus is pressed by Space, as before.
       Widgets.Focus (Item.Save);
@@ -145,13 +149,11 @@ package body Keyboard_Tests is
       Handled : Boolean;
    begin
       Open (Item);
-      Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Tab, others => <>), Handled);
+      Widgets.Dispatch (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Tab, others => <>), Handled);
       Goldens.Check_Text ("keyboard-tab-off", "FALSE none", Handled'Image & " " & Who (Item));
       --  Not focusable, they take no focus, by a click either.
       Goldens.Check_Text
-        ("keyboard-not-focusable", "FALSE",
-         Widgets.Is_Focusable (Widgets.Widget'Class (Item.Skip))'Image);
+        ("keyboard-not-focusable", "FALSE", Widgets.Is_Focusable (Widgets.Widget'Class (Item.Skip))'Image);
    end Off_Until_Asked;
 
    procedure Click_Leaves_Focus is
@@ -163,20 +165,16 @@ package body Keyboard_Tests is
       --  A click on a button (a Tab stop) does not take the focus from the
       --  field being typed in; the button still says it was clicked.
       Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Mouse_Move, Mouse_X => 30.0, Mouse_Y => 10.0, others => <>),
-         Handled);
+        (Item.Tree, (Kind => Events.Mouse_Move, Mouse_X => 30.0, Mouse_Y => 10.0, others => <>), Handled);
       Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Mouse_Down, Mouse_X => 30.0, Mouse_Y => 10.0, Button => 1,
-                     others => <>), Handled);
+        (Item.Tree, (Kind => Events.Mouse_Down, Mouse_X => 30.0, Mouse_Y => 10.0, Button => 1, others => <>), Handled);
       Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Mouse_Up, Mouse_X => 30.0, Mouse_Y => 10.0, Button => 1,
-                     others => <>), Handled);
+        (Item.Tree, (Kind => Events.Mouse_Up, Mouse_X => 30.0, Mouse_Y => 10.0, Button => 1, others => <>), Handled);
       declare
          Clicked : Boolean;
       begin
          Hearers.Take (Item.Ears, Item.Save, Widgets.Click, Clicked);
-         Goldens.Check_Text
-           ("keyboard-click-keeps-focus", "TRUE wrap", Clicked'Image & " " & Who (Item));
+         Goldens.Check_Text ("keyboard-click-keeps-focus", "TRUE wrap", Clicked'Image & " " & Who (Item));
       end;
       --  But Tab does reach it.
       Widgets.Set_Tab_Navigation (Item.Tree, True);
@@ -207,17 +205,17 @@ package body Keyboard_Tests is
       Widgets.Grips.Set_Focusable (Card, True);
       --  A grip that is only to be dragged is not a Tab stop.
       Goldens.Check_Text
-        ("grip-plain-not-a-stop", "FALSE TRUE",
-         Widgets.Is_Focusable (Widgets.Widget'Class (Plain))'Image & " "
+        ("grip-plain-not-a-stop",
+         "FALSE TRUE",
+         Widgets.Is_Focusable (Widgets.Widget'Class (Plain))'Image
+         & " "
          & Widgets.Is_Focusable (Widgets.Widget'Class (Card))'Image);
       Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Tab, others => <>), Handled);
-      Goldens.Check_Text
-        ("grip-tab", "TRUE", Widgets.Has_Focus (Card)'Image);
+      Goldens.Check_Text ("grip-tab", "TRUE", Widgets.Has_Focus (Card)'Image);
       Widgets.Dispatch (Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, others => <>), Handled);
       Hearers.Take (Ears, Card, Widgets.Click, Clicked);
       Goldens.Check_Text ("grip-return-clicks", "TRUE", Clicked'Image);
-      Goldens.Check_Text
-        ("grip-ring", "TRUE", Widgets.Is_Focus_Visible (Card)'Image);
+      Goldens.Check_Text ("grip-ring", "TRUE", Widgets.Is_Focus_Visible (Card)'Image);
       --  To an assistive technology it is a button that can be pressed.
       Widgets.Act (Tree, Widgets.Id_Of (Card), (Doing => Pomarine.Semantics.Click, others => <>), Done);
       Hearers.Take (Ears, Card, Widgets.Click, Clicked);
@@ -258,7 +256,7 @@ package body Keyboard_Tests is
    end Scoped_Tab;
 
    procedure Ring_By_Keyboard_Only is
-      Item : Fixture;
+      Item    : Fixture;
       Handled : Boolean;
       Pressed : constant Pomarine.Events.Event :=
         (Kind => Events.Mouse_Down, Mouse_X => 10.0, Mouse_Y => 10.0, others => <>);
@@ -268,18 +266,16 @@ package body Keyboard_Tests is
       Widgets.Dispatch (Item.Tree, Pressed, Handled);
       Widgets.Focus (Item.Save);
       Goldens.Check_Text
-        ("ring-by-pointer", "TRUE FALSE",
+        ("ring-by-pointer",
+         "TRUE FALSE",
          Widgets.Has_Focus (Item.Save)'Image & " " & Widgets.Is_Focus_Visible (Item.Save)'Image);
       --  A key makes it show, with no other change to it.
       Press (Item, Events.Key_Right_Arrow);
-      Goldens.Check_Text
-        ("ring-by-key", "TRUE", Widgets.Is_Focus_Visible (Item.Save)'Image);
-      Goldens.Check_Text
-        ("ring-repaint", "TRUE", Widgets.Needs_Paint (Item.Tree)'Image);
+      Goldens.Check_Text ("ring-by-key", "TRUE", Widgets.Is_Focus_Visible (Item.Save)'Image);
+      Goldens.Check_Text ("ring-repaint", "TRUE", Widgets.Needs_Paint (Item.Tree)'Image);
       --  And a press hides it again.
       Widgets.Dispatch (Item.Tree, Pressed, Handled);
-      Goldens.Check_Text
-        ("ring-by-pointer-again", "FALSE", Widgets.Is_Focus_Visible (Item.Save)'Image);
+      Goldens.Check_Text ("ring-by-pointer-again", "FALSE", Widgets.Is_Focus_Visible (Item.Save)'Image);
    end Ring_By_Keyboard_Only;
 
 end Keyboard_Tests;

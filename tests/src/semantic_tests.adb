@@ -35,30 +35,37 @@ package body Semantic_Tests is
       Nodes   : Natural := 0;
    end record;
 
-   overriding procedure Begin_Update
-     (Self : in out Notes; Root, Focused : Widgets.Node_Id; Whole : Boolean);
+   overriding
+   procedure Begin_Update (Self : in out Notes; Root, Focused : Widgets.Node_Id; Whole : Boolean);
 
-   overriding procedure Describe_Node
+   overriding
+   procedure Describe_Node
      (Self     : in out Notes;
       Id       : Widgets.Node_Id;
       Facts    : Semantics.Description;
       Bounds   : Semantics.Rectangle;
       Children : Widgets.Node_Id_Array);
 
-   overriding procedure End_Update (Self : in out Notes);
+   overriding
+   procedure End_Update (Self : in out Notes);
 
-   overriding procedure Begin_Update
-     (Self : in out Notes; Root, Focused : Widgets.Node_Id; Whole : Boolean) is
+   overriding
+   procedure Begin_Update (Self : in out Notes; Root, Focused : Widgets.Node_Id; Whole : Boolean) is
    begin
       Self.Said := Null_Unbounded_String;
       Self.Nodes := 0;
       Self.Updates := Self.Updates + 1;
-      Append (Self.Said, (if Whole then "whole" else "changes")
-              & " focus=" & Widgets.Image (Focused)
-              & (if Focused = Root then " (root)" else "") & ASCII.LF);
+      Append
+        (Self.Said,
+         (if Whole then "whole" else "changes")
+         & " focus="
+         & Widgets.Image (Focused)
+         & (if Focused = Root then " (root)" else "")
+         & ASCII.LF);
    end Begin_Update;
 
-   overriding procedure Describe_Node
+   overriding
+   procedure Describe_Node
      (Self     : in out Notes;
       Id       : Widgets.Node_Id;
       Facts    : Semantics.Description;
@@ -85,7 +92,8 @@ package body Semantic_Tests is
       Append (Self.Said, " [" & Widgets.Image (Id) & "]" & ASCII.LF);
    end Describe_Node;
 
-   overriding procedure End_Update (Self : in out Notes) is
+   overriding
+   procedure End_Update (Self : in out Notes) is
    begin
       null;
    end End_Update;
@@ -144,13 +152,20 @@ package body Semantic_Tests is
       Widgets.Describe_Changes (Item.Tree, Heard);
       Goldens.Check_Text
         ("semantics-whole",
-         "whole focus=1.1 (root)" & ASCII.LF
-         & "window 'Podcast' children=2 [1.1]" & ASCII.LF
-         & "heading 'Episode one' children=0 [2.1]" & ASCII.LF
-         & "group children=3 [3.1]" & ASCII.LF
-         & "button 'Save' children=0 [4.1]" & ASCII.LF
-         & "check box 'Wrap' OFF children=0 [5.1]" & ASCII.LF
-         & "slider 'Volume' =50% children=0 [6.1]" & ASCII.LF,
+         "whole focus=1.1 (root)"
+         & ASCII.LF
+         & "window 'Podcast' children=2 [1.1]"
+         & ASCII.LF
+         & "heading 'Episode one' children=0 [2.1]"
+         & ASCII.LF
+         & "group children=3 [3.1]"
+         & ASCII.LF
+         & "button 'Save' children=0 [4.1]"
+         & ASCII.LF
+         & "check box 'Wrap' OFF children=0 [5.1]"
+         & ASCII.LF
+         & "slider 'Volume' =50% children=0 [6.1]"
+         & ASCII.LF,
          To_String (Heard.Said));
    end Whole_Tree;
 
@@ -161,18 +176,19 @@ package body Semantic_Tests is
       Open (Item);
       Widgets.Describe_Changes (Item.Tree, Heard);
       Widgets.Describe_Changes (Item.Tree, Heard);
-      Goldens.Check_Text
-        ("semantics-quiet", "changes focus=1.1 (root)" & ASCII.LF,
-         To_String (Heard.Said));
+      Goldens.Check_Text ("semantics-quiet", "changes focus=1.1 (root)" & ASCII.LF, To_String (Heard.Said));
 
       Widgets.Buttons.Set_Label (Item.Save, "Save all");
       Widgets.Checks.Set_Checked (Item.Wrap, True);
       Widgets.Describe_Changes (Item.Tree, Heard);
       Goldens.Check_Text
         ("semantics-changed",
-         "changes focus=1.1 (root)" & ASCII.LF
-         & "button 'Save all' children=0 [4.1]" & ASCII.LF
-         & "check box 'Wrap' ON children=0 [5.1]" & ASCII.LF,
+         "changes focus=1.1 (root)"
+         & ASCII.LF
+         & "button 'Save all' children=0 [4.1]"
+         & ASCII.LF
+         & "check box 'Wrap' ON children=0 [5.1]"
+         & ASCII.LF,
          To_String (Heard.Said));
    end Only_Changes;
 
@@ -187,8 +203,7 @@ package body Semantic_Tests is
       Widgets.Describe_Changes (Item.Tree, Heard);
       Goldens.Check_Text
         ("semantics-hidden",
-         "changes focus=1.1 (root)" & ASCII.LF
-         & "window 'Podcast' children=1 [1.1]" & ASCII.LF,
+         "changes focus=1.1 (root)" & ASCII.LF & "window 'Podcast' children=1 [1.1]" & ASCII.LF,
          To_String (Heard.Said));
 
       --  Shown again, what was in it is told again, though it did not change.
@@ -197,20 +212,25 @@ package body Semantic_Tests is
       Widgets.Describe_Changes (Item.Tree, Heard);
       Goldens.Check_Text
         ("semantics-shown",
-         "changes focus=1.1 (root)" & ASCII.LF
-         & "window 'Podcast' children=2 [1.1]" & ASCII.LF
-         & "group children=3 [3.1]" & ASCII.LF
-         & "button 'Save' children=0 [4.1]" & ASCII.LF
-         & "check box 'Wrap' OFF children=0 [5.1]" & ASCII.LF
-         & "slider 'Volume' =50% children=0 [6.1]" & ASCII.LF,
+         "changes focus=1.1 (root)"
+         & ASCII.LF
+         & "window 'Podcast' children=2 [1.1]"
+         & ASCII.LF
+         & "group children=3 [3.1]"
+         & ASCII.LF
+         & "button 'Save' children=0 [4.1]"
+         & ASCII.LF
+         & "check box 'Wrap' OFF children=0 [5.1]"
+         & ASCII.LF
+         & "slider 'Volume' =50% children=0 [6.1]"
+         & ASCII.LF,
          To_String (Heard.Said));
 
       Widgets.Hide_From_Accessibility (Item.Title);
       Widgets.Describe_Changes (Item.Tree, Heard);
       Goldens.Check_Text
         ("semantics-hidden-from",
-         "changes focus=1.1 (root)" & ASCII.LF
-         & "window 'Podcast' children=1 [1.1]" & ASCII.LF,
+         "changes focus=1.1 (root)" & ASCII.LF & "window 'Podcast' children=1 [1.1]" & ASCII.LF,
          To_String (Heard.Said));
    end Hiding_And_Showing;
 
@@ -228,13 +248,13 @@ package body Semantic_Tests is
       Goldens.Check_Text ("semantics-click", "TRUE TRUE", Done'Image & " " & Clicked'Image);
 
       Widgets.Act (Item.Tree, Widgets.Id_Of (Item.Wrap), (Doing => Semantics.Click, others => <>), Done);
-      Goldens.Check_Text ("semantics-toggled", "TRUE TRUE",
-                          Done'Image & " " & Widgets.Checks.Is_Checked (Item.Wrap)'Image);
-
-      Widgets.Act (Item.Tree, Widgets.Id_Of (Item.Volume),
-                   (Doing => Semantics.Increment, others => <>), Done);
       Goldens.Check_Text
-        ("semantics-increment", "TRUE 55",
+        ("semantics-toggled", "TRUE TRUE", Done'Image & " " & Widgets.Checks.Is_Checked (Item.Wrap)'Image);
+
+      Widgets.Act (Item.Tree, Widgets.Id_Of (Item.Volume), (Doing => Semantics.Increment, others => <>), Done);
+      Goldens.Check_Text
+        ("semantics-increment",
+         "TRUE 55",
          Done'Image & Integer'Image (Integer (Widgets.Sliders.Value (Item.Volume) * 100.0)));
 
       --  What cannot be done is not.
@@ -263,23 +283,22 @@ package body Semantic_Tests is
       --  Put back, it has an id of its own, not the old.
       Widgets.Add (Item.Bar, Item.Save);
       Goldens.Check_Text
-        ("semantics-new-id", "TRUE",
-         Boolean'Image (Widgets.Id_Of (Item.Save) /= Old
-                        and then Widgets.Resolve (Item.Tree, Old) = null));
+        ("semantics-new-id",
+         "TRUE",
+         Boolean'Image (Widgets.Id_Of (Item.Save) /= Old and then Widgets.Resolve (Item.Tree, Old) = null));
 
       --  A number for an id, and back.
       Goldens.Check_Text
-        ("semantics-number", "TRUE",
+        ("semantics-number",
+         "TRUE",
          Boolean'Image
-           (Widgets.From_Unsigned_64
-              (Widgets.To_Unsigned_64 (Widgets.Id_Of (Item.Save)))
-            = Widgets.Id_Of (Item.Save)));
+           (Widgets.From_Unsigned_64 (Widgets.To_Unsigned_64 (Widgets.Id_Of (Item.Save))) = Widgets.Id_Of (Item.Save)));
    end Stale_Ids;
 
    procedure Menu_Parts is
-      Item  : Fixture;
-      Heard : Notes;
-      Done  : Boolean;
+      Item   : Fixture;
+      Heard  : Notes;
+      Done   : Boolean;
       Chosen : Natural;
    begin
       Open (Item);
@@ -287,19 +306,16 @@ package body Semantic_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
       Widgets.Describe_Changes (Item.Tree, Heard);
       Goldens.Check_Text
-        ("semantics-menu-parts", "TRUE",
+        ("semantics-menu-parts",
+         "TRUE",
          Boolean'Image
            (Ada.Strings.Fixed.Index (To_String (Heard.Said), "menu item 'Open'") > 0
-            and then Ada.Strings.Fixed.Index
-                       (To_String (Heard.Said), "menu item 'Autosave' ON") > 0
-            and then Ada.Strings.Fixed.Index
-                       (To_String (Heard.Said), "heading 'File'") > 0));
+            and then Ada.Strings.Fixed.Index (To_String (Heard.Said), "menu item 'Autosave' ON") > 0
+            and then Ada.Strings.Fixed.Index (To_String (Heard.Said), "heading 'File'") > 0));
 
-      Widgets.Act (Item.Tree, Widgets.Part_Id (Item.Pop, 2),
-                   (Doing => Semantics.Click, others => <>), Done);
+      Widgets.Act (Item.Tree, Widgets.Part_Id (Item.Pop, 2), (Doing => Semantics.Click, others => <>), Done);
       Hearers.Take_Row (Item.Ears, Item.Pop, Widgets.Choose, Chosen);
-      Goldens.Check_Text ("semantics-menu-choice", "TRUE 2",
-                          Done'Image & Natural'Image (Chosen));
+      Goldens.Check_Text ("semantics-menu-choice", "TRUE 2", Done'Image & Natural'Image (Chosen));
    end Menu_Parts;
 
 end Semantic_Tests;

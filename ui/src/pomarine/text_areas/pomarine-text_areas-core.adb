@@ -2,6 +2,7 @@ with Ada.Strings.Unbounded;
 with Pomarine.Text_Areas.Finding;
 with Pomarine.Text_Areas.Geometry;
 with Typeset.Layouts;
+
 package body Pomarine.Text_Areas.Core is
 
    package Docs renames Texts.Documents;
@@ -20,9 +21,7 @@ package body Pomarine.Text_Areas.Core is
    procedure Catch_Up (Item : in out Text_Area) is
       Seen : Docs.Version renames Item.Seen;
    begin
-      if Item.Serial /= Docs.Serial (Item.Doc.all)
-        or else Seen < Docs.Oldest (Item.Doc.all)
-      then
+      if Item.Serial /= Docs.Serial (Item.Doc.all) or else Seen < Docs.Oldest (Item.Doc.all) then
          --  Too far behind: from the start.
          Item.Serial := Docs.Serial (Item.Doc.all);
          Item.At_Caret := (1, 1);
@@ -35,17 +34,16 @@ package body Pomarine.Text_Areas.Core is
       else
          while Seen < Docs.Current (Item.Doc.all) loop
             declare
-               Done : constant Docs.Change :=
-                 Docs.Change_After (Item.Doc.all, Seen);
+               Done       : constant Docs.Change := Docs.Change_After (Item.Doc.all, Seen);
                Old_Anchor : constant Position := (Item.Anchor, 1);
-               Moved_To   : constant Position :=
-                 Docs.Map (Done, Old_Anchor);
+               Moved_To   : constant Position := Docs.Map (Done, Old_Anchor);
             begin
                Seen := Seen + 1;
                Item.At_Caret := Docs.Map (Done, Item.At_Caret);
                Item.At_Mark := Docs.Map (Done, Item.At_Mark);
                if Item.Composing
-                 and then not Done.Kind_Only and then not Done.Formats_Only
+                 and then not Done.Kind_Only
+                 and then not Done.Formats_Only
                  and then Done.From < Composed_End (Item)
                  and then Item.Composed < Done.To
                then
@@ -58,20 +56,18 @@ package body Pomarine.Text_Areas.Core is
                --  What is shown stays where it was: by its paragraph, or
                --  if that went, down the page. The layout is as before
                --  the change, still.
-               if Moved_To = Done.From and then Old_Anchor /= Done.From
+               if Moved_To = Done.From
+                 and then Old_Anchor /= Done.From
                  and then Item.Anchor <= Layouts.Count (Item.Laid)
                then
-                  Item.Offset := Item.Offset
-                    + Layouts.Top (Item.Laid, Item.Anchor)
-                    - Layouts.Top (Item.Laid, Done.From.Paragraph);
+                  Item.Offset :=
+                    Item.Offset + Layouts.Top (Item.Laid, Item.Anchor) - Layouts.Top (Item.Laid, Done.From.Paragraph);
                end if;
                Item.Anchor := Moved_To.Paragraph;
             end;
          end loop;
       end if;
-      if Item.Search_Seen /= Docs.Current (Item.Doc.all)
-        or else Item.Search_Serial /= Docs.Serial (Item.Doc.all)
-      then
+      if Item.Search_Seen /= Docs.Current (Item.Doc.all) or else Item.Search_Serial /= Docs.Serial (Item.Doc.all) then
          Finding.Refresh (Item, Ada.Strings.Unbounded.To_String (Item.Search_Term));
       end if;
       Seen := Docs.Current (Item.Doc.all);
@@ -81,24 +77,19 @@ package body Pomarine.Text_Areas.Core is
       pragma Assert (Is_Position (Item, Item.At_Mark));
    end Catch_Up;
 
-   function Line_Of
-     (Item : in out Text_Area; At_Point : Position) return Positive
-   is
+   function Line_Of (Item : in out Text_Area; At_Point : Position) return Positive is
       At_Units : constant Natural := Units (Item, At_Point);
    begin
-      Layouts.Lay_Out_To
-        (Item.Laid, Item.Doc.all, At_Point.Paragraph, At_Units);
+      Layouts.Lay_Out_To (Item.Laid, Item.Doc.all, At_Point.Paragraph, At_Units);
       return Layouts.Line_At (Item.Laid, At_Point.Paragraph, At_Units);
    end Line_Of;
 
-   function Updated (Item : Text_Area; At_Point : Position) return Position
-   is
+   function Updated (Item : Text_Area; At_Point : Position) return Position is
       Result : Position := At_Point;
    begin
-      if Item.Serial /= Docs.Serial (Item.Doc.all)
-        or else Item.Seen < Docs.Oldest (Item.Doc.all)
-      then
+      if Item.Serial /= Docs.Serial (Item.Doc.all) or else Item.Seen < Docs.Oldest (Item.Doc.all) then
          return (1, 1);  --  as Catch_Up will have it
+
       end if;
       for Seen in Item.Seen .. Docs.Current (Item.Doc.all) - 1 loop
          Result := Docs.Map (Docs.Change_After (Item.Doc.all, Seen), Result);
@@ -106,17 +97,18 @@ package body Pomarine.Text_Areas.Core is
       return Result;
    end Updated;
 
-   function Selection_First (Item : Text_Area) return Position is
-     (if Mark (Item) < Caret (Item) then Mark (Item) else Caret (Item));
+   function Selection_First (Item : Text_Area) return Position
+   is (if Mark (Item) < Caret (Item) then Mark (Item) else Caret (Item));
 
-   function Selection_Last (Item : Text_Area) return Position is
-     (if Mark (Item) < Caret (Item) then Caret (Item) else Mark (Item));
+   function Selection_Last (Item : Text_Area) return Position
+   is (if Mark (Item) < Caret (Item) then Caret (Item) else Mark (Item));
 
    procedure Scroll_By (Item : in out Text_Area; By : Float) is
    begin
       Catch_Up (Item);
       if Item.Grows then
          return;  --  its owner scrolls
+
       end if;
       Layouts.Scroll (Item.Laid, Item.Anchor, Item.Offset, By, Extent (Item));
    end Scroll_By;
@@ -125,8 +117,7 @@ package body Pomarine.Text_Areas.Core is
       Para     : constant Positive := Item.At_Caret.Paragraph;
       Number   : constant Positive := Line_Of (Item, Item.At_Caret);
       High     : constant Float := Layouts.Line_Height (Item.Laid, Para);
-      Line_Top : constant Float :=
-        Layouts.Top (Item.Laid, Para) + Float (Number - 1) * High;
+      Line_Top : constant Float := Layouts.Top (Item.Laid, Para) + Float (Number - 1) * High;
       Shown    : constant Float := View_Top (Item);
    begin
       if Line_Top < Shown or else Extent (Item) < High then
@@ -139,15 +130,12 @@ package body Pomarine.Text_Areas.Core is
       if Item.Single and then Item.Width > 0.0 then
          declare
             X, Y, Wide, Tall : Float;
-            Least : constant Float :=
-              Item.Left + Inset (Item) + Lead_Room (Item);
-            Most  : constant Float :=
-              Item.Left + Item.Width - Inset (Item) - Trail_Room (Item);
+            Least            : constant Float := Item.Left + Inset (Item) + Lead_Room (Item);
+            Most             : constant Float := Item.Left + Item.Width - Inset (Item) - Trail_Room (Item);
          begin
             Measure_Caret (Item, X, Y, Wide, Tall);
             if X < Least then
-               Item.Across_Scroll :=
-                 Float'Max (0.0, Item.Across_Scroll - (Least - X));
+               Item.Across_Scroll := Float'Max (0.0, Item.Across_Scroll - (Least - X));
             elsif X + Wide > Most then
                Item.Across_Scroll := Item.Across_Scroll + (X + Wide - Most);
             end if;
@@ -163,9 +151,7 @@ package body Pomarine.Text_Areas.Core is
       Reveal (Item);
    end Moved;
 
-   procedure Measure_Caret
-     (Item : in out Text_Area;
-      X, Y, Width, Height : out Float) is
+   procedure Measure_Caret (Item : in out Text_Area; X, Y, Width, Height : out Float) is
    begin
       Catch_Up (Item);
       if not (Item.Caret_Kept
@@ -177,9 +163,9 @@ package body Pomarine.Text_Areas.Core is
          --  Shaping the line to measure it is the cost: not the top of
          --  the paragraph, which moves as others are laid out.
          Item.Caret_Line := Line_Of (Item, Item.At_Caret);
-         Item.Caret_Across := Layouts.Caret_Offset
-           (Item.Laid, Item.Doc.all, Item.At_Caret.Paragraph,
-            Item.Caret_Line, Units (Item, Item.At_Caret));
+         Item.Caret_Across :=
+           Layouts.Caret_Offset
+             (Item.Laid, Item.Doc.all, Item.At_Caret.Paragraph, Item.Caret_Line, Units (Item, Item.At_Caret));
          Item.Caret_For := Item.At_Caret;
          Item.Caret_Version := Item.Seen;
          Item.Caret_Serial := Item.Serial;
@@ -191,8 +177,7 @@ package body Pomarine.Text_Areas.Core is
          Para     : constant Positive := Item.At_Caret.Paragraph;
          Number   : constant Positive := Item.Caret_Line;
          High     : constant Float := Layouts.Line_Height (Item.Laid, Para);
-         Line_Top : constant Float :=
-           Layouts.Top (Item.Laid, Para) + Float (Number - 1) * High;
+         Line_Top : constant Float := Layouts.Top (Item.Laid, Para) + Float (Number - 1) * High;
          Across   : constant Float := Item.Caret_Across;
       begin
          Width := Caret_Width * Item.Density;
@@ -212,20 +197,23 @@ package body Pomarine.Text_Areas.Core is
       if Item.Read_Only then
          return;
       end if;
-      Docs.Replace (Item.Doc.all, From, To, By, Undo_As, Recorded,
-                    Explicit_Formats => Item.Explicit_Formats, Formats => Item.Pending_Formats,
-                    Sizing => Item.Pending_Size,
-                    Facing => Ada.Strings.Unbounded.To_String (Item.Pending_Family));
+      Docs.Replace
+        (Item.Doc.all,
+         From,
+         To,
+         By,
+         Undo_As,
+         Recorded,
+         Explicit_Formats => Item.Explicit_Formats,
+         Formats          => Item.Pending_Formats,
+         Sizing           => Item.Pending_Size,
+         Facing           => Ada.Strings.Unbounded.To_String (Item.Pending_Family));
       Catch_Up (Item);
       Item.At_Caret := Texts.End_After (From, By);
       Item.At_Mark := Item.At_Caret;
    end Change;
 
-   procedure Edit
-     (Item     : in out Text_Area;
-      From, To : Position;
-      By       : String;
-      Undo_As  : Docs.Edit_Kind) is
+   procedure Edit (Item : in out Text_Area; From, To : Position; By : String; Undo_As : Docs.Edit_Kind) is
    begin
       Item.Has_Goal := False;
       if From /= To or else By /= "" then
@@ -280,8 +268,7 @@ package body Pomarine.Text_Areas.Core is
       Catch_Up (Item);
       if Item.Composing then
          Item.Composing := False;
-         Change (Item, Item.Composed, Composed_End (Item), "",
-                 Recorded => False);
+         Change (Item, Item.Composed, Composed_End (Item), "", Recorded => False);
       end if;
    end Drop_Composition;
 
@@ -290,8 +277,7 @@ package body Pomarine.Text_Areas.Core is
       Catch_Up (Item);
       if Item.Composing then
          declare
-            Composed : constant String :=
-              Docs.Between (Item.Doc.all, Item.Composed, Composed_End (Item));
+            Composed : constant String := Docs.Between (Item.Doc.all, Item.Composed, Composed_End (Item));
             From     : constant Position := Item.Composed;
          begin
             Drop_Composition (Item);

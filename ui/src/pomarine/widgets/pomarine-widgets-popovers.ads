@@ -12,16 +12,15 @@ with Pomarine.Widgets.Panels;
 --     Layouts.Add (Info, Heading, (Height => 20.0, others => <>));
 --     ...
 --     Popovers.Show_Beside (Info, Help_Button);
+
 package Pomarine.Widgets.Popovers is
 
    type Popover is new Panels.Panel with private;
 
-   procedure Add
-     (Parent : in out Widget'Class;
-      Item   : in out Popover;
-      Width  : Layouts.Length := 240.0)
-     with Pre => Is_Attached (Parent) and then not Is_Attached (Item) and then Child_Count (Item) = 0,
-          Post => Is_Attached (Item) and then not Is_Visible (Item);
+   procedure Add (Parent : in out Widget'Class; Item : in out Popover; Width : Layouts.Length := 240.0)
+   with
+     Pre  => Is_Attached (Parent) and then not Is_Attached (Item) and then Child_Count (Item) = 0,
+     Post => Is_Attached (Item) and then not Is_Visible (Item);
    --  Add Item to Parent, hidden, as wide as Width, in a column with 8 points of padding and 6 between what it holds.
    --  Parent is the root, or a box that covers the window, for the overlay to be put in the window.
 

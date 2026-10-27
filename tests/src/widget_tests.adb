@@ -61,15 +61,9 @@ package body Widget_Tests is
       --  after Target and Doc
    end record;
 
-   procedure Open
-     (Item    : in out Fixture;
-      Content : String := "Great skua";
-      Wide    : Positive := Width) is
+   procedure Open (Item : in out Fixture; Content : String := "Great skua"; Wide : Positive := Width) is
    begin
-      Renderers.Create_Offscreen
-        (Item.Target,
-         Positive (Float (Wide) * Density),
-         Positive (Float (Height) * Density));
+      Renderers.Create_Offscreen (Item.Target, Positive (Float (Wide) * Density), Positive (Float (Height) * Density));
       Docs.Load (Item.Doc, Content);
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
@@ -86,24 +80,20 @@ package body Widget_Tests is
       Pomarine.Widgets.Buttons.Set_Label (Item.First, "One");
       Pomarine.Widgets.Buttons.Set_Label (Item.Second, "Two");
       Pomarine.Widgets.Buttons.Set_Label (Item.Third, "Three");
-      Pomarine.Widgets.Editors.Configure
-        (Item.Page, "Georgia", Size => 18.0, Measure => 640.0,
-         Spacing => 8.0);
+      Pomarine.Widgets.Editors.Configure (Item.Page, "Georgia", Size => 18.0, Measure => 640.0, Spacing => 8.0);
       Pomarine.Widgets.Editors.Attach (Item.Page, Item.Doc'Unchecked_Access);
       Widgets.Focus (Item.Page);
 
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Root), Yoga.Column);
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Bar), Yoga.Row);
       Nodes.Set_Height (Widgets.Node (Item.Bar), 32.0 * Density);
-      Nodes.Set_Padding
-        (Widgets.Node (Item.Bar), Yoga.All_Edges, 4.0 * Density);
+      Nodes.Set_Padding (Widgets.Node (Item.Bar), Yoga.All_Edges, 4.0 * Density);
       Nodes.Set_Gap (Widgets.Node (Item.Bar), Yoga.Column, 4.0 * Density);
       Nodes.Set_Width (Widgets.Node (Item.First), 80.0 * Density);
       Nodes.Set_Width (Widgets.Node (Item.Second), 80.0 * Density);
       Nodes.Set_Width (Widgets.Node (Item.Third), 80.0 * Density);
       Nodes.Set_Flex_Grow (Widgets.Node (Item.Page), 1.0);
-      Nodes.Set_Margin (Widgets.Node (Item.Page), Yoga.All_Edges,
-                        8.0 * Density);
+      Nodes.Set_Margin (Widgets.Node (Item.Page), Yoga.All_Edges, 8.0 * Density);
 
       Widgets.Layout (Item.Tree, Item.Target);
    end Open;
@@ -119,21 +109,19 @@ package body Widget_Tests is
 
    --  Reading what is there
 
-   function Image (Value : Integer) return String is
-     (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
+   function Image (Value : Integer) return String
+   is (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
 
-   function Text_Of (Box : Widgets.Pixel_Box) return String is
-     (Image (Box.Left) & "," & Image (Box.Top) & " "
-      & Image (Box.Width) & "x" & Image (Box.Height));
+   function Text_Of (Box : Widgets.Pixel_Box) return String
+   is (Image (Box.Left) & "," & Image (Box.Top) & " " & Image (Box.Width) & "x" & Image (Box.Height));
 
-   function Box_Of (Item : Widgets.Widget'Class) return Widgets.Pixel_Box is
-     ((Left   => Integer (Widgets.Left_Of (Item)),
-       Top    => Integer (Widgets.Top_Of (Item)),
-       Width  => Integer (Widgets.Width_Of (Item)),
-       Height => Integer (Widgets.Height_Of (Item))));
+   function Box_Of (Item : Widgets.Widget'Class) return Widgets.Pixel_Box
+   is ((Left   => Integer (Widgets.Left_Of (Item)),
+        Top    => Integer (Widgets.Top_Of (Item)),
+        Width  => Integer (Widgets.Width_Of (Item)),
+        Height => Integer (Widgets.Height_Of (Item))));
 
-   procedure Check_Box
-     (Name : String; Expected : String; Item : Widgets.Widget'Class) is
+   procedure Check_Box (Name : String; Expected : String; Item : Widgets.Widget'Class) is
    begin
       Goldens.Check_Text (Name, Expected, Text_Of (Box_Of (Item)));
    end Check_Box;
@@ -146,33 +134,33 @@ package body Widget_Tests is
    --  Events, as SDL would give them, at X, Y points
 
    function Move (X, Y : Float; Held : Boolean := False) return Events.Event
-   is ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y,
-        Left_Held => Held, others => <>));
+   is ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, Left_Held => Held, others => <>));
 
-   function Press (X, Y : Float) return Events.Event is
-     ((Kind => Events.Mouse_Down, Button => 1, Clicks => 1,
-       Mouse_X => X, Mouse_Y => Y, others => <>));
+   function Press (X, Y : Float) return Events.Event
+   is ((Kind => Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => X, Mouse_Y => Y, others => <>));
 
-   function Release (X, Y : Float) return Events.Event is
-     ((Kind => Events.Mouse_Up, Button => 1,
-       Mouse_X => X, Mouse_Y => Y, others => <>));
+   function Release (X, Y : Float) return Events.Event
+   is ((Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y, others => <>));
 
-   procedure Send
-     (Item : in out Fixture; Event : Events.Event; Taken : Boolean) is
+   procedure Send (Item : in out Fixture; Event : Events.Event; Taken : Boolean) is
       Handled : Boolean;
    begin
       Widgets.Dispatch (Item.Tree, Event, Handled);
-      pragma Assert
-        (Handled = Taken, "an event was not taken as it should be");
+      pragma Assert (Handled = Taken, "an event was not taken as it should be");
    end Send;
 
    function Clicked (Item : in out Fixture; Which : Natural) return Boolean is
       Result : Boolean;
    begin
       case Which is
-         when 1 => Hearers.Take (Item.Ears, Item.First, Widgets.Click, Result);
-         when 2 => Hearers.Take (Item.Ears, Item.Second, Widgets.Click, Result);
-         when others => Hearers.Take (Item.Ears, Item.Third, Widgets.Click, Result);
+         when 1      =>
+            Hearers.Take (Item.Ears, Item.First, Widgets.Click, Result);
+
+         when 2      =>
+            Hearers.Take (Item.Ears, Item.Second, Widgets.Click, Result);
+
+         when others =>
+            Hearers.Take (Item.Ears, Item.Third, Widgets.Click, Result);
       end case;
       return Result;
    end Clicked;
@@ -184,9 +172,7 @@ package body Widget_Tests is
       Widgets.Paint (Item.Tree, Item.Target, Colors, Retained => Keep);
    end Paint;
 
-   procedure Check_Painted
-     (Item : in out Fixture; Name : String; Golden : Boolean := True)
-   is
+   procedure Check_Painted (Item : in out Fixture; Name : String; Golden : Boolean := True) is
       Incremental, Everything : Images.Image;
    begin
       --  What is drawn by drawing what changed is what is drawn by
@@ -217,34 +203,26 @@ package body Widget_Tests is
 
       --  Everything was placed, so all is damaged, and the window is to
       --  be drawn.
-      Goldens.Check_Text
-        ("widgets-layout-damage", "0,0 720x400",
-         Text_Of (Widgets.Damage (Item.Tree)));
-      Check_Flag ("widgets-layout-needs-paint", True,
-                  Widgets.Needs_Paint (Item.Tree));
+      Goldens.Check_Text ("widgets-layout-damage", "0,0 720x400", Text_Of (Widgets.Damage (Item.Tree)));
+      Check_Flag ("widgets-layout-needs-paint", True, Widgets.Needs_Paint (Item.Tree));
 
       Paint (Item);
-      Check_Flag ("widgets-layout-painted", False,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-layout-painted", False, Widgets.Needs_Paint (Item.Tree));
 
       --  Laying out again, with nothing changed, damages nothing.
       Widgets.Layout (Item.Tree, Item.Target);
-      Check_Flag ("widgets-layout-again", False,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-layout-again", False, Widgets.Needs_Paint (Item.Tree));
 
       --  Restyling moves only what it moves: the buttons after the first
       --  are pushed right, and the bar is not. Damage is where they were
       --  and where they are.
       Nodes.Set_Width (Widgets.Node (Item.First), 100.0 * Density);
       Widgets.Request_Layout (Item.First);
-      Check_Flag ("widgets-layout-restyled", True,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-layout-restyled", True, Widgets.Needs_Paint (Item.Tree));
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Box ("widgets-layout-wider", "8,8 200x48", Item.First);
       Check_Box ("widgets-layout-pushed", "216,8 160x48", Item.Second);
-      Goldens.Check_Text
-        ("widgets-layout-restyled-damage", "8,8 536x48",
-         Text_Of (Widgets.Damage (Item.Tree)));
+      Goldens.Check_Text ("widgets-layout-restyled-damage", "8,8 536x48", Text_Of (Widgets.Damage (Item.Tree)));
    end Layout;
 
    procedure Wild_Layout is
@@ -259,9 +237,7 @@ package body Widget_Tests is
       Widgets.Request_Layout (Item.First);
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Flag ("widgets-wild-huge-damaged", True, Widgets.Needs_Paint (Item.Tree));
-      Check_Flag
-        ("widgets-wild-huge-kept", True,
-         Widgets.Damage (Item.Tree).Height in 1 .. 2 ** 29);
+      Check_Flag ("widgets-wild-huge-kept", True, Widgets.Damage (Item.Tree).Height in 1 .. 2**29);
 
       --  Wild in both ways, it is placed still.
       Nodes.Set_Width (Widgets.Node (Item.Second), Huge);
@@ -290,46 +266,35 @@ package body Widget_Tests is
 
       --  The pointer over a button changes how only it looks.
       Send (Item, Move (First_At, Bar_Y), Taken => False);
-      Check_Flag ("widgets-buttons-hovered", True,
-                  Widgets.Is_Hovered (Item.First));
-      Check_Flag ("widgets-buttons-bar-hovered", True,
-                  Widgets.Is_Hovered (Item.Bar));
-      Check_Flag ("widgets-buttons-second-not", False,
-                  Widgets.Is_Hovered (Item.Second));
-      Goldens.Check_Text
-        ("widgets-buttons-hover-damage", "8,8 160x48",
-         Text_Of (Widgets.Damage (Item.Tree)));
+      Check_Flag ("widgets-buttons-hovered", True, Widgets.Is_Hovered (Item.First));
+      Check_Flag ("widgets-buttons-bar-hovered", True, Widgets.Is_Hovered (Item.Bar));
+      Check_Flag ("widgets-buttons-second-not", False, Widgets.Is_Hovered (Item.Second));
+      Goldens.Check_Text ("widgets-buttons-hover-damage", "8,8 160x48", Text_Of (Widgets.Damage (Item.Tree)));
       Check_Painted (Item, "widgets-buttons-hover");
 
       --  Moving within it changes nothing.
       Send (Item, Move (First_At + 5.0, Bar_Y), Taken => False);
-      Check_Flag ("widgets-buttons-moved-within", False,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-buttons-moved-within", False, Widgets.Needs_Paint (Item.Tree));
 
       --  Pressing it, and letting go over it, is a click.
       Send (Item, Press (First_At, Bar_Y), Taken => True);
-      Check_Flag ("widgets-buttons-pressed", True,
-                  Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
+      Check_Flag ("widgets-buttons-pressed", True, Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
       Check_Painted (Item, "widgets-buttons-pressed");
       Send (Item, Release (First_At, Bar_Y), Taken => True);
       Check_Flag ("widgets-buttons-clicked", True, Clicked (Item, 1));
       Check_Flag ("widgets-buttons-clicked-once", False, Clicked (Item, 1));
-      Check_Flag ("widgets-buttons-let-go", False,
-                  Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
+      Check_Flag ("widgets-buttons-let-go", False, Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
 
       --  Pressing it and letting go elsewhere is not. The button still
       --  has the pointer's release, though it is over another.
       Send (Item, Press (First_At, Bar_Y), Taken => True);
       Send (Item, Move (Second_At, Bar_Y, Held => True), Taken => False);
-      Check_Flag ("widgets-buttons-dragged-off", False,
-                  Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
-      Check_Flag ("widgets-buttons-dragged-onto", True,
-                  Widgets.Is_Hovered (Item.Second));
+      Check_Flag ("widgets-buttons-dragged-off", False, Pomarine.Widgets.Buttons.Is_Pressed (Item.First));
+      Check_Flag ("widgets-buttons-dragged-onto", True, Widgets.Is_Hovered (Item.Second));
       Check_Painted (Item, "widgets-buttons-dragged-off", Golden => False);
       Send (Item, Release (Second_At, Bar_Y), Taken => True);
       Check_Flag ("widgets-buttons-not-clicked", False, Clicked (Item, 1));
-      Check_Flag ("widgets-buttons-not-clicked-other", False,
-                  Clicked (Item, 2));
+      Check_Flag ("widgets-buttons-not-clicked-other", False, Clicked (Item, 2));
 
       --  A press on the bar, which takes nothing, is taken by no one.
       Send (Item, Press (Gap_At, Bar_Y), Taken => True);
@@ -338,67 +303,50 @@ package body Widget_Tests is
 
       --  The label is changed with the usual care.
       Pomarine.Widgets.Buttons.Set_Label (Item.Third, "Three");
-      Check_Flag ("widgets-buttons-same-label", False,
-                  Widgets.Needs_Paint (Item.Tree) and then False);
+      Check_Flag ("widgets-buttons-same-label", False, Widgets.Needs_Paint (Item.Tree) and then False);
       Paint (Item);
       Pomarine.Widgets.Buttons.Set_Label (Item.Third, "3");
-      Goldens.Check_Text
-        ("widgets-buttons-label-damage", "344,8 160x48",
-         Text_Of (Widgets.Damage (Item.Tree)));
+      Goldens.Check_Text ("widgets-buttons-label-damage", "344,8 160x48", Text_Of (Widgets.Damage (Item.Tree)));
    end Buttons;
 
    procedure Focus is
       Item : Fixture;
    begin
       Open (Item);
-      Check_Flag ("widgets-focus-initial", True,
-                  Widgets.Has_Focus (Item.Page));
+      Check_Flag ("widgets-focus-initial", True, Widgets.Has_Focus (Item.Page));
 
       --  A click on a button, which takes none, keeps the focus.
       Send (Item, Press (First_At, Bar_Y), Taken => True);
       Send (Item, Release (First_At, Bar_Y), Taken => True);
       Check_Flag ("widgets-focus-kept", True, Widgets.Has_Focus (Item.Page));
-      Check_Flag ("widgets-focus-kept-in-editor", True,
-                  Pomarine.Widgets.Editors.Is_Focused (Item.Page));
+      Check_Flag ("widgets-focus-kept-in-editor", True, Pomarine.Widgets.Editors.Is_Focused (Item.Page));
 
       --  Typing goes to the text area.
       Send (Item, Events.Text_Event ("!"), Taken => True);
-      Goldens.Check_Text
-        ("widgets-focus-typed", "!Great skua", Docs.Whole (Item.Doc));
+      Goldens.Check_Text ("widgets-focus-typed", "!Great skua", Docs.Whole (Item.Doc));
 
       --  A click where nothing takes it takes the focus away, and is
       --  taken; typing then goes nowhere.
       Send (Item, Press (Gap_At, Bar_Y), Taken => True);
       Send (Item, Release (Gap_At, Bar_Y), Taken => False);
       Check_Flag ("widgets-focus-lost", False, Widgets.Has_Focus (Item.Page));
-      Check_Flag ("widgets-focus-lost-in-editor", False,
-                  Pomarine.Widgets.Editors.Is_Focused (Item.Page));
-      Check_Flag ("widgets-focus-none", True,
-                  Widgets.Focus_Of (Item.Tree) = null);
+      Check_Flag ("widgets-focus-lost-in-editor", False, Pomarine.Widgets.Editors.Is_Focused (Item.Page));
+      Check_Flag ("widgets-focus-none", True, Widgets.Focus_Of (Item.Tree) = null);
       Send (Item, Events.Text_Event ("?"), Taken => False);
-      Goldens.Check_Text
-        ("widgets-focus-not-typed", "!Great skua", Docs.Whole (Item.Doc));
+      Goldens.Check_Text ("widgets-focus-not-typed", "!Great skua", Docs.Whole (Item.Doc));
 
       --  A click in the text area gives it back.
       Send (Item, Press (Page_At, Page_At), Taken => True);
       Send (Item, Release (Page_At, Page_At), Taken => False);
-      Check_Flag ("widgets-focus-regained", True,
-                  Widgets.Has_Focus (Item.Page));
+      Check_Flag ("widgets-focus-regained", True, Widgets.Has_Focus (Item.Page));
 
       --  Escape leaves it, and the tree knows.
-      Send (Item,
-            (Kind => Events.Key_Down, Key => Events.Key_Escape,
-             others => <>),
-            Taken => True);
-      Check_Flag ("widgets-focus-escaped", False,
-                  Widgets.Has_Focus (Item.Page));
+      Send (Item, (Kind => Events.Key_Down, Key => Events.Key_Escape, others => <>), Taken => True);
+      Check_Flag ("widgets-focus-escaped", False, Widgets.Has_Focus (Item.Page));
 
       --  Keys nobody has the focus for still reach the text area, which
       --  scrolls: a shortcut.
-      Send (Item,
-            (Kind => Events.Key_Down, Key => Events.Key_Page_Down,
-             others => <>),
-            Taken => True);
+      Send (Item, (Kind => Events.Key_Down, Key => Events.Key_Page_Down, others => <>), Taken => True);
    end Focus;
 
    procedure Damage is
@@ -410,79 +358,60 @@ package body Widget_Tests is
       --  Nothing to do, nothing damaged. The time passing, within a
       --  blink, changes nothing.
       Widgets.Update (Item.Tree, 400);
-      Check_Flag ("widgets-damage-quiet", False,
-                  Widgets.Needs_Paint (Item.Tree));
-      Goldens.Check_Text
-        ("widgets-damage-wait", " 100",
-         Integer'Image (Widgets.Until_Update (Item.Tree)));
+      Check_Flag ("widgets-damage-quiet", False, Widgets.Needs_Paint (Item.Tree));
+      Goldens.Check_Text ("widgets-damage-wait", " 100", Integer'Image (Widgets.Until_Update (Item.Tree)));
 
       --  The caret hiding damages around the caret, not the text area.
       Widgets.Update (Item.Tree, 600);
-      Check_Flag ("widgets-damage-blink", True,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-damage-blink", True, Widgets.Needs_Paint (Item.Tree));
       declare
          Part : constant Widgets.Pixel_Box := Widgets.Damage (Item.Tree);
       begin
-         Check_Flag ("widgets-damage-blink-small", True,
-                     Part.Width < 40 and then Part.Height < 80);
-         Check_Flag ("widgets-damage-blink-in-page", True,
-                     Part.Left >= 16 and then Part.Top >= 80);
+         Check_Flag ("widgets-damage-blink-small", True, Part.Width < 40 and then Part.Height < 80);
+         Check_Flag ("widgets-damage-blink-in-page", True, Part.Left >= 16 and then Part.Top >= 80);
       end;
       Check_Painted (Item, "widgets-damage-blink-off");
       Widgets.Update (Item.Tree, 1100);
       Check_Painted (Item, "widgets-damage-blink-on", Golden => False);
 
       --  The document changed by someone else is noticed.
-      Docs.Replace
-        (Item.Doc, Docs.Text_End (Item.Doc), Docs.Text_End (Item.Doc),
-         " and skua");
-      Check_Flag ("widgets-damage-unseen", False,
-                  Widgets.Needs_Paint (Item.Tree));
+      Docs.Replace (Item.Doc, Docs.Text_End (Item.Doc), Docs.Text_End (Item.Doc), " and skua");
+      Check_Flag ("widgets-damage-unseen", False, Widgets.Needs_Paint (Item.Tree));
       Widgets.Update (Item.Tree, 1110);
-      Goldens.Check_Text
-        ("widgets-damage-document", "16,80 688x304",
-         Text_Of (Widgets.Damage (Item.Tree)));
+      Goldens.Check_Text ("widgets-damage-document", "16,80 688x304", Text_Of (Widgets.Damage (Item.Tree)));
       Check_Painted (Item, "widgets-damage-edited");
 
       --  The wheel scrolls it, once there is more than fits.
       Docs.Replace
-        (Item.Doc, Docs.Text_End (Item.Doc), Docs.Text_End (Item.Doc),
-         [for Line in 1 .. 40 => ASCII.LF] & "last");
+        (Item.Doc, Docs.Text_End (Item.Doc), Docs.Text_End (Item.Doc), [for Line in 1 .. 40 => ASCII.LF] & "last");
       Paint (Item);
-      Send (Item,
-            (Kind => Events.Mouse_Wheel, Wheel_Y => -2.0,
-             Mouse_X => Page_At, Mouse_Y => Page_At, others => <>),
-            Taken => True);
-      Goldens.Check_Text
-        ("widgets-damage-wheel", "16,80 688x304",
-         Text_Of (Widgets.Damage (Item.Tree)));
+      Send
+        (Item,
+         (Kind => Events.Mouse_Wheel, Wheel_Y => -2.0, Mouse_X => Page_At, Mouse_Y => Page_At, others => <>),
+         Taken => True);
+      Goldens.Check_Text ("widgets-damage-wheel", "16,80 688x304", Text_Of (Widgets.Damage (Item.Tree)));
 
       --  Over the bar it is not taken.
       Paint (Item);
-      Send (Item,
-            (Kind => Events.Mouse_Wheel, Wheel_Y => -2.0,
-             Mouse_X => Gap_At, Mouse_Y => Bar_Y, others => <>),
-            Taken => False);
-      Check_Flag ("widgets-damage-wheel-bar", False,
-                  Widgets.Needs_Paint (Item.Tree));
+      Send
+        (Item,
+         (Kind => Events.Mouse_Wheel, Wheel_Y => -2.0, Mouse_X => Gap_At, Mouse_Y => Bar_Y, others => <>),
+         Taken => False);
+      Check_Flag ("widgets-damage-wheel-bar", False, Widgets.Needs_Paint (Item.Tree));
 
       --  A panel's colour, set to what it is, damages nothing; changed,
       --  only it.
       Panels.Set_Fill_Color (Item.Bar, (52, 54, 66, 255));
-      Check_Flag ("widgets-damage-same-fill", False,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-damage-same-fill", False, Widgets.Needs_Paint (Item.Tree));
       Panels.Set_Fill_Color (Item.Bar, (80, 60, 40, 255));
-      Goldens.Check_Text
-        ("widgets-damage-fill", "0,0 720x64",
-         Text_Of (Widgets.Damage (Item.Tree)));
+      Goldens.Check_Text ("widgets-damage-fill", "0,0 720x64", Text_Of (Widgets.Damage (Item.Tree)));
       Check_Painted (Item, "widgets-damage-fill");
    end Damage;
 
    procedure Retained is
       Item : Fixture;
    begin
-      Open (Item, "Great skua" & ASCII.LF & "Bonxie" & ASCII.LF
-            & "Arctic skua");
+      Open (Item, "Great skua" & ASCII.LF & "Bonxie" & ASCII.LF & "Arctic skua");
       Check_Painted (Item, "widgets-retained-start", Golden => False);
 
       --  A run of things, each drawn by drawing what it changed.
@@ -495,8 +424,7 @@ package body Widget_Tests is
       Send (Item, Release (Third_At, Bar_Y), Taken => True);
       Check_Painted (Item, "widgets-retained-release", Golden => False);
       Send (Item, Press (Page_At, Page_At), Taken => True);
-      Send (Item, Move (Page_At + 60.0, Page_At, Held => True),
-            Taken => True);
+      Send (Item, Move (Page_At + 60.0, Page_At, Held => True), Taken => True);
       Check_Painted (Item, "widgets-retained-select", Golden => True);
       Send (Item, Release (Page_At + 60.0, Page_At), Taken => False);
       Send (Item, Events.Text_Event ("Bonxies"), Taken => True);
@@ -520,53 +448,51 @@ package body Widget_Tests is
       --  A target of another size is drawn all, and the widgets are
       --  fitted to it, though nothing said so.
       Renderers.Resize
-        (Item.Target,
-         Positive (Float (Width - 100) * Density),
-         Positive (Float (Height + 40) * Density));
+        (Item.Target, Positive (Float (Width - 100) * Density), Positive (Float (Height + 40) * Density));
       Check_Painted (Item, "widgets-resized");
       Check_Box ("widgets-resized-page", "16,80 488x384", Item.Page);
 
       --  Another density puts them all again.
       Widgets.Set_Density (Item.Tree, 3.0);
-      Check_Flag ("widgets-resized-density", True,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-resized-density", True, Widgets.Needs_Paint (Item.Tree));
    end Resized;
 
    procedure Tree_Walk is
       Item : Fixture;
    begin
       Open (Item);
-      Goldens.Check_Text
-        ("widgets-walk-count", " 2",
-         Natural'Image (Widgets.Child_Count (Item.Root)));
-      Goldens.Check_Text
-        ("widgets-walk-bar", " 3",
-         Natural'Image (Widgets.Child_Count (Item.Bar)));
-      Check_Flag ("widgets-walk-child", True,
-                  Widgets.Child_At (Item.Bar, 2)
-                  = Widgets.Widget_Access'(Item.Second'Unchecked_Access));
-      Check_Flag ("widgets-walk-parent", True,
-                  Widgets.Parent_Of (Item.Page)
-                  = Widgets.Widget_Access'(Item.Root'Unchecked_Access));
+      Goldens.Check_Text ("widgets-walk-count", " 2", Natural'Image (Widgets.Child_Count (Item.Root)));
+      Goldens.Check_Text ("widgets-walk-bar", " 3", Natural'Image (Widgets.Child_Count (Item.Bar)));
+      Check_Flag
+        ("widgets-walk-child",
+         True,
+         Widgets.Child_At (Item.Bar, 2) = Widgets.Widget_Access'(Item.Second'Unchecked_Access));
+      Check_Flag
+        ("widgets-walk-parent",
+         True,
+         Widgets.Parent_Of (Item.Page) = Widgets.Widget_Access'(Item.Root'Unchecked_Access));
 
       --  What is where: the last of the deepest.
-      Check_Flag ("widgets-walk-hit-button", True,
-                  Widgets.Hit (Item.Tree, 20.0, 20.0)
-                  = Widgets.Widget_Access'(Item.First'Unchecked_Access));
-      Check_Flag ("widgets-walk-hit-bar", True,
-                  Widgets.Hit (Item.Tree, 600.0, 20.0)
-                  = Widgets.Widget_Access'(Item.Bar'Unchecked_Access));
-      Check_Flag ("widgets-walk-hit-page", True,
-                  Widgets.Hit (Item.Tree, 300.0, 300.0)
-                  = Widgets.Widget_Access'(Item.Page'Unchecked_Access));
-      Check_Flag ("widgets-walk-hit-outside", True,
-                  Widgets.Hit (Item.Tree, 800.0, 20.0) = null);
+      Check_Flag
+        ("widgets-walk-hit-button",
+         True,
+         Widgets.Hit (Item.Tree, 20.0, 20.0) = Widgets.Widget_Access'(Item.First'Unchecked_Access));
+      Check_Flag
+        ("widgets-walk-hit-bar",
+         True,
+         Widgets.Hit (Item.Tree, 600.0, 20.0) = Widgets.Widget_Access'(Item.Bar'Unchecked_Access));
+      Check_Flag
+        ("widgets-walk-hit-page",
+         True,
+         Widgets.Hit (Item.Tree, 300.0, 300.0) = Widgets.Widget_Access'(Item.Page'Unchecked_Access));
+      Check_Flag ("widgets-walk-hit-outside", True, Widgets.Hit (Item.Tree, 800.0, 20.0) = null);
    end Tree_Walk;
 
    procedure Toolbar is
-      Item : Fixture;
-      Lines : aliased Pomarine.Line_Texts.Drawer;
-      Page : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Item                          : Fixture;
+      Lines                         : aliased Pomarine.Line_Texts.Drawer;
+      Page                          : constant access Pomarine.Text_Areas.Text_Area :=
+        Pomarine.Widgets.Editors.Area (Item.Page);
       Height_Before, Content_Before : Float;
 
       function Visible_Buttons return Natural is
@@ -592,9 +518,10 @@ package body Widget_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Flag ("widgets-toolbar-buttons", True, Visible_Buttons = 9);
       Check_Flag ("widgets-toolbar-same-height", True, Widgets.Height_Of (Item.Page) = Height_Before);
-      Check_Flag ("widgets-toolbar-room", True,
-                  Pomarine.Text_Areas.Content_Height (Page.all)
-                  = Content_Before + Pomarine.Text_Areas.Toolbar_Points);
+      Check_Flag
+        ("widgets-toolbar-room",
+         True,
+         Pomarine.Text_Areas.Content_Height (Page.all) = Content_Before + Pomarine.Text_Areas.Toolbar_Points);
       Check_Painted (Item, "widgets-toolbar");
       Widgets.Release_Focus (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
@@ -606,8 +533,8 @@ package body Widget_Tests is
       Pomarine.Text_Areas.Select_Range (Page.all, (1, 1), (1, 6));
       declare
          Bold : constant Widgets.Widget_Access := Widgets.Child_At (Item.Page, 1);
-         X : constant Float := (Widgets.Left_Of (Bold.all) + Widgets.Width_Of (Bold.all) / 2.0) / Density;
-         Y : constant Float := (Widgets.Top_Of (Bold.all) + Widgets.Height_Of (Bold.all) / 2.0) / Density;
+         X    : constant Float := (Widgets.Left_Of (Bold.all) + Widgets.Width_Of (Bold.all) / 2.0) / Density;
+         Y    : constant Float := (Widgets.Top_Of (Bold.all) + Widgets.Height_Of (Bold.all) / 2.0) / Density;
       begin
          Send (Item, Press (X, Y), Taken => True);
          Send (Item, Release (X, Y), Taken => True);
@@ -653,14 +580,14 @@ package body Widget_Tests is
       Item.Last := Tool;
    end Used;
 
-   function Key (Which : Events.Key_Code; Command : Boolean := False) return Events.Event is
-     ((Kind => Events.Key_Down, Key => Which, Command => Command, others => <>));
+   function Key (Which : Events.Key_Code; Command : Boolean := False) return Events.Event
+   is ((Kind => Events.Key_Down, Key => Which, Command => Command, others => <>));
 
    procedure Toolbar_Tools is
-      Item   : Fixture;
-      Lines  : aliased Pomarine.Line_Texts.Drawer;
-      Heard  : aliased Uses;
-      Page   : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Item    : Fixture;
+      Lines   : aliased Pomarine.Line_Texts.Drawer;
+      Heard   : aliased Uses;
+      Page    : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
       Ignored : Boolean;
    begin
       Open (Item, "Great skua");
@@ -690,10 +617,11 @@ package body Widget_Tests is
 
    procedure Toolbar_Editing is
       use type Texts.Paragraph_Kind;
-      Item  : Fixture;
-      Lines : aliased Pomarine.Line_Texts.Drawer;
-      Page  : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
-      Bullet : constant String := Character'Val (16#E2#) & Character'Val (16#80#) & Character'Val (16#A2#) & " ";
+      Item           : Fixture;
+      Lines          : aliased Pomarine.Line_Texts.Drawer;
+      Page           : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Bullet         : constant String :=
+        Character'Val (16#E2#) & Character'Val (16#80#) & Character'Val (16#A2#) & " ";
       Undone, Redone : Texts.Position;
 
       procedure Check_Whole (Name, Expected : String) is
@@ -710,24 +638,31 @@ package body Widget_Tests is
       Pomarine.Text_Areas.Select_Range (Page.all, (1, 2), (3, 3));
       Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Bullets);
       Check_Whole ("editing-bullets", Bullet & "one" & ASCII.LF & Bullet & "two" & ASCII.LF & Bullet & "three");
-      Check_Flag ("editing-bullets-active", True,
-                  Pomarine.Text_Areas.Block_Active (Page.all, Pomarine.Text_Areas.Bullets));
+      Check_Flag
+        ("editing-bullets-active", True, Pomarine.Text_Areas.Block_Active (Page.all, Pomarine.Text_Areas.Bullets));
       Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Numbers);
       Check_Whole ("editing-numbers", "1. one" & ASCII.LF & "2. two" & ASCII.LF & "3. three");
       --  A quotation or an indent is how the paragraph sits, not its text.
       Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Quote);
       Check_Whole ("editing-quote", "1. one" & ASCII.LF & "2. two" & ASCII.LF & "3. three");
-      Check_Flag ("editing-quote-set", True,
-                  Docs.Inset (Item.Doc, 1).Quoted and then Docs.Inset (Item.Doc, 3).Quoted
-                  and then Pomarine.Text_Areas.Block_Active (Page.all, Pomarine.Text_Areas.Quote));
+      Check_Flag
+        ("editing-quote-set",
+         True,
+         Docs.Inset (Item.Doc, 1).Quoted
+         and then Docs.Inset (Item.Doc, 3).Quoted
+         and then Pomarine.Text_Areas.Block_Active (Page.all, Pomarine.Text_Areas.Quote));
       declare
          Copy : Docs.Document;
       begin
-         Check_Flag ("editing-quote-stored", True,
-                     Ada.Strings.Fixed.Index (Docs.Stored (Item.Doc), "<p q=""1"">1. one</p>") > 0);
+         Check_Flag
+           ("editing-quote-stored",
+            True,
+            Ada.Strings.Fixed.Index (Docs.Stored (Item.Doc), "<p q=""1"">1. one</p>") > 0);
          Docs.Load_Stored (Copy, Docs.Stored (Item.Doc));
-         Check_Flag ("editing-quote-reloaded", True,
-                     Docs.Inset (Copy, 2).Quoted and then Docs.Whole (Copy) = Docs.Whole (Item.Doc));
+         Check_Flag
+           ("editing-quote-reloaded",
+            True,
+            Docs.Inset (Copy, 2).Quoted and then Docs.Whole (Copy) = Docs.Whole (Item.Doc));
       end;
       Pomarine.Text_Areas.Toggle_Block (Page.all, Pomarine.Text_Areas.Quote);
       Check_Flag ("editing-quote-off", True, not Docs.Inset (Item.Doc, 2).Quoted);
@@ -741,8 +676,10 @@ package body Widget_Tests is
       Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => False);
       Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => False);
       Check_Whole ("editing-indent", "1. one" & ASCII.LF & "2. two" & ASCII.LF & "3. three");
-      Check_Flag ("editing-indent-steps", True,
-                  Docs.Inset (Item.Doc, 2).Indent = 2 and then Docs.Inset (Item.Doc, 1).Indent = 0);
+      Check_Flag
+        ("editing-indent-steps",
+         True,
+         Docs.Inset (Item.Doc, 2).Indent = 2 and then Docs.Inset (Item.Doc, 1).Indent = 0);
       Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => True);
       Check_Flag ("editing-outdent", True, Docs.Inset (Item.Doc, 2).Indent = 1);
       Pomarine.Text_Areas.Shift_Indent (Page.all, Outward => True);
@@ -761,8 +698,10 @@ package body Widget_Tests is
          Copy : Docs.Document;
       begin
          Docs.Load_Stored (Copy, Docs.Stored (Item.Doc));
-         Check_Flag ("editing-style-stored", True,
-                     Docs.Kind (Copy, 1) = Texts.Heading_2 and then Docs.Kind (Copy, 2) = Texts.Plain);
+         Check_Flag
+           ("editing-style-stored",
+            True,
+            Docs.Kind (Copy, 1) = Texts.Heading_2 and then Docs.Kind (Copy, 2) = Texts.Plain);
       end;
       Docs.Undo (Item.Doc, Undone, Redone);
       Check_Flag ("editing-style-undone", True, Docs.Kind (Item.Doc, 1) = Texts.Plain);
@@ -775,8 +714,7 @@ package body Widget_Tests is
          procedure Press_Return (Shifted : Boolean) is
          begin
             Widgets.Dispatch
-              (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, Shift => Shifted, others => <>),
-               Ignored);
+              (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Return, Shift => Shifted, others => <>), Ignored);
          end Press_Return;
       begin
          Docs.Replace (Item.Doc, (1, 1), Docs.Text_End (Item.Doc), "1. one");
@@ -829,8 +767,10 @@ package body Widget_Tests is
       Ignored : Boolean;
 
       --  The middle of a point, in the editor, in points in the window.
-      function X_At (Points : Float) return Float is (Widgets.Left_Of (Item.Page) / Density + Points);
-      function Y_At (Points : Float) return Float is (Widgets.Top_Of (Item.Page) / Density + Points);
+      function X_At (Points : Float) return Float
+      is (Widgets.Left_Of (Item.Page) / Density + Points);
+      function Y_At (Points : Float) return Float
+      is (Widgets.Top_Of (Item.Page) / Density + Points);
 
       procedure Click (X, Y : Float) is
       begin
@@ -909,19 +849,23 @@ package body Widget_Tests is
          Copy : Docs.Document;
       begin
          Docs.Load_Stored (Copy, Docs.Stored (Item.Doc));
-         Check_Flag ("fonts-stored", True,
-                     Docs.Family_At (Copy, (1, 3), (1, 5)) = "Menlo"
-                     and then Docs.Size_At (Copy, (1, 1), (1, 2)) = 10
-                     and then Docs.Size_At (Copy, (1, 5), (1, 6)) = 10
-                     and then Docs.Family_At (Copy, (1, 5), (1, 6)) = "");
+         Check_Flag
+           ("fonts-stored",
+            True,
+            Docs.Family_At (Copy, (1, 3), (1, 5)) = "Menlo"
+            and then Docs.Size_At (Copy, (1, 1), (1, 2)) = 10
+            and then Docs.Size_At (Copy, (1, 5), (1, 6)) = 10
+            and then Docs.Family_At (Copy, (1, 5), (1, 6)) = "");
          Goldens.Check_Text ("fonts-stored-text", Docs.Whole (Item.Doc), Docs.Whole (Copy));
       end;
 
       --  Typed text takes the size and family of what is before it.
       Pomarine.Text_Areas.Select_Range (Page.all, (1, 4), (1, 4));
       Pomarine.Text_Areas.Insert (Page.all, "x");
-      Check_Flag ("fonts-typed", True, Docs.Size_At (Item.Doc, (1, 4), (1, 5)) = 10
-                  and then Docs.Family_At (Item.Doc, (1, 4), (1, 5)) = "Menlo");
+      Check_Flag
+        ("fonts-typed",
+         True,
+         Docs.Size_At (Item.Doc, (1, 4), (1, 5)) = 10 and then Docs.Family_At (Item.Doc, (1, 4), (1, 5)) = "Menlo");
 
       --  Any family, in code, for the text that has none of its own.
       Pomarine.Widgets.Editors.Set_Font (Item.Page, "Menlo", 14.0);
@@ -938,8 +882,10 @@ package body Widget_Tests is
       Ignored : Boolean;
       Plain   : constant String := "";
 
-      function Button_X return Float is (Widgets.Left_Of (Item.Page) / Density + 343.0);
-      function Button_Y return Float is (Widgets.Top_Of (Item.Page) / Density + 21.0);
+      function Button_X return Float
+      is (Widgets.Left_Of (Item.Page) / Density + 343.0);
+      function Button_Y return Float
+      is (Widgets.Top_Of (Item.Page) / Density + 21.0);
 
       procedure Press_Key (Which : Events.Key_Code; Command : Boolean := False) is
       begin
@@ -948,8 +894,8 @@ package body Widget_Tests is
          Widgets.Layout (Item.Tree, Item.Target);
       end Press_Key;
 
-      function Link_Of (Place : Texts.Position) return String is
-        (Docs.Link_At (Item.Doc, Place, Place));
+      function Link_Of (Place : Texts.Position) return String
+      is (Docs.Link_At (Item.Doc, Place, Place));
    begin
       Open (Item, "see here now", Wide => 760);
       Widgets.Set_Line_Texts (Item.Tree, Lines);
@@ -1058,9 +1004,9 @@ package body Widget_Tests is
    end Links;
 
    procedure Versions is
-      Item   : Fixture;
-      Lines  : aliased Pomarine.Line_Texts.Drawer;
-      Page   : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
+      Item    : Fixture;
+      Lines   : aliased Pomarine.Line_Texts.Drawer;
+      Page    : constant access Pomarine.Text_Areas.Text_Area := Pomarine.Widgets.Editors.Area (Item.Page);
       Ignored : Boolean;
 
       procedure Check_Stored (Name, Expected : String) is
@@ -1124,8 +1070,7 @@ package body Widget_Tests is
       Pomarine.Text_Areas.Insert (Page.all, "that");
       Press_Key (Events.Key_Return);
       Check_Stored
-        ("widgets-versions-third",
-         "<version>1</version><p>say <v sel=""3""><o>it</o><o>this</o>that</v> plain</p>");
+        ("widgets-versions-third", "<version>1</version><p>say <v sel=""3""><o>it</o><o>this</o>that</v> plain</p>");
 
       --  Clicking it shows the bar, and the arrow keys, round the end.
       Click_Text ((1, 6));
@@ -1169,22 +1114,33 @@ package body Widget_Tests is
       Check_Stored
         ("widgets-versions-bold-back",
          "<version>1</version><p>say <v sel=""4""><o>it</o><o>this</o><o>that</o><b>bold</b></v> plain</p>");
-      Check_Flag ("widgets-versions-pointer", True,
-                  SDL3.Cursors."=" (Pomarine.Widgets.Editors.Cursor (Item.Page), SDL3.Cursors.Pointer));
+      Check_Flag
+        ("widgets-versions-pointer",
+         True,
+         SDL3.Cursors."=" (Pomarine.Widgets.Editors.Cursor (Item.Page), SDL3.Cursors.Pointer));
       Widgets.Dispatch (Item.Tree, Move (300.0, 150.0), Ignored);
-      Check_Flag ("widgets-versions-text-cursor", True,
-                  SDL3.Cursors."=" (Pomarine.Widgets.Editors.Cursor (Item.Page), SDL3.Cursors.Text));
+      Check_Flag
+        ("widgets-versions-text-cursor",
+         True,
+         SDL3.Cursors."=" (Pomarine.Widgets.Editors.Cursor (Item.Page), SDL3.Cursors.Text));
    end Versions;
 
    procedure Caret_Only is
-      Item : Fixture;
-      Text : constant String :=
-        "Great skua" & ASCII.LF & "Bonxie" & ASCII.LF & "Arctic skua"
-        & ASCII.LF & "Pomarine skua" & ASCII.LF & "Long-tailed skua";
+      Item          : Fixture;
+      Text          : constant String :=
+        "Great skua"
+        & ASCII.LF
+        & "Bonxie"
+        & ASCII.LF
+        & "Arctic skua"
+        & ASCII.LF
+        & "Pomarine skua"
+        & ASCII.LF
+        & "Long-tailed skua";
       Before, After : Natural;
 
-      function Drawn return Natural is
-        (Pomarine.Text_Areas.Lines_Drawn (Pomarine.Widgets.Editors.Area (Item.Page).all));
+      function Drawn return Natural
+      is (Pomarine.Text_Areas.Lines_Drawn (Pomarine.Widgets.Editors.Area (Item.Page).all));
    begin
       Open (Item, Text);
       Paint (Item);
@@ -1196,12 +1152,10 @@ package body Widget_Tests is
       Widgets.Update (Item.Tree, 600);
       Paint (Item);
       After := Drawn;
-      Goldens.Check_Text
-        ("widgets-caret-hides", " 1", Natural'Image (After - Before));
+      Goldens.Check_Text ("widgets-caret-hides", " 1", Natural'Image (After - Before));
       Widgets.Update (Item.Tree, 1100);
       Paint (Item);
-      Goldens.Check_Text
-        ("widgets-caret-shows", " 1", Natural'Image (Drawn - After));
+      Goldens.Check_Text ("widgets-caret-shows", " 1", Natural'Image (Drawn - After));
       Check_Painted (Item, "widgets-caret-same", Golden => False);
 
       --  Anything else of the text area is drawn as before: its text is.
@@ -1222,23 +1176,21 @@ package body Widget_Tests is
 
       --  Hidden, a button takes no room: the next moves up to it.
       Widgets.Set_Visible (Item.Second, False);
-      Check_Flag ("widgets-hiding-hidden", False,
-                  Widgets.Is_Visible (Item.Second));
-      Check_Flag ("widgets-hiding-needs-paint", True,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-hiding-hidden", False, Widgets.Is_Visible (Item.Second));
+      Check_Flag ("widgets-hiding-needs-paint", True, Widgets.Needs_Paint (Item.Tree));
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Box ("widgets-hiding-first", "8,8 160x48", Item.First);
       Check_Box ("widgets-hiding-second", "0,0 0x0", Item.Second);
       Check_Box ("widgets-hiding-third", "176,8 160x48", Item.Third);
-      Goldens.Check_Text
-        ("widgets-hiding-damage", "176,8 328x48",
-         Text_Of (Widgets.Damage (Item.Tree)));
+      Goldens.Check_Text ("widgets-hiding-damage", "176,8 328x48", Text_Of (Widgets.Damage (Item.Tree)));
       Check_Painted (Item, "widgets-hiding");
 
       --  What was there is now what moved up to it.
-      Check_Flag ("widgets-hiding-hit", True,
-                  Widgets.Hit (Item.Tree, Second_At * Density, Bar_Y * Density)
-                  = Widgets.Widget_Access'(Item.Third'Unchecked_Access));
+      Check_Flag
+        ("widgets-hiding-hit",
+         True,
+         Widgets.Hit (Item.Tree, Second_At * Density, Bar_Y * Density)
+         = Widgets.Widget_Access'(Item.Third'Unchecked_Access));
       Send (Item, Press (Second_At, Bar_Y), Taken => True);
       Send (Item, Release (Second_At, Bar_Y), Taken => True);
       Check_Flag ("widgets-hiding-clicked-third", True, Clicked (Item, 3));
@@ -1254,33 +1206,27 @@ package body Widget_Tests is
 
       --  Hiding what holds others hides them, whose own settings stay.
       Widgets.Set_Visible (Item.Bar, False);
-      Check_Flag ("widgets-hiding-child-visible", True,
-                  Widgets.Is_Visible (Item.First));
-      Check_Flag ("widgets-hiding-child-shown", False,
-                  Widgets.Is_Showing (Item.First));
+      Check_Flag ("widgets-hiding-child-visible", True, Widgets.Is_Visible (Item.First));
+      Check_Flag ("widgets-hiding-child-shown", False, Widgets.Is_Showing (Item.First));
       Check_Painted (Item, "widgets-hiding-bar", Golden => False);
-      Check_Flag ("widgets-hiding-bar-hit", True,
-                  Widgets.Hit (Item.Tree, 4.0, 4.0)
-                  = Widgets.Widget_Access'(Item.Root'Unchecked_Access));
-      Check_Flag ("widgets-hiding-bar-page-up", True,
-                  Widgets.Hit (Item.Tree, 20.0, 20.0)
-                  = Widgets.Widget_Access'(Item.Page'Unchecked_Access));
+      Check_Flag
+        ("widgets-hiding-bar-hit",
+         True,
+         Widgets.Hit (Item.Tree, 4.0, 4.0) = Widgets.Widget_Access'(Item.Root'Unchecked_Access));
+      Check_Flag
+        ("widgets-hiding-bar-page-up",
+         True,
+         Widgets.Hit (Item.Tree, 20.0, 20.0) = Widgets.Widget_Access'(Item.Page'Unchecked_Access));
 
       --  A hidden widget has not the focus, and does not wake the loop.
-      Check_Flag ("widgets-hiding-focused", True,
-                  Widgets.Has_Focus (Item.Page));
-      Check_Flag ("widgets-hiding-wakes", True,
-                  Widgets.Until_Update (Item.Tree) >= 0);
+      Check_Flag ("widgets-hiding-focused", True, Widgets.Has_Focus (Item.Page));
+      Check_Flag ("widgets-hiding-wakes", True, Widgets.Until_Update (Item.Tree) >= 0);
       Widgets.Set_Visible (Item.Page, False);
-      Check_Flag ("widgets-hiding-lost-focus", False,
-                  Widgets.Has_Focus (Item.Page));
-      Check_Flag ("widgets-hiding-no-focus", True,
-                  Widgets.Focus_Of (Item.Tree) = null);
-      Check_Flag ("widgets-hiding-quiet", True,
-                  Widgets.Until_Update (Item.Tree) < 0);
+      Check_Flag ("widgets-hiding-lost-focus", False, Widgets.Has_Focus (Item.Page));
+      Check_Flag ("widgets-hiding-no-focus", True, Widgets.Focus_Of (Item.Tree) = null);
+      Check_Flag ("widgets-hiding-quiet", True, Widgets.Until_Update (Item.Tree) < 0);
       Send (Item, Events.Text_Event ("?"), Taken => False);
-      Goldens.Check_Text
-        ("widgets-hiding-not-typed", "Great skua", Docs.Whole (Item.Doc));
+      Goldens.Check_Text ("widgets-hiding-not-typed", "Great skua", Docs.Whole (Item.Doc));
       Check_Painted (Item, "widgets-hiding-all", Golden => False);
 
       Widgets.Set_Visible (Item.Page, True);
@@ -1296,23 +1242,17 @@ package body Widget_Tests is
       Paint (Item);
 
       Widgets.Remove (Item.Second);
-      Check_Flag ("widgets-removing-attached", False,
-                  Widgets.Is_Attached (Item.Second));
-      Check_Flag ("widgets-removing-parent", True,
-                  Widgets.Parent_Of (Item.Second) = null);
-      Goldens.Check_Text
-        ("widgets-removing-count", " 2",
-         Natural'Image (Widgets.Child_Count (Item.Bar)));
-      Check_Flag ("widgets-removing-needs-paint", True,
-                  Widgets.Needs_Paint (Item.Tree));
+      Check_Flag ("widgets-removing-attached", False, Widgets.Is_Attached (Item.Second));
+      Check_Flag ("widgets-removing-parent", True, Widgets.Parent_Of (Item.Second) = null);
+      Goldens.Check_Text ("widgets-removing-count", " 2", Natural'Image (Widgets.Child_Count (Item.Bar)));
+      Check_Flag ("widgets-removing-needs-paint", True, Widgets.Needs_Paint (Item.Tree));
       Widgets.Layout (Item.Tree, Item.Target);
       Check_Box ("widgets-removing-third", "176,8 160x48", Item.Third);
-      Goldens.Check_Text
-        ("widgets-removing-damage", "176,8 328x48",
-         Text_Of (Widgets.Damage (Item.Tree)));
-      Check_Flag ("widgets-removing-child", True,
-                  Widgets.Child_At (Item.Bar, 2)
-                  = Widgets.Widget_Access'(Item.Third'Unchecked_Access));
+      Goldens.Check_Text ("widgets-removing-damage", "176,8 328x48", Text_Of (Widgets.Damage (Item.Tree)));
+      Check_Flag
+        ("widgets-removing-child",
+         True,
+         Widgets.Child_At (Item.Bar, 2) = Widgets.Widget_Access'(Item.Third'Unchecked_Access));
       Check_Painted (Item, "widgets-removing");
 
       --  Put back, it is last, and is styled again.
@@ -1328,34 +1268,24 @@ package body Widget_Tests is
       Send (Item, Move (First_At, Bar_Y), Taken => False);
       Send (Item, Press (First_At, Bar_Y), Taken => True);
       Widgets.Remove (Item.First);
-      Check_Flag ("widgets-removing-unhovered", False,
-                  Widgets.Is_Hovered (Item.First));
-      Check_Flag ("widgets-removing-bar-hovered", True,
-                  Widgets.Is_Hovered (Item.Bar));
+      Check_Flag ("widgets-removing-unhovered", False, Widgets.Is_Hovered (Item.First));
+      Check_Flag ("widgets-removing-bar-hovered", True, Widgets.Is_Hovered (Item.Bar));
       Send (Item, Release (First_At, Bar_Y), Taken => False);
       Check_Flag ("widgets-removing-not-clicked", False, Clicked (Item, 1));
       Check_Painted (Item, "widgets-removing-first", Golden => False);
 
       --  The focus goes with what had it, and so with what it is in.
-      Check_Flag ("widgets-removing-focused", True,
-                  Widgets.Has_Focus (Item.Page));
+      Check_Flag ("widgets-removing-focused", True, Widgets.Has_Focus (Item.Page));
       Widgets.Remove (Item.Page);
-      Check_Flag ("widgets-removing-no-focus", True,
-                  Widgets.Focus_Of (Item.Tree) = null);
-      Check_Flag ("widgets-removing-unfocused", False,
-                  Pomarine.Widgets.Editors.Is_Focused (Item.Page));
+      Check_Flag ("widgets-removing-no-focus", True, Widgets.Focus_Of (Item.Tree) = null);
+      Check_Flag ("widgets-removing-unfocused", False, Pomarine.Widgets.Editors.Is_Focused (Item.Page));
       Check_Painted (Item, "widgets-removing-page", Golden => False);
 
       --  A whole branch goes, and is not in the tree: nor are its parts.
       Widgets.Remove (Item.Bar);
-      Check_Flag ("widgets-removing-branch", False,
-                  Widgets.Is_Attached (Item.Third));
-      Goldens.Check_Text
-        ("widgets-removing-branch-count", " 0",
-         Natural'Image (Widgets.Child_Count (Item.Bar)));
-      Goldens.Check_Text
-        ("widgets-removing-root-count", " 0",
-         Natural'Image (Widgets.Child_Count (Item.Root)));
+      Check_Flag ("widgets-removing-branch", False, Widgets.Is_Attached (Item.Third));
+      Goldens.Check_Text ("widgets-removing-branch-count", " 0", Natural'Image (Widgets.Child_Count (Item.Bar)));
+      Goldens.Check_Text ("widgets-removing-root-count", " 0", Natural'Image (Widgets.Child_Count (Item.Root)));
       Check_Painted (Item, "widgets-removing-bare", Golden => False);
 
       --  And can be built again, below another, and show as before.
@@ -1363,8 +1293,7 @@ package body Widget_Tests is
       Widgets.Add (Item.Bar, Item.Third);
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Bar), Yoga.Row);
       Nodes.Set_Height (Widgets.Node (Item.Bar), 32.0 * Density);
-      Nodes.Set_Padding
-        (Widgets.Node (Item.Bar), Yoga.All_Edges, 4.0 * Density);
+      Nodes.Set_Padding (Widgets.Node (Item.Bar), Yoga.All_Edges, 4.0 * Density);
       Nodes.Set_Width (Widgets.Node (Item.Third), 80.0 * Density);
       Panels.Set_Fill_Color (Item.Bar, (52, 54, 66, 255));
       Widgets.Layout (Item.Tree, Item.Target);
@@ -1390,15 +1319,15 @@ package body Widget_Tests is
    end Window_Frame;
 
    procedure In_Window is
-      Win    : SDL3.Windows.Window;
-      Target : Renderers.Renderer;  --  after Win
-      Tree   : Widgets.Tree;
-      Root   : aliased Panels.Panel;
-      Side   : aliased Panels.Panel;
-      Main   : aliased Panels.Panel;
+      Win                     : SDL3.Windows.Window;
+      Target                  : Renderers.Renderer;  --  after Win
+      Tree                    : Widgets.Tree;
+      Root                    : aliased Panels.Panel;
+      Side                    : aliased Panels.Panel;
+      Main                    : aliased Panels.Panel;
       Incremental, Everything : Images.Image;
-      Changed : Boolean;
-      Wide, High : Natural;
+      Changed                 : Boolean;
+      Wide, High              : Natural;
 
       procedure Frame is
       begin
@@ -1418,8 +1347,7 @@ package body Widget_Tests is
    begin
       SDL3.Windows.Create (Win, "test", 360, 200, Resizable => True);
       Renderers.Create (Target, Win, VSync => False);
-      Check_Flag ("widgets-window-keeps", True,
-                  Renderers.Keeps_Frame (Target));
+      Check_Flag ("widgets-window-keeps", True, Renderers.Keeps_Frame (Target));
 
       Widgets.Set_Density (Tree, SDL3.Windows.Pixel_Density (Win));
       Widgets.Set_Root (Tree, Root);
@@ -1435,9 +1363,7 @@ package body Widget_Tests is
       --  A change drawn after the frame went to the window draws only
       --  that, over what the last frame left.
       Panels.Set_Fill_Color (Side, (40, 80, 120, 255));
-      Goldens.Check_Text
-        ("widgets-window-damage", "0,0 100x200",
-         Text_Of (Widgets.Damage (Tree)));
+      Goldens.Check_Text ("widgets-window-damage", "0,0 100x200", Text_Of (Widgets.Damage (Tree)));
       Frame;
       Check_Frame ("widgets-window-retained");
 
@@ -1448,9 +1374,7 @@ package body Widget_Tests is
       Renderers.Fit (Target, Changed);
       Check_Flag ("widgets-window-fit", True, Changed);
       Renderers.Output_Size (Target, Wide, High);
-      Goldens.Check_Text
-        ("widgets-window-fit-size", "300x150",
-         Image (Wide) & "x" & Image (High));
+      Goldens.Check_Text ("widgets-window-fit-size", "300x150", Image (Wide) & "x" & Image (High));
       Frame;
       Check_Frame ("widgets-window-resized");
       Check_Box ("widgets-window-main", "100,0 200x150", Main);
@@ -1469,10 +1393,12 @@ package body Widget_Tests is
       Goldens.Check_Text ("no-caps-button", "5000", Image (Pomarine.Widgets.Buttons.Label (Button)'Length));
       Pomarine.Themes.Set_Custom (Look, 1000, Pink);
       Goldens.Check_Text
-        ("no-caps-colours", "TRUE",
+        ("no-caps-colours",
+         "TRUE",
          Boolean'Image (Pomarine.Themes.Resolve (Look, Pomarine.Themes.Custom (1000)) = Pink));
       Goldens.Check_Text
-        ("no-caps-colours-between", "TRUE",
+        ("no-caps-colours-between",
+         "TRUE",
          Boolean'Image (Pomarine.Themes.Resolve (Look, Pomarine.Themes.Custom (999)) = (0, 0, 0, 255)));
    end No_Caps;
 

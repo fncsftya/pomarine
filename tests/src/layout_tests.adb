@@ -18,8 +18,8 @@ package body Layout_Tests is
    package Renderers renames SDL3.Windows.Renderers;
    package Nodes renames Yoga.Nodes;
 
-   function Image (Value : Integer) return String is
-     (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
+   function Image (Value : Integer) return String
+   is (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
 
    --  A panel that counts how often it is placed
 
@@ -27,8 +27,8 @@ package body Layout_Tests is
       Placings : Natural := 0;
    end record;
 
-   overriding procedure Placed
-     (Item : in out Counted; Left, Top, Width, Height : Float) is
+   overriding
+   procedure Placed (Item : in out Counted; Left, Top, Width, Height : Float) is
       pragma Unreferenced (Left, Top, Width, Height);
    begin
       Item.Placings := Item.Placings + 1;
@@ -52,9 +52,10 @@ package body Layout_Tests is
 
       --  Without text lines, the debug font: 8 pixels to a character.
       Widgets.Layout (Tree, Target);
-      Goldens.Check_Text ("layout-intrinsic", "40 8",
-                          Image (Integer (Widgets.Width_Of (Short))) & " "
-                          & Image (Integer (Widgets.Height_Of (Short))));
+      Goldens.Check_Text
+        ("layout-intrinsic",
+         "40 8",
+         Image (Integer (Widgets.Width_Of (Short))) & " " & Image (Integer (Widgets.Height_Of (Short))));
       Goldens.Check_Text ("layout-not-intrinsic", "0", Image (Integer (Widgets.Width_Of (Fixed))));
 
       --  A longer text is a wider label, and the one after it moves along.
@@ -85,9 +86,12 @@ package body Layout_Tests is
       First  : aliased Panels.Panel;
       Second : aliased Panels.Panel;
 
-      function Wide (Item : Widgets.Widget'Class) return String is (Image (Integer (Widgets.Width_Of (Item))));
-      function Left (Item : Widgets.Widget'Class) return String is (Image (Integer (Widgets.Left_Of (Item))));
-      function Top (Item : Widgets.Widget'Class) return String is (Image (Integer (Widgets.Top_Of (Item))));
+      function Wide (Item : Widgets.Widget'Class) return String
+      is (Image (Integer (Widgets.Width_Of (Item))));
+      function Left (Item : Widgets.Widget'Class) return String
+      is (Image (Integer (Widgets.Left_Of (Item))));
+      function Top (Item : Widgets.Widget'Class) return String
+      is (Image (Integer (Widgets.Top_Of (Item))));
 
       procedure Place is
       begin
@@ -126,13 +130,17 @@ package body Layout_Tests is
       Layouts.Set_Layout (First, Height => 7.0);
       Place;
       Goldens.Check_Text ("lengths-unset-keeps-width", "30", Wide (First));
-      Goldens.Check_Text ("lengths-set-test", "FT", Boolean'Image (Layouts.Is_Set (Layouts.Unset))(1 .. 1)
-                          & Boolean'Image (Layouts.Is_Set (4.0))(1 .. 1));
+      Goldens.Check_Text
+        ("lengths-set-test",
+         "FT",
+         Boolean'Image (Layouts.Is_Set (Layouts.Unset)) (1 .. 1) & Boolean'Image (Layouts.Is_Set (4.0)) (1 .. 1));
 
       --  A negative size or edge.
-      Goldens.Check_Text ("lengths-negation", "TT",
-                          Boolean'Image (-Layouts.In_Points (2.0) /= Layouts.In_Points (2.0))(1 .. 1)
-                          & Boolean'Image (-Layouts.Unset = Layouts.Unset)(1 .. 1));
+      Goldens.Check_Text
+        ("lengths-negation",
+         "TT",
+         Boolean'Image (-Layouts.In_Points (2.0) /= Layouts.In_Points (2.0)) (1 .. 1)
+         & Boolean'Image (-Layouts.Unset = Layouts.Unset) (1 .. 1));
 
       --  Outlined and Shadowed make room when On, and take it away when Off; As_Is leaves the padding.
       Layouts.Set_Layout (Root, Padding => (others => 4.0), Outlined => Layouts.On, Flow => Layouts.Column);
@@ -150,7 +158,7 @@ package body Layout_Tests is
          Layouts.Set_Layout (Root, Outlined => Layouts.Off);
          Place;
          Goldens.Check_Text ("lengths-off-says-no-padding-is-none", "0", Left (First));
-         Goldens.Check_Text ("lengths-on-made-room", Boolean'Image (With_Edge /= "8")(1 .. 1), "T");
+         Goldens.Check_Text ("lengths-on-made-room", Boolean'Image (With_Edge /= "8") (1 .. 1), "T");
       end;
 
       --  Row and Column say Flow, and what else is said.
@@ -162,8 +170,8 @@ package body Layout_Tests is
       Layouts.Column (Root, Gap => 4.0);
       Place;
       Goldens.Check_Text ("lengths-column", "0," & "28", Left (Second) & "," & Top (Second));
-      Goldens.Check_Text ("lengths-row-as-style", "T",
-                          Boolean'Image (Layouts.Row (Gap => 4.0).Flow = Layouts.Row)(1 .. 1));
+      Goldens.Check_Text
+        ("lengths-row-as-style", "T", Boolean'Image (Layouts.Row (Gap => 4.0).Flow = Layouts.Row) (1 .. 1));
    end Lengths;
 
    procedure Declarative_Building is
@@ -181,19 +189,32 @@ package body Layout_Tests is
       Layouts.Set_Layout (Root, (Flow => Layouts.Row, Align => Layouts.Start, others => <>));
       Layouts.Add (Root, Title, (Width => 50.0, Height => 10.0, others => <>));
       Buttons.Add
-        (Root, Save, Buttons.Looks ("Save", Buttons.Primary, Focusable => True),
+        (Root,
+         Save,
+         Buttons.Looks ("Save", Buttons.Primary, Focusable => True),
          (Width => 60.0, Height => 20.0, others => <>));
       Buttons.Add (Root, Menu, Buttons.Looks ("More", Shape => Buttons.Split_Dropdown));
       Widgets.Layout (Tree, Target);
 
-      Goldens.Check_Text ("layouts-add", "50 10", Image (Integer (Widgets.Width_Of (Title))) & " "
-                          & Image (Integer (Widgets.Height_Of (Title))));
-      Goldens.Check_Text ("layouts-add-button", "60 20 Save", Image (Integer (Widgets.Width_Of (Save))) & " "
-                          & Image (Integer (Widgets.Height_Of (Save))) & " " & Buttons.Label (Save));
       Goldens.Check_Text
-        ("buttons-looks", "TRUE TRUE TRUE",
+        ("layouts-add",
+         "50 10",
+         Image (Integer (Widgets.Width_Of (Title))) & " " & Image (Integer (Widgets.Height_Of (Title))));
+      Goldens.Check_Text
+        ("layouts-add-button",
+         "60 20 Save",
+         Image (Integer (Widgets.Width_Of (Save)))
+         & " "
+         & Image (Integer (Widgets.Height_Of (Save)))
+         & " "
+         & Buttons.Label (Save));
+      Goldens.Check_Text
+        ("buttons-looks",
+         "TRUE TRUE TRUE",
          Boolean'Image (Buttons.Kind_Of (Save) = Buttons.Primary and then Buttons.Shape_Of (Save) = Buttons.Plain)
-         & " " & Boolean'Image (Buttons.Is_Dropdown (Menu)) & " "
+         & " "
+         & Boolean'Image (Buttons.Is_Dropdown (Menu))
+         & " "
          & Boolean'Image (Buttons.Shape_Of (Menu) = Buttons.Split_Dropdown));
 
       --  Configure says all of it: what is not named goes back; the state stays.
@@ -201,9 +222,16 @@ package body Layout_Tests is
       Buttons.Configure
         (Save, Buttons.Looks ("Edit", Icon => Pomarine.Icons.Shown (Pomarine.Icons.Check), Captioned => True));
       Goldens.Check_Text
-        ("buttons-configure", "Edit NORMAL TRUE TRUE FALSE",
-         Buttons.Label (Save) & " " & Buttons.Kind'Image (Buttons.Kind_Of (Save)) & " "
-         & Boolean'Image (Buttons.Has_Icon (Save)) & " " & Boolean'Image (Buttons.Is_Selected (Save)) & " "
+        ("buttons-configure",
+         "Edit NORMAL TRUE TRUE FALSE",
+         Buttons.Label (Save)
+         & " "
+         & Buttons.Kind'Image (Buttons.Kind_Of (Save))
+         & " "
+         & Boolean'Image (Buttons.Has_Icon (Save))
+         & " "
+         & Boolean'Image (Buttons.Is_Selected (Save))
+         & " "
          & Boolean'Image (Buttons.Is_Dropdown (Save)));
       Buttons.Configure (Save, Buttons.Looks ("Edit"));
       Goldens.Check_Text ("buttons-configure-no-icon", "FALSE", Boolean'Image (Buttons.Has_Icon (Save)));
@@ -215,8 +243,12 @@ package body Layout_Tests is
          Layouts.Add_Before (Root, First, Title, (Width => 7.0, Height => 9.0, others => <>));
          Widgets.Layout (Tree, Target);
          Goldens.Check_Text
-           ("layouts-add-before", "7 9 0",
-            Image (Integer (Widgets.Width_Of (First))) & " " & Image (Integer (Widgets.Height_Of (First))) & " "
+           ("layouts-add-before",
+            "7 9 0",
+            Image (Integer (Widgets.Width_Of (First)))
+            & " "
+            & Image (Integer (Widgets.Height_Of (First)))
+            & " "
             & Image (Integer (Widgets.Left_Of (First))));
          Widgets.Remove (First);
       end;
@@ -263,9 +295,19 @@ package body Layout_Tests is
       Widgets.Request_Layout (Rows (3));
       Widgets.Layout (Tree, Target);
       Goldens.Check_Text
-        ("layout-changed", "1 1 2 2 2 2",
-         Image (Rows (1).Placings) & " " & Image (Rows (2).Placings) & " " & Image (Rows (3).Placings) & " "
-         & Image (Rows (4).Placings) & " " & Image (Rows (5).Placings) & " " & Image (Inside.Placings));
+        ("layout-changed",
+         "1 1 2 2 2 2",
+         Image (Rows (1).Placings)
+         & " "
+         & Image (Rows (2).Placings)
+         & " "
+         & Image (Rows (3).Placings)
+         & " "
+         & Image (Rows (4).Placings)
+         & " "
+         & Image (Rows (5).Placings)
+         & " "
+         & Image (Inside.Placings));
    end Only_What_Changed;
 
 end Layout_Tests;

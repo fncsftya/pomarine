@@ -21,14 +21,12 @@ package body Command_Tests is
    --  Who heard what
 
    type Ears is limited new Widgets.Listener with record
-      Count : Natural := 0;
+      Count    : Natural := 0;
       Last_Tag : Integer := Widgets.No_Tag;
    end record;
 
-   overriding procedure Handle_Event
-     (Self   : in out Ears;
-      Source : in out Widgets.Widget'Class;
-      Event  : Widgets.Widget_Event) is
+   overriding
+   procedure Handle_Event (Self : in out Ears; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
       pragma Unreferenced (Source);
    begin
       Self.Count := Self.Count + 1;
@@ -40,10 +38,7 @@ package body Command_Tests is
       Kind   : Widgets.Event_Kind := Widgets.Close;
    end record;
 
-   procedure Clicked
-     (Self   : in out Counter;
-      Source : in out Widgets.Widget'Class;
-      Event  : Widgets.Widget_Event) is
+   procedure Clicked (Self : in out Counter; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
       pragma Unreferenced (Source);
    begin
       Self.Clicks := Self.Clicks + 1;
@@ -58,10 +53,12 @@ package body Command_Tests is
       Took : Natural := 0;
    end record;
 
-   overriding function Is_Focusable (Item : Taker) return Boolean is (True);
+   overriding
+   function Is_Focusable (Item : Taker) return Boolean
+   is (True);
 
-   overriding procedure Handle_Command
-     (Item : in out Taker; Tag : Integer; Done : out Boolean) is
+   overriding
+   procedure Handle_Command (Item : in out Taker; Tag : Integer; Done : out Boolean) is
    begin
       Done := Tag = 9;
       if Done then
@@ -101,19 +98,16 @@ package body Command_Tests is
    procedure Click_At (Item : in out Fixture; X : Float) is
       Handled : Boolean;
    begin
+      Widgets.Dispatch (Item.Tree, (Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => 10.0, others => <>), Handled);
       Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => 10.0, others => <>), Handled);
+        (Item.Tree, (Kind => Events.Mouse_Down, Mouse_X => X, Mouse_Y => 10.0, Button => 1, others => <>), Handled);
       Widgets.Dispatch
-        (Item.Tree,
-         (Kind => Events.Mouse_Down, Mouse_X => X, Mouse_Y => 10.0, Button => 1, others => <>), Handled);
-      Widgets.Dispatch
-        (Item.Tree,
-         (Kind => Events.Mouse_Up, Mouse_X => X, Mouse_Y => 10.0, Button => 1, others => <>), Handled);
+        (Item.Tree, (Kind => Events.Mouse_Up, Mouse_X => X, Mouse_Y => 10.0, Button => 1, others => <>), Handled);
    end Click_At;
 
    procedure Own_Handlers is
-      Item  : Fixture;
-      Mine  : aliased Counter;
+      Item : Fixture;
+      Mine : aliased Counter;
    begin
       Open (Item);
       Counter_Callbacks.On (Item.First, Widgets.Click, Mine'Access, Clicked'Access);
@@ -122,13 +116,14 @@ package body Command_Tests is
       --  The other button has none: its click goes to the listener.
       Click_At (Item, 120.0);
       Goldens.Check_Text
-        ("commands-own-handler", "2 CLICK listener 1",
+        ("commands-own-handler",
+         "2 CLICK listener 1",
          Mine.Clicks'Image (2 .. 2) & " " & Mine.Kind'Image & " listener" & Item.Heard.Count'Image);
 
       Counter_Callbacks.Off (Item.First, Widgets.Click);
       Click_At (Item, 40.0);
-      Goldens.Check_Text ("commands-handler-off", "2 listener 2",
-                          Mine.Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
+      Goldens.Check_Text
+        ("commands-handler-off", "2 listener 2", Mine.Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
    end Own_Handlers;
 
    Plain_Clicks : Natural := 0;
@@ -150,13 +145,13 @@ package body Command_Tests is
       Click_At (Item, 40.0);
       Click_At (Item, 120.0);
       Goldens.Check_Text
-        ("commands-plain-handler", "1 listener 1",
-         Plain_Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
+        ("commands-plain-handler", "1 listener 1", Plain_Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
 
       Widgets.Clear_Handler (Item.First, Widgets.Click);
       Click_At (Item, 40.0);
       Goldens.Check_Text
-        ("commands-plain-handler-off", "1 listener 2",
+        ("commands-plain-handler-off",
+         "1 listener 2",
          Plain_Clicks'Image (2 .. 2) & " listener" & Item.Heard.Count'Image);
    end Plain_Handlers;
 
@@ -206,23 +201,19 @@ package body Command_Tests is
       --  Nothing is selected: Delete and Escape say nothing.
       Press (Events.Key_Delete);
       Press (Events.Key_Escape);
-      Goldens.Check_Text
-        ("commands-canvas-nothing", "-1 0", Mine.Selected'Image & Mine.Deleted'Image);
+      Goldens.Check_Text ("commands-canvas-nothing", "-1 0", Mine.Selected'Image & Mine.Deleted'Image);
 
       --  The application's selection is not said back; Escape gives it up, and Delete asks.
       Widgets.Canvases.Set_Selected (View, 5);
       Press (Events.Key_Delete);
-      Goldens.Check_Text
-        ("commands-canvas-delete", "-1 1", Mine.Selected'Image & Mine.Deleted'Image);
+      Goldens.Check_Text ("commands-canvas-delete", "-1 1", Mine.Selected'Image & Mine.Deleted'Image);
       Press (Events.Key_Escape);
-      Goldens.Check_Text
-        ("commands-canvas-escape", " 0 1", Mine.Selected'Image & Mine.Deleted'Image);
+      Goldens.Check_Text ("commands-canvas-escape", " 0 1", Mine.Selected'Image & Mine.Deleted'Image);
 
       Board_Callbacks.Off_Delete (View);
       Widgets.Canvases.Set_Selected (View, 5);
       Press (Events.Key_Delete);
-      Goldens.Check_Text
-        ("commands-canvas-delete-off", " 0 1", Mine.Selected'Image & Mine.Deleted'Image);
+      Goldens.Check_Text ("commands-canvas-delete-off", " 0 1", Mine.Selected'Image & Mine.Deleted'Image);
    end Canvas_Handlers;
 
    procedure Losing_Focus is
@@ -237,7 +228,8 @@ package body Command_Tests is
       Goldens.Check_Text ("commands-blur-not-yet", "0", Mine.Clicks'Image (2 .. 2));
       Widgets.Focus (Item.First);
       Goldens.Check_Text
-        ("commands-blur", "1 BLUR listener 0",
+        ("commands-blur",
+         "1 BLUR listener 0",
          Mine.Clicks'Image (2 .. 2) & " " & Mine.Kind'Image & " listener" & Item.Heard.Count'Image);
       --  A widget without one says nothing of it: nor to the listener.
       Widgets.Focus (Item.Box);
@@ -246,17 +238,17 @@ package body Command_Tests is
       Goldens.Check_Text ("commands-blur-cleared", "2", Mine.Clicks'Image (2 .. 2));
    end Losing_Focus;
 
-   Save_Tag  : constant := 1;
-   Undo_Tag  : constant := 2;
-   Pin_Tag   : constant := 3;
-   Fold_Tag  : constant := 4;
+   Save_Tag : constant := 1;
+   Undo_Tag : constant := 2;
+   Pin_Tag  : constant := 3;
+   Fold_Tag : constant := 4;
 
    Offering : Widgets.Command_State := Widgets.Enabled;
    Pinned   : Widgets.Command_State := Widgets.Enabled;
    Folding  : Widgets.Command_State := Widgets.Enabled;
 
-   function State_Of (Tag : Integer) return Widgets.Command_State is
-     (case Tag is
+   function State_Of (Tag : Integer) return Widgets.Command_State
+   is (case Tag is
          when Save_Tag => Offering,
          when Pin_Tag  => Pinned,
          when Fold_Tag => Folding,
@@ -276,9 +268,12 @@ package body Command_Tests is
       Folding := Widgets.Not_Offered;
       Widgets.Update (Item.Tree, 0);
       Goldens.Check_Text
-        ("commands-validated", "FALSE TRUE FALSE",
-         Widgets.Buttons.Is_Enabled (Item.First)'Image & " "
-         & Widgets.Buttons.Is_Selected (Item.Second)'Image & " "
+        ("commands-validated",
+         "FALSE TRUE FALSE",
+         Widgets.Buttons.Is_Enabled (Item.First)'Image
+         & " "
+         & Widgets.Buttons.Is_Selected (Item.Second)'Image
+         & " "
          & Widgets.Is_Visible (Item.Box)'Image);
 
       --  A disabled button is not clicked.
@@ -291,9 +286,12 @@ package body Command_Tests is
       Folding := Widgets.Enabled;
       Widgets.Update (Item.Tree, 0);
       Goldens.Check_Text
-        ("commands-validated-back", "TRUE FALSE TRUE",
-         Widgets.Buttons.Is_Enabled (Item.First)'Image & " "
-         & Widgets.Buttons.Is_Selected (Item.Second)'Image & " "
+        ("commands-validated-back",
+         "TRUE FALSE TRUE",
+         Widgets.Buttons.Is_Enabled (Item.First)'Image
+         & " "
+         & Widgets.Buttons.Is_Selected (Item.Second)'Image
+         & " "
          & Widgets.Is_Visible (Item.Box)'Image);
    end Validated;
 
@@ -305,15 +303,17 @@ package body Command_Tests is
       Asked : Natural := 0;
    end record;
 
-   overriding function Validate (Self : Verdict; Tag : Integer; Index : Natural) return Widgets.Command_State;
+   overriding
+   function Validate (Self : Verdict; Tag : Integer; Index : Natural) return Widgets.Command_State;
 
-   overriding function Validate (Self : Verdict; Tag : Integer; Index : Natural) return Widgets.Command_State is
-     (if Tag = Save_Tag and then Index /= 9 then Self.Says else Widgets.Enabled);
+   overriding
+   function Validate (Self : Verdict; Tag : Integer; Index : Natural) return Widgets.Command_State
+   is (if Tag = Save_Tag and then Index /= 9 then Self.Says else Widgets.Enabled);
 
    procedure Validator_Objects is
       Here, There : Fixture;
-      Yes   : aliased Verdict;
-      No    : aliased Verdict := (Says => Widgets.Disabled, others => <>);
+      Yes         : aliased Verdict;
+      No          : aliased Verdict := (Says => Widgets.Disabled, others => <>);
    begin
       Open (Here);
       Open (There);
@@ -324,11 +324,14 @@ package body Command_Tests is
       Widgets.Update (Here.Tree, 0);
       Widgets.Update (There.Tree, 0);
       Goldens.Check_Text
-        ("commands-validator-objects", "TRUE FALSE",
+        ("commands-validator-objects",
+         "TRUE FALSE",
          Widgets.Buttons.Is_Enabled (Here.First)'Image & " " & Widgets.Buttons.Is_Enabled (There.First)'Image);
       Goldens.Check_Text
-        ("commands-validator-asked", "ENABLED ENABLED",
-         Widgets.Command_State_Of (Here.Tree, Undo_Tag)'Image & " "
+        ("commands-validator-asked",
+         "ENABLED ENABLED",
+         Widgets.Command_State_Of (Here.Tree, Undo_Tag)'Image
+         & " "
          & Widgets.Command_State_Of (There.Tree, Undo_Tag)'Image);
 
       --  The answer is for the widget's Index too: one of many is on while another is not.
@@ -336,7 +339,8 @@ package body Command_Tests is
       Yes.Says := Widgets.Disabled;
       Widgets.Revalidate (Here.First);
       Goldens.Check_Text
-        ("commands-validator-index", "FALSE TRUE",
+        ("commands-validator-index",
+         "FALSE TRUE",
          Widgets.Buttons.Is_Enabled (Here.First)'Image & " " & Widgets.Buttons.Is_Enabled (Here.Second)'Image);
       Widgets.Set_Tag (Here.Second, Widgets.No_Tag);
       Yes.Says := Widgets.Enabled;
@@ -345,15 +349,13 @@ package body Command_Tests is
       --  Revalidate from a widget, when it is the answer that changed.
       Yes.Says := Widgets.Disabled;
       Widgets.Revalidate (Here.First);
-      Goldens.Check_Text
-        ("commands-revalidate-widget", "FALSE", Widgets.Buttons.Is_Enabled (Here.First)'Image);
+      Goldens.Check_Text ("commands-revalidate-widget", "FALSE", Widgets.Buttons.Is_Enabled (Here.First)'Image);
 
       --  The old kind replaces the new.
       Offering := Widgets.Not_Offered;
       Widgets.Set_Validator (Here.Tree, State_Of'Access);
       Widgets.Revalidate (Here.First);
-      Goldens.Check_Text
-        ("commands-validator-replaced", "FALSE", Widgets.Is_Visible (Here.First)'Image);
+      Goldens.Check_Text ("commands-validator-replaced", "FALSE", Widgets.Is_Visible (Here.First)'Image);
       Offering := Widgets.Enabled;
    end Validator_Objects;
 
@@ -371,7 +373,8 @@ package body Command_Tests is
       Widgets.Set_Validator (Item.Tree, Says'Unchecked_Access);
       Widgets.Update (Item.Tree, 0);
       Goldens.Check_Text
-        ("commands-trigger-only", "TRUE FALSE",
+        ("commands-trigger-only",
+         "TRUE FALSE",
          Widgets.Buttons.Is_Enabled (Item.First)'Image & " " & Widgets.Buttons.Is_Enabled (Item.Second)'Image);
 
       --  It can have the focus, and says its command when clicked.
@@ -379,20 +382,23 @@ package body Command_Tests is
       Widgets.Focus (Item.First);
       Click_At (Item, 40.0);
       Goldens.Check_Text
-        ("commands-trigger-says", "TRUE 1 TRUE",
-         Widgets.Has_Focus (Item.First)'Image & Item.Heard.Count'Image & " "
+        ("commands-trigger-says",
+         "TRUE 1 TRUE",
+         Widgets.Has_Focus (Item.First)'Image
+         & Item.Heard.Count'Image
+         & " "
          & Boolean'Image (Item.Heard.Last_Tag = Save_Tag));
       declare
          Said : constant Widgets.Widget_Event :=
            (Kind => Widgets.Click, Tag => Widgets.Tag_Of (Item.Box), others => <>);
       begin
          Goldens.Check_Text
-           ("commands-trigger-bound", "TRUE",
+           ("commands-trigger-bound",
+            "TRUE",
             Boolean'Image
               (Local.Is_Bound (Said) and then Local.What (Said) = Submit and then Local.What (Said) /= Other));
       end;
-      Goldens.Check_Text
-        ("commands-trigger-box", "TRUE", Boolean'Image (Widgets.Checks.Is_Enabled (Item.Box)));
+      Goldens.Check_Text ("commands-trigger-box", "TRUE", Boolean'Image (Widgets.Checks.Is_Enabled (Item.Box)));
    end Triggers_Only;
 
    --  A widget taken out of the tree and put back keeps the state it was in, and is told again what its
@@ -423,21 +429,21 @@ package body Command_Tests is
 
       Widgets.Dispatch
         (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_S, Command => True, others => <>), Handled);
-      Goldens.Check_Text ("commands-key", "TRUE 1 1",
-                          Handled'Image & Item.Heard.Count'Image & Item.Heard.Last_Tag'Image);
+      Goldens.Check_Text
+        ("commands-key", "TRUE 1 1", Handled'Image & Item.Heard.Count'Image & Item.Heard.Last_Tag'Image);
 
       --  Another key, or not the same modifiers, is not that command.
-      Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_S, others => <>), Handled);
+      Widgets.Dispatch (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_S, others => <>), Handled);
       Widgets.Dispatch
         (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Z, Command => True, others => <>), Handled);
       Goldens.Check_Text ("commands-key-not", "FALSE 1", Handled'Image & Item.Heard.Count'Image);
 
       Widgets.Dispatch
-        (Item.Tree, (Kind => Events.Key_Down, Key => Events.Key_Z, Command => True, Shift => True, others => <>),
+        (Item.Tree,
+         (Kind => Events.Key_Down, Key => Events.Key_Z, Command => True, Shift => True, others => <>),
          Handled);
-      Goldens.Check_Text ("commands-key-shift", "TRUE 2 2",
-                          Handled'Image & Item.Heard.Count'Image & Item.Heard.Last_Tag'Image);
+      Goldens.Check_Text
+        ("commands-key-shift", "TRUE 2 2", Handled'Image & Item.Heard.Count'Image & Item.Heard.Last_Tag'Image);
 
       --  Bound again, it does the new.
       Widgets.Bind_Key (Item.Tree, Events.Key_S, Command => True, Tag => Pin_Tag);
@@ -454,22 +460,22 @@ package body Command_Tests is
       --  With no focus there is only the listener.
       Widgets.Perform_Command (Item.Tree, 9, Done);
       Widgets.Deliver (Item.Tree);
-      Goldens.Check_Text ("commands-unfocused", "TRUE 0 1",
-                          Done'Image & Item.Field.Took'Image & Item.Heard.Count'Image);
+      Goldens.Check_Text
+        ("commands-unfocused", "TRUE 0 1", Done'Image & Item.Field.Took'Image & Item.Heard.Count'Image);
 
       --  With the focus on a widget that takes it, it is not the listener's.
       Widgets.Focus (Item.Field);
       Widgets.Perform_Command (Item.Tree, 9, Done);
       Widgets.Deliver (Item.Tree);
-      Goldens.Check_Text ("commands-taken", "TRUE 1 1",
-                          Done'Image & Item.Field.Took'Image & Item.Heard.Count'Image);
+      Goldens.Check_Text ("commands-taken", "TRUE 1 1", Done'Image & Item.Field.Took'Image & Item.Heard.Count'Image);
 
       --  One it does not take goes on to the listener.
       Widgets.Perform_Command (Item.Tree, 10, Done);
       Widgets.Deliver (Item.Tree);
-      Goldens.Check_Text ("commands-passed-on", "TRUE 1 2 10",
-                          Done'Image & Item.Field.Took'Image & Item.Heard.Count'Image
-                          & Item.Heard.Last_Tag'Image);
+      Goldens.Check_Text
+        ("commands-passed-on",
+         "TRUE 1 2 10",
+         Done'Image & Item.Field.Took'Image & Item.Heard.Count'Image & Item.Heard.Last_Tag'Image);
    end Responders;
 
    procedure Event_Payloads is
@@ -478,10 +484,15 @@ package body Command_Tests is
       Pressed : constant Widgets.Widget_Event := (Kind => Widgets.Click, others => <>);
    begin
       Goldens.Check_Text
-        ("commands-payloads", "3 4 5 CLICK",
-         Integer'Image (Integer (Moved.Across))(2 .. 2) & " "
-         & Integer'Image (Integer (Moved.Down))(2 .. 2) & " "
-         & Chosen.Row'Image (2 .. 2) & " " & Pressed.Kind'Image);
+        ("commands-payloads",
+         "3 4 5 CLICK",
+         Integer'Image (Integer (Moved.Across)) (2 .. 2)
+         & " "
+         & Integer'Image (Integer (Moved.Down)) (2 .. 2)
+         & " "
+         & Chosen.Row'Image (2 .. 2)
+         & " "
+         & Pressed.Kind'Image);
    end Event_Payloads;
 
 end Command_Tests;

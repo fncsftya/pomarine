@@ -6,6 +6,7 @@ with Pomarine.UI.Run_Window;
 --  opens its own menu, tabs, a stepper, a disclosure, list, menu, badge, chip, toast and tooltips (rest the pointer on
 --  the slider). The Popover and Dialog buttons open what floats over the window. Click, type and tab about to see how
 --  each answers. Close the window to end it.
+
 procedure Gallery_GUI is
    type Sheet is limited record
       Model : aliased Gallery_VM.Model;

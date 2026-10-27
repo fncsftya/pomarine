@@ -1,4 +1,5 @@
 with Ada.Unchecked_Conversion;
+
 package body Pomarine.Widgets.Adding is
 
    No_Yoga : Yoga.Nodes.Node;
@@ -32,17 +33,14 @@ package body Pomarine.Widgets.Adding is
       Yoga.Nodes.Set_Measured (Node (Item), Item'Address);
    end Start_Measuring;
 
-   procedure Take_Slot
-     (Home : in out Tree; Item : in out Widget'Class; Slot : out Node_Index)
-   is
+   procedure Take_Slot (Home : in out Tree; Item : in out Widget'Class; Slot : out Node_Index) is
       Table : Node_Table renames Home.Nodes.all;
    begin
       if Table.Free /= 0 then
          Slot := Table.Free;
          Table.Free := Table.Next (Slot);
       else
-         pragma Assert (Table.Fresh < Node_Capacity,
-                        "more widgets than the tree can hold");
+         pragma Assert (Table.Fresh < Node_Capacity, "more widgets than the tree can hold");
          Table.Fresh := Table.Fresh + 1;
          Slot := Table.Fresh;
          Table.Use_Number (Slot) := 1;
@@ -139,9 +137,7 @@ package body Pomarine.Widgets.Adding is
       Table.Semantics_Dirty (Above) := True;
    end Attach;
 
-   procedure Attach
-     (Parent : in out Widget'Class;
-      First, Second, Third, Fourth : in out Widget'Class) is
+   procedure Attach (Parent : in out Widget'Class; First, Second, Third, Fourth : in out Widget'Class) is
    begin
       Add (Parent, First);
       Add (Parent, Second);
@@ -149,9 +145,7 @@ package body Pomarine.Widgets.Adding is
       Add (Parent, Fourth);
    end Attach;
 
-   procedure Attach
-     (Parent : in out Widget'Class;
-      First, Second, Third, Fourth, Fifth : in out Widget'Class) is
+   procedure Attach (Parent : in out Widget'Class; First, Second, Third, Fourth, Fifth : in out Widget'Class) is
    begin
       Add (Parent, First);
       Add (Parent, Second);
@@ -160,11 +154,7 @@ package body Pomarine.Widgets.Adding is
       Add (Parent, Fifth);
    end Attach;
 
-   procedure Attach_Before
-     (Parent : in out Widget'Class;
-      Child  : in out Widget'Class;
-      Before : Widget'Class)
-   is
+   procedure Attach_Before (Parent : in out Widget'Class; Child : in out Widget'Class; Before : Widget'Class) is
       Home  : constant Tree_Access := Parent.Owner;
       Table : Node_Table renames Home.Nodes.all;
       Above : constant Node_Index := Parent.Slot;
@@ -180,8 +170,7 @@ package body Pomarine.Widgets.Adding is
       end loop;
       Take_Slot (Home.all, Child, Slot);
       Table.Parent (Slot) := Above;
-      Table.Yoga_Node (Slot) :=
-        Yoga.Nodes.New_Child_At (Table.Yoga_Node (Above), Index);
+      Table.Yoga_Node (Slot) := Yoga.Nodes.New_Child_At (Table.Yoga_Node (Above), Index);
       if Child.Measured then
          Start_Measuring (Child);
       end if;

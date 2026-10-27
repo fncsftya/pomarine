@@ -88,15 +88,20 @@ package body Tasks is
       end return;
    end Open_Count;
 
-   overriding function Count (Self : Task_List) return Natural is (Natural (Self.Items.Length));
+   overriding
+   function Count (Self : Task_List) return Natural
+   is (Natural (Self.Items.Length));
 
-   overriding function Version (Self : Task_List) return Natural is (Self.Changed);
+   overriding
+   function Version (Self : Task_List) return Natural
+   is (Self.Changed);
 
-   overriding function Row_Id (Self : Task_List; Row : Positive) return Positive is (Self.Items (Row).Id);
+   overriding
+   function Row_Id (Self : Task_List; Row : Positive) return Positive
+   is (Self.Items (Row).Id);
 
-   overriding procedure Describe_Row
-     (Self : Task_List; Row : Positive; Content : out Pomarine.Models.Row_Content)
-   is
+   overriding
+   procedure Describe_Row (Self : Task_List; Row : Positive; Content : out Pomarine.Models.Row_Content) is
       Each : Task_Item renames Self.Items (Row);
    begin
       Content := (others => <>);

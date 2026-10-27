@@ -6,6 +6,7 @@ with Pomarine.View_Models;
 with Pomarine.Widgets;
 
 --  Properties from a model's own subprograms, controls placed in one step, and a model that counts its own changes.
+
 procedure UI_Properties_Test is
    package UI renames Pomarine.UI;
    package Testing renames Pomarine.Testing;
@@ -14,8 +15,8 @@ procedure UI_Properties_Test is
    use type Pomarine.View_Models.Version_Number;
 
    procedure Observed_Model_Counts_Its_Changes is
-      Item   : Meter_VM.Model;
-      Before : Pomarine.View_Models.Version_Number := Meter_VM.Version (Item);
+      Item    : Meter_VM.Model;
+      Before  : Pomarine.View_Models.Version_Number := Meter_VM.Version (Item);
       Refused : Boolean := False;
    begin
       Meter_VM.Execute (Item, Meter_VM.Raise_Level);
@@ -30,7 +31,8 @@ procedure UI_Properties_Test is
       begin
          Meter_VM.Execute (Item, Meter_VM.Raise_Level);
       exception
-         when others => Refused := True;
+         when others =>
+            Refused := True;
       end;
       pragma Assert (Refused and then Meter_VM.Level (Item) = 1.0);
    end Observed_Model_Counts_Its_Changes;
@@ -55,7 +57,8 @@ procedure UI_Properties_Test is
                 Bound.Button ("Raise", Meter_VM.Raise_Level, Width => 90.0),
                 Bound.Button ("Zero", Meter_UI.Zero_Level, Width => 90.0),
                 Bound.Progress (Meter_UI.Level_Done, Height => 8.0)],
-               Padding => 8.0, Gap => 8.0));
+               Padding => 8.0,
+               Gap     => 8.0));
       end;
       Testing.Open (Window, Tree, 300, 300);
       pragma Assert (Testing.Shows (Window, "text 'Row 2'") and then Testing.Shows (Window, "text 'Row 3'"));

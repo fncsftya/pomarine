@@ -3,17 +3,18 @@
 --  this is the part the tree's layout and input call.
 --  A private child of Pomarine.Widgets: its operations are the parts of that package's body that are not
 --  its own interface, and are called from it.
+
 private package Pomarine.Widgets.Overlaying is
 
    procedure Push (Content : in out Widget'Class; Using : Overlay)
-     with Pre => Is_Attached (Content);
+   with Pre => Is_Attached (Content);
    --  Show Content over the rest and put it where Using says, at the next layout; with the focus in it if it is modal.
 
    function Index_Of (Home : Tree; Content : Node_Id) return Natural;
    --  Which of the overlays it is; 0 if it is none.
 
    procedure Remove (Home : in out Tree; Index : Positive; Told : Boolean)
-     with Pre => Index <= Home.Overlay_Count;
+   with Pre => Index <= Home.Overlay_Count;
    --  Let go of that overlay, and those over it: hide them, give back the focus and the scope a modal one took, and, if
    --  Told, have each say Dismiss.
 
@@ -30,11 +31,7 @@ private package Pomarine.Widgets.Overlaying is
    --  Put each overlay where it goes, in the window of Wide x High pixels, by the sizes and places the last layout
    --  gave. Whether any was moved (and the layout is to be done again).
 
-   procedure Take_Input
-     (Home     : in out Tree;
-      Event    : Pomarine.Events.Event;
-      Over     : Node_Index;
-      Consumed : out Boolean);
+   procedure Take_Input (Home : in out Tree; Event : Pomarine.Events.Event; Over : Node_Index; Consumed : out Boolean);
    --  What an overlay does with an input event before the widgets below see it: Escape or a press outside lets it go,
    --  and a modal one takes what is outside it. Over is the widget under the pointer, for a pointer's event.
 

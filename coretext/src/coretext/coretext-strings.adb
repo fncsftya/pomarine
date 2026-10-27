@@ -14,19 +14,19 @@ package body CoreText.Strings is
    end Clear_Styles;
 
    procedure Add_Style
-     (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean;
-      Size : Float := 0.0; Family : String := "") is
+     (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean; Size : Float := 0.0; Family : String := "") is
    begin
       Item.Styles.Append
         (Style_Run'(First, Stop, Bold, Italic, Size, Ada.Strings.Unbounded.To_Unbounded_String (Family)));
    end Add_Style;
 
    function Attributed (Item : Text; Using : Fonts.Font; First, Stop : Natural) return System.Address is
-      Sub : Thin.Ref := Thin.CF_String_Create_With_Substring
-        (Thin.Null_Ref, Item.Ref, (Interfaces.C.long (First), Interfaces.C.long (Stop - First)));
-      Plain : Thin.Ref := Thin.CF_Attributed_String_Create (Thin.Null_Ref, Sub, Fonts.Attributes (Using));
+      Sub    : Thin.Ref :=
+        Thin.CF_String_Create_With_Substring
+          (Thin.Null_Ref, Item.Ref, (Interfaces.C.long (First), Interfaces.C.long (Stop - First)));
+      Plain  : Thin.Ref := Thin.CF_Attributed_String_Create (Thin.Null_Ref, Sub, Fonts.Attributes (Using));
       Result : Thin.Ref;
-      Font : constant Thin.Ref := Thin.CF_Dictionary_Get_Value (Fonts.Attributes (Using), Thin.Font_Attribute_Name);
+      Font   : constant Thin.Ref := Thin.CF_Dictionary_Get_Value (Fonts.Attributes (Using), Thin.Font_Attribute_Name);
       use type Interfaces.Unsigned_32;
    begin
       Core.Release (Sub);
@@ -44,23 +44,26 @@ package body CoreText.Strings is
       for R of Item.Styles loop
          if R.First < Stop and then First < R.Stop then
             declare
-               Traits : constant Interfaces.Unsigned_32 :=
-                 (if R.Bold then 2 else 0) or (if R.Italic then 1 else 0);
+               Traits : constant Interfaces.Unsigned_32 := (if R.Bold then 2 else 0) or (if R.Italic then 1 else 0);
                Made   : Thin.Ref := Thin.Null_Ref;
                Chosen : Thin.Ref := Font;
                Face   : Thin.Ref := Thin.Null_Ref;
-               A : constant Natural := Natural'Max (First, R.First);
-               B : constant Natural := Natural'Min (Stop, R.Stop);
+               A      : constant Natural := Natural'Max (First, R.First);
+               B      : constant Natural := Natural'Min (Stop, R.Stop);
             begin
                if R.Size > 0.0 or else Ada.Strings.Unbounded.Length (R.Family) > 0 then
                   declare
-                     Name : Thin.Ref := Core.Create_String
-                       (if Ada.Strings.Unbounded.Length (R.Family) > 0
-                        then Ada.Strings.Unbounded.To_String (R.Family) else Fonts.Family_Name (Using));
+                     Name : Thin.Ref :=
+                       Core.Create_String
+                         (if Ada.Strings.Unbounded.Length (R.Family) > 0
+                          then Ada.Strings.Unbounded.To_String (R.Family)
+                          else Fonts.Family_Name (Using));
                   begin
-                     Made := Thin.CT_Font_Create_With_Name
-                       (Name, Interfaces.C.double (if R.Size > 0.0 then R.Size else Fonts.Size (Using)),
-                        System.Null_Address);
+                     Made :=
+                       Thin.CT_Font_Create_With_Name
+                         (Name,
+                          Interfaces.C.double (if R.Size > 0.0 then R.Size else Fonts.Size (Using)),
+                          System.Null_Address);
                      Core.Release (Name);
                   end;
                   if Made /= Thin.Null_Ref then
@@ -68,18 +71,21 @@ package body CoreText.Strings is
                   end if;
                end if;
                if Traits /= 0 then
-                  Face := Thin.CT_Font_Create_Copy_With_Symbolic_Traits
-                    (Chosen, 0.0, System.Null_Address, Traits, 3);
+                  Face := Thin.CT_Font_Create_Copy_With_Symbolic_Traits (Chosen, 0.0, System.Null_Address, Traits, 3);
                end if;
                if Face /= Thin.Null_Ref then
                   Thin.CF_Attributed_String_Set_Attribute
-                    (Result, (Interfaces.C.long (A - First), Interfaces.C.long (B - A)),
-                     Thin.Font_Attribute_Name, Face);
+                    (Result,
+                     (Interfaces.C.long (A - First), Interfaces.C.long (B - A)),
+                     Thin.Font_Attribute_Name,
+                     Face);
                   Core.Release (Face);
                elsif Made /= Thin.Null_Ref then
                   Thin.CF_Attributed_String_Set_Attribute
-                    (Result, (Interfaces.C.long (A - First), Interfaces.C.long (B - A)),
-                     Thin.Font_Attribute_Name, Made);
+                    (Result,
+                     (Interfaces.C.long (A - First), Interfaces.C.long (B - A)),
+                     Thin.Font_Attribute_Name,
+                     Made);
                end if;
                if Made /= Thin.Null_Ref then
                   Core.Release (Made);
@@ -99,17 +105,12 @@ package body CoreText.Strings is
       Item.Units := Natural (Thin.CF_String_Get_Length (Made));
    end Set;
 
-   procedure Replace
-     (Item        : in out Text;
-      First, Stop : Natural;
-      By          : String)
-   is
+   procedure Replace (Item : in out Text; First, Stop : Natural; By : String) is
       Added : Thin.Ref := Core.Create_String (By);
    begin
       if not Item.Mutable then
          declare
-            Copy : constant Thin.Ref :=
-              Thin.CF_String_Create_Mutable_Copy (Thin.Null_Ref, 0, Item.Ref);
+            Copy : constant Thin.Ref := Thin.CF_String_Create_Mutable_Copy (Thin.Null_Ref, 0, Item.Ref);
          begin
             if Copy = Thin.Null_Ref then
                Core.Release (Added);
@@ -121,10 +122,7 @@ package body CoreText.Strings is
          end;
       end if;
       Thin.CF_String_Replace
-        (Item.Ref,
-         (Location => Interfaces.C.long (First),
-          Length   => Interfaces.C.long (Stop - First)),
-         Added);
+        (Item.Ref, (Location => Interfaces.C.long (First), Length => Interfaces.C.long (Stop - First)), Added);
       Item.Units := Natural (Thin.CF_String_Get_Length (Item.Ref));
       Core.Release (Added);
    end Replace;
@@ -136,21 +134,20 @@ package body CoreText.Strings is
       Item.Mutable := False;
    end Clear;
 
-   overriding procedure Finalize (Item : in out Text) is
+   overriding
+   procedure Finalize (Item : in out Text) is
    begin
       Clear (Item);
    end Finalize;
 
-   function Is_Set (Item : Text) return Boolean is
-     (Item.Ref /= System.Null_Address);
+   function Is_Set (Item : Text) return Boolean
+   is (Item.Ref /= System.Null_Address);
 
-   function Length (Item : Text) return Natural is (Item.Units);
+   function Length (Item : Text) return Natural
+   is (Item.Units);
 
-   procedure Cluster
-     (Item : Text; Unit : Natural; First, Stop : out Natural)
-   is
-      Found : constant Thin.CF_Range :=
-        Thin.CF_String_Composed_Range (Item.Ref, Interfaces.C.long (Unit));
+   procedure Cluster (Item : Text; Unit : Natural; First, Stop : out Natural) is
+      Found : constant Thin.CF_Range := Thin.CF_String_Composed_Range (Item.Ref, Interfaces.C.long (Unit));
    begin
       First := Natural (Found.Location);
       Stop := First + Natural (Found.Length);
@@ -164,24 +161,23 @@ package body CoreText.Strings is
    --  Visit the text's words in order, until Done.
 
    procedure Each_Word (Item : Text) is
-      Words : Thin.Ref := Thin.CF_String_Tokenizer_Create
-        (Thin.Null_Ref, Item.Ref,
-         (Location => 0, Length => Interfaces.C.long (Item.Units)),
-         Thin.Tokenizer_Unit_Word, Thin.Null_Ref);
+      Words : Thin.Ref :=
+        Thin.CF_String_Tokenizer_Create
+          (Thin.Null_Ref,
+           Item.Ref,
+           (Location => 0, Length => Interfaces.C.long (Item.Units)),
+           Thin.Tokenizer_Unit_Word,
+           Thin.Null_Ref);
       Done  : Boolean := False;
    begin
       if Words = Thin.Null_Ref then
          raise Error with "CFStringTokenizerCreate failed";
       end if;
-      while not Done
-        and then Thin.CF_String_Tokenizer_Advance (Words) /= Thin.Token_None
-      loop
+      while not Done and then Thin.CF_String_Tokenizer_Advance (Words) /= Thin.Token_None loop
          declare
-            Found : constant Thin.CF_Range :=
-              Thin.CF_String_Tokenizer_Token_Range (Words);
+            Found : constant Thin.CF_Range := Thin.CF_String_Tokenizer_Token_Range (Words);
          begin
-            Visit (Natural (Found.Location),
-                   Natural (Found.Location + Found.Length), Done);
+            Visit (Natural (Found.Location), Natural (Found.Location + Found.Length), Done);
          end;
       end loop;
       Core.Release (Words);
@@ -191,8 +187,7 @@ package body CoreText.Strings is
          raise;
    end Each_Word;
 
-   function Previous_Word_Start (Item : Text; Unit : Natural) return Natural
-   is
+   function Previous_Word_Start (Item : Text; Unit : Natural) return Natural is
       Result : Natural := 0;
 
       procedure Visit (First, Stop : Natural; Done : out Boolean) is
@@ -228,11 +223,8 @@ package body CoreText.Strings is
       return Result;
    end Next_Word_Stop;
 
-   procedure Word_At
-     (Item : Text; Unit : Natural; First, Stop : out Natural)
-   is
-      procedure Visit (Word_First, Word_Stop : Natural; Done : out Boolean)
-      is
+   procedure Word_At (Item : Text; Unit : Natural; First, Stop : out Natural) is
+      procedure Visit (Word_First, Word_Stop : Natural; Done : out Boolean) is
       begin
          Done := Word_Stop >= Unit;
          if Done and then Word_First <= Unit then
@@ -248,6 +240,7 @@ package body CoreText.Strings is
       Find (Item);
    end Word_At;
 
-   function Handle (Item : Text) return System.Address is (Item.Ref);
+   function Handle (Item : Text) return System.Address
+   is (Item.Ref);
 
 end CoreText.Strings;

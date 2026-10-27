@@ -2,6 +2,7 @@ with Pomarine.UI.Contexts;
 with Options_VM;
 
 --  How the tests see Options_VM through Pomarine.UI.
+
 package Options_UI is
 
    package Options is new Pomarine.UI.Contexts (Options_VM.Commands, Options_VM.Model);

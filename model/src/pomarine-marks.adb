@@ -20,20 +20,24 @@ package body Pomarine.Marks is
       end if;
    end Reserve;
 
-   overriding procedure Adjust (Store : in out Mark_Store) is
+   overriding
+   procedure Adjust (Store : in out Mark_Store) is
    begin
       if Store.Data /= null then
          Store.Data := new Mark_Array'(Store.Data.all);
       end if;
    end Adjust;
 
-   overriding procedure Finalize (Store : in out Mark_Store) is
+   overriding
+   procedure Finalize (Store : in out Mark_Store) is
    begin
       Free (Store.Data);
    end Finalize;
 
-   function Can_Undo (Past : History) return Boolean is (Past.Position > 0);
-   function Can_Redo (Past : History) return Boolean is (Past.Position < Past.Count);
+   function Can_Undo (Past : History) return Boolean
+   is (Past.Position > 0);
+   function Can_Redo (Past : History) return Boolean
+   is (Past.Position < Past.Count);
 
    procedure Record_Edit (Past : in out History; Value : Mark; Index : Positive; Added : Boolean) is
    begin

@@ -6,6 +6,7 @@ with Todo_VM;
 --  delete it, or clear all that are done. The list
 --  reads its rows from a model, so it would cost the same of a hundred
 --  thousand. Close the window to end it.
+
 procedure Todo_GUI is
    procedure Show is new Pomarine.UI.Run_Window (Todo_VM.Model, Todo.Build);
    Model : aliased Todo_VM.Model;

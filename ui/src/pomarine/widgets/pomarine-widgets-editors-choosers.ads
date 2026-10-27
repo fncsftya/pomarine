@@ -1,4 +1,3 @@
-
 private package Pomarine.Widgets.Editors.Choosers is
 
    procedure Close_Chooser (Item : in out Editor);

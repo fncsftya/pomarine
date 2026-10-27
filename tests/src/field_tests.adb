@@ -47,10 +47,7 @@ package body Field_Tests is
 
    procedure Open (Item : in out Fixture; Content : String := "") is
    begin
-      Renderers.Create_Offscreen
-        (Item.Target,
-         Positive (Float (Width) * Density),
-         Positive (Float (Height) * Density));
+      Renderers.Create_Offscreen (Item.Target, Positive (Float (Width) * Density), Positive (Float (Height) * Density));
       Docs.Load (Item.Doc, Content);
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
@@ -63,9 +60,7 @@ package body Field_Tests is
       Widgets.Focus (Item.Field);
 
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Root), Yoga.Column);
-      Nodes.Set_Padding
-        (Widgets.Node (Item.Root), Yoga.All_Edges,
-         Float (Margin) * Density);
+      Nodes.Set_Padding (Widgets.Node (Item.Root), Yoga.All_Edges, Float (Margin) * Density);
       Nodes.Set_Height (Widgets.Node (Item.Field), 40.0 * Density);
       Widgets.Layout (Item.Tree, Item.Target);
    end Open;
@@ -93,14 +88,9 @@ package body Field_Tests is
       pragma Assert (Handled, "the field did not take an event");
    end Send;
 
-   procedure Press
-     (Item    : in out Fixture;
-      Code    : Events.Key_Code;
-      Command : Boolean := False) is
+   procedure Press (Item : in out Fixture; Code : Events.Key_Code; Command : Boolean := False) is
    begin
-      Send (Item,
-            (Kind => Events.Key_Down, Key => Code, Command => Command,
-             others => <>));
+      Send (Item, (Kind => Events.Key_Down, Key => Code, Command => Command, others => <>));
    end Press;
 
    procedure Type_In (Item : in out Fixture; Text : String) is
@@ -111,14 +101,9 @@ package body Field_Tests is
    procedure Click (Item : in out Fixture; X : Float) is
       Ignored : Boolean;
    begin
-      Send (Item,
-            (Kind => Events.Mouse_Down, Button => 1, Clicks => 1,
-             Mouse_X => X, Mouse_Y => Middle, others => <>));
+      Send (Item, (Kind => Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => X, Mouse_Y => Middle, others => <>));
       Widgets.Dispatch
-        (Item.Tree,
-         (Kind => Events.Mouse_Up, Button => 1, Mouse_X => X,
-          Mouse_Y => Middle, others => <>),
-         Ignored);
+        (Item.Tree, (Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Middle, others => <>), Ignored);
    end Click;
 
    function Returned (Item : in out Fixture) return Boolean is
@@ -146,24 +131,21 @@ package body Field_Tests is
    end Typing;
 
    procedure Returning is
-      Item   : Fixture;
+      Item          : Fixture;
       Before, After : Images.Image;
    begin
       Open (Item, "Great skua");
       Press (Item, Events.Key_Right_Arrow, Command => True);
       Draw (Item, Before);
-      Goldens.Check_Text ("field-no-return-yet", "FALSE",
-                          Boolean'Image (Returned (Item)));
+      Goldens.Check_Text ("field-no-return-yet", "FALSE", Boolean'Image (Returned (Item)));
 
       --  Return takes no new line, but is kept to be taken.
       Press (Item, Events.Key_Return);
       Check_Text ("field-return-text", Item, "Great skua");
       Draw (Item, After);
       Goldens.Check_Same ("field-return-same", Before, After);
-      Goldens.Check_Text ("field-return-taken", "TRUE",
-                          Boolean'Image (Returned (Item)));
-      Goldens.Check_Text ("field-return-forgotten", "FALSE",
-                          Boolean'Image (Returned (Item)));
+      Goldens.Check_Text ("field-return-taken", "TRUE", Boolean'Image (Returned (Item)));
+      Goldens.Check_Text ("field-return-forgotten", "FALSE", Boolean'Image (Returned (Item)));
 
       Type_In (Item, "!");
       Check_Text ("field-typing-after-return", Item, "Great skua!");
@@ -184,8 +166,7 @@ package body Field_Tests is
    procedure Long_Line is
       Item : Fixture;
       Long : constant String :=
-        "Bonxies are great skuas, which nest on moorland in Shetland and "
-        & "Orkney and spend the winter at sea.";
+        "Bonxies are great skuas, which nest on moorland in Shetland and " & "Orkney and spend the winter at sea.";
    begin
       Open (Item);
       Type_In (Item, Long);

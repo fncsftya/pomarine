@@ -6,6 +6,7 @@ with Pomarine.Icons;
 
 --  A line of text to read, on the left of its box, in the middle of its
 --  height. It takes no events.
+
 package Pomarine.Widgets.Labels is
 
    type Label is new Widget with private;
@@ -24,7 +25,7 @@ package Pomarine.Widgets.Labels is
    function Style (Item : Label) return Line_Texts.Style;
 
    procedure Set_Scale (Item : in out Label; To : Float)
-     with Pre => To > 0.0;
+   with Pre => To > 0.0;
    --  Show the text at To times its size (1.0 to begin with), in the
    --  system font: as a title is smaller over a canvas zoomed out.
 
@@ -48,12 +49,11 @@ package Pomarine.Widgets.Labels is
    --  Show it in To, rather than the theme's foreground: as on a dark
    --  bar.
 
-   overriding procedure Draw
-     (Item   : in out Label;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Label; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Measure
+   overriding
+   procedure Measure
      (Item      : in out Label;
       Room_Wide : Float;
       Wide_Mode : Yoga.Nodes.Measure_Mode;
@@ -61,28 +61,27 @@ package Pomarine.Widgets.Labels is
       High_Mode : Yoga.Nodes.Measure_Mode;
       Result    : out Yoga.Nodes.Measured_Size);
 
-   overriding procedure Describe
-     (Item  : Label;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Label; Facts : in out Semantics.Description);
 
 private
 
    type Label is new Widget with record
-      Content : Ada.Strings.Unbounded.Unbounded_String;
-      Using   : Line_Texts.Style := Line_Texts.Regular;
-      Inked   : Boolean := False;
-      Centered : Boolean := False;
-      Trailing : Boolean := False;
-      Ink     : Themes.Slot := Themes.Foreground;
-      Scaled  : Float := 1.0;
-      Iconed  : Boolean := False;
-      Which   : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
-      Fit_Width  : Float := -1.0;
-      Fit_Length : Natural := 0;
-      Fit_Cut    : Boolean := False;
-      Measure_Valid : Boolean := False;
+      Content                    : Ada.Strings.Unbounded.Unbounded_String;
+      Using                      : Line_Texts.Style := Line_Texts.Regular;
+      Inked                      : Boolean := False;
+      Centered                   : Boolean := False;
+      Trailing                   : Boolean := False;
+      Ink                        : Themes.Slot := Themes.Foreground;
+      Scaled                     : Float := 1.0;
+      Iconed                     : Boolean := False;
+      Which                      : Pomarine.Icons.Icon := Pomarine.Icons.Icon'First;
+      Fit_Width                  : Float := -1.0;
+      Fit_Length                 : Natural := 0;
+      Fit_Cut                    : Boolean := False;
+      Measure_Valid              : Boolean := False;
       Measure_Wide, Measure_High : Float := 0.0;
-      Measure_Pixels : Float := 0.0;
+      Measure_Pixels             : Float := 0.0;
       --  What it measured as, for the density it was: kept until the text,
       --  its style, its scale, its icon or the density change.
       --  How much of the text fits a box Fit_Width pixels wide, and whether

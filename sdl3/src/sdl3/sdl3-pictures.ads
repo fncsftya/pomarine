@@ -6,6 +6,7 @@ private with SDL3.Thin;
 --  on a thread of their own, and turned into a texture (see
 --  SDL3.Windows.Renderers.Textures.Create_From_Decoded) on the one that
 --  draws.
+
 package SDL3.Pictures is
 
    procedure Size (File_Name : String; Wide, High : out Natural);
@@ -16,9 +17,8 @@ package SDL3.Pictures is
    type Decoded is limited private;
    --  A picture's pixels, eight bits a channel, as R, G, B, A bytes.
 
-   procedure Decode
-     (Item : in out Decoded; File_Name : String; Dark : out Boolean)
-     with Post => not Is_Empty (Item);
+   procedure Decode (Item : in out Decoded; File_Name : String; Dark : out Boolean)
+   with Post => not Is_Empty (Item);
    --  Replace Item with the PNG file, whole. Dark is whether it is darker
    --  than not, by a sample of its pixels. Raises an error if the file
    --  cannot be read. It may be called from any thread, for Items of
@@ -27,18 +27,18 @@ package SDL3.Pictures is
    function Is_Empty (Item : Decoded) return Boolean;
 
    function Width (Item : Decoded) return Positive
-     with Pre => not Is_Empty (Item);
+   with Pre => not Is_Empty (Item);
    function Height (Item : Decoded) return Positive
-     with Pre => not Is_Empty (Item);
+   with Pre => not Is_Empty (Item);
 
    function Pixels (Item : Decoded) return System.Address
-     with Pre => not Is_Empty (Item);
+   with Pre => not Is_Empty (Item);
    function Pitch (Item : Decoded) return Positive
-     with Pre => not Is_Empty (Item);
+   with Pre => not Is_Empty (Item);
    --  Where the rows are, and how many bytes from one to the next.
 
    procedure Release (Item : in out Decoded)
-     with Post => Is_Empty (Item);
+   with Post => Is_Empty (Item);
 
 private
 
@@ -46,6 +46,7 @@ private
       Surface : Thin.Surface_Access;  --  RGBA32
    end record;
 
-   overriding procedure Finalize (Item : in out Decoded);
+   overriding
+   procedure Finalize (Item : in out Decoded);
 
 end SDL3.Pictures;

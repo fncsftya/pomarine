@@ -12,7 +12,8 @@ package body Form_UI is
       return Form_VM.Status (Item);
    end Read_Status;
 
-   function Name_Present (Item : Form_VM.Model) return Boolean is (Form_VM.Name (Item)'Length > 0);
+   function Name_Present (Item : Form_VM.Model) return Boolean
+   is (Form_VM.Name (Item)'Length > 0);
 
    procedure Wipe (Item : in out Form_VM.Model) is
    begin

@@ -22,51 +22,58 @@ package body Pomarine.UI.Contexts is
 
    --  How a binding reads and writes the model: the adapter of a property, made in the arena of its scope.
 
-   function Whole_Version (Item : Model) return VM.Version_Number is
-     (Commands.Version (Commands.Model'Class (Item)));
+   function Whole_Version (Item : Model) return VM.Version_Number
+   is (Commands.Version (Commands.Model'Class (Item)));
    --  What a text or a choice watches unless it is given a version of its own.
 
    --  Properties of the model's own subprograms. The view makes the adapter of one in its arena, when it binds.
 
-   function Showing (Get : not null Text_Getter; Changes : Version_Getter := null) return Text_Property is
-     ((Get => Get, Changes => Changes, others => <>));
+   function Showing (Get : not null Text_Getter; Changes : Version_Getter := null) return Text_Property
+   is ((Get => Get, Changes => Changes, others => <>));
 
-   function Showing (Get : not null Text_Each_Getter) return Text_Property is ((Each => Get, others => <>));
+   function Showing (Get : not null Text_Each_Getter) return Text_Property
+   is ((Each => Get, others => <>));
 
    function Editing
      (Get : not null Text_Getter; Set : not null Text_Setter; Changes : Version_Getter := null) return Text_Property
    is ((Get => Get, Set => Set, Changes => Changes, others => <>));
 
-   function Showing (Get : not null Flag_Getter) return Flag_Property is ((Get => Get, others => <>));
+   function Showing (Get : not null Flag_Getter) return Flag_Property
+   is ((Get => Get, others => <>));
 
-   function Showing (Get : not null Flag_Each_Getter) return Flag_Property is ((Each => Get, others => <>));
+   function Showing (Get : not null Flag_Each_Getter) return Flag_Property
+   is ((Each => Get, others => <>));
 
-   function Editing (Get : not null Flag_Getter; Set : not null Flag_Setter) return Flag_Property is
-     ((Get => Get, Set => Set, others => <>));
+   function Editing (Get : not null Flag_Getter; Set : not null Flag_Setter) return Flag_Property
+   is ((Get => Get, Set => Set, others => <>));
 
    package body Choosing_Among is
-      function Position (Item : Model) return Natural is (Choice'Pos (Get (Item)));
+      function Position (Item : Model) return Natural
+      is (Choice'Pos (Get (Item)));
 
-      function Is_Value (Value : Choice) return Flag_Property is
-        ((Pick => Position'Access, Want => Choice'Pos (Value), others => <>));
+      function Is_Value (Value : Choice) return Flag_Property
+      is ((Pick => Position'Access, Want => Choice'Pos (Value), others => <>));
    end Choosing_Among;
 
-   function Showing (Get : not null Fraction_Getter) return Fraction_Property is ((Get => Get, others => <>));
+   function Showing (Get : not null Fraction_Getter) return Fraction_Property
+   is ((Get => Get, others => <>));
 
-   function Editing (Get : not null Fraction_Getter; Set : not null Fraction_Setter) return Fraction_Property is
-     ((Get => Get, Set => Set));
+   function Editing (Get : not null Fraction_Getter; Set : not null Fraction_Setter) return Fraction_Property
+   is ((Get => Get, Set => Set));
 
-   function Counting (Get : not null Count_Getter) return Count_Property is ((Get => Get));
+   function Counting (Get : not null Count_Getter) return Count_Property
+   is ((Get => Get));
 
-   function Listing (Get : not null Rows_Getter) return Rows_Property is ((Get => Get));
+   function Listing (Get : not null Rows_Getter) return Rows_Property
+   is ((Get => Get));
 
    function Choosing
      (Get : not null Count_Getter; Set : not null Choice_Setter; Changes : Version_Getter := null)
       return Choice_Property
    is ((Get => Get, Set => Set, Changes => Changes));
 
-   function Doing (Allowed : not null Flag_Getter; Perform : not null Action_Performer) return Action_Property is
-     ((Allowed => Allowed, Perform => Perform));
+   function Doing (Allowed : not null Flag_Getter; Perform : not null Action_Performer) return Action_Property
+   is ((Allowed => Allowed, Perform => Perform));
 
    type Pointer_Text is new Text_Adapter with record
       Get     : Text_Getter;
@@ -75,15 +82,21 @@ package body Pomarine.UI.Contexts is
       Changes : Version_Getter;
    end record;
 
-   overriding function Current (Self : Pointer_Text; Item : Model; Index : Natural) return String;
-   overriding procedure Assign (Self : Pointer_Text; Item : in out Model; Value : String; Index : Natural);
-   overriding function Stamp (Self : Pointer_Text; Item : Model; Index : Natural) return VM.Version_Number;
-   overriding function Can_Assign (Self : Pointer_Text) return Boolean;
+   overriding
+   function Current (Self : Pointer_Text; Item : Model; Index : Natural) return String;
+   overriding
+   procedure Assign (Self : Pointer_Text; Item : in out Model; Value : String; Index : Natural);
+   overriding
+   function Stamp (Self : Pointer_Text; Item : Model; Index : Natural) return VM.Version_Number;
+   overriding
+   function Can_Assign (Self : Pointer_Text) return Boolean;
 
-   overriding function Current (Self : Pointer_Text; Item : Model; Index : Natural) return String is
-     (if Self.Each /= null then Self.Each (Item, Positive'Max (1, Index)) else Self.Get (Item));
+   overriding
+   function Current (Self : Pointer_Text; Item : Model; Index : Natural) return String
+   is (if Self.Each /= null then Self.Each (Item, Positive'Max (1, Index)) else Self.Get (Item));
 
-   overriding procedure Assign (Self : Pointer_Text; Item : in out Model; Value : String; Index : Natural) is
+   overriding
+   procedure Assign (Self : Pointer_Text; Item : in out Model; Value : String; Index : Natural) is
       pragma Unreferenced (Index);
    begin
       if Self.Set /= null then
@@ -91,13 +104,16 @@ package body Pomarine.UI.Contexts is
       end if;
    end Assign;
 
-   overriding function Stamp (Self : Pointer_Text; Item : Model; Index : Natural) return VM.Version_Number is
+   overriding
+   function Stamp (Self : Pointer_Text; Item : Model; Index : Natural) return VM.Version_Number is
       pragma Unreferenced (Index);
    begin
       return (if Self.Changes /= null then Self.Changes (Item) else Whole_Version (Item));
    end Stamp;
 
-   overriding function Can_Assign (Self : Pointer_Text) return Boolean is (Self.Set /= null);
+   overriding
+   function Can_Assign (Self : Pointer_Text) return Boolean
+   is (Self.Set /= null);
 
    type Pointer_Flag is new Flag_Adapter with record
       Get  : Flag_Getter;
@@ -107,16 +123,23 @@ package body Pomarine.UI.Contexts is
       Want : Natural := 0;
    end record;
 
-   overriding function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean;
-   overriding procedure Assign (Self : Pointer_Flag; Item : in out Model; Value : Boolean; Index : Natural);
-   overriding function Can_Assign (Self : Pointer_Flag) return Boolean;
+   overriding
+   function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean;
+   overriding
+   procedure Assign (Self : Pointer_Flag; Item : in out Model; Value : Boolean; Index : Natural);
+   overriding
+   function Can_Assign (Self : Pointer_Flag) return Boolean;
 
-   overriding function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean is
-     (if Self.Pick /= null then Self.Pick (Item) = Self.Want
-      elsif Self.Each /= null then Self.Each (Item, Positive'Max (1, Index))
-      else Self.Get (Item));
+   overriding
+   function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean
+   is (if Self.Pick /= null
+       then Self.Pick (Item) = Self.Want
+       elsif Self.Each /= null
+       then Self.Each (Item, Positive'Max (1, Index))
+       else Self.Get (Item));
 
-   overriding procedure Assign (Self : Pointer_Flag; Item : in out Model; Value : Boolean; Index : Natural) is
+   overriding
+   procedure Assign (Self : Pointer_Flag; Item : in out Model; Value : Boolean; Index : Natural) is
       pragma Unreferenced (Index);
    begin
       if Self.Set /= null then
@@ -124,40 +147,53 @@ package body Pomarine.UI.Contexts is
       end if;
    end Assign;
 
-   overriding function Can_Assign (Self : Pointer_Flag) return Boolean is (Self.Set /= null);
+   overriding
+   function Can_Assign (Self : Pointer_Flag) return Boolean
+   is (Self.Set /= null);
 
    type Pointer_Fraction is new Fraction_Adapter with record
       Get : Fraction_Getter;
       Set : Fraction_Setter;
    end record;
 
-   overriding function Current (Self : Pointer_Fraction; Item : Model) return Float;
-   overriding procedure Assign (Self : Pointer_Fraction; Item : in out Model; Value : Float);
-   overriding function Can_Assign (Self : Pointer_Fraction) return Boolean;
+   overriding
+   function Current (Self : Pointer_Fraction; Item : Model) return Float;
+   overriding
+   procedure Assign (Self : Pointer_Fraction; Item : in out Model; Value : Float);
+   overriding
+   function Can_Assign (Self : Pointer_Fraction) return Boolean;
 
-   overriding function Current (Self : Pointer_Fraction; Item : Model) return Float is (Self.Get (Item));
+   overriding
+   function Current (Self : Pointer_Fraction; Item : Model) return Float
+   is (Self.Get (Item));
 
-   overriding procedure Assign (Self : Pointer_Fraction; Item : in out Model; Value : Float) is
+   overriding
+   procedure Assign (Self : Pointer_Fraction; Item : in out Model; Value : Float) is
    begin
       if Self.Set /= null then
          Self.Set (Item, Value);
       end if;
    end Assign;
 
-   overriding function Can_Assign (Self : Pointer_Fraction) return Boolean is (Self.Set /= null);
+   overriding
+   function Can_Assign (Self : Pointer_Fraction) return Boolean
+   is (Self.Set /= null);
 
    type Pointer_Count is new Count_Adapter with record
       Get : Count_Getter;
    end record;
 
-   overriding function Current (Self : Pointer_Count; Item : Model) return Natural is (Self.Get (Item));
+   overriding
+   function Current (Self : Pointer_Count; Item : Model) return Natural
+   is (Self.Get (Item));
 
    type Pointer_Rows is new Rows_Adapter with record
       Get : Rows_Getter;
    end record;
 
-   overriding function Rows_Of (Self : Pointer_Rows; Item : in out Model) return Pomarine.Models.Model_Access is
-     (Self.Get (Item).all'Unrestricted_Access);
+   overriding
+   function Rows_Of (Self : Pointer_Rows; Item : in out Model) return Pomarine.Models.Model_Access
+   is (Self.Get (Item).all'Unrestricted_Access);
 
    type Pointer_Choice is new Choice_Adapter with record
       Get     : Count_Getter;
@@ -165,31 +201,43 @@ package body Pomarine.UI.Contexts is
       Changes : Version_Getter;
    end record;
 
-   overriding function Chosen (Self : Pointer_Choice; Item : Model) return Natural;
-   overriding procedure Choose (Self : Pointer_Choice; Item : in out Model; Id : Natural);
-   overriding function Stamp (Self : Pointer_Choice; Item : Model) return VM.Version_Number;
+   overriding
+   function Chosen (Self : Pointer_Choice; Item : Model) return Natural;
+   overriding
+   procedure Choose (Self : Pointer_Choice; Item : in out Model; Id : Natural);
+   overriding
+   function Stamp (Self : Pointer_Choice; Item : Model) return VM.Version_Number;
 
-   overriding function Chosen (Self : Pointer_Choice; Item : Model) return Natural is (Self.Get (Item));
+   overriding
+   function Chosen (Self : Pointer_Choice; Item : Model) return Natural
+   is (Self.Get (Item));
 
-   overriding procedure Choose (Self : Pointer_Choice; Item : in out Model; Id : Natural) is
+   overriding
+   procedure Choose (Self : Pointer_Choice; Item : in out Model; Id : Natural) is
    begin
       Self.Set (Item, Id);
    end Choose;
 
-   overriding function Stamp (Self : Pointer_Choice; Item : Model) return VM.Version_Number is
-     (if Self.Changes /= null then Self.Changes (Item) else Whole_Version (Item));
+   overriding
+   function Stamp (Self : Pointer_Choice; Item : Model) return VM.Version_Number
+   is (if Self.Changes /= null then Self.Changes (Item) else Whole_Version (Item));
 
    type Pointer_Action is new Action_Adapter with record
       Allowed : Flag_Getter;
       Perform : Action_Performer;
    end record;
 
-   overriding function May_Perform (Self : Pointer_Action; Item : Model) return Boolean;
-   overriding procedure Run_Action (Self : Pointer_Action; Item : in out Model);
+   overriding
+   function May_Perform (Self : Pointer_Action; Item : Model) return Boolean;
+   overriding
+   procedure Run_Action (Self : Pointer_Action; Item : in out Model);
 
-   overriding function May_Perform (Self : Pointer_Action; Item : Model) return Boolean is (Self.Allowed (Item));
+   overriding
+   function May_Perform (Self : Pointer_Action; Item : Model) return Boolean
+   is (Self.Allowed (Item));
 
-   overriding procedure Run_Action (Self : Pointer_Action; Item : in out Model) is
+   overriding
+   procedure Run_Action (Self : Pointer_Action; Item : in out Model) is
    begin
       Self.Perform (Item);
    end Run_Action;
@@ -292,7 +340,7 @@ package body Pomarine.UI.Contexts is
    --  scope outlives nothing, but it does not take it on trust.
 
    type Text_Binding is new Pomarine.UI.Binding with record
-      Kind : Control_Kind := Label_Control;
+      Kind   : Control_Kind := Label_Control;
       Index  : Natural := 0;
       Handle : Handle_Data;
       Text   : Text_Adapter_Ref;
@@ -300,57 +348,65 @@ package body Pomarine.UI.Contexts is
       Seen   : VM.Watch;
    end record;
 
-   overriding procedure Refresh (Item : in out Text_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Refresh (Item : in out Text_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Field_Binding is new Pomarine.UI.Binding with record
-      Index  : Natural := 0;
-      Handle   : Handle_Data;
-      Text     : Text_Adapter_Ref;
-      Data     : Model_Ref;
-      Seen     : VM.Watch;
-      Link     : Widgets.Bindings.Text_Link;
-      Deferred : Boolean := False;
+      Index     : Natural := 0;
+      Handle    : Handle_Data;
+      Text      : Text_Adapter_Ref;
+      Data      : Model_Ref;
+      Seen      : VM.Watch;
+      Link      : Widgets.Bindings.Text_Link;
+      Deferred  : Boolean := False;
       --  The model's text is not yet shown: the person is composing.
-      Known    : Ada.Strings.Unbounded.Unbounded_String;
+      Known     : Ada.Strings.Unbounded.Unbounded_String;
       --  The text the field and the model last agreed on: what was shown, or what the person's edit gave.
       --  A change of the document to the same text (an input method cancelled, an edit undone) is no edit.
       Replacing : Replacement := Caret_At_End;
    end record;
 
-   overriding procedure Collect (Item : in out Field_Binding; Within : in out View'Class);
-   overriding procedure Refresh (Item : in out Field_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Collect (Item : in out Field_Binding; Within : in out View'Class);
+   overriding
+   procedure Refresh (Item : in out Field_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Command_Binding is new Pomarine.UI.Binding with record
-      Which : Natural := 0;
+      Which  : Natural := 0;
       --  Commands.Command'Pos of the command, or not used if there is an Action.
       Action : Action_Adapter_Ref;
-      Data  : Model_Ref;
+      Data   : Model_Ref;
    end record;
 
-   overriding function Can_Execute (Item : Command_Binding; Index : Natural) return Boolean;
-   overriding procedure Execute (Item : in out Command_Binding; Index : Natural);
-   overriding function Key (Item : Command_Binding) return Command_Key;
-   overriding function Is_Command (Item : Command_Binding) return Boolean;
+   overriding
+   function Can_Execute (Item : Command_Binding; Index : Natural) return Boolean;
+   overriding
+   procedure Execute (Item : in out Command_Binding; Index : Natural);
+   overriding
+   function Key (Item : Command_Binding) return Command_Key;
+   overriding
+   function Is_Command (Item : Command_Binding) return Boolean;
 
    type Action_Tags is array (1 .. Pomarine.Models.Max_Actions) of Integer;
    type Frame_Ref is access all Widgets.Frames.Frame;
    type Event_Command_Binding is new Command_Binding with record
-      Home : View_Ref;
-      Target : Widgets.Widget_Access;
-      Frame : Frame_Ref;
-      Kind : Widgets.Event_Kind := Widgets.Click;
-      Index : Natural := 0;
+      Home             : View_Ref;
+      Target           : Widgets.Widget_Access;
+      Frame            : Frame_Ref;
+      Kind             : Widgets.Event_Kind := Widgets.Click;
+      Index            : Natural := 0;
       Index_From_Event : Boolean := False;
-      Row_Actions : Boolean := False;
-      Tags : Action_Tags := [others => 0];
-      Hooked : Boolean := False;
+      Row_Actions      : Boolean := False;
+      Tags             : Action_Tags := [others => 0];
+      Hooked           : Boolean := False;
       --  The binding is of an editor's or a canvas's hook, not of its Kind of event.
-      Canvased : Boolean := False;
+      Canvased         : Boolean := False;
       --  Of a canvas's: Line_Hook is the hook, not Hook.
-      Hook : Editor_Hook := Tool_Used;
-      Line_Hook : Canvas_Hook := Line_Selected;
+      Hook             : Editor_Hook := Tool_Used;
+      Line_Hook        : Canvas_Hook := Line_Selected;
    end record;
-   overriding procedure Detach (Item : in out Event_Command_Binding; Within : in out View'Class);
+   overriding
+   procedure Detach (Item : in out Event_Command_Binding; Within : in out View'Class);
    package Event_Callbacks is new Widgets.Callbacks (Event_Command_Binding);
    package Frame_Callbacks is new Widgets.Frames.Handlers (Event_Command_Binding);
    package Editor_Callbacks is new Widgets.Editors.Callbacks (Event_Command_Binding);
@@ -361,7 +417,7 @@ package body Pomarine.UI.Contexts is
    procedure Event_Heard
      (Self : in out Event_Command_Binding; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
    is
-      Tag : Integer := Self.Tag;
+      Tag   : Integer := Self.Tag;
       Index : Natural := Self.Index;
    begin
       if Self.Row_Actions then
@@ -390,7 +446,8 @@ package body Pomarine.UI.Contexts is
    begin
       Syncing.Hear
         (Self.Home.all,
-         (Kind => Widgets.Click, Tag => Self.Tag,
+         (Kind  => Widgets.Click,
+          Tag   => Self.Tag,
           Index => (if Self.Index_From_Event then Tool_Index (Self.Index, Tool) else Self.Index)));
    end Tool_Heard;
 
@@ -416,7 +473,8 @@ package body Pomarine.UI.Contexts is
       Syncing.Hear (Self.Home.all, (Kind => Widgets.Click, Tag => Self.Tag, Index => Self.Index));
    end Link_Heard;
 
-   overriding procedure Detach (Item : in out Event_Command_Binding; Within : in out View'Class) is
+   overriding
+   procedure Detach (Item : in out Event_Command_Binding; Within : in out View'Class) is
       pragma Unreferenced (Within);
    begin
       if Item.Canvased and then Item.Target /= null then
@@ -424,8 +482,11 @@ package body Pomarine.UI.Contexts is
             Hooked : Widgets.Canvases.Canvas'Class renames Widgets.Canvases.Canvas'Class (Item.Target.all);
          begin
             case Item.Line_Hook is
-               when Line_Selected => Canvas_Callbacks.Off_Select (Hooked);
-               when Line_Deleted  => Canvas_Callbacks.Off_Delete (Hooked);
+               when Line_Selected =>
+                  Canvas_Callbacks.Off_Select (Hooked);
+
+               when Line_Deleted  =>
+                  Canvas_Callbacks.Off_Delete (Hooked);
             end case;
          end;
          Item.Target := null;
@@ -435,9 +496,14 @@ package body Pomarine.UI.Contexts is
             Hooked : Widgets.Editors.Editor'Class renames Widgets.Editors.Editor'Class (Item.Target.all);
          begin
             case Item.Hook is
-               when Tool_Used     => Editor_Callbacks.Off_Tool (Hooked);
-               when Link_Followed => Editor_Callbacks.Off_Follow (Hooked);
-               when Link_Asked    => Editor_Callbacks.Off_Ask_Link (Hooked);
+               when Tool_Used     =>
+                  Editor_Callbacks.Off_Tool (Hooked);
+
+               when Link_Followed =>
+                  Editor_Callbacks.Off_Follow (Hooked);
+
+               when Link_Asked    =>
+                  Editor_Callbacks.Off_Ask_Link (Hooked);
             end case;
          end;
          Item.Target := null;
@@ -454,16 +520,18 @@ package body Pomarine.UI.Contexts is
    end Detach;
 
    type List_Binding is new Pomarine.UI.Binding with record
-      Handle    : Handle_Data;
-      Choice    : Choice_Adapter_Ref;
-      Data      : Model_Ref;
-      Seen      : VM.Watch;
-      Last      : Natural := 0;
+      Handle : Handle_Data;
+      Choice : Choice_Adapter_Ref;
+      Data   : Model_Ref;
+      Seen   : VM.Watch;
+      Last   : Natural := 0;
       --  The id of the chosen row as the model and the list last agreed.
    end record;
 
-   overriding procedure Collect (Item : in out List_Binding; Within : in out View'Class);
-   overriding procedure Refresh (Item : in out List_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Collect (Item : in out List_Binding; Within : in out View'Class);
+   overriding
+   procedure Refresh (Item : in out List_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Reveal_Binding is new Pomarine.UI.Binding with record
       Handle : Handle_Data;
@@ -473,22 +541,26 @@ package body Pomarine.UI.Contexts is
       Before : Natural := 0;
    end record;
 
-   overriding procedure Before_Command (Item : in out Reveal_Binding; Which : Command_Key);
-   overriding procedure After_Command (Item : in out Reveal_Binding; Which : Command_Key);
+   overriding
+   procedure Before_Command (Item : in out Reveal_Binding; Which : Command_Key);
+   overriding
+   procedure After_Command (Item : in out Reveal_Binding; Which : Command_Key);
 
    type Flag_Binding is new Pomarine.UI.Binding with record
-      Index  : Natural := 0;
-      Handle : Handle_Data;
-      Kind   : Control_Kind;
-      Flag   : Flag_Adapter_Ref;
-      Data   : Model_Ref;
-      Known  : Boolean := False;
+      Index        : Natural := 0;
+      Handle       : Handle_Data;
+      Kind         : Control_Kind;
+      Flag         : Flag_Adapter_Ref;
+      Data         : Model_Ref;
+      Known        : Boolean := False;
       Availability : Boolean := False;
       --  What the widget and the model last agreed on, for a flag the person can set.
    end record;
 
-   overriding procedure Collect (Item : in out Flag_Binding; Within : in out View'Class);
-   overriding procedure Refresh (Item : in out Flag_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Collect (Item : in out Flag_Binding; Within : in out View'Class);
+   overriding
+   procedure Refresh (Item : in out Flag_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Shown_Binding is new Pomarine.UI.Binding with record
       Index  : Natural := 0;
@@ -497,7 +569,8 @@ package body Pomarine.UI.Contexts is
       Data   : Model_Ref;
    end record;
 
-   overriding procedure Refresh (Item : in out Shown_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Refresh (Item : in out Shown_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Panel_Binding is new Pomarine.UI.Binding with record
       Index  : Natural := 0;
@@ -506,7 +579,8 @@ package body Pomarine.UI.Contexts is
       Data   : Model_Ref;
    end record;
 
-   overriding procedure Refresh (Item : in out Panel_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Refresh (Item : in out Panel_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Focus_Binding is new Pomarine.UI.Binding with record
       Index  : Natural := 0;
@@ -517,7 +591,8 @@ package body Pomarine.UI.Contexts is
       --  Whether the flag was true when last looked at.
    end record;
 
-   overriding procedure Refresh (Item : in out Focus_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Refresh (Item : in out Focus_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Progress_Binding is new Pomarine.UI.Binding with record
       Handle : Handle_Data;
@@ -525,17 +600,20 @@ package body Pomarine.UI.Contexts is
       Data   : Model_Ref;
    end record;
 
-   overriding procedure Refresh (Item : in out Progress_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Refresh (Item : in out Progress_Binding; Within : in out View'Class; Forced : Boolean);
 
    type Slider_Binding is new Pomarine.UI.Binding with record
       Handle : Handle_Data;
-      Value : Fraction_Adapter_Ref;
-      Data : Model_Ref;
-      Shown : Float := 0.0;
-      Ready : Boolean := False;
+      Value  : Fraction_Adapter_Ref;
+      Data   : Model_Ref;
+      Shown  : Float := 0.0;
+      Ready  : Boolean := False;
    end record;
-   overriding procedure Collect (Item : in out Slider_Binding; Within : in out View'Class);
-   overriding procedure Refresh (Item : in out Slider_Binding; Within : in out View'Class; Forced : Boolean);
+   overriding
+   procedure Collect (Item : in out Slider_Binding; Within : in out View'Class);
+   overriding
+   procedure Refresh (Item : in out Slider_Binding; Within : in out View'Class; Forced : Boolean);
    type Slider_Store is access Slider_Binding;
    for Slider_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
 
@@ -563,26 +641,30 @@ package body Pomarine.UI.Contexts is
 
    --  Labels and button captions share the same versioned text adapter.
 
-   overriding procedure Refresh (Item : in out Text_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Text_Binding; Within : in out View'Class; Forced : Boolean) is
       Changed : constant Boolean := VM.Changed (Item.Seen, Stamp (Item.Text.all, Item.Data.all, Item.Index));
-      Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Item.Kind);
+      Found   : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Item.Kind);
    begin
       if Found /= null and then (Forced or else Changed) then
          declare
             Now : constant String := Current (Item.Text.all, Item.Data.all, Item.Index);
          begin
             case Item.Kind is
-               when Label_Control =>
+               when Label_Control  =>
                   if Labels.Text (Labels.Label (Found.all)) /= Now then
                      Labels.Set_Text (Labels.Label (Found.all), Now);
                      Within.Touched := True;
                   end if;
+
                when Button_Control =>
                   if Buttons.Label (Buttons.Button (Found.all)) /= Now then
                      Buttons.Set_Label (Buttons.Button (Found.all), Now);
                      Within.Touched := True;
                   end if;
-               when others => raise Program_Error with "a text binding needs a label or button";
+
+               when others         =>
+                  raise Program_Error with "a text binding needs a label or button";
             end case;
          end;
       end if;
@@ -591,15 +673,20 @@ package body Pomarine.UI.Contexts is
    --  Check, switch, visibility, progress. These compare with the widget at every turn: they are cheap,
    --  and a click that the model did not take is undone.
 
-   function Shown_By (Found : Widgets.Widget_Access; Kind : Control_Kind) return Boolean is
-     (if Kind = Button_Control then Buttons.Is_Selected (Buttons.Button (Found.all))
-      elsif Kind = Check_Control then Checks.Is_Checked (Checks.Check (Found.all))
-      else Switches.Is_On (Switches.Switch (Found.all)));
+   function Shown_By (Found : Widgets.Widget_Access; Kind : Control_Kind) return Boolean
+   is (if Kind = Button_Control
+       then Buttons.Is_Selected (Buttons.Button (Found.all))
+       elsif Kind = Check_Control
+       then Checks.Is_Checked (Checks.Check (Found.all))
+       else Switches.Is_On (Switches.Switch (Found.all)));
 
-   overriding procedure Collect (Item : in out Flag_Binding; Within : in out View'Class) is
+   overriding
+   procedure Collect (Item : in out Flag_Binding; Within : in out View'Class) is
       Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Item.Kind);
    begin
-      if Found /= null and then Item.Kind /= Button_Control and then Item.Flag.Can_Assign
+      if Found /= null
+        and then Item.Kind /= Button_Control
+        and then Item.Flag.Can_Assign
         and then Shown_By (Found, Item.Kind) /= Item.Known
       then
          Item.Known := Shown_By (Found, Item.Kind);
@@ -608,7 +695,8 @@ package body Pomarine.UI.Contexts is
       end if;
    end Collect;
 
-   overriding procedure Refresh (Item : in out Flag_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Flag_Binding; Within : in out View'Class; Forced : Boolean) is
       pragma Unreferenced (Forced);
       Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Item.Kind);
    begin
@@ -641,11 +729,13 @@ package body Pomarine.UI.Contexts is
       end;
    end Refresh;
 
-   overriding procedure Refresh (Item : in out Shown_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Shown_Binding; Within : in out View'Class; Forced : Boolean) is
       pragma Unreferenced (Forced);
       Slot : constant Natural := Item.Handle.Slot;
    begin
-      if Item.Handle.View /= Within.Number or else Slot not in 1 .. Natural (Within.Controls.Length)
+      if Item.Handle.View /= Within.Number
+        or else Slot not in 1 .. Natural (Within.Controls.Length)
         or else Within.Controls (Slot).Kind = Free_Slot
         or else Within.Controls (Slot).Generation /= Item.Handle.Generation
       then
@@ -662,7 +752,8 @@ package body Pomarine.UI.Contexts is
       end;
    end Refresh;
 
-   overriding procedure Refresh (Item : in out Panel_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Panel_Binding; Within : in out View'Class; Forced : Boolean) is
       pragma Unreferenced (Forced);
    begin
       if Item.Screen.Node = null or else Item.Screen.Node.Made = null or else not Is_Live (Within, Item.Screen) then
@@ -679,7 +770,8 @@ package body Pomarine.UI.Contexts is
       end;
    end Refresh;
 
-   overriding procedure Refresh (Item : in out Focus_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Focus_Binding; Within : in out View'Class; Forced : Boolean) is
       pragma Unreferenced (Forced);
       Now   : constant Boolean := Current (Item.Flag.all, Item.Data.all, Item.Index);
       Found : Widgets.Widget_Access := Resolve (Within, Item.Handle, Field_Control);
@@ -704,7 +796,8 @@ package body Pomarine.UI.Contexts is
       end if;
    end Refresh;
 
-   overriding procedure Refresh (Item : in out Progress_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Progress_Binding; Within : in out View'Class; Forced : Boolean) is
       pragma Unreferenced (Forced);
       Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Progress_Control);
    begin
@@ -721,7 +814,8 @@ package body Pomarine.UI.Contexts is
       end;
    end Refresh;
 
-   overriding procedure Collect (Item : in out Slider_Binding; Within : in out View'Class) is
+   overriding
+   procedure Collect (Item : in out Slider_Binding; Within : in out View'Class) is
       Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Custom_Control);
    begin
       if Found /= null and then Item.Ready then
@@ -736,7 +830,8 @@ package body Pomarine.UI.Contexts is
       end if;
    end Collect;
 
-   overriding procedure Refresh (Item : in out Slider_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Slider_Binding; Within : in out View'Class; Forced : Boolean) is
       pragma Unreferenced (Forced);
       Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Custom_Control);
    begin
@@ -757,23 +852,22 @@ package body Pomarine.UI.Contexts is
 
    --  Field
 
-   function Is_Composing (Field : in out Text_Fields.Text_Field) return Boolean is
-     (Text_Areas.Is_Composing (Widgets.Editors.Area (Widgets.Editors.Editor (Field)).all));
+   function Is_Composing (Field : in out Text_Fields.Text_Field) return Boolean
+   is (Text_Areas.Is_Composing (Widgets.Editors.Area (Widgets.Editors.Editor (Field)).all));
 
    procedure Place_Caret
-     (Field   : in out Text_Fields.Text_Field;
-      Doc     : Docs.Document;
-      Rule    : Replacement;
-      Before  : Texts.Position)
+     (Field : in out Text_Fields.Text_Field; Doc : Docs.Document; Rule : Replacement; Before : Texts.Position)
    is
       Where : Texts.Position := Docs.Text_End (Doc);
    begin
       case Rule is
-         when Caret_At_End =>
+         when Caret_At_End   =>
             null;
+
          when Caret_At_Start =>
             Where := (Paragraph => 1, Index => 1);
-         when Caret_Kept =>
+
+         when Caret_Kept     =>
             if Docs.Is_Position (Doc, (Paragraph => 1, Index => Before.Index)) then
                Where := (Paragraph => 1, Index => Before.Index);
             end if;
@@ -781,7 +875,8 @@ package body Pomarine.UI.Contexts is
       Text_Areas.Select_Range (Widgets.Editors.Area (Widgets.Editors.Editor (Field)).all, Where, Where);
    end Place_Caret;
 
-   overriding procedure Collect (Item : in out Field_Binding; Within : in out View'Class) is
+   overriding
+   procedure Collect (Item : in out Field_Binding; Within : in out View'Class) is
       Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Field_Control);
    begin
       if Found = null or else not Item.Text.Can_Assign then
@@ -806,7 +901,8 @@ package body Pomarine.UI.Contexts is
       end;
    end Collect;
 
-   overriding procedure Refresh (Item : in out Field_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out Field_Binding; Within : in out View'Class; Forced : Boolean) is
       Changed : constant Boolean := VM.Changed (Item.Seen, Stamp (Item.Text.all, Item.Data.all, Item.Index));
       Found   : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, Field_Control);
    begin
@@ -841,11 +937,14 @@ package body Pomarine.UI.Contexts is
 
    --  Command
 
-   overriding function Can_Execute (Item : Command_Binding; Index : Natural) return Boolean is
-     (if Item.Action /= null then Index = 0 and then May_Perform (Item.Action.all, Item.Data.all)
-      else Commands.Can_Execute (Commands.Model'Class (Item.Data.all), Commands.Command'Val (Item.Which), Index));
+   overriding
+   function Can_Execute (Item : Command_Binding; Index : Natural) return Boolean
+   is (if Item.Action /= null
+       then Index = 0 and then May_Perform (Item.Action.all, Item.Data.all)
+       else Commands.Can_Execute (Commands.Model'Class (Item.Data.all), Commands.Command'Val (Item.Which), Index));
 
-   overriding procedure Execute (Item : in out Command_Binding; Index : Natural) is
+   overriding
+   procedure Execute (Item : in out Command_Binding; Index : Natural) is
    begin
       if Item.Action /= null then
          Run_Action (Item.Action.all, Item.Data.all);
@@ -854,11 +953,13 @@ package body Pomarine.UI.Contexts is
       end if;
    end Execute;
 
-   overriding function Key (Item : Command_Binding) return Command_Key is
-     ((Model => Item.Data.all'Address, Which => (if Item.Action = null then Item.Which else Natural'Last)));
+   overriding
+   function Key (Item : Command_Binding) return Command_Key
+   is ((Model => Item.Data.all'Address, Which => (if Item.Action = null then Item.Which else Natural'Last)));
    --  An action has no number: it is no command that an effect (Reveal_After) can be about.
 
-   overriding function Is_Command (Item : Command_Binding) return Boolean is
+   overriding
+   function Is_Command (Item : Command_Binding) return Boolean is
       pragma Unreferenced (Item);
    begin
       return True;
@@ -866,7 +967,8 @@ package body Pomarine.UI.Contexts is
 
    --  List
 
-   overriding procedure Collect (Item : in out List_Binding; Within : in out View'Class) is
+   overriding
+   procedure Collect (Item : in out List_Binding; Within : in out View'Class) is
       Found : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, List_Control);
    begin
       if Found = null then
@@ -884,7 +986,8 @@ package body Pomarine.UI.Contexts is
       end;
    end Collect;
 
-   overriding procedure Refresh (Item : in out List_Binding; Within : in out View'Class; Forced : Boolean) is
+   overriding
+   procedure Refresh (Item : in out List_Binding; Within : in out View'Class; Forced : Boolean) is
       Changed : constant Boolean := VM.Changed (Item.Seen, Stamp (Item.Choice.all, Item.Data.all));
       Found   : constant Widgets.Widget_Access := Resolve (Within, Item.Handle, List_Control);
    begin
@@ -904,14 +1007,16 @@ package body Pomarine.UI.Contexts is
 
    --  Effect
 
-   overriding procedure Before_Command (Item : in out Reveal_Binding; Which : Command_Key) is
+   overriding
+   procedure Before_Command (Item : in out Reveal_Binding; Which : Command_Key) is
    begin
       if Which = Item.After then
          Item.Before := Current (Item.Count.all, Item.Data.all);
       end if;
    end Before_Command;
 
-   overriding procedure After_Command (Item : in out Reveal_Binding; Which : Command_Key) is
+   overriding
+   procedure After_Command (Item : in out Reveal_Binding; Which : Command_Key) is
    begin
       if Which = Item.After then
          declare
@@ -941,16 +1046,17 @@ package body Pomarine.UI.Contexts is
 
    function Bind (Screen : in out Pomarine.UI.View; Data : not null access Model) return Context'Class is
    begin
-      return Context'(Ada.Finalization.Limited_Controlled with
-              Number => Number_Of (Screen),
-              Data   => Data.all'Unrestricted_Access,
-              Scope  => Root_Scope (Screen));
+      return
+        Context'
+          (Ada.Finalization.Limited_Controlled
+           with Number => Number_Of (Screen), Data => Data.all'Unrestricted_Access, Scope => Root_Scope (Screen));
    end Bind;
 
-   function Bind (Screen : in out Pomarine.UI.View; Data : in out Model) return Context'Class is
-     (Bind (Screen, Data'Unrestricted_Access));
+   function Bind (Screen : in out Pomarine.UI.View; Data : in out Model) return Context'Class
+   is (Bind (Screen, Data'Unrestricted_Access));
 
-   function Scope_Of (Item : Context) return Pomarine.UI.Scope_Ref is (Item.Scope);
+   function Scope_Of (Item : Context) return Pomarine.UI.Scope_Ref
+   is (Item.Scope);
 
    function View_Of (Self : Context'Class) return not null View_Ref is
       Home : constant View_Ref := Find_View (Self.Number);
@@ -988,7 +1094,7 @@ package body Pomarine.UI.Contexts is
       Action  : Action_Adapter_Ref := null)
    is
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home, Self.Scope);
-      Made : constant Command_Store := new (Where) Command_Binding;
+      Made  : constant Command_Store := new (Where) Command_Binding;
    begin
       Made.Which := Commands.Command'Pos (Command);
       Made.Action := Action;
@@ -999,11 +1105,14 @@ package body Pomarine.UI.Contexts is
    end Wire_Command;
 
    procedure Wire_Label
-     (Self : Context; Home : in out Pomarine.UI.View'Class; Handle : Pomarine.UI.Label_Handle; Text : Text_Property;
-      Index : Natural := 0)
+     (Self   : Context;
+      Home   : in out Pomarine.UI.View'Class;
+      Handle : Pomarine.UI.Label_Handle;
+      Text   : Text_Property;
+      Index  : Natural := 0)
    is
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home, Self.Scope);
-      Made : constant Text_Store := new (Where) Text_Binding;
+      Made  : constant Text_Store := new (Where) Text_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
       Made.Text := Adapter_Of (Where, Text);
@@ -1021,7 +1130,7 @@ package body Pomarine.UI.Contexts is
       Index     : Natural := 0)
    is
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home, Self.Scope);
-      Made : constant Field_Store := new (Where) Field_Binding;
+      Made  : constant Field_Store := new (Where) Field_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
       Made.Text := Adapter_Of (Where, Text);
@@ -1047,7 +1156,7 @@ package body Pomarine.UI.Contexts is
       Selection : Choice_Property)
    is
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home, Self.Scope);
-      Made : constant List_Store := new (Where) List_Binding;
+      Made  : constant List_Store := new (Where) List_Binding;
    begin
       Lists.Set_Model (Widget_Of (Home, Handle).all, Rows_Of (Adapter_Of (Where, Rows).all, Self.Data.all));
       Made.Handle := Handle_Data (Handle);
@@ -1056,8 +1165,7 @@ package body Pomarine.UI.Contexts is
       Add_Binding (Home, Self.Scope, Made.all'Unchecked_Access);
    end Wire_List;
 
-   procedure Called
-     (Home : in out Pomarine.UI.View'Class; Handle : Handle_Data; Kind : Control_Kind; Name : String) is
+   procedure Called (Home : in out Pomarine.UI.View'Class; Handle : Handle_Data; Kind : Control_Kind; Name : String) is
    begin
       if Name /= "" then
          Widgets.Set_Accessible_Name (Resolve (Home, Handle, Kind).all, Name);
@@ -1068,7 +1176,8 @@ package body Pomarine.UI.Contexts is
      (Home   : in out Pomarine.UI.View'Class;
       Handle : Pomarine.UI.Label_Handle;
       Style  : Pomarine.Line_Texts.Style;
-      Ink    : Pomarine.Themes.Slot) is
+      Ink    : Pomarine.Themes.Slot)
+   is
       use type Pomarine.Line_Texts.Style;
       use type Pomarine.Themes.Slot;
    begin
@@ -1111,11 +1220,11 @@ package body Pomarine.UI.Contexts is
    end Label;
 
    function Button
-     (Self    : Context;
-      Caption : String;
-      Command : Commands.Command;
-      Look    : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
-      Index   : Natural := 0;
+     (Self      : Context;
+      Caption   : String;
+      Command   : Commands.Command;
+      Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
+      Index     : Natural := 0;
       Focusable : Boolean := False) return Pomarine.UI.Button_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
@@ -1136,8 +1245,13 @@ package body Pomarine.UI.Contexts is
       Handle : constant Pomarine.UI.Button_Handle := New_Button (Home.all, Self.Scope, Caption, Look);
    begin
       Wire_Command
-        (Self, Home.all, Widget_Of (Home.all, Handle).all, Commands.Command'First, Index, Reflect => True,
-         Action => Adapter_Of (Arena_Of (Home.all, Self.Scope), Action));
+        (Self,
+         Home.all,
+         Widget_Of (Home.all, Handle).all,
+         Commands.Command'First,
+         Index,
+         Reflect => True,
+         Action  => Adapter_Of (Arena_Of (Home.all, Self.Scope), Action));
       return Handle;
    end Button;
 
@@ -1156,8 +1270,13 @@ package body Pomarine.UI.Contexts is
       Wire_Field (Self, Home.all, Handle, Text, Replacing, Index);
       Called (Home.all, Handle_Data (Handle), Field_Control, Name);
       Wire_Command
-        (Self, Home.all, Widget_Of (Home.all, Handle).all, Commands.Command'First, 0, Reflect => False,
-         Action => Adapter_Of (Arena_Of (Home.all, Self.Scope), Submit));
+        (Self,
+         Home.all,
+         Widget_Of (Home.all, Handle).all,
+         Commands.Command'First,
+         0,
+         Reflect => False,
+         Action  => Adapter_Of (Arena_Of (Home.all, Self.Scope), Submit));
       return Handle;
    end Text_Field;
 
@@ -1196,8 +1315,13 @@ package body Pomarine.UI.Contexts is
    end Text_Field;
 
    procedure Wire_Flag
-     (Self : Context; Home : in out Pomarine.UI.View'Class; Handle : Handle_Data; Kind : Control_Kind;
-      Flag : Flag_Property; Index : Natural := 0; Availability : Boolean := False)
+     (Self         : Context;
+      Home         : in out Pomarine.UI.View'Class;
+      Handle       : Handle_Data;
+      Kind         : Control_Kind;
+      Flag         : Flag_Property;
+      Index        : Natural := 0;
+      Availability : Boolean := False)
    is
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home, Self.Scope);
       Made  : constant Flag_Store := new (Where) Flag_Binding;
@@ -1297,9 +1421,7 @@ package body Pomarine.UI.Contexts is
       return New_Grip (Home.all, Self.Scope, Look, Unheard => True);
    end Plain_Grip;
 
-   function Plain_Button
-     (Self : Context; Look : Pomarine.Widgets.Buttons.Settings) return Pomarine.UI.Button_Handle
-   is
+   function Plain_Button (Self : Context; Look : Pomarine.Widgets.Buttons.Settings) return Pomarine.UI.Button_Handle is
       Home : constant not null View_Ref := View_Of (Self);
    begin
       return New_Button (Home.all, Self.Scope, Look, Unheard => True);
@@ -1350,8 +1472,8 @@ package body Pomarine.UI.Contexts is
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
    end Focus_When;
 
-   procedure Show_When
-     (Self : Context; Target : Pomarine.UI.Control_Ref; Shown : Flag_Property; Index : Natural := 0) is
+   procedure Show_When (Self : Context; Target : Pomarine.UI.Control_Ref; Shown : Flag_Property; Index : Natural := 0)
+   is
       Home  : constant not null View_Ref := View_Of (Self);
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
       Made  : constant Shown_Store := new (Where) Shown_Binding;
@@ -1364,8 +1486,7 @@ package body Pomarine.UI.Contexts is
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
    end Show_When;
 
-   procedure Show_When
-     (Self : Context; Target : Pomarine.UI.Layout; Shown : Flag_Property; Index : Natural := 0) is
+   procedure Show_When (Self : Context; Target : Pomarine.UI.Layout; Shown : Flag_Property; Index : Natural := 0) is
       Home  : constant not null View_Ref := View_Of (Self);
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
       Made  : constant Panel_Store := new (Where) Panel_Binding;
@@ -1379,10 +1500,8 @@ package body Pomarine.UI.Contexts is
    end Show_When;
 
    function List
-     (Self      : Context;
-      Rows      : Rows_Property;
-      Selection : Choice_Property;
-      Name      : String := "") return Pomarine.UI.List_Handle
+     (Self : Context; Rows : Rows_Property; Selection : Choice_Property; Name : String := "")
+      return Pomarine.UI.List_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.List_Handle := New_List (Home.all, Self.Scope);
@@ -1400,14 +1519,11 @@ package body Pomarine.UI.Contexts is
    end Focus_Initially;
 
    procedure Reveal_After
-     (Self    : Context;
-      Command : Commands.Command;
-      Target  : Pomarine.UI.Reveal_Target;
-      Count   : Count_Property)
+     (Self : Context; Command : Commands.Command; Target : Pomarine.UI.Reveal_Target; Count : Count_Property)
    is
-      Home : constant not null View_Ref := View_Of (Self);
+      Home  : constant not null View_Ref := View_Of (Self);
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
-      Made : constant Reveal_Store := new (Where) Reveal_Binding;
+      Made  : constant Reveal_Store := new (Where) Reveal_Binding;
    begin
       Require_Open (Home.all, Self.Scope);
       Require_Handle (Home.all, Data_Of (Target), List_Control);
@@ -1452,7 +1568,7 @@ package body Pomarine.UI.Contexts is
       Require_Handle (Home.all, Handle_Data (Target), Button_Control);
       declare
          Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
-         Made : constant Text_Store := new (Where) Text_Binding;
+         Made  : constant Text_Store := new (Where) Text_Binding;
       begin
          Made.Kind := Button_Control;
          Made.Handle := Handle_Data (Target);
@@ -1471,22 +1587,29 @@ package body Pomarine.UI.Contexts is
       Replacing : Replacement := Caret_At_End) return Pomarine.UI.Field_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
-      Handle : constant Pomarine.UI.Field_Handle :=
-        Pomarine.UI.Borrow_Field (Home.all, Self.Scope, Existing, Backing);
+      Handle : constant Pomarine.UI.Field_Handle := Pomarine.UI.Borrow_Field (Home.all, Self.Scope, Existing, Backing);
    begin
       Wire_Field (Self, Home.all, Handle, Text, Replacing);
       return Handle;
    end Borrow_Field;
 
    procedure On_Frame_Event
-     (Self : Context; Target : in out Widgets.Frames.Frame; Kind : Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0)
+     (Self    : Context;
+      Target  : in out Widgets.Frames.Frame;
+      Kind    : Widgets.Event_Kind;
+      Command : Commands.Command;
+      Index   : Natural := 0)
    is
       Home : constant not null View_Ref := View_Of (Self);
    begin
       Require_Open (Home.all, Self.Scope);
-      if Kind not in Widgets.Double_Click | Widgets.Submit | Widgets.Blur | Widgets.Minimize
-        | Widgets.Restore | Widgets.Close
+      if Kind
+         not in Widgets.Double_Click
+              | Widgets.Submit
+              | Widgets.Blur
+              | Widgets.Minimize
+              | Widgets.Restore
+              | Widgets.Close
       then
          raise Program_Error with "frame command requires a discrete event";
       end if;
@@ -1504,7 +1627,7 @@ package body Pomarine.UI.Contexts is
       end loop;
       declare
          Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
-         Made : constant Event_Command_Store := new (Where) Event_Command_Binding;
+         Made  : constant Event_Command_Store := new (Where) Event_Command_Binding;
       begin
          Made.Which := Commands.Command'Pos (Command);
          Made.Data := Self.Data;
@@ -1519,19 +1642,29 @@ package body Pomarine.UI.Contexts is
    end On_Frame_Event;
 
    procedure On_Event
-     (Self : Context; Target : Pomarine.UI.Widget_Handle; Kind : Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False) is
+     (Self             : Context;
+      Target           : Pomarine.UI.Widget_Handle;
+      Kind             : Widgets.Event_Kind;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False) is
    begin
       On_Event (Self, Pomarine.UI.Any (Target), Kind, Command, Index, Index_From_Event);
    end On_Event;
 
    function Bind_Event
-     (Self : Context; Target : Pomarine.UI.Control_Ref; Kind : Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False;
-      Hooked : Boolean := False; Hook : Editor_Hook := Tool_Used;
-      Canvased : Boolean := False; Line_Hook : Canvas_Hook := Line_Selected) return Event_Command_Store
+     (Self             : Context;
+      Target           : Pomarine.UI.Control_Ref;
+      Kind             : Widgets.Event_Kind;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False;
+      Hooked           : Boolean := False;
+      Hook             : Editor_Hook := Tool_Used;
+      Canvased         : Boolean := False;
+      Line_Hook        : Canvas_Hook := Line_Selected) return Event_Command_Store
    is
-      Home : constant not null View_Ref := View_Of (Self);
+      Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Handle_Data := Data_Of (Target);
    begin
       Require_Open (Home.all, Self.Scope);
@@ -1553,9 +1686,14 @@ package body Pomarine.UI.Contexts is
                   Other : Event_Command_Binding renames Event_Command_Binding (Binding.all);
                   use type Widgets.Event_Kind;
                begin
-                  if Other.Target = Found and then Other.Hooked = Hooked and then Other.Canvased = Canvased
-                    and then (if Canvased then Other.Line_Hook = Line_Hook
-                              elsif Hooked then Other.Hook = Hook else Other.Kind = Kind)
+                  if Other.Target = Found
+                    and then Other.Hooked = Hooked
+                    and then Other.Canvased = Canvased
+                    and then (if Canvased
+                              then Other.Line_Hook = Line_Hook
+                              elsif Hooked
+                              then Other.Hook = Hook
+                              else Other.Kind = Kind)
                   then
                      raise Program_Error with "widget event already bound";
                   end if;
@@ -1564,7 +1702,7 @@ package body Pomarine.UI.Contexts is
          end loop;
          declare
             Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
-            Made : constant Event_Command_Store := new (Where) Event_Command_Binding;
+            Made  : constant Event_Command_Store := new (Where) Event_Command_Binding;
          begin
             Made.Which := Commands.Command'Pos (Command);
             Made.Data := Self.Data;
@@ -1588,8 +1726,12 @@ package body Pomarine.UI.Contexts is
    end Bind_Event;
 
    procedure On_Event
-     (Self : Context; Target : Pomarine.UI.Control_Ref; Kind : Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+     (Self             : Context;
+      Target           : Pomarine.UI.Control_Ref;
+      Kind             : Widgets.Event_Kind;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False)
    is
       Made : constant Event_Command_Store := Bind_Event (Self, Target, Kind, Command, Index, Index_From_Event);
       pragma Unreferenced (Made);
@@ -1598,8 +1740,12 @@ package body Pomarine.UI.Contexts is
    end On_Event;
 
    procedure On_Editor_Event
-     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Editor_Hook;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+     (Self             : Context;
+      Target           : Pomarine.UI.Widget_Handle;
+      Hook             : Editor_Hook;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False)
    is
       Home : constant not null View_Ref := View_Of (Self);
    begin
@@ -1607,22 +1753,38 @@ package body Pomarine.UI.Contexts is
          raise Program_Error with "editor hooks require an editor";
       end if;
       declare
-         Made : constant Event_Command_Store :=
-           Bind_Event (Self, Pomarine.UI.Any (Target), Widgets.Click, Command, Index, Index_From_Event,
-                       Hooked => True, Hook => Hook);
+         Made   : constant Event_Command_Store :=
+           Bind_Event
+             (Self,
+              Pomarine.UI.Any (Target),
+              Widgets.Click,
+              Command,
+              Index,
+              Index_From_Event,
+              Hooked => True,
+              Hook   => Hook);
          Editor : Widgets.Editors.Editor'Class renames Widgets.Editors.Editor'Class (Made.Target.all);
       begin
          case Hook is
-            when Tool_Used     => Editor_Callbacks.On_Tool (Editor, Made, Tool_Heard'Access);
-            when Link_Followed => Editor_Callbacks.On_Follow (Editor, Made, Link_Heard'Access);
-            when Link_Asked    => Editor_Callbacks.On_Ask_Link (Editor, Made, Link_Heard'Access);
+            when Tool_Used     =>
+               Editor_Callbacks.On_Tool (Editor, Made, Tool_Heard'Access);
+
+            when Link_Followed =>
+               Editor_Callbacks.On_Follow (Editor, Made, Link_Heard'Access);
+
+            when Link_Asked    =>
+               Editor_Callbacks.On_Ask_Link (Editor, Made, Link_Heard'Access);
          end case;
       end;
    end On_Editor_Event;
 
    procedure On_Canvas_Event
-     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Canvas_Hook;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
+     (Self             : Context;
+      Target           : Pomarine.UI.Widget_Handle;
+      Hook             : Canvas_Hook;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False)
    is
       Home : constant not null View_Ref := View_Of (Self);
    begin
@@ -1630,14 +1792,24 @@ package body Pomarine.UI.Contexts is
          raise Program_Error with "canvas hooks require a canvas";
       end if;
       declare
-         Made : constant Event_Command_Store :=
-           Bind_Event (Self, Pomarine.UI.Any (Target), Widgets.Click, Command, Index, Index_From_Event,
-                       Canvased => True, Line_Hook => Hook);
+         Made   : constant Event_Command_Store :=
+           Bind_Event
+             (Self,
+              Pomarine.UI.Any (Target),
+              Widgets.Click,
+              Command,
+              Index,
+              Index_From_Event,
+              Canvased  => True,
+              Line_Hook => Hook);
          Canvas : Widgets.Canvases.Canvas'Class renames Widgets.Canvases.Canvas'Class (Made.Target.all);
       begin
          case Hook is
-            when Line_Selected => Canvas_Callbacks.On_Select (Canvas, Made, Line_Selected_Heard'Access);
-            when Line_Deleted  => Canvas_Callbacks.On_Delete (Canvas, Made, Line_Deleted_Heard'Access);
+            when Line_Selected =>
+               Canvas_Callbacks.On_Select (Canvas, Made, Line_Selected_Heard'Access);
+
+            when Line_Deleted  =>
+               Canvas_Callbacks.On_Delete (Canvas, Made, Line_Deleted_Heard'Access);
          end case;
       end;
    end On_Canvas_Event;
@@ -1650,8 +1822,7 @@ package body Pomarine.UI.Contexts is
       end if;
       --  Validate the scope and duplicate event through the normal discrete binding path.
       declare
-         Made : constant Event_Command_Store :=
-           Bind_Event (Self, Pomarine.UI.Any (Target), Widgets.Act, Actions (1));
+         Made  : constant Event_Command_Store := Bind_Event (Self, Pomarine.UI.Any (Target), Widgets.Act, Actions (1));
          Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
       begin
          Made.Row_Actions := True;
@@ -1673,10 +1844,10 @@ package body Pomarine.UI.Contexts is
      (Self : Context; Existing : in out Widgets.Sliders.Slider; Value : Fraction_Property)
       return Pomarine.UI.Widget_Handle
    is
-      Home : constant not null View_Ref := View_Of (Self);
+      Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Widget_Handle := Pomarine.UI.Borrow_Widget (Home.all, Self.Scope, Existing);
-      Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
-      Made : constant Slider_Store := new (Where) Slider_Binding;
+      Where  : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
+      Made   : constant Slider_Store := new (Where) Slider_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
       Made.Value := Adapter_Of (Where, Value);
@@ -1697,10 +1868,8 @@ package body Pomarine.UI.Contexts is
    end Borrow_Widget;
 
    function Borrow_List
-     (Self      : Context;
-      Existing  : in out Lists.List;
-      Rows      : Rows_Property;
-      Selection : Choice_Property) return Pomarine.UI.List_Handle
+     (Self : Context; Existing : in out Lists.List; Rows : Rows_Property; Selection : Choice_Property)
+      return Pomarine.UI.List_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.List_Handle := Pomarine.UI.Borrow_List (Home.all, Self.Scope, Existing);
@@ -1831,8 +2000,7 @@ package body Pomarine.UI.Contexts is
       Margin          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Align           : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
    is
-      Made : constant Pomarine.UI.Field_Handle :=
-        Text_Field (Self, Text, Submit, Placeholder, Name, Replacing, Index);
+      Made : constant Pomarine.UI.Field_Handle := Text_Field (Self, Text, Submit, Placeholder, Name, Replacing, Index);
    begin
       if Focus_Initially then
          Contexts.Focus_Initially (Self, Pomarine.UI.Focus_Of (Made));
@@ -2038,11 +2206,9 @@ package body Pomarine.UI.Contexts is
       Gap      : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Padding  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
-      Spread   : Pomarine.UI.Spread_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
-   is
+      Spread   : Pomarine.UI.Spread_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout is
    begin
-      return Pomarine.UI.Hold
-        (Borrow_Widget (Self, Existing), Items, Flow, Gap, Padding, Align, Spread);
+      return Pomarine.UI.Hold (Borrow_Widget (Self, Existing), Items, Flow, Gap, Padding, Align, Spread);
    end Borrow_Holding;
 
    function Borrow_Label
@@ -2152,7 +2318,8 @@ package body Pomarine.UI.Contexts is
 
    --  Components
 
-   overriding procedure Initialize (Item : in out Component) is
+   overriding
+   procedure Initialize (Item : in out Component) is
       Home : constant not null View_Ref := View_Of (Item.Parent.all);
    begin
       Item.Number := Item.Parent.Number;
@@ -2160,7 +2327,8 @@ package body Pomarine.UI.Contexts is
       Item.Scope := Open_Scope (Home.all, Item.Parent.Scope);
    end Initialize;
 
-   overriding procedure Finalize (Item : in out Component) is
+   overriding
+   procedure Finalize (Item : in out Component) is
       Home : constant View_Ref := Find_View (Item.Number);
    begin
       if not Item.Committed and then Home /= null then

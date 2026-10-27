@@ -30,14 +30,18 @@ package body Pomarine.UI.Arenas is
       begin
          Live := Live - 1;
       end Gone;
-      function Value return Natural is (Live);
+      function Value return Natural
+      is (Live);
    end Count;
 
-   function Live_Arenas return Natural is (Count.Value);
+   function Live_Arenas return Natural
+   is (Count.Value);
 
-   function Home_Of (Item : not null Handle) return access Arena is (Arena (Item.all)'Unrestricted_Access);
+   function Home_Of (Item : not null Handle) return access Arena
+   is (Arena (Item.all)'Unrestricted_Access);
 
-   overriding function Create_Subpool (Self : in out Pool_Type) return not null Handle is
+   overriding
+   function Create_Subpool (Self : in out Pool_Type) return not null Handle is
       Made : constant Arena_Access := new Arena;
    begin
       Subpools.Set_Pool_Of_Subpool (Subpools.Subpool_Handle (Made), Self);
@@ -45,17 +49,19 @@ package body Pomarine.UI.Arenas is
       return Subpools.Subpool_Handle (Made);
    end Create_Subpool;
 
-   overriding function Default_Subpool_For_Pool (Self : in out Pool_Type) return not null Handle is
+   overriding
+   function Default_Subpool_For_Pool (Self : in out Pool_Type) return not null Handle is
    begin
       raise Program_Error with "an object of a view is allocated in an arena: new (Arena) ...";
       return Self.Default_Subpool_For_Pool;
    end Default_Subpool_For_Pool;
 
-   function Aligned (Where : System.Address; Alignment : Storage_Count) return Storage_Count is
-     ((Alignment - Storage_Count (To_Integer (Where) mod Integer_Address (Alignment))) mod Alignment);
+   function Aligned (Where : System.Address; Alignment : Storage_Count) return Storage_Count
+   is ((Alignment - Storage_Count (To_Integer (Where) mod Integer_Address (Alignment))) mod Alignment);
    --  How far on from Where an address with that alignment is.
 
-   overriding procedure Allocate_From_Subpool
+   overriding
+   procedure Allocate_From_Subpool
      (Self                     : in out Pool_Type;
       Storage_Address          : out System.Address;
       Size_In_Storage_Elements : System.Storage_Elements.Storage_Count;
@@ -69,8 +75,8 @@ package body Pomarine.UI.Arenas is
       --  The next byte has no array index when the block is exactly full.
       if Home.Blocks /= null and then Home.Blocks.Used < Home.Blocks.Data'Length then
          declare
-            Top   : Block renames Home.Blocks.all;
-            Skip  : constant Storage_Count := Aligned (Top.Data (Top.Data'First + Top.Used)'Address, Align);
+            Top  : Block renames Home.Blocks.all;
+            Skip : constant Storage_Count := Aligned (Top.Data (Top.Data'First + Top.Used)'Address, Align);
          begin
             if Top.Used + Skip + Size_In_Storage_Elements <= Top.Data'Length then
                Storage_Address := Top.Data (Top.Data'First + Top.Used + Skip)'Address;
@@ -99,7 +105,8 @@ package body Pomarine.UI.Arenas is
       end;
    end Allocate_From_Subpool;
 
-   overriding procedure Deallocate_Subpool (Self : in out Pool_Type; Subpool : in out Handle) is
+   overriding
+   procedure Deallocate_Subpool (Self : in out Pool_Type; Subpool : in out Handle) is
       pragma Unreferenced (Self);
       Home : constant not null access Arena := Home_Of (Subpool);
       Next : Block_Access;
@@ -131,8 +138,10 @@ package body Pomarine.UI.Arenas is
       end if;
    end Destroy;
 
-   function Bytes_Held (Item : not null Handle) return Natural is (Home_Of (Item).Held);
+   function Bytes_Held (Item : not null Handle) return Natural
+   is (Home_Of (Item).Held);
 
-   function Block_Count (Item : not null Handle) return Natural is (Home_Of (Item).Count);
+   function Block_Count (Item : not null Handle) return Natural
+   is (Home_Of (Item).Count);
 
 end Pomarine.UI.Arenas;

@@ -5,9 +5,7 @@ package body Pomarine.Models is
    begin
       --  Not in the middle of a UTF-8 character.
       if Last < Text'Length then
-         while Last > 0
-           and then Character'Pos (Text (Text'First + Last)) in 16#80# .. 16#BF#
-         loop
+         while Last > 0 and then Character'Pos (Text (Text'First + Last)) in 16#80# .. 16#BF# loop
             Last := Last - 1;
          end loop;
       end if;
@@ -47,14 +45,14 @@ package body Pomarine.Models is
       return Found;
    end Count_Actions;
 
-   function Action_Name (Item : Row_Content; Number : Positive) return String is
-     (Item.Actions (Number).Name (1 .. Item.Actions (Number).Name_Length));
+   function Action_Name (Item : Row_Content; Number : Positive) return String
+   is (Item.Actions (Number).Name (1 .. Item.Actions (Number).Name_Length));
 
-   function Text_Of (Item : Row_Content) return String is
-     (Item.Text (1 .. Item.Text_Length));
+   function Text_Of (Item : Row_Content) return String
+   is (Item.Text (1 .. Item.Text_Length));
 
-   function Detail_Of (Item : Row_Content) return String is
-     (Item.Detail (1 .. Item.Detail_Length));
+   function Detail_Of (Item : Row_Content) return String
+   is (Item.Detail (1 .. Item.Detail_Length));
 
    procedure Clear (Item : in out Text_List) is
    begin
@@ -91,15 +89,20 @@ package body Pomarine.Models is
       Item.Changed := Item.Changed + 1;
    end Delete;
 
-   overriding function Count (Self : Text_List) return Natural is (Self.Used);
+   overriding
+   function Count (Self : Text_List) return Natural
+   is (Self.Used);
 
-   overriding function Version (Self : Text_List) return Natural is (Self.Changed);
+   overriding
+   function Version (Self : Text_List) return Natural
+   is (Self.Changed);
 
-   overriding function Row_Id (Self : Text_List; Row : Positive) return Positive is
-     (Self.Ids (Row));
+   overriding
+   function Row_Id (Self : Text_List; Row : Positive) return Positive
+   is (Self.Ids (Row));
 
-   overriding procedure Describe_Row
-     (Self : Text_List; Row : Positive; Content : out Row_Content) is
+   overriding
+   procedure Describe_Row (Self : Text_List; Row : Positive; Content : out Row_Content) is
    begin
       Content := Self.Rows (Row);
    end Describe_Row;

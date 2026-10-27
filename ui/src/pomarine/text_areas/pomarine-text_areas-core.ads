@@ -1,4 +1,5 @@
 with Texts.Documents;
+
 private package Pomarine.Text_Areas.Core is
 
    procedure Restart_Blink (Item : in out Text_Area);
@@ -8,8 +9,7 @@ private package Pomarine.Text_Areas.Core is
    --  Bring the caret, the selection and what is shown along with the
    --  document's changes since they were last seen, and lay it out.
 
-   function Line_Of
-     (Item : in out Text_Area; At_Point : Position) return Positive;
+   function Line_Of (Item : in out Text_Area; At_Point : Position) return Positive;
    --  The line At_Point is on, of its paragraph, laid out.
 
    function Updated (Item : Text_Area; At_Point : Position) return Position;
@@ -29,9 +29,7 @@ private package Pomarine.Text_Areas.Core is
    --  The caret or the text changed: show the caret, and bring it into
    --  view.
 
-   procedure Measure_Caret
-     (Item : in out Text_Area;
-      X, Y, Width, Height : out Float);
+   procedure Measure_Caret (Item : in out Text_Area; X, Y, Width, Height : out Float);
    --  Where the caret is drawn, in pixels.
 
    procedure Change
@@ -40,18 +38,12 @@ private package Pomarine.Text_Areas.Core is
       By       : String;
       Undo_As  : Texts.Documents.Edit_Kind := Texts.Documents.Other;
       Recorded : Boolean := True)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To)
-                 and then not (To < From);
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    --  Replace the text from From to To with By, and put the caret after
    --  it, with nothing selected.
 
-   procedure Edit
-     (Item     : in out Text_Area;
-      From, To : Position;
-      By       : String;
-      Undo_As  : Texts.Documents.Edit_Kind)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To)
-                 and then not (To < From);
+   procedure Edit (Item : in out Text_Area; From, To : Position; By : String; Undo_As : Texts.Documents.Edit_Kind)
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    --  Replace the text from From to To with By, to undo, with the caret
    --  after it, and bring it into view.
 

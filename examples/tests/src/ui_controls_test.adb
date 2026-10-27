@@ -24,6 +24,7 @@ with Options_VM;
 
 --  Check, switch, progress bar, shown-when, a styled container, a scroller and a borrowed widget of any kind,
 --  all through a view.
+
 procedure UI_Controls_Test is
    package UI renames Pomarine.UI;
    package Testing renames Pomarine.Testing;
@@ -42,9 +43,7 @@ procedure UI_Controls_Test is
       Layout      : UI.Layout;
    end record;
 
-   function Build
-     (Bound : Options.Context'Class; Borrowed : in out Widgets.Labels.Label) return Parts
-   is
+   function Build (Bound : Options.Context'Class; Borrowed : in out Widgets.Labels.Label) return Parts is
       Result : Parts;
    begin
       Result.Light := Bound.Check ("Light", Options_UI.Light, Pick_Light, Form => Checks.Radio);
@@ -59,42 +58,49 @@ procedure UI_Controls_Test is
       Bound.Show_When (UI.Any (Result.Start), Options_UI.Idle);
       Result.Layout :=
         UI.Column
-          ([UI.Column ([UI.Place (Result.Light), UI.Place (Result.Dark)], Gap => 8.0,
-                    Appearance => (Fill => Pomarine.Themes.Page, Border => Pomarine.Themes.Border, others => <>)),
+          ([UI.Column
+              ([UI.Place (Result.Light), UI.Place (Result.Dark)],
+               Gap        => 8.0,
+               Appearance => (Fill => Pomarine.Themes.Page, Border => Pomarine.Themes.Border, others => <>)),
             UI.Place (Result.Sync),
             UI.Scroll
               (UI.Column
-                 ([UI.Place (Result.Start), UI.Place (Result.Stop), UI.Place (Result.Bar, Width => 200.0),
+                 ([UI.Place (Result.Start),
+                   UI.Place (Result.Stop),
+                   UI.Place (Result.Bar, Width => 200.0),
                    UI.Place (Result.Extra)]),
                Height => 120.0)],
-           Padding => 8.0, Gap => 6.0);
+           Padding => 8.0,
+           Gap     => 6.0);
       return Result;
    end Build;
 
    procedure Typed_Event_Bindings_Check_Identity is
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
-      Screen : UI.View (Tree'Access);
-      Other : UI.View (Tree'Access);
-      Bound : aliased Options.Context'Class := Options.Bind (Screen, Model'Access);
-      Foreign : constant Options.Context'Class := Options.Bind (Other, Model'Access);
-      Label : constant UI.Label_Handle := Bound.Label ("Choose dark");
+      Tree      : aliased Widgets.Tree;
+      Model     : aliased Options_VM.Model;
+      Screen    : UI.View (Tree'Access);
+      Other     : UI.View (Tree'Access);
+      Bound     : aliased Options.Context'Class := Options.Bind (Screen, Model'Access);
+      Foreign   : constant Options.Context'Class := Options.Bind (Other, Model'Access);
+      Label     : constant UI.Label_Handle := Bound.Label ("Choose dark");
       Elsewhere : constant UI.Label_Handle := Foreign.Label ("Other view");
-      Stale : UI.Label_Handle;
-      Rejected : Boolean := False;
+      Stale     : UI.Label_Handle;
+      Rejected  : Boolean := False;
    begin
       Bound.On_Event (UI.Any (Label), Widgets.Double_Click, Pick_Dark);
       begin
          Bound.On_Event (UI.Any (Label), Widgets.Double_Click, Pick_Light);
       exception
-         when Program_Error => Rejected := True;
+         when Program_Error =>
+            Rejected := True;
       end;
       pragma Assert (Rejected);
       Rejected := False;
       begin
          Bound.On_Event (UI.Any (Elsewhere), Widgets.Double_Click, Pick_Dark);
       exception
-         when UI.Foreign_Handle => Rejected := True;
+         when UI.Foreign_Handle =>
+            Rejected := True;
       end;
       pragma Assert (Rejected);
       declare
@@ -106,7 +112,8 @@ procedure UI_Controls_Test is
       begin
          Bound.On_Event (UI.Any (Stale), Widgets.Double_Click, Pick_Dark);
       exception
-         when UI.Stale_Handle => Rejected := True;
+         when UI.Stale_Handle =>
+            Rejected := True;
       end;
       pragma Assert (Rejected);
       UI.Mount (Screen, UI.Place (Label));
@@ -117,30 +124,31 @@ procedure UI_Controls_Test is
 
    procedure List_Events_Route_Rows_And_Actions is
       use type Pomarine.View_Models.Version_Number;
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
-      Rows : aliased Pomarine.Models.Text_List (2);
-      List : Widgets.Lists.List;
-      Root : Widgets.Panels.Panel;
-      Window : Testing.Session;
-      Seen : Pomarine.View_Models.Version_Number;
+      Tree     : aliased Widgets.Tree;
+      Model    : aliased Options_VM.Model;
+      Rows     : aliased Pomarine.Models.Text_List (2);
+      List     : Widgets.Lists.List;
+      Root     : Widgets.Panels.Panel;
+      Window   : Testing.Session;
+      Seen     : Pomarine.View_Models.Version_Number;
       Rejected : Boolean := False;
-      Ignored : constant array (1 .. 4) of Natural := [0, 2, 3, 100];
+      Ignored  : constant array (1 .. 4) of Natural := [0, 2, 3, 100];
    begin
       Pomarine.Models.Append (Rows, "First");
       Pomarine.Models.Append (Rows, "Second");
       Widgets.Lists.Set_Model (List, Rows'Unchecked_Access);
       Options_VM.Set_Cards (Model, 2);
       declare
-         Screen : UI.View (Tree'Access);
-         Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+         Screen  : UI.View (Tree'Access);
+         Bound   : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
          Choices : constant UI.Widget_Handle := Bound.Borrow_Widget (List);
-         Wrong : constant UI.Widget_Handle := Bound.Borrow_Widget (Root);
+         Wrong   : constant UI.Widget_Handle := Bound.Borrow_Widget (Root);
       begin
          begin
             Bound.On_List_Actions (Wrong, [Open_Card]);
          exception
-            when Program_Error => Rejected := True;
+            when Program_Error =>
+               Rejected := True;
          end;
          pragma Assert (Rejected);
          Bound.On_Event (Choices, Widgets.Click, Open_Card, Index_From_Event => True);
@@ -150,7 +158,8 @@ procedure UI_Controls_Test is
          begin
             Bound.On_List_Actions (Choices, [Open_Card]);
          exception
-            when Program_Error => Rejected := True;
+            when Program_Error =>
+               Rejected := True;
          end;
          pragma Assert (Rejected);
          UI.Mount (Screen, UI.Place (Choices, Width => 200.0, Height => 100.0));
@@ -191,12 +200,12 @@ procedure UI_Controls_Test is
    end List_Events_Route_Rows_And_Actions;
 
    procedure Editor_Hooks_Route_Tools_And_Links is
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
-      Notes : Widgets.Editors.Editor;
-      Doc : aliased Texts.Documents.Document;
-      Root : Widgets.Panels.Panel;
-      Window : Testing.Session;
+      Tree     : aliased Widgets.Tree;
+      Model    : aliased Options_VM.Model;
+      Notes    : Widgets.Editors.Editor;
+      Doc      : aliased Texts.Documents.Document;
+      Root     : Widgets.Panels.Panel;
+      Window   : Testing.Session;
       Rejected : Boolean := False;
    begin
       Options_VM.Set_Cards (Model, 3);
@@ -210,14 +219,15 @@ procedure UI_Controls_Test is
       Widgets.Editors.Add_Tool (Notes, "Cite", 'p');
       declare
          Screen : UI.View (Tree'Access);
-         Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+         Bound  : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
          Editor : constant UI.Widget_Handle := Bound.Borrow_Widget (Notes);
-         Wrong : constant UI.Widget_Handle := Bound.Borrow_Widget (Root);
+         Wrong  : constant UI.Widget_Handle := Bound.Borrow_Widget (Root);
       begin
          begin
             Bound.On_Editor_Event (Wrong, Options.Tool_Used, Open_Card, Index_From_Event => True);
          exception
-            when Program_Error => Rejected := True;
+            when Program_Error =>
+               Rejected := True;
          end;
          pragma Assert (Rejected);
          Bound.On_Editor_Event (Editor, Options.Tool_Used, Open_Card, Index_From_Event => True);
@@ -227,7 +237,8 @@ procedure UI_Controls_Test is
          begin
             Bound.On_Editor_Event (Editor, Options.Tool_Used, Pick_Dark);
          exception
-            when Program_Error => Rejected := True;
+            when Program_Error =>
+               Rejected := True;
          end;
          pragma Assert (Rejected);
          UI.Mount (Screen, UI.Place (Editor, Width => 200.0, Height => 100.0));
@@ -243,29 +254,31 @@ procedure UI_Controls_Test is
    end Editor_Hooks_Route_Tools_And_Links;
 
    procedure Canvas_Hooks_Are_Bound_Once_To_A_Canvas is
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
-      Board : Widgets.Canvases.Canvas;
-      Root : Widgets.Panels.Panel;
+      Tree         : aliased Widgets.Tree;
+      Model        : aliased Options_VM.Model;
+      Board        : Widgets.Canvases.Canvas;
+      Root         : Widgets.Panels.Panel;
       Wrong, Twice : Boolean := False;
    begin
       declare
          Screen : UI.View (Tree'Access);
-         Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+         Bound  : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
          Canvas : constant UI.Widget_Handle := Bound.Borrow_Widget (Board);
-         Panel : constant UI.Widget_Handle := Bound.Borrow_Widget (Root);
+         Panel  : constant UI.Widget_Handle := Bound.Borrow_Widget (Root);
       begin
          begin
             Bound.On_Canvas_Event (Panel, Options.Line_Selected, Open_Card, Index_From_Event => True);
          exception
-            when Program_Error => Wrong := True;
+            when Program_Error =>
+               Wrong := True;
          end;
          Bound.On_Canvas_Event (Canvas, Options.Line_Selected, Open_Card, Index_From_Event => True);
          Bound.On_Canvas_Event (Canvas, Options.Line_Deleted, Pick_Dark);
          begin
             Bound.On_Canvas_Event (Canvas, Options.Line_Deleted, Pick_Light);
          exception
-            when Program_Error => Twice := True;
+            when Program_Error =>
+               Twice := True;
          end;
          UI.Mount (Screen, UI.Place (Canvas, Width => 100.0, Height => 100.0));
       end;
@@ -274,11 +287,11 @@ procedure UI_Controls_Test is
 
    procedure Sliders_And_Menu_Events_Follow_The_Model is
       use type Pomarine.View_Models.Version_Number;
-      Tree : aliased Widgets.Tree;
-      Root : Widgets.Panels.Panel;
-      Model : aliased Options_VM.Model;
+      Tree   : aliased Widgets.Tree;
+      Root   : Widgets.Panels.Panel;
+      Model  : aliased Options_VM.Model;
       Slider : Widgets.Sliders.Slider;
-      Menu : Widgets.Menus.Menu;
+      Menu   : Widgets.Menus.Menu;
       Window : Testing.Session;
       Before : Pomarine.View_Models.Version_Number;
    begin
@@ -287,27 +300,29 @@ procedure UI_Controls_Test is
       Widgets.Set_Accessible_Name (Slider, "Amount");
       Widgets.Sliders.Set_Focusable (Slider, True);
       UI.Menus.Set_Content
-        (Menu, [UI.Menus.Row (Widgets.Menus.Action, "First card"),
-                UI.Menus.Row (Widgets.Menus.Action, "Second card")]);
+        (Menu, [UI.Menus.Row (Widgets.Menus.Action, "First card"), UI.Menus.Row (Widgets.Menus.Action, "Second card")]);
       Widgets.Set_Tag (Menu, 9876, 99);
       --  Tag 1 belongs to the menu command below. Slider edits must never dispatch it.
       Widgets.Set_Tag (Slider, 1, 2);
       declare
-         Screen : UI.View (Tree'Access);
-         Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
-         Knob : constant UI.Widget_Handle := Bound.Borrow_Slider (Slider, Options_UI.Editable_Fraction);
-         Choices : constant UI.Widget_Handle := Bound.Borrow_Widget (Menu);
+         Screen   : UI.View (Tree'Access);
+         Bound    : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+         Knob     : constant UI.Widget_Handle := Bound.Borrow_Slider (Slider, Options_UI.Editable_Fraction);
+         Choices  : constant UI.Widget_Handle := Bound.Borrow_Widget (Menu);
          Rejected : Boolean := False;
       begin
          Bound.On_Event (Choices, Widgets.Choose, Open_Card, Index_From_Event => True);
          begin
             Bound.On_Event (Choices, Widgets.Choose, Open_Card, Index_From_Event => True);
          exception
-            when Program_Error => Rejected := True;
+            when Program_Error =>
+               Rejected := True;
          end;
          pragma Assert (Rejected);
-         UI.Mount (Screen, UI.Column ([UI.Place (Knob, Width => 200.0, Height => 30.0),
-                                      UI.Place (Choices, Width => 220.0, Height => 80.0)]));
+         UI.Mount
+           (Screen,
+            UI.Column
+              ([UI.Place (Knob, Width => 200.0, Height => 30.0), UI.Place (Choices, Width => 220.0, Height => 80.0)]));
          pragma Assert (Widgets.Sliders.Value (Slider) = 0.25);
          Before := Options_VM.Version (Model);
          UI.Synchronize (Screen);
@@ -318,8 +333,7 @@ procedure UI_Controls_Test is
          pragma Assert (Options_VM.Fraction (Model) = Widgets.Sliders.Value (Slider));
          pragma Assert (Options_VM.Fraction (Model) > 0.25 and then Options_VM.Opened (Model) = 0);
          Testing.Feed
-           (Window, (Kind => Pomarine.Events.Mouse_Down, Button => 1, Mouse_X => 50.0, Mouse_Y => 15.0,
-                     others => <>));
+           (Window, (Kind => Pomarine.Events.Mouse_Down, Button => 1, Mouse_X => 50.0, Mouse_Y => 15.0, others => <>));
          Testing.Settle (Window);
          pragma Assert (Widgets.Sliders.Is_Dragging (Slider));
          declare
@@ -330,8 +344,7 @@ procedure UI_Controls_Test is
             pragma Assert (Widgets.Sliders.Value (Slider) = Held and then Options_VM.Fraction (Model) = 0.9);
          end;
          Testing.Feed
-           (Window, (Kind => Pomarine.Events.Mouse_Up, Button => 1, Mouse_X => 50.0, Mouse_Y => 15.0,
-                     others => <>));
+           (Window, (Kind => Pomarine.Events.Mouse_Up, Button => 1, Mouse_X => 50.0, Mouse_Y => 15.0, others => <>));
          Testing.Settle (Window);
          pragma Assert (not Widgets.Sliders.Is_Dragging (Slider) and then Widgets.Sliders.Value (Slider) = 0.9);
          Options_VM.Advance (Model, 0.75);
@@ -361,13 +374,13 @@ procedure UI_Controls_Test is
    end Sliders_And_Menu_Events_Follow_The_Model;
 
    procedure Borrowed_Buttons_Follow_Flags is
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
+      Tree     : aliased Widgets.Tree;
+      Model    : aliased Options_VM.Model;
       Borrowed : Widgets.Buttons.Button;
-      Screen : UI.View (Tree'Access);
-      Window : Testing.Session;
-      Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
-      Button : constant UI.Button_Handle := Bound.Borrow_Button (Borrowed, Pick_Dark, Reflect => False);
+      Screen   : UI.View (Tree'Access);
+      Window   : Testing.Session;
+      Bound    : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+      Button   : constant UI.Button_Handle := Bound.Borrow_Button (Borrowed, Pick_Dark, Reflect => False);
    begin
       Widgets.Buttons.Configure (Borrowed, Widgets.Buttons.Looks ("Choose dark"));
       Bound.Selected_When (Button, Options_UI.Dark);
@@ -387,13 +400,13 @@ procedure UI_Controls_Test is
    end Borrowed_Buttons_Follow_Flags;
 
    procedure Borrowed_Placed_Forms_Wire_And_Place is
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
+      Tree     : aliased Widgets.Tree;
+      Model    : aliased Options_VM.Model;
       Borrowed : Widgets.Buttons.Button;
-      Card : Widgets.Grips.Grip;
-      Screen : UI.View (Tree'Access);
-      Window : Testing.Session;
-      Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+      Card     : Widgets.Grips.Grip;
+      Screen   : UI.View (Tree'Access);
+      Window   : Testing.Session;
+      Bound    : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
    begin
       Widgets.Buttons.Configure (Borrowed, Widgets.Buttons.Looks ("Choose dark"));
       UI.Mount
@@ -401,8 +414,8 @@ procedure UI_Controls_Test is
          UI.Column
            ([Bound.Borrow_Button (Borrowed, Pick_Dark, Reflect => False, Tooltip => "Dark", Height => 40.0),
              UI.Styled
-              (Bound.Borrow_Holding (Card, [Bound.Label ("Choose light")], Click => Pick_Light),
-               (Height => 40.0, others => <>))]));
+               (Bound.Borrow_Holding (Card, [Bound.Label ("Choose light")], Click => Pick_Light),
+                (Height => 40.0, others => <>))]));
       Testing.Open (Window, Tree, 320, 200);
       pragma Assert (not Options_VM.Dark (Model));
       Testing.Click_On (Window, "Choose dark");
@@ -412,23 +425,23 @@ procedure UI_Controls_Test is
    end Borrowed_Placed_Forms_Wire_And_Place;
 
    procedure Button_Captions_Follow_Text is
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
+      Tree     : aliased Widgets.Tree;
+      Model    : aliased Options_VM.Model;
       Borrowed : Widgets.Buttons.Button;
    begin
       declare
-         Screen : UI.View (Tree'Access);
-         Other : UI.View (Tree'Access);
-         Bound : aliased Options.Context'Class := Options.Bind (Screen, Model'Access);
-         Foreign : constant Options.Context'Class := Options.Bind (Other, Model'Access);
-         Window : Testing.Session;
-         Kept : constant UI.Button_Handle := Bound.Borrow_Button (Borrowed, Pick_Dark);
-         Owned : constant UI.Button_Handle := Bound.Button ("Old caption", Pick_Light);
-         Indexed : constant UI.Button_Handle := Bound.Button ("Old indexed caption", Toggle_Sync);
+         Screen    : UI.View (Tree'Access);
+         Other     : UI.View (Tree'Access);
+         Bound     : aliased Options.Context'Class := Options.Bind (Screen, Model'Access);
+         Foreign   : constant Options.Context'Class := Options.Bind (Other, Model'Access);
+         Window    : Testing.Session;
+         Kept      : constant UI.Button_Handle := Bound.Borrow_Button (Borrowed, Pick_Dark);
+         Owned     : constant UI.Button_Handle := Bound.Button ("Old caption", Pick_Light);
+         Indexed   : constant UI.Button_Handle := Bound.Button ("Old indexed caption", Toggle_Sync);
          Elsewhere : constant UI.Button_Handle := Foreign.Button ("Other view", Pick_Dark);
-         Words : constant UI.Label_Handle := Bound.Label (Options_UI.Caption);
-         Stale : UI.Button_Handle;
-         Rejected : Boolean := False;
+         Words     : constant UI.Label_Handle := Bound.Label (Options_UI.Caption);
+         Stale     : UI.Button_Handle;
+         Rejected  : Boolean := False;
       begin
          Widgets.Buttons.Configure (Borrowed, Widgets.Buttons.Looks ("Old borrowed caption"));
          Bound.Caption_From (Kept, Options_UI.Caption);
@@ -437,7 +450,8 @@ procedure UI_Controls_Test is
          begin
             Bound.Caption_From (Elsewhere, Options_UI.Caption);
          exception
-            when UI.Foreign_Handle => Rejected := True;
+            when UI.Foreign_Handle =>
+               Rejected := True;
          end;
          pragma Assert (Rejected);
          declare
@@ -450,7 +464,8 @@ procedure UI_Controls_Test is
          begin
             Bound.Caption_From (Stale, Options_UI.Caption);
          exception
-            when UI.Stale_Handle => Rejected := True;
+            when UI.Stale_Handle =>
+               Rejected := True;
          end;
          pragma Assert (Rejected);
          UI.Mount (Screen, UI.Column ([UI.Place (Kept), UI.Place (Owned), UI.Place (Indexed), UI.Place (Words)]));
@@ -471,10 +486,12 @@ procedure UI_Controls_Test is
    procedure Menu_Descriptions_Are_Snapshots_And_Grow is
       package Menus renames Pomarine.Widgets.Menus;
       package Rows renames Pomarine.UI.Menus;
-      Menu : Menus.Menu;
-      Content : Rows.Content :=
-        [Rows.Row (Menus.Heading, "Actions"), Rows.Row (Menus.Check, "Chosen", Checked => True),
-         Rows.Row (Menus.Separator), Rows.Row (Menus.Action, "Unavailable", Allowed => False)];
+      Menu       : Menus.Menu;
+      Content    : Rows.Content :=
+        [Rows.Row (Menus.Heading, "Actions"),
+         Rows.Row (Menus.Check, "Chosen", Checked => True),
+         Rows.Row (Menus.Separator),
+         Rows.Row (Menus.Action, "Unavailable", Allowed => False)];
       Long_Title : constant String (1 .. 700) := [others => 'x'];
    begin
       Rows.Set_Content (Menu, Content);
@@ -496,31 +513,28 @@ procedure UI_Controls_Test is
    procedure Replacing_Menu_Content_Cancels_A_Press is
       package Menus renames Pomarine.Widgets.Menus;
       package Rows renames Pomarine.UI.Menus;
-      Tree : aliased Widgets.Tree;
-      Model : aliased Options_VM.Model;
-      Menu : Menus.Menu;
-      Screen : UI.View (Tree'Access);
-      Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
+      Tree    : aliased Widgets.Tree;
+      Model   : aliased Options_VM.Model;
+      Menu    : Menus.Menu;
+      Screen  : UI.View (Tree'Access);
+      Bound   : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
       Choices : constant UI.Widget_Handle := Bound.Borrow_Widget (Menu);
-      Window : Testing.Session;
+      Window  : Testing.Session;
    begin
       Options_VM.Set_Cards (Model, 2);
       Rows.Set_Content (Menu, [Rows.Row (Menus.Action, "First"), Rows.Row (Menus.Action, "Second")]);
       Bound.On_Event (Choices, Widgets.Choose, Open_Card, Index_From_Event => True);
       UI.Mount (Screen, UI.Column ([UI.Place (Choices, Width => 220.0, Height => 80.0)]));
       Testing.Open (Window, Tree, 320, 250);
+      Testing.Feed (Window, (Kind => Pomarine.Events.Mouse_Move, Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
       Testing.Feed
-        (Window, (Kind => Pomarine.Events.Mouse_Move, Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
-      Testing.Feed
-        (Window, (Kind => Pomarine.Events.Mouse_Down, Button => 1,
-                  Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
+        (Window, (Kind => Pomarine.Events.Mouse_Down, Button => 1, Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
       Testing.Settle (Window);
       pragma Assert (Menus.Hovered_Row (Menu) = 1);
       Rows.Set_Content (Menu, [Rows.Row (Menus.Action, "Replacement")]);
       pragma Assert (Menus.Row_Count (Menu) = 1 and then Menus.Hovered_Row (Menu) = 0);
       Testing.Feed
-        (Window, (Kind => Pomarine.Events.Mouse_Up, Button => 1,
-                  Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
+        (Window, (Kind => Pomarine.Events.Mouse_Up, Button => 1, Mouse_X => 30.0, Mouse_Y => 17.0, others => <>));
       Testing.Settle (Window);
       pragma Assert (Options_VM.Opened (Model) = 0);
       Testing.Click_On (Window, "Replacement");
@@ -530,23 +544,23 @@ procedure UI_Controls_Test is
    end Replacing_Menu_Content_Cancels_A_Press;
 
    procedure Fragments_Keep_Siblings_And_Roll_Back is
-      Tree : aliased Widgets.Tree;
-      Root : Widgets.Panels.Panel;
-      Anchor : Widgets.Labels.Label;
+      Tree                         : aliased Widgets.Tree;
+      Root                         : Widgets.Panels.Panel;
+      Anchor                       : Widgets.Labels.Label;
       First, Second, Nested, Later : Widgets.Labels.Label;
-      Box : Widgets.Panels.Panel;
-      Hosted : UI.Hosts.Host;
+      Box                          : Widgets.Panels.Panel;
+      Hosted                       : UI.Hosts.Host;
    begin
       Widgets.Set_Root (Tree, Root);
       Widgets.Add (Root, Anchor);
       Hosted.Open (Root);
       declare
          Screen : UI.View renames Hosted.Screen.all;
-         One : constant UI.Layout := UI.Put (Screen, First);
-         Two : constant UI.Layout := UI.Put (Screen, Second);
-         Child : constant UI.Layout := UI.Put (Screen, Nested);
-         Held : constant UI.Layout := UI.Put_In (Screen, Box, [Child]);
-         Whole : constant UI.Layout := UI.Fragment (Screen, [One, Held, Two]);
+         One    : constant UI.Layout := UI.Put (Screen, First);
+         Two    : constant UI.Layout := UI.Put (Screen, Second);
+         Child  : constant UI.Layout := UI.Put (Screen, Nested);
+         Held   : constant UI.Layout := UI.Put_In (Screen, Box, [Child]);
+         Whole  : constant UI.Layout := UI.Fragment (Screen, [One, Held, Two]);
       begin
          --  No wrapper: the three roots will be siblings of the original anchor.
          for Fail_After in 0 .. 3 loop
@@ -555,7 +569,8 @@ procedure UI_Controls_Test is
                UI.Mount_Before (Screen, Anchor, Whole);
                raise Constraint_Error with "mount should fail";
             exception
-               when Program_Error => null;
+               when Program_Error =>
+                  null;
             end;
             pragma Assert (Widgets.Child_Count (Root) = 1);
             pragma Assert (not Widgets.Is_Attached (First) and then not Widgets.Is_Attached (Second));
@@ -573,7 +588,8 @@ procedure UI_Controls_Test is
                UI.Mount_Before (Screen, Anchor, UI.Fragment (Screen, [Part, UI.Spacer (Screen)]));
                raise Constraint_Error with "late mount should fail";
             exception
-               when Program_Error => null;
+               when Program_Error =>
+                  null;
             end;
             pragma Assert (Widgets.Child_Count (Root) = 4 and then not Widgets.Is_Attached (Later));
             UI.Mount_Before (Screen, Anchor, Part);
@@ -642,8 +658,12 @@ procedure UI_Controls_Test is
       begin
          Saved := Build (Bound, Borrowed);
          UI.Mount (Screen, Saved.Layout);
-         pragma Assert (UI.Is_Live (Screen, Saved.Dark) and then UI.Is_Live (Screen, Saved.Sync)
-                        and then UI.Is_Live (Screen, Saved.Bar) and then UI.Is_Live (Screen, Saved.Extra));
+         pragma
+           Assert
+             (UI.Is_Live (Screen, Saved.Dark)
+                and then UI.Is_Live (Screen, Saved.Sync)
+                and then UI.Is_Live (Screen, Saved.Bar)
+                and then UI.Is_Live (Screen, Saved.Extra));
          pragma Assert (UI.Live_Controls (Screen) = 7);
       end;
       --  The borrowed label is still the application's, and out of the tree.
@@ -656,10 +676,9 @@ procedure UI_Controls_Test is
       Screen : access UI.View;
    end record;
 
-   overriding function Validate
-     (Self : Host_Judge; Tag : Integer; Index : Natural) return Widgets.Command_State is
-     (if UI.Owns_Tag (Self.Screen.all, Tag) then UI.Command_State (Self.Screen.all, Tag, Index)
-      else Widgets.Enabled);
+   overriding
+   function Validate (Self : Host_Judge; Tag : Integer; Index : Natural) return Widgets.Command_State
+   is (if UI.Owns_Tag (Self.Screen.all, Tag) then UI.Command_State (Self.Screen.all, Tag, Index) else Widgets.Enabled);
 
    procedure A_View_Can_Live_In_A_Panel_Of_The_Application is
       Tree     : aliased Widgets.Tree;
@@ -725,8 +744,11 @@ procedure UI_Controls_Test is
          for Row in Cards'Range loop
             declare
                Grip  : constant UI.Grip_Handle :=
-                 Bound.Grip ((Fill => Pomarine.Themes.Tint, Pointer => True, others => <>), Open_Card, Row,
-                             Name => "Open" & Row'Image);
+                 Bound.Grip
+                   ((Fill => Pomarine.Themes.Tint, Pointer => True, others => <>),
+                    Open_Card,
+                    Row,
+                    Name => "Open" & Row'Image);
                Words : constant UI.Label_Handle := Bound.Label (Options_UI.Title, Row);
                Card  : constant UI.Layout :=
                  UI.Styled (UI.Hold (Grip, [UI.Place (Words)]), (Height => 40.0, Width => 200.0, others => <>));
@@ -755,7 +777,8 @@ procedure UI_Controls_Test is
       Turns : Natural := 0;
    end record;
 
-   overriding procedure Turned (Self : in out Counter) is
+   overriding
+   procedure Turned (Self : in out Counter) is
    begin
       Self.Turns := Self.Turns + 1;
    end Turned;
@@ -777,12 +800,9 @@ procedure UI_Controls_Test is
       declare
          Screen : aliased UI.View (Tree'Access);
          Bound  : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
-         Light  : constant UI.Check_Handle :=
-           Bound.Check ("Light", Options_UI.Light, Pick_Light, Form => Checks.Radio);
-         Dark   : constant UI.Check_Handle :=
-           Bound.Check ("Dark", Options_UI.Dark, Pick_Dark, Form => Checks.Radio);
-         Where  : constant UI.Layout :=
-           UI.Column ([UI.Place (Light), UI.Place (Dark)]);
+         Light  : constant UI.Check_Handle := Bound.Check ("Light", Options_UI.Light, Pick_Light, Form => Checks.Radio);
+         Dark   : constant UI.Check_Handle := Bound.Check ("Dark", Options_UI.Dark, Pick_Dark, Form => Checks.Radio);
+         Where  : constant UI.Layout := UI.Column ([UI.Place (Light), UI.Place (Dark)]);
       begin
          UI.Observe (Screen, Watch'Access);
          UI.Mount_Into (Screen, Root, Where);
@@ -804,8 +824,7 @@ procedure UI_Controls_Test is
             Widgets.Remove (Bar);
             pragma Assert (not Widgets.Is_Attached (Words));
             UI.Mount_Into
-              (Screen, Other,
-               UI.Put_In (Screen, Bar, [UI.Put (Screen, Words)], Flow => Pomarine.UI.Layouts.Row));
+              (Screen, Other, UI.Put_In (Screen, Bar, [UI.Put (Screen, Words)], Flow => Pomarine.UI.Layouts.Row));
             pragma Assert (Widgets.Is_Attached (Words) and then Widgets.Parent_Of (Words) /= null);
          end;
       end;

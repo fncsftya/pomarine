@@ -4,18 +4,19 @@ package body Form_Parts is
 
    use all type Form_VM.Command;
 
-   function Called (Title, Word : String) return String is (if Title = "" then Word else Word & " " & Title);
+   function Called (Title, Word : String) return String
+   is (if Title = "" then Word else Word & " " & Title);
 
    function Handles_Part (Parent : Forms.Context'Class; Title : String := "") return Field_Part is
       Bound  : aliased Forms.Component (Parent'Access);
-      Name   : constant UI.Field_Handle := Bound.Text_Field
-        (Form_UI.Name, Submit => Save, Placeholder => "Name", Name => Called (Title, "Name"));
+      Name   : constant UI.Field_Handle :=
+        Bound.Text_Field (Form_UI.Name, Submit => Save, Placeholder => "Name", Name => Called (Title, "Name"));
       Shown  : constant UI.Label_Handle := Bound.Label (Form_UI.Status);
       Saves  : constant UI.Button_Handle := Bound.Button (Called (Title, "Save"), Save);
       Clear  : constant UI.Button_Handle := Bound.Button (Called (Title, "Reset"), Reset);
-      Result : constant UI.Layout := UI.Column
-        ([UI.Place (Name), UI.Place (Shown), UI.Row ([UI.Place (Saves), UI.Place (Clear)], Gap => 8.0)],
-         Gap => 8.0);
+      Result : constant UI.Layout :=
+        UI.Column
+          ([UI.Place (Name), UI.Place (Shown), UI.Row ([UI.Place (Saves), UI.Place (Clear)], Gap => 8.0)], Gap => 8.0);
    begin
       Runs := Runs + 1;
       Bound.Focus_Initially (UI.Focus_Of (Name));
@@ -23,16 +24,17 @@ package body Form_Parts is
       return (Layout => Result, Field => Name, Save => Saves);
    end Handles_Part;
 
-   function Form_Part (Parent : Forms.Context'Class; Title : String := "") return UI.Layout is
-     (Handles_Part (Parent, Title).Layout);
+   function Form_Part (Parent : Forms.Context'Class; Title : String := "") return UI.Layout
+   is (Handles_Part (Parent, Title).Layout);
 
-   function Boom return Integer is (Integer'Value ("not a number"));
+   function Boom return Integer
+   is (Integer'Value ("not a number"));
 
    function Failing_Part (Parent : Forms.Context'Class) return UI.Layout is
-      Bound : aliased Forms.Component (Parent'Access);
-      Name  : constant UI.Field_Handle := Bound.Text_Field (Form_UI.Name, Name => "Doomed");
-      Shown : constant UI.Label_Handle := Bound.Label (Form_UI.Status);
-      Bad   : constant Integer := Boom;
+      Bound  : aliased Forms.Component (Parent'Access);
+      Name   : constant UI.Field_Handle := Bound.Text_Field (Form_UI.Name, Name => "Doomed");
+      Shown  : constant UI.Label_Handle := Bound.Label (Form_UI.Status);
+      Bad    : constant Integer := Boom;
       pragma Unreferenced (Bad);
       Result : constant UI.Layout := UI.Column ([UI.Place (Name), UI.Place (Shown)]);
    begin

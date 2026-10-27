@@ -1,13 +1,13 @@
 with Pomarine.Widgets.Focusing;
 with Pomarine.Widgets.Nodes;
+
 package body Pomarine.Widgets.Accessibility is
 
    use Pomarine.Widgets.Focusing;
    use Pomarine.Widgets.Nodes;
 
-   function Is_Told (Home : Tree; Slot : Node_Index) return Boolean is
-     (Home.Nodes.Spot (Slot).Visible
-      and then not Home.Nodes.Object (Slot).Hidden_From_AT);
+   function Is_Told (Home : Tree; Slot : Node_Index) return Boolean
+   is (Home.Nodes.Spot (Slot).Visible and then not Home.Nodes.Object (Slot).Hidden_From_AT);
    --  Whether an assistive technology is to hear of Slot: not if it, or
    --  what it is in, is hidden.
 
@@ -22,16 +22,11 @@ package body Pomarine.Widgets.Accessibility is
    end Forget;
    --  Slot, and all in it, are no longer known to an assistive technology.
 
-   procedure Tell
-     (Home  : in out Tree;
-      Slot  : Node_Index;
-      Into  : in out Semantic_Sink'Class;
-      Whole : Boolean)
-   is
-      Table  : Node_Table renames Home.Nodes.all;
-      Mine   : constant Widget_Access := Table.Object (Slot);
-      Shown  : Natural := 0;
-      Child  : Node_Index := Table.First (Slot);
+   procedure Tell (Home : in out Tree; Slot : Node_Index; Into : in out Semantic_Sink'Class; Whole : Boolean) is
+      Table : Node_Table renames Home.Nodes.all;
+      Mine  : constant Widget_Access := Table.Object (Slot);
+      Shown : Natural := 0;
+      Child : Node_Index := Table.First (Slot);
    begin
       --  Those it is to hear of, in order. The scratch is this level's
       --  alone: it is used up before the next is begun.
@@ -63,9 +58,7 @@ package body Pomarine.Widgets.Accessibility is
          begin
             Facts.Kind := Mine.Said_Role;
             Describe (Mine.all, Facts);
-            if Slot = Home.Root and then Facts.Kind in
-                 Semantics.Unknown | Semantics.Group
-            then
+            if Slot = Home.Root and then Facts.Kind in Semantics.Unknown | Semantics.Group then
                Facts.Kind := Semantics.Window;
             end if;
             if Mine.Cold /= 0 and then Semantics.Length (Block (Mine.Cold).all.Name) > 0 then
@@ -79,11 +72,12 @@ package body Pomarine.Widgets.Accessibility is
             if Table.Focused (Slot) then
                Facts.Focusable := True;
             end if;
-            Box := (Left => Where.Left / Points, Top => Where.Top / Points,
-                    Right => (Where.Left + Where.Wide) / Points,
-                    Bottom => (Where.Top + Where.High) / Points);
-            Describe_Node
-              (Into, Id_Of_Slot (Home, Slot), Facts, Box, Table.Kids (1 .. Shown));
+            Box :=
+              (Left   => Where.Left / Points,
+               Top    => Where.Top / Points,
+               Right  => (Where.Left + Where.Wide) / Points,
+               Bottom => (Where.Top + Where.High) / Points);
+            Describe_Node (Into, Id_Of_Slot (Home, Slot), Facts, Box, Table.Kids (1 .. Shown));
             for Index in 1 .. Part_Count (Mine.all) loop
                declare
                   Number : constant Positive := Part_Number (Mine.all, Index);
@@ -92,9 +86,12 @@ package body Pomarine.Widgets.Accessibility is
                begin
                   Describe_Part (Mine.all, Number, Inner, Inside);
                   Describe_Node
-                    (Into, Part_Id (Mine.all, Number), Inner,
-                     (Left => Inside.Left / Points, Top => Inside.Top / Points,
-                      Right => Inside.Right / Points,
+                    (Into,
+                     Part_Id (Mine.all, Number),
+                     Inner,
+                     (Left   => Inside.Left / Points,
+                      Top    => Inside.Top / Points,
+                      Right  => Inside.Right / Points,
                       Bottom => Inside.Bottom / Points),
                      Node_Id_Array'(1 .. 0 => No_Node));
                end;
@@ -127,15 +124,12 @@ package body Pomarine.Widgets.Accessibility is
    --  Whether an assistive technology can come to Slot: it and all it is in
    --  are to be told of.
 
-   procedure Tell_Changes
-     (Item : in out Tree;
-      Into : in out Semantic_Sink'Class;
-      Whole : Boolean := False)
-   is
+   procedure Tell_Changes (Item : in out Tree; Into : in out Semantic_Sink'Class; Whole : Boolean := False) is
       Everything : constant Boolean := Whole or else Item.Whole_Next;
       Focused    : constant Node_Id :=
         (if Item.Focus /= 0 and then Is_Reachable (Item, Item.Focus)
-         then Id_Of_Slot (Item, Item.Focus) else Root_Id (Item));
+         then Id_Of_Slot (Item, Item.Focus)
+         else Root_Id (Item));
    begin
       if Everything then
          Forget (Item, Item.Root);
@@ -146,12 +140,7 @@ package body Pomarine.Widgets.Accessibility is
       Item.Whole_Next := False;
    end Tell_Changes;
 
-   procedure Perform_On
-     (Item    : in out Tree;
-      Id      : Node_Id;
-      Request : Semantics.Request;
-      Done    : out Boolean)
-   is
+   procedure Perform_On (Item : in out Tree; Id : Node_Id; Request : Semantics.Request; Done : out Boolean) is
       Target : constant Widget_Access := Resolve (Item, Id);
    begin
       Done := False;
@@ -171,12 +160,14 @@ package body Pomarine.Widgets.Accessibility is
             else
                Perform (Target.all, Request, Done);
             end if;
-         when Semantics.Blur =>
+
+         when Semantics.Blur  =>
             if Item.Nodes.Focused (Id.Slot) then
                Set_Focus (Item, 0);
             end if;
             Done := True;
-         when others =>
+
+         when others          =>
             Perform (Target.all, Request, Done);
       end case;
       Deliver (Item);

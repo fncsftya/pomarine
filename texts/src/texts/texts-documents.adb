@@ -11,32 +11,27 @@ package body Texts.Documents is
    use type Named_Vectors.Vector;
 
    procedure Free is new Ada.Unchecked_Deallocation (String, Text_Access);
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Mark_Array, Mark_Access);
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Paragraph, Paragraph_Access);
+   procedure Free is new Ada.Unchecked_Deallocation (Mark_Array, Mark_Access);
+   procedure Free is new Ada.Unchecked_Deallocation (Paragraph, Paragraph_Access);
 
    Serials : Natural := 0;
    --  Documents made so far.
 
    --  A paragraph's text, in its buffer with a gap
 
-   function Size (P : Paragraph_Access) return Natural is
-     (P.Buffer'Length - P.Gap_Size);
+   function Size (P : Paragraph_Access) return Natural
+   is (P.Buffer'Length - P.Gap_Size);
    --  In bytes.
 
-   function Byte (P : Paragraph_Access; Index : Positive) return Character is
-     (P.Buffer (if Index < P.Gap_First then Index else Index + P.Gap_Size));
+   function Byte (P : Paragraph_Access; Index : Positive) return Character
+   is (P.Buffer (if Index < P.Gap_First then Index else Index + P.Gap_Size));
    --  Of the text, past the gap.
 
-   function Slice_Of (P : Paragraph_Access; First, Stop : Positive)
-      return String
-     with Pre => First <= Stop and then Stop <= Size (P) + 1;
+   function Slice_Of (P : Paragraph_Access; First, Stop : Positive) return String
+   with Pre => First <= Stop and then Stop <= Size (P) + 1;
    --  The bytes First .. Stop - 1 of the text.
 
-   function Slice_Of (P : Paragraph_Access; First, Stop : Positive)
-      return String
-   is
+   function Slice_Of (P : Paragraph_Access; First, Stop : Positive) return String is
       Buffer : String renames P.Buffer.all;
       Gap    : constant Natural := P.Gap_Size;
    begin
@@ -45,20 +40,16 @@ package body Texts.Documents is
       elsif First >= P.Gap_First then
          return Buffer (First + Gap .. Stop - 1 + Gap);
       else
-         return Buffer (First .. P.Gap_First - 1)
-           & Buffer (P.Gap_First + Gap .. Stop - 1 + Gap);
+         return Buffer (First .. P.Gap_First - 1) & Buffer (P.Gap_First + Gap .. Stop - 1 + Gap);
       end if;
    end Slice_Of;
 
-   function Units_In (P : Paragraph_Access; First, Stop : Positive)
-      return Natural
-     with Pre => First <= Stop and then Stop <= Size (P) + 1;
+   function Units_In (P : Paragraph_Access; First, Stop : Positive) return Natural
+   with Pre => First <= Stop and then Stop <= Size (P) + 1;
    --  The UTF-16 units of the bytes First .. Stop - 1, on either side of
    --  the gap.
 
-   function Units_In (P : Paragraph_Access; First, Stop : Positive)
-      return Natural
-   is
+   function Units_In (P : Paragraph_Access; First, Stop : Positive) return Natural is
       Buffer : String renames P.Buffer.all;
       Gap    : constant Natural := P.Gap_Size;
       Result : Natural := 0;
@@ -98,7 +89,7 @@ package body Texts.Documents is
    end Set_Text;
 
    procedure Move_Gap (P : Paragraph_Access; To : Positive)
-     with Pre => To <= Size (P) + 1, Post => P.Gap_First = To;
+   with Pre => To <= Size (P) + 1, Post => P.Gap_First = To;
    --  Put the gap before byte To of the text, moving only what is
    --  between.
 
@@ -107,17 +98,15 @@ package body Texts.Documents is
       Gap    : constant Natural := P.Gap_Size;
    begin
       if To < P.Gap_First then
-         Buffer (To + Gap .. P.Gap_First - 1 + Gap) :=
-           Buffer (To .. P.Gap_First - 1);
+         Buffer (To + Gap .. P.Gap_First - 1 + Gap) := Buffer (To .. P.Gap_First - 1);
       elsif To > P.Gap_First then
-         Buffer (P.Gap_First .. To - 1) :=
-           Buffer (P.Gap_First + Gap .. To - 1 + Gap);
+         Buffer (P.Gap_First .. To - 1) := Buffer (P.Gap_First + Gap .. To - 1 + Gap);
       end if;
       P.Gap_First := To;
    end Move_Gap;
 
    procedure Widen_Gap (P : Paragraph_Access; Wanted : Natural)
-     with Post => P.Gap_Size >= Wanted;
+   with Post => P.Gap_Size >= Wanted;
    --  Make the gap at least Wanted bytes, with room to spare: a quarter
    --  of the text again, so that growing costs little, over many edits.
 
@@ -125,16 +114,14 @@ package body Texts.Documents is
    begin
       if P.Gap_Size < Wanted then
          declare
-            Old    : Text_Access := P.Buffer;
+            Old       : Text_Access := P.Buffer;
             Text_Size : constant Natural := Size (P);
-            Gap    : constant Natural :=
-              Wanted + Natural'Max (16, Text_Size / 4);
-            After  : constant Natural := Text_Size - (P.Gap_First - 1);
+            Gap       : constant Natural := Wanted + Natural'Max (16, Text_Size / 4);
+            After     : constant Natural := Text_Size - (P.Gap_First - 1);
          begin
             P.Buffer := new String (1 .. Text_Size + Gap);
             P.Buffer (1 .. P.Gap_First - 1) := Old (1 .. P.Gap_First - 1);
-            P.Buffer (P.Gap_First + Gap .. P.Buffer'Last) :=
-              Old (Old'Last - After + 1 .. Old'Last);
+            P.Buffer (P.Gap_First + Gap .. P.Buffer'Last) := Old (Old'Last - After + 1 .. Old'Last);
             P.Gap_Size := Gap;
             Free (Old);
          end;
@@ -148,33 +135,28 @@ package body Texts.Documents is
       Free (P);
    end Free_Paragraph;
 
-   function New_Paragraph
-     (Content : String; Units : Natural; Name : Named)
-      return Paragraph_Access
-   is
+   function New_Paragraph (Content : String; Units : Natural; Name : Named) return Paragraph_Access is
       Result : constant Paragraph_Access :=
-        new Paragraph'(Buffer    => new String (1 .. Content'Length),
-                       Gap_First => Content'Length + 1,
-                       Gap_Size  => 0,
-                       Units     => Units,
-                       Counted   => True,
-                       Id        => Name.Id,
-                       Kind      => Name.Kind,
-                       Inset     => Name.Inset,
-                       Marks     => null,
-                       Marked    => 0);
+        new Paragraph'
+          (Buffer    => new String (1 .. Content'Length),
+           Gap_First => Content'Length + 1,
+           Gap_Size  => 0,
+           Units     => Units,
+           Counted   => True,
+           Id        => Name.Id,
+           Kind      => Name.Kind,
+           Inset     => Name.Inset,
+           Marks     => null,
+           Marked    => 0);
    begin
       Result.Buffer.all := Content;
       return Result;
    end New_Paragraph;
 
-   function Uncounted (Content : String; Name : Named)
-      return Paragraph_Access;
+   function Uncounted (Content : String; Name : Named) return Paragraph_Access;
    --  A paragraph of Content whose UTF-16 length is not yet counted.
 
-   function Uncounted (Content : String; Name : Named)
-      return Paragraph_Access
-   is
+   function Uncounted (Content : String; Name : Named) return Paragraph_Access is
       Result : constant Paragraph_Access := New_Paragraph (Content, 0, Name);
    begin
       Result.Counted := False;
@@ -199,14 +181,16 @@ package body Texts.Documents is
       Item.Paragraphs.Clear;
    end Clear;
 
-   overriding procedure Initialize (Item : in out Document) is
+   overriding
+   procedure Initialize (Item : in out Document) is
    begin
       Serials := Serials + 1;
       Item.Serial := Serials;
       Item.Paragraphs.Append (New_Paragraph ("", 0, Fresh (Item)));
    end Initialize;
 
-   overriding procedure Finalize (Item : in out Document) is
+   overriding
+   procedure Finalize (Item : in out Document) is
    begin
       Clear (Item);
    end Finalize;
@@ -219,9 +203,8 @@ package body Texts.Documents is
    end Forget_Log;
 
    function Find_Byte
-     (From : System.Address; Value : Interfaces.C.int;
-      Bytes : Interfaces.C.size_t) return System.Address
-     with Import, Convention => C, External_Name => "memchr";
+     (From : System.Address; Value : Interfaces.C.int; Bytes : Interfaces.C.size_t) return System.Address
+   with Import, Convention => C, External_Name => "memchr";
    --  The first byte Value in the Bytes bytes at From, or null: as quick
    --  as the machine can look.
 
@@ -233,32 +216,24 @@ package body Texts.Documents is
    begin
       Clear (Item);
       Item.Formats.Clear;
-      Item.Paragraphs.Reserve_Capacity
-        (Ada.Containers.Count_Type (Clean'Length / 64 + 1));
+      Item.Paragraphs.Reserve_Capacity (Ada.Containers.Count_Type (Clean'Length / 64 + 1));
       while Start <= Clean'Last loop
          declare
             Found : constant System.Address :=
-              Find_Byte
-                (Clean (Start)'Address, Character'Pos (ASCII.LF),
-                 Interfaces.C.size_t (Clean'Last - Start + 1));
+              Find_Byte (Clean (Start)'Address, Character'Pos (ASCII.LF), Interfaces.C.size_t (Clean'Last - Start + 1));
             Break : Positive;
          begin
             exit when Found = System.Null_Address;
-            Break := Start
-              + Integer (Found - Clean (Start)'Address);
+            Break := Start + Integer (Found - Clean (Start)'Address);
             Item.Paragraphs.Append
               (Uncounted
                  (Clean
-                    (Start
-                     .. (if Break > Start
-                           and then Clean (Break - 1) = ASCII.CR
-                         then Break - 2 else Break - 1)),
+                    (Start .. (if Break > Start and then Clean (Break - 1) = ASCII.CR then Break - 2 else Break - 1)),
                   Fresh (Item)));
             Start := Break + 1;
          end;
       end loop;
-      Item.Paragraphs.Append
-        (Uncounted (Clean (Start .. Clean'Last), Fresh (Item)));
+      Item.Paragraphs.Append (Uncounted (Clean (Start .. Clean'Last), Fresh (Item)));
 
       Item.Undos.Clear;
       Item.Redos.Clear;
@@ -268,26 +243,23 @@ package body Texts.Documents is
       Forget_Log (Item);
    end Load;
 
-   function Count (Item : Document) return Positive is
-     (Positive (Item.Paragraphs.Length));
+   function Count (Item : Document) return Positive
+   is (Positive (Item.Paragraphs.Length));
 
-   function Text (Item : Document; Para : Positive) return String is
-     (Slice_Of (Item.Paragraphs.Element (Para), 1,
-                Size (Item.Paragraphs.Element (Para)) + 1));
+   function Text (Item : Document; Para : Positive) return String
+   is (Slice_Of (Item.Paragraphs.Element (Para), 1, Size (Item.Paragraphs.Element (Para)) + 1));
 
-   function Slice
-     (Item : Document; Para : Positive; First, Stop : Positive)
-      return String is
-     (Slice_Of (Item.Paragraphs.Element (Para), First, Stop));
+   function Slice (Item : Document; Para : Positive; First, Stop : Positive) return String
+   is (Slice_Of (Item.Paragraphs.Element (Para), First, Stop));
 
-   function Byte_Length (Item : Document; Para : Positive) return Natural is
-     (Size (Item.Paragraphs.Element (Para)));
+   function Byte_Length (Item : Document; Para : Positive) return Natural
+   is (Size (Item.Paragraphs.Element (Para)));
 
-   function Length (Item : Document; Para : Positive) return Natural is
-     (Units_Of (Item.Paragraphs.Element (Para)));
+   function Length (Item : Document; Para : Positive) return Natural
+   is (Units_Of (Item.Paragraphs.Element (Para)));
 
-   function Id (Item : Document; Para : Positive) return Paragraph_Id is
-     (Item.Paragraphs.Element (Para).Id);
+   function Id (Item : Document; Para : Positive) return Paragraph_Id
+   is (Item.Paragraphs.Element (Para).Id);
 
    function Find (Item : Document; Name : Paragraph_Id) return Natural is
    begin
@@ -299,17 +271,15 @@ package body Texts.Documents is
       return 0;
    end Find;
 
-   function Kind (Item : Document; Para : Positive) return Paragraph_Kind is
-     (Item.Paragraphs.Element (Para).Kind);
+   function Kind (Item : Document; Para : Positive) return Paragraph_Kind
+   is (Item.Paragraphs.Element (Para).Kind);
 
-   function Inset (Item : Document; Para : Positive) return Paragraph_Inset is
-     (Item.Paragraphs.Element (Para).Inset);
+   function Inset (Item : Document; Para : Positive) return Paragraph_Inset
+   is (Item.Paragraphs.Element (Para).Inset);
 
    --  Positions
 
-   function Is_Boundary
-     (Item : Document; Para : Positive; Index : Positive) return Boolean
-   is
+   function Is_Boundary (Item : Document; Para : Positive; Index : Positive) return Boolean is
       P : constant Paragraph_Access := Item.Paragraphs.Element (Para);
    begin
       return Index > Size (P) or else not Is_Continuation (Byte (P, Index));
@@ -318,20 +288,17 @@ package body Texts.Documents is
    function Paragraph_End (Item : Document; Para : Positive) return Position
    is ((Para, Byte_Length (Item, Para) + 1));
 
-   function Text_End (Item : Document) return Position is
-     (Paragraph_End (Item, Count (Item)));
+   function Text_End (Item : Document) return Position
+   is (Paragraph_End (Item, Count (Item)));
 
    function Between (Item : Document; From, To : Position) return String is
       Result : Unbounded.Unbounded_String;
    begin
       for Para in From.Paragraph .. To.Paragraph loop
          declare
-            P     : constant Paragraph_Access :=
-              Item.Paragraphs.Element (Para);
-            First : constant Positive :=
-              (if Para = From.Paragraph then From.Index else 1);
-            Stop  : constant Positive :=
-              (if Para = To.Paragraph then To.Index else Size (P) + 1);
+            P     : constant Paragraph_Access := Item.Paragraphs.Element (Para);
+            First : constant Positive := (if Para = From.Paragraph then From.Index else 1);
+            Stop  : constant Positive := (if Para = To.Paragraph then To.Index else Size (P) + 1);
          begin
             if Para > From.Paragraph then
                Unbounded.Append (Result, ASCII.LF);
@@ -342,19 +309,18 @@ package body Texts.Documents is
       return Unbounded.To_String (Result);
    end Between;
 
-   function Whole (Item : Document) return String is
-     (Between (Item, (1, 1), Text_End (Item)));
+   function Whole (Item : Document) return String
+   is (Between (Item, (1, 1), Text_End (Item)));
 
    --  The UTF-16 offsets kept: right as far as Marked; extended when
    --  wanted, so that an edit costs only what lies between it and what is
    --  asked for next, not the whole paragraph.
 
-   function Last_Block (P : Paragraph_Access) return Natural is
-     (Size (P) / Mark_Spacing);
+   function Last_Block (P : Paragraph_Access) return Natural
+   is (Size (P) / Mark_Spacing);
 
    procedure Mark (P : Paragraph_Access; Upto : Natural)
-     with Pre  => Upto <= Last_Block (P),
-          Post => P.Marked > Upto;
+   with Pre => Upto <= Last_Block (P), Post => P.Marked > Upto;
    --  Make P's marks right as far as Marks (Upto).
 
    procedure Mark (P : Paragraph_Access; Upto : Natural) is
@@ -362,8 +328,7 @@ package body Texts.Documents is
       if P.Marks = null or else P.Marks'Last < Upto then
          declare
             Old  : Mark_Access := P.Marks;
-            Room : constant Natural :=
-              Natural'Max (Upto, Last_Block (P)) + 16;
+            Room : constant Natural := Natural'Max (Upto, Last_Block (P)) + 16;
          begin
             P.Marks := new Mark_Array (0 .. Room);
             if Old /= null then
@@ -377,43 +342,37 @@ package body Texts.Documents is
          P.Marked := 1;
       end if;
       for Block in P.Marked .. Upto loop
-         P.Marks (Block) := P.Marks (Block - 1)
-           + Units_In (P, (Block - 1) * Mark_Spacing + 1,
-                       Block * Mark_Spacing + 1);
+         P.Marks (Block) :=
+           P.Marks (Block - 1) + Units_In (P, (Block - 1) * Mark_Spacing + 1, Block * Mark_Spacing + 1);
       end loop;
       P.Marked := Natural'Max (P.Marked, Upto + 1);
    end Mark;
 
-   function Units_Before
-     (Item : Document; Para : Positive; Index : Positive) return Natural
-   is
+   function Units_Before (Item : Document; Para : Positive; Index : Positive) return Natural is
       P     : constant Paragraph_Access := Item.Paragraphs.Element (Para);
       Block : constant Natural := (Index - 1) / Mark_Spacing;
    begin
       if Index > Size (P) then
          return Units_Of (P);  --  the end: known
+
       end if;
       Mark (P, Block);
-      return P.Marks (Block)
-        + Units_In (P, Block * Mark_Spacing + 1, Index);
+      return P.Marks (Block) + Units_In (P, Block * Mark_Spacing + 1, Index);
    end Units_Before;
 
-   function Index_Of
-     (Item : Document; Para : Positive; Units : Natural) return Positive
-   is
-      P       : constant Paragraph_Access := Item.Paragraphs.Element (Para);
+   function Index_Of (Item : Document; Para : Positive; Units : Natural) return Positive is
+      P         : constant Paragraph_Access := Item.Paragraphs.Element (Para);
       Low, High : Natural;
-      Seen    : Natural;
+      Seen      : Natural;
    begin
       if Units = Units_Of (P) then
          return Size (P) + 1;  --  the end: known
+
       end if;
 
       --  Marks as far as past Units.
       Mark (P, 0);
-      while P.Marked - 1 < Last_Block (P)
-        and then P.Marks (P.Marked - 1) <= Units
-      loop
+      while P.Marked - 1 < Last_Block (P) and then P.Marks (P.Marked - 1) <= Units loop
          Mark (P, Natural'Min (Last_Block (P), P.Marked + 15));
       end loop;
 
@@ -468,9 +427,12 @@ package body Texts.Documents is
          declare
             Existing : constant Format_Run := Runs (I);
          begin
-            if Existing.Style = R.Style and then R.Style /= Versioned
-              and then Existing.Choice = R.Choice and then Unbounded."=" (Existing.Name, R.Name)
-              and then not (Existing.To < R.From) and then not (R.To < Existing.From)
+            if Existing.Style = R.Style
+              and then R.Style /= Versioned
+              and then Existing.Choice = R.Choice
+              and then Unbounded."=" (Existing.Name, R.Name)
+              and then not (Existing.To < R.From)
+              and then not (R.To < Existing.From)
             then
                if Existing.From < R.From then
                   R.From := Existing.From;
@@ -495,8 +457,7 @@ package body Texts.Documents is
       Given    : Named_Vectors.Vector;
       Gone     : out Named_Vectors.Vector;
       Made     : out Named_Vectors.Vector)
-     with Pre => Is_Position (Item, From) and then Is_Position (Item, To)
-                 and then not (To < From);
+   with Pre => Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From);
    --  Replace the text from From to To with By, at once however many
    --  paragraphs it spans, and log the change. The paragraphs By starts
    --  are named from Given, as far as it goes, and are Made; those that
@@ -510,20 +471,17 @@ package body Texts.Documents is
       Gone     : out Named_Vectors.Vector;
       Made     : out Named_Vectors.Vector)
    is
-      Para       : constant Positive := From.Paragraph;
-      First_P    : constant Paragraph_Access := Item.Paragraphs.Element (Para);
-      Last_P     : constant Paragraph_Access :=
-        Item.Paragraphs.Element (To.Paragraph);
-      From_Units : constant Natural :=
-        Units_Before (Item, Para, From.Index);
-      To_Units   : constant Natural :=
-        Units_Before (Item, To.Paragraph, To.Index);
-      Tail_Units : constant Natural := Units_Of (Last_P) - To_Units;
-      Old_Length : constant Natural := Units_Of (First_P);
-      Breaks     : Natural := 0;
-      Ending     : Position;
-      End_Units  : Natural;
-      Inherited : Format_Set := No_Formats;
+      Para           : constant Positive := From.Paragraph;
+      First_P        : constant Paragraph_Access := Item.Paragraphs.Element (Para);
+      Last_P         : constant Paragraph_Access := Item.Paragraphs.Element (To.Paragraph);
+      From_Units     : constant Natural := Units_Before (Item, Para, From.Index);
+      To_Units       : constant Natural := Units_Before (Item, To.Paragraph, To.Index);
+      Tail_Units     : constant Natural := Units_Of (Last_P) - To_Units;
+      Old_Length     : constant Natural := Units_Of (First_P);
+      Breaks         : Natural := 0;
+      Ending         : Position;
+      End_Units      : Natural;
+      Inherited      : Format_Set := No_Formats;
       Inherited_Size : Natural := 0;
       Inherited_Name : Unbounded.Unbounded_String;
    begin
@@ -554,20 +512,17 @@ package body Texts.Documents is
          Move_Gap (First_P, From.Index);
          First_P.Gap_Size := First_P.Gap_Size + (To.Index - From.Index);
          Widen_Gap (First_P, By'Length);
-         First_P.Buffer
-           (First_P.Gap_First .. First_P.Gap_First + By'Length - 1) := By;
+         First_P.Buffer (First_P.Gap_First .. First_P.Gap_First + By'Length - 1) := By;
          First_P.Gap_First := First_P.Gap_First + By'Length;
          First_P.Gap_Size := First_P.Gap_Size - By'Length;
          End_Units := From_Units + UTF16_Length (By);
          First_P.Units := End_Units + Tail_Units;
-         First_P.Marked :=
-           Natural'Min (First_P.Marked, (From.Index - 1) / Mark_Spacing + 1);
+         First_P.Marked := Natural'Min (First_P.Marked, (From.Index - 1) / Mark_Spacing + 1);
          Ending := (Para, From.Index + By'Length);
       else
          declare
             Before : constant String := Slice_Of (First_P, 1, From.Index);
-            After  : constant String :=
-              Slice_Of (Last_P, To.Index, Size (Last_P) + 1);
+            After  : constant String := Slice_Of (Last_P, To.Index, Size (Last_P) + 1);
             Added  : Paragraph_Vectors.Vector;
             Start  : Positive := By'First;
             Piece  : Natural := 0;
@@ -587,9 +542,9 @@ package body Texts.Documents is
                      else
                         Added.Append
                           (New_Paragraph
-                             (Line, UTF16_Length (Line),
-                              (if Natural (Given.Length) >= Piece
-                               then Given (Piece) else Fresh (Item))));
+                             (Line,
+                              UTF16_Length (Line),
+                              (if Natural (Given.Length) >= Piece then Given (Piece) else Fresh (Item))));
                      end if;
                   end;
                   Piece := Piece + 1;
@@ -609,9 +564,9 @@ package body Texts.Documents is
                else
                   Added.Append
                     (New_Paragraph
-                       (Line & After, Units + Tail_Units,
-                        (if Natural (Given.Length) >= Breaks
-                         then Given (Breaks) else Fresh (Item))));
+                       (Line & After,
+                        Units + Tail_Units,
+                        (if Natural (Given.Length) >= Breaks then Given (Breaks) else Fresh (Item))));
                   Ending := (Para + Breaks, Line'Length + 1);
                   End_Units := Units;
                end if;
@@ -628,8 +583,7 @@ package body Texts.Documents is
                end;
             end loop;
             if To.Paragraph > Para then
-               Item.Paragraphs.Delete
-                 (Para + 1, Ada.Containers.Count_Type (To.Paragraph - Para));
+               Item.Paragraphs.Delete (Para + 1, Ada.Containers.Count_Type (To.Paragraph - Para));
             end if;
             for P of Added loop
                Made.Append (Named'(P.Id, P.Kind, P.Inset));
@@ -641,7 +595,7 @@ package body Texts.Documents is
       end if;
 
       declare
-         Updated : Format_Vectors.Vector;
+         Updated   : Format_Vectors.Vector;
          Change_Of : constant Change := (From => From, To => To, Ending => Ending, others => <>);
       begin
          for R of Item.Formats loop
@@ -660,6 +614,7 @@ package body Texts.Documents is
                   B := Map (Change_Of, B);
                   if R.Style = Linked and then From = To and then R.To = From then
                      B := From;  --  what is typed at the end of a link is not in it
+
                   end if;
                end if;
                if A < B and then (R.Style /= Versioned or else A.Paragraph = B.Paragraph) then
@@ -672,9 +627,13 @@ package body Texts.Documents is
                if Inherited (F) and then F /= Versioned then
                   Include_Format
                     (Updated,
-                     Format_Run'(From, Ending, F, Choice => (if F = Sized then Inherited_Size else 0),
-                                 Name => (if F = Faced then Inherited_Name else Unbounded.Null_Unbounded_String),
-                                 others => <>));
+                     Format_Run'
+                       (From,
+                        Ending,
+                        F,
+                        Choice => (if F = Sized then Inherited_Size else 0),
+                        Name   => (if F = Faced then Inherited_Name else Unbounded.Null_Unbounded_String),
+                        others => <>));
                end if;
             end loop;
          end if;
@@ -682,17 +641,19 @@ package body Texts.Documents is
       end;
 
       Log_Change
-        (Item, Change'(From       => From,
-                 To         => To,
-                 Ending     => Ending,
-                 From_Units => From_Units,
-                 To_Units   => To_Units,
-                 End_Units  => End_Units,
-                 Old_Length => Old_Length,
-                 Kind_Only  => False, Formats_Only => False));
+        (Item,
+         Change'
+           (From         => From,
+            To           => To,
+            Ending       => Ending,
+            From_Units   => From_Units,
+            To_Units     => To_Units,
+            End_Units    => End_Units,
+            Old_Length   => Old_Length,
+            Kind_Only    => False,
+            Formats_Only => False));
       pragma Assert (Ending = End_After (From, By));
-      pragma Assert (Units_Before (Item, Ending.Paragraph, Ending.Index)
-                     = End_Units);
+      pragma Assert (Units_Before (Item, Ending.Paragraph, Ending.Index) = End_Units);
    end Splice;
 
    procedure Set_Kind_Unrecorded
@@ -701,8 +662,7 @@ package body Texts.Documents is
       Item.Paragraphs.Element (Para).Kind := To;
       Item.Paragraphs.Element (Para).Inset := Within;
       Log_Change
-        (Item, Change'(From | To | Ending => (Para, 1), Kind_Only => True,
-                 Formats_Only => False, others => 0));
+        (Item, Change'(From | To | Ending => (Para, 1), Kind_Only => True, Formats_Only => False, others => 0));
    end Set_Kind_Unrecorded;
 
    --  The history
@@ -719,51 +679,46 @@ package body Texts.Documents is
          Item.Undos.Reference (Item.Undos.Last_Index).Edits.Append (Done);
          Item.Undos.Reference (Item.Undos.Last_Index).Id := Item.Last_State;
       else
-         if Item.Joining and then not Item.Undos.Is_Empty
+         if Item.Joining
+           and then not Item.Undos.Is_Empty
            and then Natural (Item.Undos.Last_Element.Edits.Length) = 1
-           and then Item.Undos.Last_Element.Edits.First_Element.Kind
-                    = Done.Kind
+           and then Item.Undos.Last_Element.Edits.First_Element.Kind = Done.Kind
            and then not Done.Formats_Only
            and then not Done.Kind_Only
          then
             declare
-               Into : Step renames
-                 Item.Undos.Reference (Item.Undos.Last_Index);
+               Into : Step renames Item.Undos.Reference (Item.Undos.Last_Index);
                Last : Edit renames Into.Edits.Reference (1);
             begin
                case Done.Kind is
-                  when Typing =>
+                  when Typing           =>
                      --  Typing on from where it stopped, on one line.
-                     Joined := Done.Removed = Unbounded.Null_Unbounded_String
-                       and then End_After
-                                  (Last.From,
-                                   Unbounded.To_String (Last.Inserted))
-                                = Done.From
-                       and then
-                         (for all C of Unbounded.To_String (Done.Inserted)
-                          => C /= ASCII.LF);
+                     Joined :=
+                       Done.Removed = Unbounded.Null_Unbounded_String
+                       and then End_After (Last.From, Unbounded.To_String (Last.Inserted)) = Done.From
+                       and then (for all C of Unbounded.To_String (Done.Inserted) => C /= ASCII.LF);
                      if Joined then
                         Unbounded.Append (Last.Inserted, Done.Inserted);
                      end if;
-                  when Deleting_Back =>
-                     Joined := Done.Inserted = Unbounded.Null_Unbounded_String
-                       and then End_After
-                                  (Done.From,
-                                   Unbounded.To_String (Done.Removed))
-                                = Last.From;
+
+                  when Deleting_Back    =>
+                     Joined :=
+                       Done.Inserted = Unbounded.Null_Unbounded_String
+                       and then End_After (Done.From, Unbounded.To_String (Done.Removed)) = Last.From;
                      if Joined then
                         Last.From := Done.From;
                         Last.Removed := Done.Removed & Last.Removed;
                         Last.Gone := Done.Gone & Last.Gone;
                      end if;
+
                   when Deleting_Forward =>
-                     Joined := Done.Inserted = Unbounded.Null_Unbounded_String
-                       and then Done.From = Last.From;
+                     Joined := Done.Inserted = Unbounded.Null_Unbounded_String and then Done.From = Last.From;
                      if Joined then
                         Unbounded.Append (Last.Removed, Done.Removed);
                         Last.Gone.Append (Done.Gone);
                      end if;
-                  when Other =>
+
+                  when Other            =>
                      null;
                end case;
                if Joined then
@@ -790,28 +745,28 @@ package body Texts.Documents is
    end Push;
 
    procedure Replace
-     (Item     : in out Document;
-      From, To : Position;
-      By       : String;
-      Undo_As  : Edit_Kind := Other;
-      Recorded : Boolean := True;
+     (Item             : in out Document;
+      From, To         : Position;
+      By               : String;
+      Undo_As          : Edit_Kind := Other;
+      Recorded         : Boolean := True;
       Explicit_Formats : Boolean := False;
-      Formats : Format_Set := No_Formats;
-      Sizing  : Natural := 0;
-      Facing  : String := "")
+      Formats          : Format_Set := No_Formats;
+      Sizing           : Natural := 0;
+      Facing           : String := "")
    is
-      Clean      : constant String := Sanitized (By);
-      Removed    : constant Unbounded.Unbounded_String :=
+      Clean       : constant String := Sanitized (By);
+      Removed     : constant Unbounded.Unbounded_String :=
         (if Recorded
          then Unbounded.To_Unbounded_String (Between (Item, From, To))
          else Unbounded.Null_Unbounded_String);
-      Gone, Made : Named_Vectors.Vector;
+      Gone, Made  : Named_Vectors.Vector;
       Old_Formats : constant Format_Vectors.Vector := Item.Formats;
    begin
       Splice (Item, From, To, Clean, Named_Vectors.Empty_Vector, Gone, Made);
       if Explicit_Formats and then Clean'Length > 0 then
          declare
-            Ending : constant Position := End_After (From, Clean);
+            Ending  : constant Position := End_After (From, Clean);
             Updated : Format_Vectors.Vector;
          begin
             for R of Item.Formats loop
@@ -827,39 +782,51 @@ package body Texts.Documents is
                end if;
             end loop;
             for F in Format loop
-               if Formats (F) and then F not in Linked | Versioned
-                 and then (F /= Sized or else Sizing > 0) and then (F /= Faced or else Facing'Length > 0)
+               if Formats (F)
+                 and then F not in Linked | Versioned
+                 and then (F /= Sized or else Sizing > 0)
+                 and then (F /= Faced or else Facing'Length > 0)
                then
                   Include_Format
                     (Updated,
-                     Format_Run'(From, Ending, F, Choice => (if F = Sized then Sizing else 0),
-                                 Name => (if F = Faced then Unbounded.To_Unbounded_String (Facing)
-                                          else Unbounded.Null_Unbounded_String),
-                                 others => <>));
+                     Format_Run'
+                       (From,
+                        Ending,
+                        F,
+                        Choice => (if F = Sized then Sizing else 0),
+                        Name   =>
+                          (if F = Faced
+                           then Unbounded.To_Unbounded_String (Facing)
+                           else Unbounded.Null_Unbounded_String),
+                        others => <>));
                end if;
             end loop;
             Item.Formats := Updated;
          end;
       end if;
       if Recorded then
-         Push (Item,
-               (From      => From,
-                Removed   => Removed,
-                Inserted  => Unbounded.To_Unbounded_String (Clean),
-                Gone      => Gone,
-                Made      => Made,
-                Kind      => Undo_As,
-                Old_Formats => Old_Formats, New_Formats => Item.Formats,
-                others    => <>));
+         Push
+           (Item,
+            (From        => From,
+             Removed     => Removed,
+             Inserted    => Unbounded.To_Unbounded_String (Clean),
+             Gone        => Gone,
+             Made        => Made,
+             Kind        => Undo_As,
+             Old_Formats => Old_Formats,
+             New_Formats => Item.Formats,
+             others      => <>));
       end if;
    end Replace;
 
-   function Run_Count (Item : Document) return Natural is (Natural (Item.Formats.Length));
+   function Run_Count (Item : Document) return Natural
+   is (Natural (Item.Formats.Length));
 
-   function Run (Item : Document; Index : Positive) return Format_Run is (Item.Formats (Index));
+   function Run (Item : Document; Index : Positive) return Format_Run
+   is (Item.Formats (Index));
 
    function Has_Format (Item : Document; From, To : Position; Style : Format) return Boolean is
-      Cursor : Position := From;
+      Cursor   : Position := From;
       Advanced : Boolean;
    begin
       loop
@@ -879,7 +846,7 @@ package body Texts.Documents is
    end Has_Format;
 
    procedure Set_Format (Item : in out Document; From, To : Position; Style : Format; Enabled : Boolean) is
-      Old : constant Format_Vectors.Vector := Item.Formats;
+      Old     : constant Format_Vectors.Vector := Item.Formats;
       Updated : Format_Vectors.Vector;
    begin
       for R of Old loop
@@ -899,8 +866,14 @@ package body Texts.Documents is
       end if;
       Item.Formats := Updated;
       Log_Change (Item, Change'(From => From, To => To, Ending => To, Formats_Only => True, others => <>));
-      Push (Item, (From => From, Formats_Only => True, Format_End => To, Old_Formats => Old,
-                   New_Formats => Updated, others => <>));
+      Push
+        (Item,
+         (From         => From,
+          Formats_Only => True,
+          Format_End   => To,
+          Old_Formats  => Old,
+          New_Formats  => Updated,
+          others       => <>));
       Item.Joining := False;
    end Set_Format;
 
@@ -936,7 +909,7 @@ package body Texts.Documents is
    end Family_At;
 
    procedure Set_Valued (Item : in out Document; From, To : Position; Wanted : Format_Run; Enabled : Boolean) is
-      Old : constant Format_Vectors.Vector := Item.Formats;
+      Old     : constant Format_Vectors.Vector := Item.Formats;
       Updated : Format_Vectors.Vector;
    begin
       for R of Old loop
@@ -956,8 +929,14 @@ package body Texts.Documents is
       end if;
       Item.Formats := Updated;
       Log_Change (Item, Change'(From => From, To => To, Ending => To, Formats_Only => True, others => <>));
-      Push (Item, (From => From, Formats_Only => True, Format_End => To, Old_Formats => Old,
-                   New_Formats => Updated, others => <>));
+      Push
+        (Item,
+         (From         => From,
+          Formats_Only => True,
+          Format_End   => To,
+          Old_Formats  => Old,
+          New_Formats  => Updated,
+          others       => <>));
       Item.Joining := False;
    end Set_Valued;
 
@@ -969,15 +948,19 @@ package body Texts.Documents is
    procedure Set_Family (Item : in out Document; From, To : Position; Name : String) is
    begin
       Set_Valued
-        (Item, From, To,
-         Format_Run'(From, To, Faced, Name => Unbounded.To_Unbounded_String (Name), others => <>), Name'Length > 0);
+        (Item,
+         From,
+         To,
+         Format_Run'(From, To, Faced, Name => Unbounded.To_Unbounded_String (Name), others => <>),
+         Name'Length > 0);
    end Set_Family;
 
    function Is_Address (Words : String) return Boolean is
-      function Starts (Prefix : String) return Boolean is
-        (Words'Length > Prefix'Length and then Words (Words'First .. Words'First + Prefix'Length - 1) = Prefix);
+      function Starts (Prefix : String) return Boolean
+      is (Words'Length > Prefix'Length and then Words (Words'First .. Words'First + Prefix'Length - 1) = Prefix);
    begin
-      return Words'Length <= Link_Capacity
+      return
+        Words'Length <= Link_Capacity
         and then (Starts ("http://") or else Starts ("https://") or else Starts ("mailto:"))
         and then (for all C of Words => Standard.Character'Pos (C) > 32 and then Standard.Character'Pos (C) /= 127);
    end Is_Address;
@@ -991,7 +974,9 @@ package body Texts.Documents is
    procedure Set_Link (Item : in out Document; From, To : Position; Address : String) is
    begin
       Set_Valued
-        (Item, From, To,
+        (Item,
+         From,
+         To,
          Format_Run'(From, To, Linked, Name => Unbounded.To_Unbounded_String (Address), others => <>),
          Address'Length > 0);
    end Set_Link;
@@ -1039,8 +1024,8 @@ package body Texts.Documents is
    Version_Close : constant String := "</version>";
    Version_Made  : constant String := "1";
 
-   function Tag_Of (Style : Format) return Character is
-     (case Style is
+   function Tag_Of (Style : Format) return Character
+   is (case Style is
          when Bold          => 'b',
          when Underline     => 'u',
          when Italic        => 'i',
@@ -1051,8 +1036,8 @@ package body Texts.Documents is
          when Linked        => 'a',
          when Versioned     => 'v');
 
-   function Is_Space (C : Character) return Boolean is
-     (C in ' ' | ASCII.HT | ASCII.LF | ASCII.CR);
+   function Is_Space (C : Character) return Boolean
+   is (C in ' ' | ASCII.HT | ASCII.LF | ASCII.CR);
 
    function Has_Version (Content : String) return Boolean is
       First : Positive := Content'First;
@@ -1060,7 +1045,8 @@ package body Texts.Documents is
       while First <= Content'Last and then Is_Space (Content (First)) loop
          First := First + 1;
       end loop;
-      return Content'Last - First + 1 >= Version_Open'Length
+      return
+        Content'Last - First + 1 >= Version_Open'Length
         and then Content (First .. First + Version_Open'Length - 1) = Version_Open;
    end Has_Version;
 
@@ -1077,15 +1063,15 @@ package body Texts.Documents is
       end;
    end Upgraded;
 
-   function Number_Image (Value : Natural) return String is
-     (Ada.Strings.Fixed.Trim (Natural'Image (Value), Ada.Strings.Left));
+   function Number_Image (Value : Natural) return String
+   is (Ada.Strings.Fixed.Trim (Natural'Image (Value), Ada.Strings.Left));
 
-   function Paragraph_Tag (Of_Kind : Paragraph_Kind; Within : Paragraph_Inset) return String is
-     ("<p"
-      & (if Of_Kind = Plain then "" else " k=""" & Number_Image (Natural (Of_Kind)) & """")
-      & (if Within.Indent = 0 then "" else " i=""" & Number_Image (Within.Indent) & """")
-      & (if Within.Quoted then " q=""1""" else "")
-      & ">");
+   function Paragraph_Tag (Of_Kind : Paragraph_Kind; Within : Paragraph_Inset) return String
+   is ("<p"
+       & (if Of_Kind = Plain then "" else " k=""" & Number_Image (Natural (Of_Kind)) & """")
+       & (if Within.Indent = 0 then "" else " i=""" & Number_Image (Within.Indent) & """")
+       & (if Within.Quoted then " q=""1""" else "")
+       & ">");
    --  <p>, with the attributes the paragraph has, in this order: k (kind), i (indent), q (quoted).
 
    function Parsed_Tag (Name : String; Of_Kind : out Paragraph_Kind; Within : out Paragraph_Inset) return Boolean is
@@ -1094,13 +1080,11 @@ package body Texts.Documents is
 
       function Number (After : String; Value : out Natural) return Boolean is
          Opening : constant String := " " & After & "=""";
-         Start : Natural;
-         Stop  : Natural;
+         Start   : Natural;
+         Stop    : Natural;
       begin
          Value := 0;
-         if Cursor + Opening'Length - 1 > Name'Last
-           or else Name (Cursor .. Cursor + Opening'Length - 1) /= Opening
-         then
+         if Cursor + Opening'Length - 1 > Name'Last or else Name (Cursor .. Cursor + Opening'Length - 1) /= Opening then
             return False;
          end if;
          Start := Cursor + Opening'Length;
@@ -1158,10 +1142,17 @@ package body Texts.Documents is
       begin
          for C of Words loop
             case C is
-               when '&'    => Unbounded.Append (Result, "&amp;");
-               when '<'    => Unbounded.Append (Result, "&lt;");
-               when '>'    => Unbounded.Append (Result, "&gt;");
-               when others => Unbounded.Append (Result, C);
+               when '&'    =>
+                  Unbounded.Append (Result, "&amp;");
+
+               when '<'    =>
+                  Unbounded.Append (Result, "&lt;");
+
+               when '>'    =>
+                  Unbounded.Append (Result, "&gt;");
+
+               when others =>
+                  Unbounded.Append (Result, C);
             end case;
          end loop;
       end Escape;
@@ -1171,25 +1162,40 @@ package body Texts.Documents is
       begin
          for C of Words loop
             case C is
-               when '&'    => Unbounded.Append (Made, "&amp;");
-               when '<'    => Unbounded.Append (Made, "&lt;");
-               when '>'    => Unbounded.Append (Made, "&gt;");
-               when '"'    => Unbounded.Append (Made, "&quot;");
-               when others => Unbounded.Append (Made, C);
+               when '&'    =>
+                  Unbounded.Append (Made, "&amp;");
+
+               when '<'    =>
+                  Unbounded.Append (Made, "&lt;");
+
+               when '>'    =>
+                  Unbounded.Append (Made, "&gt;");
+
+               when '"'    =>
+                  Unbounded.Append (Made, "&quot;");
+
+               when others =>
+                  Unbounded.Append (Made, C);
             end case;
          end loop;
          return Unbounded.To_String (Made);
       end Quoted;
 
       procedure Reach
-        (Wanted  : Format_Set; Points : Natural; Family : String; Address : String;
-         Wording : Natural; Piece : Format_Run) is
-         Keep    : Natural := 0;
-         Outer   : constant Natural := (if Depth > 0 and then Open (1).Style = Versioned then Open (1).Id else 0);
+        (Wanted  : Format_Set;
+         Points  : Natural;
+         Family  : String;
+         Address : String;
+         Wording : Natural;
+         Piece   : Format_Run)
+      is
+         Keep  : Natural := 0;
+         Outer : constant Natural := (if Depth > 0 and then Open (1).Style = Versioned then Open (1).Id else 0);
       begin
          --  A text with versions is outside the rest, so that it is one element.
          if Wording = Outer then
-            while Keep < Depth and then Wanted (Open (Keep + 1).Style)
+            while Keep < Depth
+              and then Wanted (Open (Keep + 1).Style)
               and then (Open (Keep + 1).Style /= Sized or else Open (Keep + 1).Id = Points)
               and then (Open (Keep + 1).Style /= Faced or else Unbounded.To_String (Open (Keep + 1).Name) = Family)
               and then (Open (Keep + 1).Style /= Linked or else Unbounded.To_String (Open (Keep + 1).Name) = Address)
@@ -1213,24 +1219,27 @@ package body Texts.Documents is
             end loop;
          end if;
          for Style in Format loop
-            if Style /= Versioned and then Wanted (Style)
+            if Style /= Versioned
+              and then Wanted (Style)
               and then not (for some I in 1 .. Depth => Open (I).Style = Style)
             then
                Depth := Depth + 1;
                Open (Depth) :=
-                 (Style, (if Style = Sized then Points else 0),
+                 (Style,
+                  (if Style = Sized then Points else 0),
                   (case Style is
-                      when Faced  => Unbounded.To_Unbounded_String (Family),
-                      when Linked => Unbounded.To_Unbounded_String (Address),
-                      when others => Unbounded.Null_Unbounded_String));
+                     when Faced  => Unbounded.To_Unbounded_String (Family),
+                     when Linked => Unbounded.To_Unbounded_String (Address),
+                     when others => Unbounded.Null_Unbounded_String));
                Unbounded.Append
                  (Result,
-                  "<" & Tag_Of (Style)
+                  "<"
+                  & Tag_Of (Style)
                   & (case Style is
-                        when Sized => " n=""" & Ada.Strings.Fixed.Trim (Points'Image, Ada.Strings.Both) & """",
-                        when Faced => " n=""" & Family & """",
-                        when Linked => " h=""" & Quoted (Address) & """",
-                        when others => "")
+                       when Sized  => " n=""" & Ada.Strings.Fixed.Trim (Points'Image, Ada.Strings.Both) & """",
+                       when Faced  => " n=""" & Family & """",
+                       when Linked => " h=""" & Quoted (Address) & """",
+                       when others => "")
                   & ">");
             end if;
          end loop;
@@ -1248,7 +1257,8 @@ package body Texts.Documents is
                if R.From.Paragraph <= Para and then Para <= R.To.Paragraph then
                   declare
                      P : constant Format_Run :=
-                       (R with delta
+                       (R
+                        with delta
                           From => (Para, (if R.From.Paragraph = Para then R.From.Index else 1)),
                           To   => (Para, (if R.To.Paragraph = Para then R.To.Index else Stop)));
                   begin
@@ -1261,14 +1271,14 @@ package body Texts.Documents is
             Unbounded.Append (Result, Paragraph_Tag (Kind (Item, Para), Inset (Item, Para)));
             for Cut in Cuts.Iterate loop
                declare
-                  A : constant Positive := Cut_Sets.Element (Cut);
-                  Next : constant Cut_Sets.Cursor := Cut_Sets.Next (Cut);
-                  Wanted : Format_Set := No_Formats;
-                  Points : Natural := 0;
-                  Family : Unbounded.Unbounded_String;
+                  A       : constant Positive := Cut_Sets.Element (Cut);
+                  Next    : constant Cut_Sets.Cursor := Cut_Sets.Next (Cut);
+                  Wanted  : Format_Set := No_Formats;
+                  Points  : Natural := 0;
+                  Family  : Unbounded.Unbounded_String;
                   Address : Unbounded.Unbounded_String;
                   Wording : Natural := 0;
-                  Piece : Format_Run := (From => (1, 1), To => (1, 1), Style => Bold, others => <>);
+                  Piece   : Format_Run := (From => (1, 1), To => (1, 1), Style => Bold, others => <>);
                begin
                   if Cut_Sets.Has_Element (Next) then
                      for P of Pieces loop
@@ -1287,8 +1297,8 @@ package body Texts.Documents is
                            end if;
                         end if;
                      end loop;
-                     Reach (Wanted, Points, Unbounded.To_String (Family), Unbounded.To_String (Address),
-                            Wording, Piece);
+                     Reach
+                       (Wanted, Points, Unbounded.To_String (Family), Unbounded.To_String (Address), Wording, Piece);
                      Escape (Slice (Item, Para, A, Cut_Sets.Element (Next)));
                   end if;
                end;
@@ -1335,15 +1345,15 @@ package body Texts.Documents is
       end record;
 
       Nesting_Limit : constant := 64;
-      Body_Text : Unbounded.Unbounded_String;
-      Runs     : Format_Vectors.Vector;
-      Stack    : array (1 .. Nesting_Limit) of Opened;
-      Depth    : Natural := 0;
-      Para     : Natural := 0;
-      Inside   : Boolean := False;  --  between <p> and </p>
-      Length   : Natural := 0;      --  bytes of the paragraph so far
-      Saw_Version : Boolean := False;
-      Checked  : Document;
+      Body_Text     : Unbounded.Unbounded_String;
+      Runs          : Format_Vectors.Vector;
+      Stack         : array (1 .. Nesting_Limit) of Opened;
+      Depth         : Natural := 0;
+      Para          : Natural := 0;
+      Inside        : Boolean := False;  --  between <p> and </p>
+      Length        : Natural := 0;      --  bytes of the paragraph so far
+      Saw_Version   : Boolean := False;
+      Checked       : Document;
 
       procedure Fail (Reason : String) with No_Return is
       begin
@@ -1417,10 +1427,10 @@ package body Texts.Documents is
             Fail ("unterminated tag");
          end if;
          declare
-            Closing : constant Boolean := Cursor < Stop - 1 and then Source (Cursor + 1) = '/';
-            Name    : constant String := Source (Cursor + (if Closing then 2 else 1) .. Stop - 1);
-            Style   : Format := Bold;
-            Styled  : Boolean := True;
+            Closing      : constant Boolean := Cursor < Stop - 1 and then Source (Cursor + 1) = '/';
+            Name         : constant String := Source (Cursor + (if Closing then 2 else 1) .. Stop - 1);
+            Style        : Format := Bold;
+            Styled       : Boolean := True;
             Tagged_Kind  : Paragraph_Kind;
             Tagged_Inset : Paragraph_Inset;
          begin
@@ -1468,8 +1478,11 @@ package body Texts.Documents is
                   Stack (Depth).Rest.Append (Unbounded.To_Unbounded_String (Source (Cursor .. Ends - 1)));
                   Cursor := Ends + 4;
                end;
-            elsif not Closing and then Name'Length > 7 and then Name (Name'First .. Name'First + 5) = "v sel="
-              and then Name (Name'First + 6) = '"' and then Name (Name'Last) = '"'
+            elsif not Closing
+              and then Name'Length > 7
+              and then Name (Name'First .. Name'First + 5) = "v sel="
+              and then Name (Name'First + 6) = '"'
+              and then Name (Name'Last) = '"'
               and then (for all C of Name (Name'First + 7 .. Name'Last - 1) => C in '0' .. '9')
               and then Name'Length < 16
             then
@@ -1481,7 +1494,9 @@ package body Texts.Documents is
                Depth := Depth + 1;
                Stack (Depth) :=
                  (Versioned, Length + 1, Natural'Value (Name (Name'First + 7 .. Name'Last - 1)), others => <>);
-            elsif not Closing and then Name'Length > 5 and then Name (Name'First .. Name'First + 4) = "a h="""
+            elsif not Closing
+              and then Name'Length > 5
+              and then Name (Name'First .. Name'First + 4) = "a h="""
               and then Name (Name'Last) = '"'
             then
                declare
@@ -1537,8 +1552,11 @@ package body Texts.Documents is
                   Depth := Depth + 1;
                   Stack (Depth) := (Linked, Length + 1, 0, Address, others => <>);
                end;
-            elsif not Closing and then Name'Length > 5 and then Name (Name'First) in 'z' | 'y'
-              and then Name (Name'First + 1 .. Name'First + 4) = " n=""" and then Name (Name'Last) = '"'
+            elsif not Closing
+              and then Name'Length > 5
+              and then Name (Name'First) in 'z' | 'y'
+              and then Name (Name'First + 1 .. Name'First + 4) = " n="""
+              and then Name (Name'Last) = '"'
             then
                declare
                   Value : constant String := Name (Name'First + 5 .. Name'Last - 1);
@@ -1552,7 +1570,9 @@ package body Texts.Documents is
                   end if;
                   Depth := Depth + 1;
                   if Name (Name'First) = 'z' then
-                     if Value'Length > 3 or else Value'Length = 0 or else not (for all C of Value => C in '0' .. '9')
+                     if Value'Length > 3
+                       or else Value'Length = 0
+                       or else not (for all C of Value => C in '0' .. '9')
                        or else Natural'Value (Value) not in 1 .. Largest_Size
                      then
                         Fail ("size");
@@ -1564,16 +1584,35 @@ package body Texts.Documents is
                end;
             elsif Name'Length = 1 then
                case Name (Name'First) is
-                  when 'b' => Style := Bold;
-                  when 'u' => Style := Underline;
-                  when 'i' => Style := Italic;
-                  when 's' => Style := Strikethrough;
-                  when 'f' => Style := Faded;
-                  when 'z' => Style := Sized;
-                  when 'y' => Style := Faced;
-                  when 'a' => Style := Linked;
-                  when 'v' => Style := Versioned;
-                  when others => Styled := False;
+                  when 'b'    =>
+                     Style := Bold;
+
+                  when 'u'    =>
+                     Style := Underline;
+
+                  when 'i'    =>
+                     Style := Italic;
+
+                  when 's'    =>
+                     Style := Strikethrough;
+
+                  when 'f'    =>
+                     Style := Faded;
+
+                  when 'z'    =>
+                     Style := Sized;
+
+                  when 'y'    =>
+                     Style := Faced;
+
+                  when 'a'    =>
+                     Style := Linked;
+
+                  when 'v'    =>
+                     Style := Versioned;
+
+                  when others =>
+                     Styled := False;
                end case;
                if not Styled then
                   Fail ("unknown tag <" & Name & ">");
@@ -1600,15 +1639,26 @@ package body Texts.Documents is
                         begin
                            Every.Insert (Stack (Depth).Choice, Unbounded.Null_Unbounded_String);
                            Include_Format
-                             (Runs, Format_Run'((Para, Stack (Depth).Start), (Para, Length + 1), Style,
-                                                Stack (Depth).Choice, Every, others => <>));
+                             (Runs,
+                              Format_Run'
+                                ((Para, Stack (Depth).Start),
+                                 (Para, Length + 1),
+                                 Style,
+                                 Stack (Depth).Choice,
+                                 Every,
+                                 others => <>));
                         end;
                      end if;
                   elsif Stack (Depth).Start < Length + 1 then
                      Include_Format
-                       (Runs, Format_Run'((Para, Stack (Depth).Start), (Para, Length + 1), Style,
-                                          Choice => Stack (Depth).Choice, Name => Stack (Depth).Name,
-                                          others => <>));
+                       (Runs,
+                        Format_Run'
+                          ((Para, Stack (Depth).Start),
+                           (Para, Length + 1),
+                           Style,
+                           Choice => Stack (Depth).Choice,
+                           Name   => Stack (Depth).Name,
+                           others => <>));
                   end if;
                   Depth := Depth - 1;
                end if;
@@ -1644,7 +1694,8 @@ package body Texts.Documents is
       begin
          while Joined loop
             Joined := False;
-            Search : for First in 1 .. Natural (Runs.Length) loop
+            Search :
+            for First in 1 .. Natural (Runs.Length) loop
                for Second in 1 .. Natural (Runs.Length) loop
                   if First /= Second
                     and then Runs (First).Style = Runs (Second).Style
@@ -1655,8 +1706,7 @@ package body Texts.Documents is
                     and then Runs (Second).From.Paragraph = Runs (First).To.Paragraph + 1
                     and then Runs (First).To.Index = Byte_Length (Checked, Runs (First).To.Paragraph) + 1
                   then
-                     Runs.Replace_Element
-                       (First, (Runs (First) with delta To => Runs (Second).To));
+                     Runs.Replace_Element (First, (Runs (First) with delta To => Runs (Second).To));
                      Runs.Delete (Second);
                      Joined := True;
                      exit Search;
@@ -1673,39 +1723,37 @@ package body Texts.Documents is
       end loop;
    end Load_Stored;
 
-   procedure Set_Kind
-     (Item : in out Document; Para : Positive; To : Paragraph_Kind)
-   is
+   procedure Set_Kind (Item : in out Document; Para : Positive; To : Paragraph_Kind) is
       Old    : constant Paragraph_Kind := Item.Paragraphs.Element (Para).Kind;
       Within : constant Paragraph_Inset := Item.Paragraphs.Element (Para).Inset;
    begin
       Set_Kind_Unrecorded (Item, Para, To, Within);
-      Push (Item,
-            (From      => (Para, 1),
-             Kind_Only => True,
-             Old_Kind  => Old,
-             New_Kind  => To,
-             Old_Inset => Within,
-             New_Inset => Within,
-             others    => <>));
+      Push
+        (Item,
+         (From      => (Para, 1),
+          Kind_Only => True,
+          Old_Kind  => Old,
+          New_Kind  => To,
+          Old_Inset => Within,
+          New_Inset => Within,
+          others    => <>));
       Item.Joining := False;
    end Set_Kind;
 
-   procedure Set_Inset
-     (Item : in out Document; Para : Positive; To : Paragraph_Inset)
-   is
+   procedure Set_Inset (Item : in out Document; Para : Positive; To : Paragraph_Inset) is
       Kind_Is : constant Paragraph_Kind := Item.Paragraphs.Element (Para).Kind;
       Old     : constant Paragraph_Inset := Item.Paragraphs.Element (Para).Inset;
    begin
       Set_Kind_Unrecorded (Item, Para, Kind_Is, To);
-      Push (Item,
-            (From      => (Para, 1),
-             Kind_Only => True,
-             Old_Kind  => Kind_Is,
-             New_Kind  => Kind_Is,
-             Old_Inset => Old,
-             New_Inset => To,
-             others    => <>));
+      Push
+        (Item,
+         (From      => (Para, 1),
+          Kind_Only => True,
+          Old_Kind  => Kind_Is,
+          New_Kind  => Kind_Is,
+          Old_Inset => Old,
+          New_Inset => To,
+          others    => <>));
       Item.Joining := False;
    end Set_Inset;
 
@@ -1730,33 +1778,41 @@ package body Texts.Documents is
       end if;
    end End_Step;
 
-   function In_Step (Item : Document) return Boolean is (Item.Depth > 0);
+   function In_Step (Item : Document) return Boolean
+   is (Item.Depth > 0);
 
    procedure Seal (Item : in out Document) is
    begin
       Item.Joining := False;
    end Seal;
 
-   procedure Undo
-     (Item : in out Document;
-      From, To : out Position)
-   is
-      Taken : constant Step := Item.Undos.Last_Element;
+   procedure Undo (Item : in out Document; From, To : out Position) is
+      Taken      : constant Step := Item.Undos.Last_Element;
       Gone, Made : Named_Vectors.Vector;
    begin
       Item.Undos.Delete_Last;
       for Done of reverse Taken.Edits loop
          if Done.Formats_Only then
             Item.Formats := Done.Old_Formats;
-            Log_Change (Item, Change'(From => (1, 1), To => Text_End (Item),
-                                     Ending => Text_End (Item), Formats_Only => True, others => <>));
+            Log_Change
+              (Item,
+               Change'
+                 (From         => (1, 1),
+                  To           => Text_End (Item),
+                  Ending       => Text_End (Item),
+                  Formats_Only => True,
+                  others       => <>));
          elsif Done.Kind_Only then
             Set_Kind_Unrecorded (Item, Done.From.Paragraph, Done.Old_Kind, Done.Old_Inset);
          else
             Splice
-              (Item, Done.From,
+              (Item,
+               Done.From,
                End_After (Done.From, Unbounded.To_String (Done.Inserted)),
-               Unbounded.To_String (Done.Removed), Done.Gone, Gone, Made);
+               Unbounded.To_String (Done.Removed),
+               Done.Gone,
+               Gone,
+               Made);
             Item.Formats := Done.Old_Formats;
          end if;
       end loop;
@@ -1764,34 +1820,44 @@ package body Texts.Documents is
          First : Edit renames Taken.Edits.First_Element;
       begin
          From := First.From;
-         To := (if First.Formats_Only then First.Format_End elsif First.Kind_Only then First.From
-                else End_After
-                       (First.From, Unbounded.To_String (First.Removed)));
+         To :=
+           (if First.Formats_Only
+            then First.Format_End
+            elsif First.Kind_Only
+            then First.From
+            else End_After (First.From, Unbounded.To_String (First.Removed)));
       end;
       Item.Redos.Append (Taken);
       Item.Joining := False;
    end Undo;
 
-   procedure Redo
-     (Item : in out Document;
-      From, To : out Position)
-   is
-      Taken : constant Step := Item.Redos.Last_Element;
+   procedure Redo (Item : in out Document; From, To : out Position) is
+      Taken      : constant Step := Item.Redos.Last_Element;
       Gone, Made : Named_Vectors.Vector;
    begin
       Item.Redos.Delete_Last;
       for Done of Taken.Edits loop
          if Done.Formats_Only then
             Item.Formats := Done.New_Formats;
-            Log_Change (Item, Change'(From => (1, 1), To => Text_End (Item),
-                                     Ending => Text_End (Item), Formats_Only => True, others => <>));
+            Log_Change
+              (Item,
+               Change'
+                 (From         => (1, 1),
+                  To           => Text_End (Item),
+                  Ending       => Text_End (Item),
+                  Formats_Only => True,
+                  others       => <>));
          elsif Done.Kind_Only then
             Set_Kind_Unrecorded (Item, Done.From.Paragraph, Done.New_Kind, Done.New_Inset);
          else
             Splice
-              (Item, Done.From,
+              (Item,
+               Done.From,
                End_After (Done.From, Unbounded.To_String (Done.Removed)),
-               Unbounded.To_String (Done.Inserted), Done.Made, Gone, Made);
+               Unbounded.To_String (Done.Inserted),
+               Done.Made,
+               Gone,
+               Made);
             Item.Formats := Done.New_Formats;
          end if;
       end loop;
@@ -1799,34 +1865,39 @@ package body Texts.Documents is
          Last : Edit renames Taken.Edits.Last_Element;
       begin
          From := Last.From;
-         To := (if Last.Formats_Only then Last.Format_End elsif Last.Kind_Only then Last.From
-                else End_After
-                       (Last.From, Unbounded.To_String (Last.Inserted)));
+         To :=
+           (if Last.Formats_Only
+            then Last.Format_End
+            elsif Last.Kind_Only
+            then Last.From
+            else End_After (Last.From, Unbounded.To_String (Last.Inserted)));
       end;
       Item.Undos.Append (Taken);
       Item.Joining := False;
    end Redo;
 
-   function Can_Undo (Item : Document) return Boolean is
-     (not Item.Undos.Is_Empty);
+   function Can_Undo (Item : Document) return Boolean
+   is (not Item.Undos.Is_Empty);
 
-   function Can_Redo (Item : Document) return Boolean is
-     (not Item.Redos.Is_Empty);
+   function Can_Redo (Item : Document) return Boolean
+   is (not Item.Redos.Is_Empty);
 
-   function State (Item : Document) return Natural is
-     (if Item.Undos.Is_Empty then 0 else Item.Undos.Last_Element.Id);
+   function State (Item : Document) return Natural
+   is (if Item.Undos.Is_Empty then 0 else Item.Undos.Last_Element.Id);
 
    --  The log
 
-   function Current (Item : Document) return Version is
-     (Item.Base + Version (Item.Log.Length));
+   function Current (Item : Document) return Version
+   is (Item.Base + Version (Item.Log.Length));
 
-   function Oldest (Item : Document) return Version is (Item.Base);
+   function Oldest (Item : Document) return Version
+   is (Item.Base);
 
-   function Serial (Item : Document) return Positive is (Item.Serial);
+   function Serial (Item : Document) return Positive
+   is (Item.Serial);
 
-   function Change_After (Item : Document; Seen : Version) return Change is
-     (Item.Log (Positive (Seen - Item.Base + 1)));
+   function Change_After (Item : Document; Seen : Version) return Change
+   is (Item.Log (Positive (Seen - Item.Base + 1)));
 
    function Map (Item : Change; At_Point : Position) return Position is
    begin
@@ -1835,12 +1906,9 @@ package body Texts.Documents is
       elsif At_Point < Item.To then
          return Item.From;
       elsif At_Point.Paragraph = Item.To.Paragraph then
-         return (Item.Ending.Paragraph,
-                 Item.Ending.Index + At_Point.Index - Item.To.Index);
+         return (Item.Ending.Paragraph, Item.Ending.Index + At_Point.Index - Item.To.Index);
       else
-         return (At_Point.Paragraph - Item.To.Paragraph
-                   + Item.Ending.Paragraph,
-                 At_Point.Index);
+         return (At_Point.Paragraph - Item.To.Paragraph + Item.Ending.Paragraph, At_Point.Index);
       end if;
    end Map;
 
@@ -1849,11 +1917,20 @@ package body Texts.Documents is
    begin
       for C of Raw loop
          case C is
-            when '&'    => Unbounded.Append (Result, "&amp;");
-            when '<'    => Unbounded.Append (Result, "&lt;");
-            when '>'    => Unbounded.Append (Result, "&gt;");
-            when ASCII.LF | ASCII.CR => Unbounded.Append (Result, ' ');
-            when others => Unbounded.Append (Result, C);
+            when '&'                 =>
+               Unbounded.Append (Result, "&amp;");
+
+            when '<'                 =>
+               Unbounded.Append (Result, "&lt;");
+
+            when '>'                 =>
+               Unbounded.Append (Result, "&gt;");
+
+            when ASCII.LF | ASCII.CR =>
+               Unbounded.Append (Result, ' ');
+
+            when others              =>
+               Unbounded.Append (Result, C);
          end case;
       end loop;
       return Unbounded.To_String (Result);
@@ -1875,37 +1952,40 @@ package body Texts.Documents is
                if A < B then
                   Include_Format
                     (Probe.Formats,
-                     Format_Run'((1, A.Index - From.Index + 1), (1, B.Index - From.Index + 1), R.Style,
-                                 Choice => R.Choice, Name => R.Name, others => <>));
+                     Format_Run'
+                       ((1, A.Index - From.Index + 1),
+                        (1, B.Index - From.Index + 1),
+                        R.Style,
+                        Choice => R.Choice,
+                        Name   => R.Name,
+                        others => <>));
                end if;
             end;
          end if;
       end loop;
       declare
          Whole_Markup : constant String := Stored (Probe);
-         First : constant Natural := Ada.Strings.Fixed.Index (Whole_Markup, Paragraph_Open);
+         First        : constant Natural := Ada.Strings.Fixed.Index (Whole_Markup, Paragraph_Open);
       begin
          return Whole_Markup (First + Paragraph_Open'Length .. Whole_Markup'Last - Paragraph_Close'Length);
       end;
    end Fragment;
 
    procedure Set_Version_Text
-     (Item : in out Document; From, To : Position; Words : String; Choice : Positive;
-      Versions : Version_Lists.Vector);
+     (Item : in out Document; From, To : Position; Words : String; Choice : Positive; Versions : Version_Lists.Vector);
    --  Make Words, markup, the text From to To, as the version Choice of
    --  Versions of a Versioned run there, as one edit to undo.
 
    procedure Set_Version_Text
-     (Item : in out Document; From, To : Position; Words : String; Choice : Positive;
-      Versions : Version_Lists.Vector)
+     (Item : in out Document; From, To : Position; Words : String; Choice : Positive; Versions : Version_Lists.Vector)
    is
       Probe : Document;
    begin
       Load_Stored (Probe, Version_Open & Version_Made & Version_Close & Paragraph_Open & Words & Paragraph_Close);
       declare
-         Raw    : constant String := Whole (Probe);
-         Ending : constant Position := End_After (From, Raw);
-         Old    : Format_Vectors.Vector;
+         Raw     : constant String := Whole (Probe);
+         Ending  : constant Position := End_After (From, Raw);
+         Old     : Format_Vectors.Vector;
          Updated : Format_Vectors.Vector;
       begin
          Begin_Step (Item);
@@ -1929,31 +2009,37 @@ package body Texts.Documents is
          for R of Probe.Formats loop
             Include_Format
               (Updated,
-               Format_Run'((From.Paragraph, From.Index + R.From.Index - 1),
-                           (From.Paragraph, From.Index + R.To.Index - 1), R.Style,
-                           Choice => R.Choice, Name => R.Name, others => <>));
+               Format_Run'
+                 ((From.Paragraph, From.Index + R.From.Index - 1),
+                  (From.Paragraph, From.Index + R.To.Index - 1),
+                  R.Style,
+                  Choice => R.Choice,
+                  Name   => R.Name,
+                  others => <>));
          end loop;
          Include_Format (Updated, Format_Run'(From, Ending, Versioned, Choice, Versions, others => <>));
          Item.Formats := Updated;
-         Log_Change (Item, Change'(From => From, To => Ending, Ending => Ending,
-                                   Formats_Only => True, others => <>));
-         Push (Item, (From => From, Formats_Only => True, Format_End => Ending, Old_Formats => Old,
-                      New_Formats => Updated, others => <>));
+         Log_Change (Item, Change'(From => From, To => Ending, Ending => Ending, Formats_Only => True, others => <>));
+         Push
+           (Item,
+            (From         => From,
+             Formats_Only => True,
+             Format_End   => Ending,
+             Old_Formats  => Old,
+             New_Formats  => Updated,
+             others       => <>));
          Item.Joining := False;
          End_Step (Item);
       end;
    end Set_Version_Text;
 
-   procedure Add_Version
-     (Item : in out Document; From, To : Position; Words : String)
-   is
+   procedure Add_Version (Item : in out Document; From, To : Position; Words : String) is
       Live     : constant String := Fragment (Item, From, To);
       Versions : Version_Lists.Vector;
       Same     : Natural := 0;
    begin
       for I in 1 .. Natural (Item.Formats.Length) loop
-         if Item.Formats (I).Style = Versioned and then Item.Formats (I).From = From
-           and then Item.Formats (I).To = To
+         if Item.Formats (I).Style = Versioned and then Item.Formats (I).From = From and then Item.Formats (I).To = To
          then
             Same := I;
          end if;

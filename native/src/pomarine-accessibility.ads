@@ -20,14 +20,13 @@ with Pomarine.Widgets;
 --
 --  Everything is on the one thread that runs the window, but a request
 --  from the technology may wake it: Is_Waiting is for a loop that blocks.
+
 package Pomarine.Accessibility is
 
-   type Adapter is limited new Ada.Finalization.Limited_Controlled
-     and Widgets.Semantic_Sink with private;
+   type Adapter is limited new Ada.Finalization.Limited_Controlled and Widgets.Semantic_Sink with private;
 
    procedure Attach (Item : in out Adapter; Window : SDL3.Windows.Window)
-     with Pre  => SDL3.Windows.Is_Open (Window) and then not Is_Attached (Item),
-          Post => Is_Attached (Item);
+   with Pre => SDL3.Windows.Is_Open (Window) and then not Is_Attached (Item), Post => Is_Attached (Item);
    --  Make the window's accessibility, which stays quiet until asked. Do it
    --  before the window is shown, and keep the adapter as long as the
    --  window. Item must not be moved or copied while attached (it is
@@ -36,7 +35,7 @@ package Pomarine.Accessibility is
    function Is_Attached (Item : Adapter) return Boolean;
 
    procedure Detach (Item : in out Adapter)
-     with Post => not Is_Attached (Item);
+   with Post => not Is_Attached (Item);
 
    function Is_Active (Item : Adapter) return Boolean;
    --  Whether an assistive technology has asked.
@@ -47,12 +46,12 @@ package Pomarine.Accessibility is
    --  of the system's request; the loop is woken (Pomarine.Events.Wake).
 
    procedure Update (Item : in out Adapter; Tree : in out Widgets.Tree)
-     with Pre => Is_Attached (Item) and then Widgets.Has_Root (Tree);
+   with Pre => Is_Attached (Item) and then Widgets.Has_Root (Tree);
    --  Do what the technology has asked of the widgets; and, if it is
    --  listening, tell it what has changed of them.
 
    procedure Window_Focus_Changed (Item : in out Adapter; Focused : Boolean)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  The window has gained or lost the focus of the system.
 
    Request_Capacity : constant := 32;
@@ -72,21 +71,19 @@ private
    protected type Mailbox is
       procedure Activated;
       procedure Put (Node : Widgets.Node_Id; Request : Semantics.Request);
-      procedure Take (Node : out Widgets.Node_Id; Request : out Semantics.Request;
-                      Found : out Boolean);
+      procedure Take (Node : out Widgets.Node_Id; Request : out Semantics.Request; Found : out Boolean);
       procedure Take_Activation (Was : out Boolean);
       function Waiting return Boolean;
       function Dropped return Natural;
    private
-      Queue  : Request_Array;
-      First  : Positive := 1;
-      Count  : Natural := 0;
-      Asked  : Boolean := False;
-      Lost   : Natural := 0;
+      Queue : Request_Array;
+      First : Positive := 1;
+      Count : Natural := 0;
+      Asked : Boolean := False;
+      Lost  : Natural := 0;
    end Mailbox;
 
-   type Adapter is limited new Ada.Finalization.Limited_Controlled
-     and Widgets.Semantic_Sink with record
+   type Adapter is limited new Ada.Finalization.Limited_Controlled and Widgets.Semantic_Sink with record
       Handle  : System.Address := System.Null_Address;
       --  AccessKit's adapter.
       Pending : System.Address := System.Null_Address;
@@ -96,21 +93,21 @@ private
       --  The next update is all the tree.
    end record;
 
-   overriding procedure Finalize (Item : in out Adapter);
+   overriding
+   procedure Finalize (Item : in out Adapter);
 
-   overriding procedure Begin_Update
-     (Self : in out Adapter;
-      Root : Widgets.Node_Id;
-      Focused : Widgets.Node_Id;
-      Whole : Boolean);
+   overriding
+   procedure Begin_Update (Self : in out Adapter; Root : Widgets.Node_Id; Focused : Widgets.Node_Id; Whole : Boolean);
 
-   overriding procedure Describe_Node
+   overriding
+   procedure Describe_Node
      (Self     : in out Adapter;
       Id       : Widgets.Node_Id;
       Facts    : Semantics.Description;
       Bounds   : Semantics.Rectangle;
       Children : Widgets.Node_Id_Array);
 
-   overriding procedure End_Update (Self : in out Adapter);
+   overriding
+   procedure End_Update (Self : in out Adapter);
 
 end Pomarine.Accessibility;

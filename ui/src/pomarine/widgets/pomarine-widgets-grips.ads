@@ -11,6 +11,7 @@ with Pomarine.Boxes;
 --  A press of the left button on it, where nothing in it takes the press,
 --  starts a drag, which lasts until the button is let go, wherever the
 --  pointer goes.
+
 package Pomarine.Widgets.Grips is
 
    type Shape is (Bar, Corner);
@@ -31,8 +32,7 @@ package Pomarine.Widgets.Grips is
    --  Fill nothing: as when it is new. Not the fill it has while the
    --  pointer is over it, if that is set.
 
-   procedure Set_Border
-     (Item : in out Grip; Value : Themes.Slot; Dashed : Boolean := False);
+   procedure Set_Border (Item : in out Grip; Value : Themes.Slot; Dashed : Boolean := False);
    --  Outline its face a point wide in Value, in dashes if Dashed.
 
    procedure Clear_Border (Item : in out Grip);
@@ -43,10 +43,8 @@ package Pomarine.Widgets.Grips is
    procedure Clear_Shadow (Item : in out Grip);
 
    procedure Set_Radius
-     (Item  : in out Grip;
-      Value : Float;
-      Round : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners)
-     with Pre => Value >= 0.0;
+     (Item : in out Grip; Value : Float; Round : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners)
+   with Pre => Value >= 0.0;
    --  Round the corners (those in Round) of its face, outline, shadow and
    --  rings, by Value points.
 
@@ -73,58 +71,56 @@ package Pomarine.Widgets.Grips is
    --  it or move of the pointer while it was held.
 
    procedure Cancel_Drag (Item : in out Grip)
-     with Post => not Is_Dragging (Item);
+   with Post => not Is_Dragging (Item);
    --  Forget a press, as when what it was on is hidden and so will not
    --  be told the button is let go.
 
    function Is_Dragging (Item : Grip) return Boolean;
    --  Whether the button is down from a press on it.
 
-   overriding procedure Handle
-     (Item    : in out Grip;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Grip; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Grip;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Grip; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Grip; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Grip; Hovered : Boolean);
 
-   overriding function Cursor (Item : Grip) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Grip) return SDL3.Cursors.Kind;
 
-   overriding function Is_Focusable (Item : Grip) return Boolean;
+   overriding
+   function Is_Focusable (Item : Grip) return Boolean;
 
-   overriding function Focuses_On_Click (Item : Grip) return Boolean is (False);
+   overriding
+   function Focuses_On_Click (Item : Grip) return Boolean
+   is (False);
 
-   overriding procedure Focus_Changed (Item : in out Grip; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Grip; Focused : Boolean);
 
-   overriding procedure Describe
-     (Item  : Grip;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Grip; Facts : in out Semantics.Description);
 
-   overriding procedure Perform
-     (Item    : in out Grip;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Perform (Item : in out Grip; Request : Semantics.Request; Done : out Boolean);
 
 private
 
    type Grip is new Widget with record
-      Form    : Shape := Bar;
-      Look    : Pomarine.Boxes.Look;  --  its flags; its colours are the slots below
-      Fill_Slot   : Themes.Slot := Themes.Page;
-      Border_Slot : Themes.Slot := Themes.Border;
-      Shadow_Slot : Themes.Slot := Themes.Shadow;
-      Wanted  : SDL3.Cursors.Kind := SDL3.Cursors.Move;
-      Outlined : Boolean := False;
-      Outline_Color : Themes.Slot := Themes.Border;
-      Hover_Filled  : Boolean := False;
-      Hover_Fill    : Themes.Slot := Themes.Face;
-      Held    : Boolean := False;
-      Focusable : Boolean := False;
+      Form           : Shape := Bar;
+      Look           : Pomarine.Boxes.Look;  --  its flags; its colours are the slots below
+      Fill_Slot      : Themes.Slot := Themes.Page;
+      Border_Slot    : Themes.Slot := Themes.Border;
+      Shadow_Slot    : Themes.Slot := Themes.Shadow;
+      Wanted         : SDL3.Cursors.Kind := SDL3.Cursors.Move;
+      Outlined       : Boolean := False;
+      Outline_Color  : Themes.Slot := Themes.Border;
+      Hover_Filled   : Boolean := False;
+      Hover_Fill     : Themes.Slot := Themes.Face;
+      Held           : Boolean := False;
+      Focusable      : Boolean := False;
       Last_X, Last_Y : Float := 0.0;
       --  Where the pointer was, in points.
    end record;

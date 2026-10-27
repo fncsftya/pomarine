@@ -5,15 +5,13 @@ with Pomarine.Widgets.Editors;
 --  caret in view. Return does not break the line: the application takes
 --  it, as it takes a button's click. Line feeds typed or pasted become
 --  spaces.
+
 package Pomarine.Widgets.Text_Fields is
 
    type Text_Field is new Editors.Editor with null record;
 
-   procedure Configure
-     (Item   : in out Text_Field;
-      Family : String;
-      Size   : Float)
-     with Post => Is_Configured (Item);
+   procedure Configure (Item : in out Text_Field; Family : String; Size : Float)
+   with Post => Is_Configured (Item);
    --  Set the text in font Family at Size layout units: as an editor's,
    --  with no limit to the length of the line that is practical. The
    --  field should be as high as a line and its padding: about

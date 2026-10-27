@@ -22,12 +22,20 @@ package body Setter_Tests is
 
    type Three_Rows is limited new Pomarine.Models.List_Model with null record;
 
-   overriding function Count (Self : Three_Rows) return Natural is (3);
-   overriding function Version (Self : Three_Rows) return Natural is (0);
-   overriding function Row_Id (Self : Three_Rows; Row : Positive) return Positive is (Row);
-   overriding procedure Describe_Row (Self : Three_Rows; Row : Positive; Content : out Pomarine.Models.Row_Content);
+   overriding
+   function Count (Self : Three_Rows) return Natural
+   is (3);
+   overriding
+   function Version (Self : Three_Rows) return Natural
+   is (0);
+   overriding
+   function Row_Id (Self : Three_Rows; Row : Positive) return Positive
+   is (Row);
+   overriding
+   procedure Describe_Row (Self : Three_Rows; Row : Positive; Content : out Pomarine.Models.Row_Content);
 
-   overriding procedure Describe_Row (Self : Three_Rows; Row : Positive; Content : out Pomarine.Models.Row_Content) is
+   overriding
+   procedure Describe_Row (Self : Three_Rows; Row : Positive; Content : out Pomarine.Models.Row_Content) is
       pragma Unreferenced (Self);
    begin
       Content := (others => <>);
@@ -84,7 +92,8 @@ package body Setter_Tests is
 
    --  Whether anything needs drawing now.
 
-   function Pending (Item : Fixture) return Boolean is (Widgets.Needs_Paint (Item.Tree));
+   function Pending (Item : Fixture) return Boolean
+   is (Widgets.Needs_Paint (Item.Tree));
 
    procedure Settle (Item : in out Fixture) is
    begin
@@ -104,18 +113,54 @@ package body Setter_Tests is
          Goldens.Check_Text ("setters-" & Name, "FALSE", Pending (Item)'Image);
       end Twice;
 
-      procedure Label_Text is begin Widgets.Labels.Set_Text (Item.Words, "Skua"); end Label_Text;
-      procedure Button_Off is begin Widgets.Buttons.Set_Enabled (Item.Press, False); end Button_Off;
-      procedure Check_On is begin Widgets.Checks.Set_Checked (Item.Box, True); end Check_On;
-      procedure Check_Off is begin Widgets.Checks.Set_Enabled (Item.Box, False); end Check_Off;
-      procedure Switch_On is begin Widgets.Switches.Set_On (Item.Flip, True); end Switch_On;
-      procedure Switch_Off is begin Widgets.Switches.Set_Enabled (Item.Flip, False); end Switch_Off;
-      procedure Select_Text is begin Widgets.Selects.Set_Value (Item.Choice, "Dark"); end Select_Text;
-      procedure Select_Off is begin Widgets.Selects.Set_Enabled (Item.Choice, False); end Select_Off;
-      procedure Slide_To is begin Widgets.Sliders.Set_Value (Item.Slide, 0.25); end Slide_To;
-      procedure Progress_To is begin Widgets.Progress_Bars.Set_Value (Item.Progress, 0.5); end Progress_To;
-      procedure Row_Two is begin Widgets.Lists.Select_Row (Item.Chosen, 2); end Row_Two;
-      procedure Hide_Words is begin Widgets.Set_Visible (Item.Words, False); end Hide_Words;
+      procedure Label_Text is
+      begin
+         Widgets.Labels.Set_Text (Item.Words, "Skua");
+      end Label_Text;
+      procedure Button_Off is
+      begin
+         Widgets.Buttons.Set_Enabled (Item.Press, False);
+      end Button_Off;
+      procedure Check_On is
+      begin
+         Widgets.Checks.Set_Checked (Item.Box, True);
+      end Check_On;
+      procedure Check_Off is
+      begin
+         Widgets.Checks.Set_Enabled (Item.Box, False);
+      end Check_Off;
+      procedure Switch_On is
+      begin
+         Widgets.Switches.Set_On (Item.Flip, True);
+      end Switch_On;
+      procedure Switch_Off is
+      begin
+         Widgets.Switches.Set_Enabled (Item.Flip, False);
+      end Switch_Off;
+      procedure Select_Text is
+      begin
+         Widgets.Selects.Set_Value (Item.Choice, "Dark");
+      end Select_Text;
+      procedure Select_Off is
+      begin
+         Widgets.Selects.Set_Enabled (Item.Choice, False);
+      end Select_Off;
+      procedure Slide_To is
+      begin
+         Widgets.Sliders.Set_Value (Item.Slide, 0.25);
+      end Slide_To;
+      procedure Progress_To is
+      begin
+         Widgets.Progress_Bars.Set_Value (Item.Progress, 0.5);
+      end Progress_To;
+      procedure Row_Two is
+      begin
+         Widgets.Lists.Select_Row (Item.Chosen, 2);
+      end Row_Two;
+      procedure Hide_Words is
+      begin
+         Widgets.Set_Visible (Item.Words, False);
+      end Hide_Words;
    begin
       Open (Item);
       Twice ("label-text", Label_Text'Access, Label_Text'Access);

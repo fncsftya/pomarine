@@ -118,6 +118,7 @@ with Texts.Documents;
 --  See Pomarine.UI.Syncing for the order of things; in short: widget edits go
 --  to the model, then a command is checked and done, then the widgets show the
 --  model, and the commands are checked again for the widgets.
+
 package Pomarine.UI is
 
    package Layouts renames Pomarine.Widgets.Layouts;
@@ -287,25 +288,25 @@ package Pomarine.UI is
    Plain : constant Container_Look := (others => <>);
 
    function Row
-     (Items   : Layout_Array;
-      Gap     : Layouts.Length := Unset;
-      Padding : Layouts.Length := Unset;
-      Align   : Align_Kind := Layouts.Center;
-      Spread  : Spread_Kind := Layouts.As_Is;
-      Grow    : Layouts.Weight := Layouts.Unchanged;
-      Width   : Layouts.Length := Unset;
-      Height  : Layouts.Length := Unset;
+     (Items      : Layout_Array;
+      Gap        : Layouts.Length := Unset;
+      Padding    : Layouts.Length := Unset;
+      Align      : Align_Kind := Layouts.Center;
+      Spread     : Spread_Kind := Layouts.As_Is;
+      Grow       : Layouts.Weight := Layouts.Unchanged;
+      Width      : Layouts.Length := Unset;
+      Height     : Layouts.Length := Unset;
       Appearance : Container_Look := Plain) return Layout;
 
    function Column
-     (Items   : Layout_Array;
-      Gap     : Layouts.Length := Unset;
-      Padding : Layouts.Length := Unset;
-      Align   : Align_Kind := Layouts.As_Is;
-      Spread  : Spread_Kind := Layouts.As_Is;
-      Grow    : Layouts.Weight := Layouts.Unchanged;
-      Width   : Layouts.Length := Unset;
-      Height  : Layouts.Length := Unset;
+     (Items      : Layout_Array;
+      Gap        : Layouts.Length := Unset;
+      Padding    : Layouts.Length := Unset;
+      Align      : Align_Kind := Layouts.As_Is;
+      Spread     : Spread_Kind := Layouts.As_Is;
+      Grow       : Layouts.Weight := Layouts.Unchanged;
+      Width      : Layouts.Length := Unset;
+      Height     : Layouts.Length := Unset;
       Appearance : Container_Look := Plain) return Layout;
    function Hold
      (Item    : Widget_Handle;
@@ -329,12 +330,12 @@ package Pomarine.UI is
 
    type Grip_Look is record
       Fill, Border, Shadow, Hover_Fill, Hover_Outline : Pomarine.Themes.Slot := 0;
-      Dashed   : Boolean := False;
-      Radius   : Float := 0.0;
-      Round    : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners;
-      Pointer  : Boolean := False;
+      Dashed                                          : Boolean := False;
+      Radius                                          : Float := 0.0;
+      Round                                           : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners;
+      Pointer                                         : Boolean := False;
       --  The pointer is a hand over it.
-      Focusable : Boolean := False;
+      Focusable                                       : Boolean := False;
    end record;
    --  How a grip is drawn: a slot of 0 is none.
 
@@ -345,7 +346,7 @@ package Pomarine.UI is
    --  that a button, a field or a label has when a Place says nothing of it is not added.
 
    function Called (Item : Layout; Name : String) return Layout
-     with Pre => Name'Length > 0;
+   with Pre => Name'Length > 0;
    --  Item, with a name that the view can be asked for once the screen is mounted (View.Named). A name is
    --  one control's or container's in a view, for as long as it is mounted. It goes with the layout
    --  through Styled. So that a screen's parts are found where they are described, and not kept in a record
@@ -366,8 +367,8 @@ package Pomarine.UI is
 
    --  The view
 
-   type View (Tree : not null access Pomarine.Widgets.Tree) is
-     limited new Ada.Finalization.Limited_Controlled with private;
+   type View (Tree : not null access Pomarine.Widgets.Tree) is limited
+     new Ada.Finalization.Limited_Controlled with private;
    --  See the notes above. Declare it after its tree and the models it
    --  will bind, and before anything that holds a Layout of it.
 
@@ -377,7 +378,7 @@ package Pomarine.UI is
    function Is_Mounted (Item : View) return Boolean;
 
    function Put (Item : in out View; Existing : in out Pomarine.Widgets.Widget'Class) return Layout
-     with Pre => not Is_Mounted (Item) or else Is_Embedded (Item);
+   with Pre => not Is_Mounted (Item) or else Is_Embedded (Item);
    --  A widget of the application's, placed, with no model to bind to (Contexts.Borrow_Widget and Place). Put
    --  again, a widget is the same control: a screen that is put again (a bar that moves) is described again.
 
@@ -390,7 +391,7 @@ package Pomarine.UI is
       Padding  : Layouts.Length := Unset;
       Align    : Align_Kind := Layouts.As_Is;
       Spread   : Spread_Kind := Layouts.As_Is) return Layout
-     with Pre => not Is_Mounted (Item) or else Is_Embedded (Item);
+   with Pre => not Is_Mounted (Item) or else Is_Embedded (Item);
    --  A widget of the application's that holds others (a panel, a scroller, a grip), placed, with Items in it
    --  (Hold, with no model). It must have no children yet.
 
@@ -440,17 +441,11 @@ package Pomarine.UI is
    --  What Mount would refuse, or No_Problem. Changes nothing but the
    --  marks that tell a second placement.
 
-   procedure Mount_Into
-     (Item   : in out View;
-      Parent : in out Pomarine.Widgets.Widget'Class;
-      Screen : Layout)
-     with Pre => Pomarine.Widgets.Is_Attached (Parent);
+   procedure Mount_Into (Item : in out View; Parent : in out Pomarine.Widgets.Widget'Class; Screen : Layout)
+   with Pre => Pomarine.Widgets.Is_Attached (Parent);
 
-   procedure Mount_Before
-     (Item   : in out View;
-      Before : in out Pomarine.Widgets.Widget'Class;
-      Screen : Layout)
-     with Pre => Pomarine.Widgets.Is_Attached (Before);
+   procedure Mount_Before (Item : in out View; Before : in out Pomarine.Widgets.Widget'Class; Screen : Layout)
+   with Pre => Pomarine.Widgets.Is_Attached (Before);
    --  Late mounting: an embedded view that is mounted takes more components (a Component opened on its root
    --  context, committed), mounted again into Parent, in front of Before (a child of Parent) or last. For
    --  what is made as the model grows (a block for each section).
@@ -469,34 +464,34 @@ package Pomarine.UI is
    --  Tell Watching at the end of each such turn, from now on.
 
    procedure Use_Tags_From (Item : in out View; First : Positive)
-     with Pre => not Is_Mounted (Item);
+   with Pre => not Is_Mounted (Item);
    --  The tags of the view's commands begin at First (to begin with, at 1). Call it before any is made.
 
    function Owns_Tag (Item : View; Tag : Integer) return Boolean;
 
    function Command_State (Item : View; Tag : Integer; Index : Natural) return Pomarine.Widgets.Command_State
-     with Pre => Owns_Tag (Item, Tag);
+   with Pre => Owns_Tag (Item, Tag);
    --  What the tree asks of a command of the view's.
 
    procedure Synchronize (Item : in out View)
-     with Pre => Is_Mounted (Item);
+   with Pre => Is_Mounted (Item);
    --  A turn with no event: what the models changed is shown. The tree does it for a view that is mounted
    --  as the tree's root; a view that is mounted into a widget is Synchronized by the application.
 
    function Panel_Of (Item : View; Part : Layout) return access Pomarine.Widgets.Widget'Class
-     with Pre => Is_Mounted (Item);
+   with Pre => Is_Mounted (Item);
    --  The panel a Row, Column or Scroll of a mounted screen made; null if Part is not one.
 
    function Has_Named (Item : View; Name : String) return Boolean;
    --  Whether a part of the mounted screen was described Called Name.
 
    function Named (Item : View; Name : String) return not null access Pomarine.Widgets.Widget'Class
-     with Pre => Is_Mounted (Item) and then Has_Named (Item, Name);
+   with Pre => Is_Mounted (Item) and then Has_Named (Item, Name);
    --  The widget behind the part called Name: the panel of a Row, Column or Scroll, or the widget of a
    --  control placed (a Panel_Of that finds its part by name, and a Widget_Of for any handle).
 
    function Screen_Panel (Item : View) return access Pomarine.Widgets.Widget'Class
-     with Pre => Is_Mounted (Item);
+   with Pre => Is_Mounted (Item);
    --  The widget a container screen made, for the application to show and hide; null if the screen is
    --  a control.
 
@@ -592,20 +587,20 @@ private
    Nothing : constant Layout := (Scope => No_Scope, Node => null);
 
    type Layout_Node (Count : Natural) is record
-      Kind    : Node_Kind := Empty;
-      Box     : Layouts.Style;
+      Kind       : Node_Kind := Empty;
+      Box        : Layouts.Style;
       --  Of the control placed, or of the container, and how it sits in its parent.
-      Control : Handle_Data;
-      Made    : Pomarine.Widgets.Widget_Access;
+      Control    : Handle_Data;
+      Made       : Pomarine.Widgets.Widget_Access;
       --  Of a container: the panel that the mount made for it.
-      Exact   : Boolean := False;
+      Exact      : Boolean := False;
       --  The box is as Styled said, with no default size of a control's added.
       Appearance : Container_Look := Plain;
-      Across  : Boolean := False;
+      Across     : Boolean := False;
       --  A scroller's direction.
-      Name    : Name_Ref;
+      Name       : Name_Ref;
       --  What View.Named finds it by; null if it has none.
-      Items   : Layout_Array (1 .. Count);
+      Items      : Layout_Array (1 .. Count);
    end record;
 
    --  What a binding is to the view
@@ -617,15 +612,15 @@ private
    --  Which command of which model: for effects that follow a command.
 
    type Binding is abstract tagged limited record
-      Owner   : Natural := 0;
+      Owner  : Natural := 0;
       --  The view's number.
-      Scope   : Natural := 0;
+      Scope  : Natural := 0;
       --  The slot of the scope it belongs to.
-      Number  : Natural := 0;
+      Number : Natural := 0;
       --  Its place in the view's table; 0 when unregistered.
-      Tag     : Integer := Pomarine.Widgets.No_Tag;
+      Tag    : Integer := Pomarine.Widgets.No_Tag;
       --  The tag of the widgets that trigger it, if it is a command.
-      Next    : access Binding'Class;
+      Next   : access Binding'Class;
       --  The next binding of the scope, newer first.
    end record;
 
@@ -637,21 +632,32 @@ private
    --  What the model says, shown in the widget, if it has changed (or Forced).
    procedure Detach (Item : in out Binding; Within : in out View'Class) is null;
    --  The scope is going: let go of widgets, handlers and the tree.
-   function Can_Execute (Item : Binding; Index : Natural) return Boolean is (False);
+   function Can_Execute (Item : Binding; Index : Natural) return Boolean
+   is (False);
    procedure Execute (Item : in out Binding; Index : Natural) is null;
-   function Key (Item : Binding) return Command_Key is (others => <>);
+   function Key (Item : Binding) return Command_Key
+   is (others => <>);
    --  Of a command binding: which command it is.
    procedure Before_Command (Item : in out Binding; Which : Command_Key) is null;
    procedure After_Command (Item : in out Binding; Which : Command_Key) is null;
    --  Offered to every binding around a command that is done (effects).
 
-   function Is_Command (Item : Binding) return Boolean is (False);
+   function Is_Command (Item : Binding) return Boolean
+   is (False);
 
    --  The tables
 
    type Control_Kind is
-     (Free_Slot, Label_Control, Button_Control, Field_Control, List_Control, Check_Control, Switch_Control,
-      Progress_Control, Custom_Control, Grip_Control);
+     (Free_Slot,
+      Label_Control,
+      Button_Control,
+      Field_Control,
+      List_Control,
+      Check_Control,
+      Switch_Control,
+      Progress_Control,
+      Custom_Control,
+      Grip_Control);
 
    type Control_Record is record
       Kind       : Control_Kind := Free_Slot;
@@ -677,15 +683,15 @@ private
    type Scope_State is (Free, Open, Committed, Mounted);
 
    type Scope_Record is record
-      State       : Scope_State := Free;
-      Generation  : Natural := 0;
-      Parent      : Natural := 0;
-      First_Child : Natural := 0;
-      Next_Child  : Natural := 0;
+      State         : Scope_State := Free;
+      Generation    : Natural := 0;
+      Parent        : Natural := 0;
+      First_Child   : Natural := 0;
+      Next_Child    : Natural := 0;
       --  The scope's siblings, newer first; or the free scopes.
       First_Control : Natural := 0;
       First_Binding : Binding_Ref;
-      Arena       : Subpools.Subpool_Handle;
+      Arena         : Subpools.Subpool_Handle;
    end record;
 
    package Scope_Vectors is new Ada.Containers.Vectors (Positive, Scope_Record);
@@ -698,8 +704,12 @@ private
 
    type View_Ref is access all View'Class;
 
-   package Name_Maps is new Ada.Containers.Indefinite_Ordered_Maps
-     (String, Pomarine.Widgets.Widget_Access, "<" => "<", "=" => Pomarine.Widgets."=");
+   package Name_Maps is new
+     Ada.Containers.Indefinite_Ordered_Maps
+       (String,
+        Pomarine.Widgets.Widget_Access,
+        "<" => "<",
+        "=" => Pomarine.Widgets."=");
 
    type Observer_Ref is access all Observer'Class;
 
@@ -708,15 +718,16 @@ private
    end record;
    --  What the tree asks about commands and tells to synchronize.
 
-   overriding function Validate (Self : Hub; Tag : Integer; Index : Natural)
-     return Pomarine.Widgets.Command_State;
+   overriding
+   function Validate (Self : Hub; Tag : Integer; Index : Natural) return Pomarine.Widgets.Command_State;
 
-   overriding procedure Sync (Self : in out Hub);
+   overriding
+   procedure Sync (Self : in out Hub);
 
    type Root_Ref is access all Pomarine.Widgets.Bindings.Sync_Root;
 
-   type View (Tree : not null access Pomarine.Widgets.Tree) is
-     limited new Ada.Finalization.Limited_Controlled with record
+   type View (Tree : not null access Pomarine.Widgets.Tree) is limited new Ada.Finalization.Limited_Controlled
+   with record
       Number       : Natural := 0;
       Scopes       : Scope_Vectors.Vector;
       Free_Scope   : Natural := 0;
@@ -753,8 +764,10 @@ private
       --  The widgets of the parts that were Called, while they are mounted.
    end record;
 
-   overriding procedure Initialize (Item : in out View);
-   overriding procedure Finalize (Item : in out View);
+   overriding
+   procedure Initialize (Item : in out View);
+   overriding
+   procedure Finalize (Item : in out View);
 
    --  What Pomarine.UI.Contexts, Pomarine.UI.Sync and the tests are built on
 
@@ -801,19 +814,17 @@ private
       Kind      : Pomarine.Widgets.Buttons.Kind;
       Focusable : Boolean := False) return Button_Handle;
    function New_Button
-     (Item  : in out View;
-      Scope : Scope_Ref;
-      Look  : Pomarine.Widgets.Buttons.Settings;
-      Unheard : Boolean := False) return Button_Handle;
+     (Item : in out View; Scope : Scope_Ref; Look : Pomarine.Widgets.Buttons.Settings; Unheard : Boolean := False)
+      return Button_Handle;
    --  Unheard: the view does not hear the button; the application hooks its Click (see Contexts.Plain_Button).
    function New_Field (Item : in out View; Scope : Scope_Ref; Placeholder : String) return Field_Handle;
    function New_List (Item : in out View; Scope : Scope_Ref) return List_Handle;
-   function New_Check (Item : in out View; Scope : Scope_Ref; Caption : String; Form : Pomarine.Widgets.Checks.Kind)
-     return Check_Handle;
+   function New_Check
+     (Item : in out View; Scope : Scope_Ref; Caption : String; Form : Pomarine.Widgets.Checks.Kind) return Check_Handle;
    function New_Switch (Item : in out View; Scope : Scope_Ref; Caption : String) return Switch_Handle;
    function New_Progress (Item : in out View; Scope : Scope_Ref) return Progress_Handle;
-   function New_Grip (Item : in out View; Scope : Scope_Ref; Look : Grip_Look; Unheard : Boolean := False)
-     return Grip_Handle;
+   function New_Grip
+     (Item : in out View; Scope : Scope_Ref; Look : Grip_Look; Unheard : Boolean := False) return Grip_Handle;
    function Borrow_Widget
      (Item : in out View; Scope : Scope_Ref; Existing : in out Pomarine.Widgets.Widget'Class) return Widget_Handle;
 
@@ -840,8 +851,11 @@ private
    procedure Require_Handle (Item : View; Handle : Handle_Data; Kind : Control_Kind);
    --  Raises Stale_Handle or Foreign_Handle.
 
-   function Data_Of (Handle : Focus_Target) return Handle_Data is (Handle.Which);
-   function Data_Of (Handle : Reveal_Target) return Handle_Data is (Handle.Which);
-   function Data_Of (Handle : Control_Ref) return Handle_Data is (Handle.Which);
+   function Data_Of (Handle : Focus_Target) return Handle_Data
+   is (Handle.Which);
+   function Data_Of (Handle : Reveal_Target) return Handle_Data
+   is (Handle.Which);
+   function Data_Of (Handle : Control_Ref) return Handle_Data
+   is (Handle.Which);
 
 end Pomarine.UI;

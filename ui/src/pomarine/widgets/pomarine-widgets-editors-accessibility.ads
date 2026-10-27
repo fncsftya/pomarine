@@ -1,6 +1,7 @@
 with Pomarine.Semantics;
 
 --  What an editor tells an assistive technology, and what it is asked to do.
+
 private package Pomarine.Widgets.Editors.Accessibility is
 
    procedure Describe_Editor (Item : Editor; Facts : in out Pomarine.Semantics.Description);
@@ -15,9 +16,6 @@ private package Pomarine.Widgets.Editors.Accessibility is
       Facts  : in out Pomarine.Semantics.Description;
       Bounds : out Pomarine.Semantics.Rectangle);
 
-   procedure Perform_Request
-     (Item    : in out Editor;
-      Request : Pomarine.Semantics.Request;
-      Done    : out Boolean);
+   procedure Perform_Request (Item : in out Editor; Request : Pomarine.Semantics.Request; Done : out Boolean);
 
 end Pomarine.Widgets.Editors.Accessibility;

@@ -9,6 +9,7 @@ with Pomarine.Events;
 --  right to do something of it (as Undo). A click on the button is the
 --  application's to take, as a button's. The application shows it, and
 --  hides it when it has been shown long enough.
+
 package Pomarine.Widgets.Toasts is
 
    type Toast is new Widget with private;
@@ -25,44 +26,35 @@ package Pomarine.Widgets.Toasts is
    Height : constant Float := 36.0;
    --  In points, to make it, with its shadow.
 
-   overriding procedure Handle
-     (Item    : in out Toast;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Toast; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Toast;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Toast; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Toast; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Toast; Hovered : Boolean);
 
-   overriding procedure Describe
-     (Item  : Toast;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Toast; Facts : in out Semantics.Description);
 
-   overriding function Part_Count (Item : Toast) return Natural;
+   overriding
+   function Part_Count (Item : Toast) return Natural;
 
-   overriding procedure Describe_Part
-     (Item   : Toast;
-      Part   : Positive;
-      Facts  : in out Semantics.Description;
-      Bounds : out Semantics.Rectangle);
+   overriding
+   procedure Describe_Part
+     (Item : Toast; Part : Positive; Facts : in out Semantics.Description; Bounds : out Semantics.Rectangle);
 
-   overriding procedure Perform_Part
-     (Item    : in out Toast;
-      Part    : Positive;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Perform_Part (Item : in out Toast; Part : Positive; Request : Semantics.Request; Done : out Boolean);
 
 private
 
    type Toast is new Widget with record
-      Text : Ada.Strings.Unbounded.Unbounded_String;
-      Label   : Ada.Strings.Unbounded.Unbounded_String;
-      Over    : Boolean := False;  --  the pointer is over the button
-      Down    : Boolean := False;  --  pressed on the button
+      Text  : Ada.Strings.Unbounded.Unbounded_String;
+      Label : Ada.Strings.Unbounded.Unbounded_String;
+      Over  : Boolean := False;  --  the pointer is over the button
+      Down  : Boolean := False;  --  pressed on the button
 
    end record;
 

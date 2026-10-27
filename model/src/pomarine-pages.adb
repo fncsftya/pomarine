@@ -9,8 +9,7 @@ package body Pomarine.Pages is
       Release (Item);
    end Free;
 
-   procedure Release_Sizes is
-     new Ada.Unchecked_Deallocation (Size_Array, Size_Array_Access);
+   procedure Release_Sizes is new Ada.Unchecked_Deallocation (Size_Array, Size_Array_Access);
 
    procedure Free (Item : in out Size_Array_Access) is
    begin

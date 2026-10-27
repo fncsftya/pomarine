@@ -21,6 +21,7 @@ with Pomarine.Widgets.Text_Fields;
 --  bar and the corner have been dragged (Move, Resize), and which buttons
 --  were clicked (Close, Minimize, Restore), as events, and the application
 --  moves and sizes the window.
+
 package Pomarine.Widgets.Frames is
 
    --  In points
@@ -51,10 +52,8 @@ package Pomarine.Widgets.Frames is
    procedure Set_Listener (Item : in out Frame; To : access Listener'Class);
    --  Where its events go, rather than to the tree's.
 
-   overriding procedure Handle_Event
-     (Self   : in out Frame;
-      Source : in out Widget'Class;
-      Event  : Widget_Event);
+   overriding
+   procedure Handle_Event (Self : in out Frame; Source : in out Widget'Class; Event : Widget_Event);
    --  Its own parts' events, said again as its own.
 
    procedure Build
@@ -65,8 +64,7 @@ package Pomarine.Widgets.Frames is
       Placement      : Placements := Floating;
       Editable_Title : Boolean := False;
       Dock           : access Widget'Class := null)
-     with Pre => Is_Attached (Parent) and then Pixels > 0.0
-                 and then (Dock = null or else Is_Attached (Dock.all));
+   with Pre => Is_Attached (Parent) and then Pixels > 0.0 and then (Dock = null or else Is_Attached (Dock.all));
    --  Add the window's widgets, hidden, to Parent, which is in the tree
    --  already: its title bar and status line, with the corner. Do it once,
    --  before the layout, with the tree's density (Pixels to a point). With Editable_Title the
@@ -96,7 +94,7 @@ package Pomarine.Widgets.Frames is
    --  built with: it changes if the window goes to another display.
 
    procedure Set_Scale (Item : in out Frame; To : Float)
-     with Pre => To > 0.0;
+   with Pre => To > 0.0;
    --  Show the title bar and what is in it, and the margin of the title
    --  and the tag, at To times their size (1.0 to begin with): as a
    --  window is smaller, with less in it, when the canvas is zoomed out.
@@ -113,8 +111,7 @@ package Pomarine.Widgets.Frames is
    procedure Raise_To_Front (Item : in out Frame);
    --  Put the window over the others.
 
-   procedure Place
-     (Item : in out Frame; At_Left, At_Top, Wide, High : Float);
+   procedure Place (Item : in out Frame; At_Left, At_Top, Wide, High : Float);
    --  Put the window there, in pixels from the top left of its parent: a
    --  Floating one.
 
@@ -140,13 +137,10 @@ package Pomarine.Widgets.Frames is
 
    --  The title, edited in place
 
-   procedure Attach_Title
-     (Item : in out Frame; Doc : not null Texts.Documents.Document_Access);
+   procedure Attach_Title (Item : in out Frame; Doc : not null Texts.Documents.Document_Access);
    --  Edit the document as the title.
 
-   procedure Share_Title
-     (Item   : in out Frame;
-      Shared : not null Editors.Shared_Access);
+   procedure Share_Title (Item : in out Frame; Shared : not null Editors.Shared_Access);
    --  Direct its editor to share the font registry and glyph atlas.
 
    function Is_Editing_Title (Item : Frame) return Boolean;
@@ -155,11 +149,11 @@ package Pomarine.Widgets.Frames is
    function Title_Has_Focus (Item : Frame) return Boolean;
 
    procedure Begin_Title_Edit (Item : in out Frame)
-     with Pre => not Is_Editing_Title (Item);
+   with Pre => not Is_Editing_Title (Item);
    --  Make the title a field, with all of it selected, to type over.
 
    procedure End_Title_Edit (Item : in out Frame)
-     with Post => not Is_Editing_Title (Item);
+   with Post => not Is_Editing_Title (Item);
    --  Make it text again, as it has been edited.
 
    procedure Reset_Title_Edit (Item : in out Frame);
@@ -169,33 +163,33 @@ package Pomarine.Widgets.Frames is
 private
 
    type Frame is limited new Listener with record
-      Pixels    : Float := 1.0;
-      Scale     : Float := 1.0;
-      Editable  : Boolean := False;
-      Docked    : Boolean := False;
-      Floating  : Boolean := True;
-      Editing   : Boolean := False;
+      Pixels   : Float := 1.0;
+      Scale    : Float := 1.0;
+      Editable : Boolean := False;
+      Docked   : Boolean := False;
+      Floating : Boolean := True;
+      Editing  : Boolean := False;
 
-      Outline_Panel : aliased Panels.Panel;
+      Outline_Panel   : aliased Panels.Panel;
       --  On the canvas: the outline, round the bar, the content and the
       --  status line.
-      Title_Bar     : Grips.Grip;
-      Title_Area    : Grips.Grip;
-      Tag           : Panels.Panel;
-      Title_Label   : Labels.Label;
-      Title_Field   : Text_Fields.Text_Field;
-      Spacer        : Panels.Panel;
+      Title_Bar       : Grips.Grip;
+      Title_Area      : Grips.Grip;
+      Tag             : Panels.Panel;
+      Title_Label     : Labels.Label;
+      Title_Field     : Text_Fields.Text_Field;
+      Spacer          : Panels.Panel;
       Minimize_Button : Buttons.Button;
-      Close_Button  : aliased Buttons.Button;
-      Status_Bar    : aliased Panels.Panel;
-      Corner        : aliased Grips.Grip;
+      Close_Button    : aliased Buttons.Button;
+      Status_Bar      : aliased Panels.Panel;
+      Corner          : aliased Grips.Grip;
 
-      Mini          : Panels.Panel;
+      Mini       : Panels.Panel;
       --  In the dock.
-      Mini_Area     : Grips.Grip;
-      Mini_Title    : Labels.Label;
-      Mini_Close    : Buttons.Button;
-      UI_Host : Pomarine.UI.Hosts.Host;
+      Mini_Area  : Grips.Grip;
+      Mini_Title : Labels.Label;
+      Mini_Close : Buttons.Button;
+      UI_Host    : Pomarine.UI.Hosts.Host;
       --  Detach the declared chrome before its widgets are finalized.
    end record;
 

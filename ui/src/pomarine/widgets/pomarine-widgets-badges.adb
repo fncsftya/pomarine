@@ -1,5 +1,6 @@
 with Ada.Strings.Fixed;
 with Pomarine.Boxes;
+
 package body Pomarine.Widgets.Badges is
 
    use type Semantics.Role;
@@ -9,18 +10,18 @@ package body Pomarine.Widgets.Badges is
    Tag_Pad   : constant Float := 6.0;  --  in points, at each side of a tag
    Count_Pad : constant Float := 4.0;  --  of a count of several figures
 
-   function Figures (Item : Badge) return String is
-     (Ada.Strings.Fixed.Trim (Item.Value'Image, Ada.Strings.Both));
+   function Figures (Item : Badge) return String
+   is (Ada.Strings.Fixed.Trim (Item.Value'Image, Ada.Strings.Both));
 
-   function Shown (Item : Badge) return String is
-     (case Item.Form is
+   function Shown (Item : Badge) return String
+   is (case Item.Form is
          when Number => Figures (Item),
-         when Tag   => Ada.Strings.Unbounded.To_String (Item.Content));
+         when Tag    => Ada.Strings.Unbounded.To_String (Item.Content));
 
-   function Style_Of (Item : Badge) return Pomarine.Line_Texts.Style is
-     (case Item.Form is
+   function Style_Of (Item : Badge) return Pomarine.Line_Texts.Style
+   is (case Item.Form is
          when Number => Pomarine.Line_Texts.Strong,
-         when Tag   => Pomarine.Line_Texts.Caption);
+         when Tag    => Pomarine.Line_Texts.Caption);
 
    procedure Changed_Look (Item : in out Badge);
 
@@ -47,7 +48,8 @@ package body Pomarine.Widgets.Badges is
       end if;
    end Set_Count;
 
-   function Count_Of (Item : Badge) return Natural is (Item.Value);
+   function Count_Of (Item : Badge) return Natural
+   is (Item.Value);
 
    procedure Set_Text (Item : in out Badge; Value : String) is
    begin
@@ -57,69 +59,67 @@ package body Pomarine.Widgets.Badges is
       end if;
    end Set_Text;
 
-   function Text (Item : Badge) return String is
-     (Ada.Strings.Unbounded.To_String (Item.Content));
+   function Text (Item : Badge) return String
+   is (Ada.Strings.Unbounded.To_String (Item.Content));
 
    function Natural_Width (Item : Badge) return Float is
       Span : constant Float :=
-        (if Text_Lines (Item) = null then 0.0
-         else Pomarine.Line_Texts.Width
-                (Text_Lines (Item).all, Shown (Item), 1.0, Style_Of (Item)));
+        (if Text_Lines (Item) = null
+         then 0.0
+         else Pomarine.Line_Texts.Width (Text_Lines (Item).all, Shown (Item), 1.0, Style_Of (Item)));
    begin
       return
         (case Item.Form is
-            when Number => Float'Max (Count_Size, Span + 2.0 * Count_Pad),
-            when Tag   => Span + 2.0 * Tag_Pad);
+           when Number => Float'Max (Count_Size, Span + 2.0 * Count_Pad),
+           when Tag    => Span + 2.0 * Tag_Pad);
    end Natural_Width;
 
-   overriding procedure Draw
-     (Item   : in out Badge;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme)
-   is
+   overriding
+   procedure Draw (Item : in out Badge; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
       Pixels : constant Float := Density (Item);
       Words  : constant String := Shown (Item);
       Using  : constant Pomarine.Line_Texts.Style := Style_Of (Item);
       High   : constant Float :=
         (case Item.Form is
-            when Number =>
-              Float'Min (Height_Of (Item),
-                         Float'Rounding (Count_Size * Pixels)),
-            when Tag   => Height_Of (Item));
-      Top    : constant Float :=
-        Float'Rounding (Top_Of (Item) + (Height_Of (Item) - High) / 2.0);
+           when Number => Float'Min (Height_Of (Item), Float'Rounding (Count_Size * Pixels)),
+           when Tag    => Height_Of (Item));
+      Top    : constant Float := Float'Rounding (Top_Of (Item) + (Height_Of (Item) - High) / 2.0);
       Ink    : constant Themes.Color :=
         (case Item.Form is
-            when Number => Themes.Soft_White,
-            when Tag   => Colors (Themes.Muted));
+           when Number => Themes.Soft_White,
+           when Tag    => Colors (Themes.Muted));
    begin
       case Item.Form is
          when Number =>
-            Fill_Rect
-              (Target, Colors (Themes.Bar), Left_Of (Item), Top, Width_Of (Item),
-               High);
-         when Tag =>
-            Fill_Rect
-              (Target, Colors (Themes.Tint), Left_Of (Item), Top, Width_Of (Item),
-               High);
+            Fill_Rect (Target, Colors (Themes.Bar), Left_Of (Item), Top, Width_Of (Item), High);
+
+         when Tag    =>
+            Fill_Rect (Target, Colors (Themes.Tint), Left_Of (Item), Top, Width_Of (Item), High);
             Pomarine.Boxes.Outline
-              (Target, Colors (Themes.Border), Left_Of (Item), Top, Width_Of (Item),
-               High, Pomarine.Boxes.Edge (Pixels));
+              (Target,
+               Colors (Themes.Border),
+               Left_Of (Item),
+               Top,
+               Width_Of (Item),
+               High,
+               Pomarine.Boxes.Edge (Pixels));
       end case;
       if Text_Lines (Item) /= null and then Words'Length > 0 then
          Pomarine.Line_Texts.Draw
-           (Text_Lines (Item).all, Target, Ink, Words,
+           (Text_Lines (Item).all,
+            Target,
+            Ink,
+            Words,
             Left_Of (Item)
-            + (Width_Of (Item)
-               - Pomarine.Line_Texts.Width
-                   (Text_Lines (Item).all, Words, Pixels, Using)) / 2.0,
-            Top + High / 2.0, Pixels, Using);
+            + (Width_Of (Item) - Pomarine.Line_Texts.Width (Text_Lines (Item).all, Words, Pixels, Using)) / 2.0,
+            Top + High / 2.0,
+            Pixels,
+            Using);
       end if;
    end Draw;
 
-   overriding procedure Describe
-     (Item  : Badge;
-      Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Badge; Facts : in out Semantics.Description) is
    begin
       if Facts.Kind = Semantics.Unknown then
          Facts.Kind := Semantics.Label;

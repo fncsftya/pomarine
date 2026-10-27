@@ -3,10 +3,14 @@ package body CoreText is
    function Valid_Size (Text : String; At_Index : Positive) return Natural is
       Lead : constant Natural := Character'Pos (Text (At_Index));
       Size : constant Natural :=
-        (if Lead < 16#80# then 1
-         elsif Lead in 16#C2# .. 16#DF# then 2
-         elsif Lead in 16#E0# .. 16#EF# then 3
-         elsif Lead in 16#F0# .. 16#F4# then 4
+        (if Lead < 16#80#
+         then 1
+         elsif Lead in 16#C2# .. 16#DF#
+         then 2
+         elsif Lead in 16#E0# .. 16#EF#
+         then 3
+         elsif Lead in 16#F0# .. 16#F4#
+         then 4
          else 0);
    begin
       if Size <= 1 then
@@ -33,10 +37,11 @@ package body CoreText is
       return Size;
    end Valid_Size;
 
-   function Is_BOM (Text : String; At_Index : Positive; Size : Natural) return Boolean is
-     (Size = 3 and then Character'Pos (Text (At_Index)) = 16#EF#
-      and then Character'Pos (Text (At_Index + 1)) = 16#BB#
-      and then Character'Pos (Text (At_Index + 2)) = 16#BF#);
+   function Is_BOM (Text : String; At_Index : Positive; Size : Natural) return Boolean
+   is (Size = 3
+       and then Character'Pos (Text (At_Index)) = 16#EF#
+       and then Character'Pos (Text (At_Index + 1)) = 16#BB#
+       and then Character'Pos (Text (At_Index + 2)) = 16#BF#);
 
    function Is_Clean (Text : String) return Boolean is
       At_Index : Natural := Text'First;
@@ -68,8 +73,7 @@ package body CoreText is
                At_Index := At_Index + 1;
             else
                if Is_BOM (Text, At_Index, Size) then
-                  Result (To .. To + 2) :=
-                    [Character'Val (16#E2#), Character'Val (16#81#), Character'Val (16#A0#)];
+                  Result (To .. To + 2) := [Character'Val (16#E2#), Character'Val (16#81#), Character'Val (16#A0#)];
                end if;
                At_Index := At_Index + Size;
             end if;

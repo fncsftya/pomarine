@@ -17,15 +17,16 @@ with Texts.Documents;
 
 --  The gallery as a person uses it, by what each control is called: no pixels, so no coordinates to break
 --  when the layout moves (the goldens of tests/ draw it).
+
 procedure Gallery_View_Test is
    package Testing renames Pomarine.Testing;
    package Widgets renames Pomarine.Widgets;
    use all type Pomarine.Semantics.Role;
-   Tree    : aliased Pomarine.Widgets.Tree;
-   Model   : aliased Gallery_VM.Model;
-   Parts   : Gallery.Specimens;
-   Screen  : Gallery.UI.View (Tree'Access);
-   Window  : Testing.Session;
+   Tree   : aliased Pomarine.Widgets.Tree;
+   Model  : aliased Gallery_VM.Model;
+   Parts  : Gallery.Specimens;
+   Screen : Gallery.UI.View (Tree'Access);
+   Window : Testing.Session;
 begin
    Gallery_VM.Seed (Model);
    Gallery.Build (Screen, Model'Access, Parts);
@@ -142,9 +143,9 @@ begin
    pragma Assert (Testing.Exists (Window, "Click me"));
    --  In a shorter window the whole control sheet scrolls, while overlays remain in window coordinates.
    declare
-      Small_Tree : aliased Widgets.Tree;
-      Small_Model : aliased Gallery_VM.Model;
-      Small_Parts : Gallery.Specimens;
+      Small_Tree   : aliased Widgets.Tree;
+      Small_Model  : aliased Gallery_VM.Model;
+      Small_Parts  : Gallery.Specimens;
       Small_Screen : Gallery.UI.View (Small_Tree'Access);
       Small_Window : Testing.Session;
    begin
@@ -153,15 +154,14 @@ begin
       Gallery.Build (Small_Screen, Small_Model'Access, Small_Parts);
       Testing.Open (Small_Window, Small_Tree, Gallery.Width, 360);
       Testing.Feed
-        (Small_Window, (Kind => Pomarine.Events.Mouse_Wheel, Wheel_Y => -100.0,
-                        Mouse_X => 710.0, Mouse_Y => 300.0, others => <>));
+        (Small_Window,
+         (Kind => Pomarine.Events.Mouse_Wheel, Wheel_Y => -100.0, Mouse_X => 710.0, Mouse_Y => 300.0, others => <>));
       Testing.Settle (Small_Window);
       pragma Assert (Widgets.Top_Of (Small_Parts.Context_Button) < 360.0);
       Testing.Click_On (Small_Window, "Context menu");
       pragma Assert (Widgets.Overlays.Is_Presented (Small_Parts.Context_Menu));
       pragma Assert (Widgets.Top_Of (Small_Parts.Context_Menu) >= 0.0);
-      pragma Assert (Widgets.Top_Of (Small_Parts.Context_Menu)
-                     + Widgets.Height_Of (Small_Parts.Context_Menu) <= 360.0);
+      pragma Assert (Widgets.Top_Of (Small_Parts.Context_Menu) + Widgets.Height_Of (Small_Parts.Context_Menu) <= 360.0);
       Testing.Press (Small_Window, Pomarine.Events.Key_Escape);
       pragma Assert (not Widgets.Overlays.Is_Presented (Small_Parts.Context_Menu));
    end;

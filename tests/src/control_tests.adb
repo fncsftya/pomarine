@@ -27,11 +27,10 @@ package body Control_Tests is
    package Testing renames Pomarine.Testing;
    use all type Pomarine.Semantics.Role;
 
-   function Image (Value : Integer) return String is
-     (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
+   function Image (Value : Integer) return String
+   is (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
 
-   function Said
-     (Ears : in out Hearers.Hearer; Source : Widgets.Widget'Class; Kind : Widgets.Event_Kind) return String
+   function Said (Ears : in out Hearers.Hearer; Source : Widgets.Widget'Class; Kind : Widgets.Event_Kind) return String
    is
       Taken : Boolean;
    begin
@@ -49,34 +48,60 @@ package body Control_Tests is
    end Row_Said;
 
    procedure Contracts is
-      Choices : Groups.Choice_Group;
-      Stepper : Widgets.Steppers.Stepper;
-      Splitter : Widgets.Splitters.Splitter;
-      Menu : Widgets.Menus.Menu;
+      Choices      : Groups.Choice_Group;
+      Stepper      : Widgets.Steppers.Stepper;
+      Splitter     : Widgets.Splitters.Splitter;
+      Menu         : Widgets.Menus.Menu;
       Select_Field : Widgets.Selects.Select_Field;
-      Dialog : Widgets.Dialogs.Dialog;
-      Popover : Widgets.Popovers.Popover;
-      type Refusal is (Choice_Index, Choice_Disabled, Step_Range, Step_Value, Split_Limits,
-                       Menu_Row, Select_Index, Dialog_Unattached, Popover_Unattached);
+      Dialog       : Widgets.Dialogs.Dialog;
+      Popover      : Widgets.Popovers.Popover;
+      type Refusal is
+        (Choice_Index,
+         Choice_Disabled,
+         Step_Range,
+         Step_Value,
+         Split_Limits,
+         Menu_Row,
+         Select_Index,
+         Dialog_Unattached,
+         Popover_Unattached);
    begin
       Groups.Add_Choice (Choices, "Only");
       Widgets.Steppers.Set_Range (Stepper, 1, 5);
       for Check in Refusal loop
          begin
             case Check is
-               when Choice_Index => Groups.Select_Choice (Choices, 2);
-               when Choice_Disabled => Groups.Set_Choice_Enabled (Choices, 2, False);
-               when Step_Range => Widgets.Steppers.Set_Range (Stepper, 5, 1);
-               when Step_Value => Widgets.Steppers.Set_Value (Stepper, 6);
-               when Split_Limits => Widgets.Splitters.Set_Limits (Splitter, 10.0, 5.0);
-               when Menu_Row => Widgets.Menus.Highlight (Menu, 1);
-               when Select_Index => Widgets.Selects.Choose (Select_Field, 1);
-               when Dialog_Unattached => Pomarine.Dialogs.Alert (Dialog, "Unavailable");
-               when Popover_Unattached => Widgets.Popovers.Show_At (Popover, 0.0, 0.0);
+               when Choice_Index       =>
+                  Groups.Select_Choice (Choices, 2);
+
+               when Choice_Disabled    =>
+                  Groups.Set_Choice_Enabled (Choices, 2, False);
+
+               when Step_Range         =>
+                  Widgets.Steppers.Set_Range (Stepper, 5, 1);
+
+               when Step_Value         =>
+                  Widgets.Steppers.Set_Value (Stepper, 6);
+
+               when Split_Limits       =>
+                  Widgets.Splitters.Set_Limits (Splitter, 10.0, 5.0);
+
+               when Menu_Row           =>
+                  Widgets.Menus.Highlight (Menu, 1);
+
+               when Select_Index       =>
+                  Widgets.Selects.Choose (Select_Field, 1);
+
+               when Dialog_Unattached  =>
+                  Pomarine.Dialogs.Alert (Dialog, "Unavailable");
+
+               when Popover_Unattached =>
+                  Widgets.Popovers.Show_At (Popover, 0.0, 0.0);
             end case;
             raise Program_Error with "contract accepted " & Check'Image;
          exception
-            when Ada.Assertions.Assertion_Error => null;
+            when Ada.Assertions.Assertion_Error =>
+               null;
          end;
       end loop;
       pragma Assert (Groups.Selected (Choices) = 1 and then Groups.Choice_Count (Choices) = 1);
@@ -116,33 +141,38 @@ package body Control_Tests is
       Testing.Open (Session, Tree, 300, 300);
 
       --  Exactly one: the first, to begin with.
-      Goldens.Check_Text ("choices-first-chosen", "1,3", Image (Groups.Selected (Views)) & ","
-                          & Image (Groups.Choice_Count (Views)));
+      Goldens.Check_Text
+        ("choices-first-chosen", "1,3", Image (Groups.Selected (Views)) & "," & Image (Groups.Choice_Count (Views)));
       Goldens.Check_Text ("choices-radios-fit", "72", Image (Integer (Widgets.Height_Of (Sizes))));
-      Goldens.Check_Text ("choices-described", "TRUE,TRUE",
-                          Testing.Exists (Session, "Outline", Radio_Button, Nth => 1)'Image & ","
-                          & Testing.Exists (Session, "Large", Radio_Button)'Image);
+      Goldens.Check_Text
+        ("choices-described",
+         "TRUE,TRUE",
+         Testing.Exists (Session, "Outline", Radio_Button, Nth => 1)'Image
+         & ","
+         & Testing.Exists (Session, "Large", Radio_Button)'Image);
 
       --  A click chooses, and says so, with the number; the same again says nothing.
       Testing.Click_On (Session, "Outline", Radio_Button, Nth => 1);
-      Goldens.Check_Text ("choices-click", "2,2",
-                          Image (Groups.Selected (Views)) & "," & Image (Row_Said (Ears, Views, Widgets.Choose)));
+      Goldens.Check_Text
+        ("choices-click",
+         "2,2",
+         Image (Groups.Selected (Views)) & "," & Image (Row_Said (Ears, Views, Widgets.Choose)));
       Testing.Click_On (Session, "Outline", Radio_Button, Nth => 1);
       Goldens.Check_Text ("choices-same-quiet", "no", Said (Ears, Views, Widgets.Choose));
-      Goldens.Check_Text ("choices-others-untouched", "1,1",
-                          Image (Groups.Selected (Sizes)) & "," & Image (Groups.Selected (Sides)));
+      Goldens.Check_Text
+        ("choices-others-untouched", "1,1", Image (Groups.Selected (Sizes)) & "," & Image (Groups.Selected (Sides)));
 
       --  The application's choice says nothing.
       Groups.Select_Choice (Views, 3);
-      Goldens.Check_Text ("choices-set-quiet", "3,no",
-                          Image (Groups.Selected (Views)) & "," & Said (Ears, Views, Widgets.Choose));
+      Goldens.Check_Text
+        ("choices-set-quiet", "3,no", Image (Groups.Selected (Views)) & "," & Said (Ears, Views, Widgets.Choose));
 
       --  One that is turned off takes no click, and the keys skip it.
       Groups.Set_Choice_Enabled (Sizes, 2, False);
       Testing.Settle (Session);
       Testing.Click_On (Session, "Medium", Radio_Button);
-      Goldens.Check_Text ("choices-off-no-click", "1,no",
-                          Image (Groups.Selected (Sizes)) & "," & Said (Ears, Sizes, Widgets.Choose));
+      Goldens.Check_Text
+        ("choices-off-no-click", "1,no", Image (Groups.Selected (Sizes)) & "," & Said (Ears, Sizes, Widgets.Choose));
       Goldens.Check_Text ("choices-off-described", "TRUE", Testing.Is_Disabled (Session, "Medium", Radio_Button)'Image);
       Groups.Set_Focusable (Sizes, True);
       Widgets.Focus (Sizes);
@@ -150,8 +180,10 @@ package body Control_Tests is
       Goldens.Check_Text ("choices-key-skips-off", "3", Image (Groups.Selected (Sizes)));
       Goldens.Check_Text ("choices-key-said", "3", Image (Row_Said (Ears, Sizes, Widgets.Choose)));
       Testing.Press (Session, Events.Key_Down_Arrow);
-      Goldens.Check_Text ("choices-key-stops-at-end", "3,no",
-                          Image (Groups.Selected (Sizes)) & "," & Said (Ears, Sizes, Widgets.Choose));
+      Goldens.Check_Text
+        ("choices-key-stops-at-end",
+         "3,no",
+         Image (Groups.Selected (Sizes)) & "," & Said (Ears, Sizes, Widgets.Choose));
       Testing.Press (Session, Events.Key_Home);
       Goldens.Check_Text ("choices-home", "1", Image (Groups.Selected (Sizes)));
       Testing.Press (Session, Events.Key_End);
@@ -180,9 +212,12 @@ package body Control_Tests is
       Session : Testing.Session;
 
       --  The middle of its plus and of its minus, in points, at density 1.
-      function Plus_X return Float is (Widgets.Left_Of (Copies) + Widgets.Width_Of (Copies) - 1.0 - 15.0);
-      function Minus_X return Float is (Plus_X - 30.0);
-      function Middle_Y return Float is (Widgets.Top_Of (Copies) + Widgets.Height_Of (Copies) / 2.0);
+      function Plus_X return Float
+      is (Widgets.Left_Of (Copies) + Widgets.Width_Of (Copies) - 1.0 - 15.0);
+      function Minus_X return Float
+      is (Plus_X - 30.0);
+      function Middle_Y return Float
+      is (Widgets.Top_Of (Copies) + Widgets.Height_Of (Copies) / 2.0);
    begin
       Widgets.Set_Listener (Tree, Ears'Unchecked_Access);
       Widgets.Set_Root (Tree, Root);
@@ -193,8 +228,8 @@ package body Control_Tests is
       Goldens.Check_Text ("stepper-starts", "TRUE", Testing.Shows (Session, "=3 pt")'Image);
 
       Testing.Click_At (Session, Plus_X, Middle_Y);
-      Goldens.Check_Text ("stepper-plus", "4,yes",
-                          Image (Steps.Value (Copies)) & "," & Said (Ears, Copies, Widgets.Change));
+      Goldens.Check_Text
+        ("stepper-plus", "4,yes", Image (Steps.Value (Copies)) & "," & Said (Ears, Copies, Widgets.Change));
       Testing.Click_At (Session, Minus_X, Middle_Y);
       Testing.Click_At (Session, Minus_X, Middle_Y);
       Goldens.Check_Text ("stepper-minus", "2", Image (Steps.Value (Copies)));
@@ -206,8 +241,8 @@ package body Control_Tests is
       Goldens.Check_Text ("stepper-step-and-max", "5", Image (Steps.Value (Copies)));
       Goldens.Check_Text ("stepper-say-drained", "yes", Said (Ears, Copies, Widgets.Change));
       Testing.Click_At (Session, Plus_X, Middle_Y);
-      Goldens.Check_Text ("stepper-at-max-quiet", "5,no",
-                          Image (Steps.Value (Copies)) & "," & Said (Ears, Copies, Widgets.Change));
+      Goldens.Check_Text
+        ("stepper-at-max-quiet", "5,no", Image (Steps.Value (Copies)) & "," & Said (Ears, Copies, Widgets.Change));
 
       --  Keys, with the focus: Up and Down, ten steps by Page.
       Steps.Set_Step (Copies, 1);
@@ -224,8 +259,8 @@ package body Control_Tests is
       --  Set by the application, quiet, and the range brings it in.
       Goldens.Check_Text ("stepper-keys-said", "yes", Said (Ears, Copies, Widgets.Change));
       Steps.Set_Value (Copies, 40);
-      Goldens.Check_Text ("stepper-set-quiet", "40,no",
-                          Image (Steps.Value (Copies)) & "," & Said (Ears, Copies, Widgets.Change));
+      Goldens.Check_Text
+        ("stepper-set-quiet", "40,no", Image (Steps.Value (Copies)) & "," & Said (Ears, Copies, Widgets.Change));
       Steps.Set_Range (Copies, 0, 10);
       Goldens.Check_Text ("stepper-range-pulls-in", "10", Image (Steps.Value (Copies)));
 
@@ -247,13 +282,13 @@ package body Control_Tests is
 
    procedure Disclosures is
       package Parts renames Widgets.Disclosures;
-      Tree    : aliased Widgets.Tree;
-      Root    : aliased Widgets.Panels.Panel;
-      Advanced : aliased Parts.Disclosure;
-      Inside  : aliased Widgets.Buttons.Button;
-      Beside  : aliased Widgets.Buttons.Button;
-      Ears    : aliased Hearers.Hearer;
-      Session : Testing.Session;
+      Tree      : aliased Widgets.Tree;
+      Root      : aliased Widgets.Panels.Panel;
+      Advanced  : aliased Parts.Disclosure;
+      Inside    : aliased Widgets.Buttons.Button;
+      Beside    : aliased Widgets.Buttons.Button;
+      Ears      : aliased Hearers.Hearer;
+      Session   : Testing.Session;
       Open_High : Integer;
 
       procedure On_Heading is
@@ -271,25 +306,43 @@ package body Control_Tests is
       Widgets.Buttons.Set_Label (Beside, "Beside");
       Testing.Open (Session, Tree, 300, 300);
       Open_High := Integer (Widgets.Height_Of (Advanced));
-      Goldens.Check_Text ("disclosure-open", "TRUE,TRUE,TRUE",
-                          Parts.Is_Open (Advanced)'Image & "," & Testing.Exists (Session, "Inside")'Image & ","
-                          & Boolean'Image (Open_High > 60));
+      Goldens.Check_Text
+        ("disclosure-open",
+         "TRUE,TRUE,TRUE",
+         Parts.Is_Open (Advanced)'Image
+         & ","
+         & Testing.Exists (Session, "Inside")'Image
+         & ","
+         & Boolean'Image (Open_High > 60));
 
       --  Its heading closes it: what is under takes no room, and it says so.
       On_Heading;
-      Goldens.Check_Text ("disclosure-closed", "FALSE,FALSE,yes",
-                          Parts.Is_Open (Advanced)'Image & "," & Testing.Exists (Session, "Inside")'Image & ","
-                          & Said (Ears, Advanced, Widgets.Change));
+      Goldens.Check_Text
+        ("disclosure-closed",
+         "FALSE,FALSE,yes",
+         Parts.Is_Open (Advanced)'Image
+         & ","
+         & Testing.Exists (Session, "Inside")'Image
+         & ","
+         & Said (Ears, Advanced, Widgets.Change));
       Goldens.Check_Text ("disclosure-heading-only", "30", Image (Integer (Widgets.Height_Of (Advanced))));
       On_Heading;
-      Goldens.Check_Text ("disclosure-reopened", "TRUE,TRUE", Parts.Is_Open (Advanced)'Image & ","
-                          & Testing.Exists (Session, "Beside")'Image);
+      Goldens.Check_Text
+        ("disclosure-reopened",
+         "TRUE,TRUE",
+         Parts.Is_Open (Advanced)'Image & "," & Testing.Exists (Session, "Beside")'Image);
       Goldens.Check_Text ("disclosure-same-height", Image (Open_High), Image (Integer (Widgets.Height_Of (Advanced))));
 
       --  The application's choice says nothing; the keys, with the focus, do as a click.
       Parts.Set_Open (Advanced, False);
-      Goldens.Check_Text ("disclosure-set-quiet", "FALSE,yes,no", Parts.Is_Open (Advanced)'Image & ","
-                          & Said (Ears, Advanced, Widgets.Change) & "," & Said (Ears, Advanced, Widgets.Change));
+      Goldens.Check_Text
+        ("disclosure-set-quiet",
+         "FALSE,yes,no",
+         Parts.Is_Open (Advanced)'Image
+         & ","
+         & Said (Ears, Advanced, Widgets.Change)
+         & ","
+         & Said (Ears, Advanced, Widgets.Change));
       Parts.Set_Focusable (Advanced, True);
       Widgets.Focus (Advanced);
       Testing.Press (Session, Events.Key_Space);
@@ -309,10 +362,11 @@ package body Control_Tests is
       procedure Drag (From, To : Float) is
          Y : constant Float := 50.0;
       begin
-         Testing.Feed (Session, (Kind => Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => From,
-                                 Mouse_Y => Y, others => <>));
-         Testing.Feed (Session, (Kind => Events.Mouse_Move, Left_Held => True, Mouse_X => To, Mouse_Y => Y,
-                                 others => <>));
+         Testing.Feed
+           (Session,
+            (Kind => Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => From, Mouse_Y => Y, others => <>));
+         Testing.Feed
+           (Session, (Kind => Events.Mouse_Move, Left_Held => True, Mouse_X => To, Mouse_Y => Y, others => <>));
          Testing.Feed (Session, (Kind => Events.Mouse_Up, Button => 1, Mouse_X => To, Mouse_Y => Y, others => <>));
          Testing.Settle (Session);
       end Drag;
@@ -324,16 +378,27 @@ package body Control_Tests is
       Bars.Add (Root, Divider);
       Layouts.Add (Root, Page, (Grow => 1.0, others => <>));
       Testing.Open (Session, Tree, 400, 100);
-      Goldens.Check_Text ("splitter-starts", "100,6,294", Image (Integer (Widgets.Width_Of (Side))) & ","
-                          & Image (Integer (Widgets.Width_Of (Divider))) & ","
-                          & Image (Integer (Widgets.Width_Of (Page))));
+      Goldens.Check_Text
+        ("splitter-starts",
+         "100,6,294",
+         Image (Integer (Widgets.Width_Of (Side)))
+         & ","
+         & Image (Integer (Widgets.Width_Of (Divider)))
+         & ","
+         & Image (Integer (Widgets.Width_Of (Page))));
       Goldens.Check_Text ("splitter-position", "100", Image (Integer (Bars.Position (Divider))));
 
       --  Dragged by the bar, the box before it is as wide as the pointer, less where the bar was taken; the rest goes
       --  to the one after.
       Drag (103.0, 153.0);
-      Goldens.Check_Text ("splitter-drag", "150,244,yes", Image (Integer (Widgets.Width_Of (Side))) & ","
-                          & Image (Integer (Widgets.Width_Of (Page))) & "," & Said (Ears, Divider, Widgets.Change));
+      Goldens.Check_Text
+        ("splitter-drag",
+         "150,244,yes",
+         Image (Integer (Widgets.Width_Of (Side)))
+         & ","
+         & Image (Integer (Widgets.Width_Of (Page)))
+         & ","
+         & Said (Ears, Divider, Widgets.Change));
 
       --  Within its limits.
       Drag (153.0, 5.0);
@@ -350,8 +415,10 @@ package body Control_Tests is
       Goldens.Check_Text ("splitter-key-said", "yes", Said (Ears, Divider, Widgets.Change));
       Bars.Set_Position (Divider, 120.0);
       Testing.Settle (Session);
-      Goldens.Check_Text ("splitter-set-quiet", "120,no", Image (Integer (Widgets.Width_Of (Side))) & ","
-                          & Said (Ears, Divider, Widgets.Change));
+      Goldens.Check_Text
+        ("splitter-set-quiet",
+         "120,no",
+         Image (Integer (Widgets.Width_Of (Side))) & "," & Said (Ears, Divider, Widgets.Change));
    end Splitters;
 
 end Control_Tests;

@@ -14,34 +14,43 @@ package body Gallery is
 
    use all type Gallery_VM.Command;
 
-   function Heading (Parent : Gallery_UI.Context'Class; Caption : String) return UI.Layout is
-     (Parent.Label (Caption, Height => 20.0));
+   function Heading (Parent : Gallery_UI.Context'Class; Caption : String) return UI.Layout
+   is (Parent.Label (Caption, Height => 20.0));
 
-   function Buttons_Row (Parent : Gallery_UI.Context'Class) return UI.Layout is
-     (UI.Row ([Parent.Button ("Click me", Click_Me, Look => Buttons.Primary, Width => 90.0),
-               Parent.Button ("Reset", Gallery_VM.Reset, Width => 70.0),
-               Parent.Button ("Remove", Remove_Chosen, Look => Buttons.Danger, Width => 80.0),
-               Parent.Label (Summary_Text, Grow => 1.0, Margin => 8.0)],
-              Gap => 8.0));
+   function Buttons_Row (Parent : Gallery_UI.Context'Class) return UI.Layout
+   is (UI.Row
+         ([Parent.Button ("Click me", Click_Me, Look => Buttons.Primary, Width => 90.0),
+           Parent.Button ("Reset", Gallery_VM.Reset, Width => 70.0),
+           Parent.Button ("Remove", Remove_Chosen, Look => Buttons.Danger, Width => 80.0),
+           Parent.Label (Summary_Text, Grow => 1.0, Margin => 8.0)],
+          Gap => 8.0));
 
-   function Progress_Row (Parent : Gallery_UI.Context'Class) return UI.Layout is
-     (Parent.Progress (Progress_Done, Height => 8.0));
+   function Progress_Row (Parent : Gallery_UI.Context'Class) return UI.Layout
+   is (Parent.Progress (Progress_Done, Height => 8.0));
 
-   function Name_Row (Parent : Gallery_UI.Context'Class) return UI.Layout is
-     (UI.Row ([Parent.Text_Field (Name_Text, Placeholder => "Your name", Name => "Your name", Width => 260.0),
-               Parent.Label (Greeting_Text, Grow => 1.0, Margin => 8.0)],
-              Gap => 8.0));
+   function Name_Row (Parent : Gallery_UI.Context'Class) return UI.Layout
+   is (UI.Row
+         ([Parent.Text_Field (Name_Text, Placeholder => "Your name", Name => "Your name", Width => 260.0),
+           Parent.Label (Greeting_Text, Grow => 1.0, Margin => 8.0)],
+          Gap => 8.0));
 
-   function Choices_Row (Parent : Gallery_UI.Context'Class) return UI.Layout is
-     (UI.Row ([Parent.Check ("Notify me", Notify_Flag, Name => "Notify me", Width => 120.0),
-               Parent.Check ("Small", Size_Flag, Pick_Size, Pomarine.Widgets.Checks.Radio, Index => 1,
-                             Name => "Small", Width => 80.0),
-               Parent.Check ("Medium", Size_Flag, Pick_Size, Pomarine.Widgets.Checks.Radio, Index => 2,
-                             Name => "Medium", Width => 90.0),
-               Parent.Check ("Large", Size_Flag, Pick_Size, Pomarine.Widgets.Checks.Radio, Index => 3,
-                             Name => "Large", Width => 80.0),
-               Parent.Switch ("Compact", Compact_Flag, Toggle_Compact, Name => "Compact", Width => 120.0)],
-              Gap => 8.0));
+   function Choices_Row (Parent : Gallery_UI.Context'Class) return UI.Layout
+   is (UI.Row
+         ([Parent.Check ("Notify me", Notify_Flag, Name => "Notify me", Width => 120.0),
+           Parent.Check
+             ("Small", Size_Flag, Pick_Size, Pomarine.Widgets.Checks.Radio, Index => 1, Name => "Small", Width => 80.0),
+           Parent.Check
+             ("Medium",
+              Size_Flag,
+              Pick_Size,
+              Pomarine.Widgets.Checks.Radio,
+              Index => 2,
+              Name  => "Medium",
+              Width => 90.0),
+           Parent.Check
+             ("Large", Size_Flag, Pick_Size, Pomarine.Widgets.Checks.Radio, Index => 3, Name => "Large", Width => 80.0),
+           Parent.Switch ("Compact", Compact_Flag, Toggle_Compact, Name => "Compact", Width => 120.0)],
+          Gap => 8.0));
 
    function Specimens_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
    begin
@@ -53,14 +62,15 @@ package body Gallery is
       Pomarine.Widgets.Chips.Set_Label (Parts.Tag, "Ada");
       Pomarine.Widgets.Chips.Set_Swatch (Parts.Tag, Pomarine.Themes.Primary);
       Pomarine.Widgets.Badges.Set_Count (Parts.Count, 3);
-      return UI.Row
-        ([Parent.Borrow_Widget (Parts.Slider, Tooltip => "Drag it, or use the arrow keys", Width => 200.0,
-                                Height => 24.0),
-          Parent.Borrow_Widget (Parts.Choice, Tooltip => "Opens its own menu", Name => "Font", Width => 160.0,
-                                Height => 32.0),
-          Parent.Borrow_Widget (Parts.Tag, Width => 90.0, Height => 24.0),
-          Parent.Borrow_Widget (Parts.Count, Width => 40.0, Height => 16.0)],
-         Gap => 16.0);
+      return
+        UI.Row
+          ([Parent.Borrow_Widget
+              (Parts.Slider, Tooltip => "Drag it, or use the arrow keys", Width => 200.0, Height => 24.0),
+            Parent.Borrow_Widget
+              (Parts.Choice, Tooltip => "Opens its own menu", Name => "Font", Width => 160.0, Height => 32.0),
+            Parent.Borrow_Widget (Parts.Tag, Width => 90.0, Height => 24.0),
+            Parent.Borrow_Widget (Parts.Count, Width => 40.0, Height => 16.0)],
+           Gap => 16.0);
    end Specimens_Row;
 
    function Choosers_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
@@ -75,11 +85,12 @@ package body Gallery is
       Pomarine.Widgets.Steppers.Set_Range (Parts.Copies, 1, 99);
       Pomarine.Widgets.Steppers.Set_Value (Parts.Copies, 2);
       Pomarine.Widgets.Steppers.Set_Suffix (Parts.Copies, " copies");
-      return UI.Row
-        ([Parent.Borrow_Widget (Parts.Views, Width => 280.0, Height => 32.0),
-          Parent.Borrow_Widget (Parts.Copies, Name => "Copies", Width => 150.0, Height => 32.0),
-          Parent.Borrow_Widget (Parts.Quantity, Name => "Quantity", Width => 160.0, Height => 32.0)],
-         Gap => 24.0);
+      return
+        UI.Row
+          ([Parent.Borrow_Widget (Parts.Views, Width => 280.0, Height => 32.0),
+            Parent.Borrow_Widget (Parts.Copies, Name => "Copies", Width => 150.0, Height => 32.0),
+            Parent.Borrow_Widget (Parts.Quantity, Name => "Quantity", Width => 160.0, Height => 32.0)],
+           Gap => 24.0);
    end Choosers_Row;
 
    function Variants_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
@@ -94,10 +105,11 @@ package body Gallery is
       Widgets.Choice_Groups.Add_Choice (Parts.Mode, "Final");
       Widgets.Choice_Groups.Set_Focusable (Parts.Alignment, True);
       Widgets.Choice_Groups.Set_Focusable (Parts.Mode, True);
-      return UI.Row
-        ([Parent.Borrow_Widget (Parts.Alignment, Width => 320.0, Height => 32.0),
-          Parent.Borrow_Widget (Parts.Mode, Width => 320.0, Height => 32.0)],
-         Gap => 24.0);
+      return
+        UI.Row
+          ([Parent.Borrow_Widget (Parts.Alignment, Width => 320.0, Height => 32.0),
+            Parent.Borrow_Widget (Parts.Mode, Width => 320.0, Height => 32.0)],
+           Gap => 24.0);
    end Variants_Row;
 
    function Editor_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
@@ -116,10 +128,13 @@ package body Gallery is
       Pomarine.Widgets.Disclosures.Set_Focusable (Parts.Advanced, True);
       Pomarine.Widgets.Labels.Set_Text (Parts.Note_1, "A disclosure hides what is under its heading.");
       Pomarine.Widgets.Labels.Set_Text (Parts.Note_2, "Click the heading, or press Space on it.");
-      return UI.Styled
-        (UI.Hold (Whole, [Parent.Borrow_Widget (Parts.Note_1, Height => 20.0),
-                          Parent.Borrow_Widget (Parts.Note_2, Height => 20.0)]),
-         Pomarine.Widgets.Disclosures.Box_Style);
+      return
+        UI.Styled
+          (UI.Hold
+             (Whole,
+              [Parent.Borrow_Widget (Parts.Note_1, Height => 20.0),
+               Parent.Borrow_Widget (Parts.Note_2, Height => 20.0)]),
+           Pomarine.Widgets.Disclosures.Box_Style);
    end Disclosure_Row;
 
    function Splitter_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
@@ -130,12 +145,18 @@ package body Gallery is
       Pomarine.Widgets.Panels.Set_Border (Parts.Main_Pane, Pomarine.Themes.Border);
       Pomarine.Widgets.Splitters.Set_Focusable (Parts.Divider, True);
       Pomarine.Widgets.Splitters.Set_Limits (Parts.Divider, 80.0, 400.0);
-      return UI.Row
-        ([Parent.Borrow_Widget (Parts.Side_Pane, Width => 160.0, Shrink => 0.0),
-          Parent.Borrow_Widget (Parts.Divider, Tooltip => "Drag to give one side more room",
-                                Name => "Pane divider", Width => 6.0, Shrink => 0.0),
-          Parent.Borrow_Widget (Parts.Main_Pane, Grow => 1.0)],
-         Height => 56.0, Align => UI.Layouts.Stretch);
+      return
+        UI.Row
+          ([Parent.Borrow_Widget (Parts.Side_Pane, Width => 160.0, Shrink => 0.0),
+            Parent.Borrow_Widget
+              (Parts.Divider,
+               Tooltip => "Drag to give one side more room",
+               Name    => "Pane divider",
+               Width   => 6.0,
+               Shrink  => 0.0),
+            Parent.Borrow_Widget (Parts.Main_Pane, Grow => 1.0)],
+           Height => 56.0,
+           Align  => UI.Layouts.Stretch);
    end Splitter_Row;
 
    function Menu_Rows return Menus.Row_Vectors.Vector is
@@ -159,9 +180,12 @@ package body Gallery is
    function Lists_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
       Menu_Height : constant UI.Layouts.Length := Prepared_Menu (Parts);
    begin
-      return UI.Row ([Parent.List (Item_Rows, Item_Choice, Name => "Fruit", Width => 260.0, Height => 150.0),
-                      Parent.Borrow_Widget (Parts.Menu, Width => 200.0, Height => Menu_Height)],
-                     Gap => 16.0, Align => UI.Layouts.Start);
+      return
+        UI.Row
+          ([Parent.List (Item_Rows, Item_Choice, Name => "Fruit", Width => 260.0, Height => 150.0),
+            Parent.Borrow_Widget (Parts.Menu, Width => 200.0, Height => Menu_Height)],
+           Gap   => 16.0,
+           Align => UI.Layouts.Start);
    end Lists_Row;
 
    function Notices_Row (Parent : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
@@ -172,31 +196,44 @@ package body Gallery is
       Buttons.Configure (Parts.Info_Button, Buttons.Looks ("Popover", Focusable => True));
       Buttons.Configure (Parts.Ask_Button, Buttons.Looks ("Dialog", Buttons.Danger, Focusable => True));
       Buttons.Configure (Parts.Context_Button, Buttons.Looks ("Context menu", Focusable => True));
-      return UI.Row
-        ([Parent.Borrow_Widget (Parts.Message, Width => 220.0, Height => 36.0),
-          Parent.Borrow_Widget (Parts.Sample_Tip, Width => 90.0, Height => 22.0),
-          Parent.Borrow_Widget (Parts.Info_Button, Tooltip => "Opens a popover beside it", Width => 80.0,
-                                Height => 32.0),
-          Parent.Borrow_Widget (Parts.Ask_Button, Tooltip => "Asks whether to go ahead", Width => 80.0,
-                                Height => 32.0),
-          Parent.Borrow_Widget (Parts.Context_Button, Width => 100.0, Height => 32.0)],
-         Gap => 16.0);
+      return
+        UI.Row
+          ([Parent.Borrow_Widget (Parts.Message, Width => 220.0, Height => 36.0),
+            Parent.Borrow_Widget (Parts.Sample_Tip, Width => 90.0, Height => 22.0),
+            Parent.Borrow_Widget
+              (Parts.Info_Button, Tooltip => "Opens a popover beside it", Width => 80.0, Height => 32.0),
+            Parent.Borrow_Widget
+              (Parts.Ask_Button, Tooltip => "Asks whether to go ahead", Width => 80.0, Height => 32.0),
+            Parent.Borrow_Widget (Parts.Context_Button, Width => 100.0, Height => 32.0)],
+           Gap => 16.0);
    end Notices_Row;
 
-   function Gallery_Screen (Bound : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout is
-     (UI.Column
-        ([Heading (Bound, "Buttons"), Buttons_Row (Bound), Progress_Row (Bound),
-          Heading (Bound, "Fields"), Name_Row (Bound), Choices_Row (Bound),
-          Heading (Bound, "Values"), Specimens_Row (Bound, Parts),
-          Heading (Bound, "Choosers"), Choosers_Row (Bound, Parts), Variants_Row (Bound, Parts),
-          Disclosure_Row (Bound, Parts), Splitter_Row (Bound, Parts),
-          Heading (Bound, "Rich text"), Editor_Row (Bound, Parts),
-          Heading (Bound, "Lists and menus"), Lists_Row (Bound, Parts),
-          Heading (Bound, "Notices"), Notices_Row (Bound, Parts)],
-         Padding => 16.0, Gap => 8.0));
+   function Gallery_Screen (Bound : Gallery_UI.Context'Class; Parts : in out Specimens) return UI.Layout
+   is (UI.Column
+         ([Heading (Bound, "Buttons"),
+           Buttons_Row (Bound),
+           Progress_Row (Bound),
+           Heading (Bound, "Fields"),
+           Name_Row (Bound),
+           Choices_Row (Bound),
+           Heading (Bound, "Values"),
+           Specimens_Row (Bound, Parts),
+           Heading (Bound, "Choosers"),
+           Choosers_Row (Bound, Parts),
+           Variants_Row (Bound, Parts),
+           Disclosure_Row (Bound, Parts),
+           Splitter_Row (Bound, Parts),
+           Heading (Bound, "Rich text"),
+           Editor_Row (Bound, Parts),
+           Heading (Bound, "Lists and menus"),
+           Lists_Row (Bound, Parts),
+           Heading (Bound, "Notices"),
+           Notices_Row (Bound, Parts)],
+          Padding => 16.0,
+          Gap     => 8.0));
 
-   procedure Show_Popover
-     (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
+   procedure Show_Popover (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   is
       pragma Unreferenced (Event);
    begin
       if Widgets.Popovers.Is_Shown (Self.Info) then
@@ -206,36 +243,35 @@ package body Gallery is
       end if;
    end Show_Popover;
 
-   procedure Ask_Question
-     (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
+   procedure Ask_Question (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   is
       pragma Unreferenced (Source, Event);
    begin
       if not Widgets.Dialogs.Is_Shown (Self.Ask) then
          Pomarine.Dialogs.Confirm
-           (Self.Ask, "Delete the file?", "It cannot be got back, so think twice before you press Delete." & ASCII.LF
+           (Self.Ask,
+            "Delete the file?",
+            "It cannot be got back, so think twice before you press Delete."
+            & ASCII.LF
             & "Press Escape to keep the file.",
-            Yes => "Delete", Dangerous => True);
+            Yes       => "Delete",
+            Dangerous => True);
       end if;
    end Ask_Question;
 
-   procedure Show_Context
-     (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
+   procedure Show_Context (Self : in out Specimens; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
+   is
       pragma Unreferenced (Event);
    begin
       if not Widgets.Overlays.Is_Presented (Self.Context_Menu) then
-         Widgets.Overlays.Present_Beside
-           (Self.Context_Menu, Source, (Side => Pomarine.Anchoring.Above, others => <>));
+         Widgets.Overlays.Present_Beside (Self.Context_Menu, Source, (Side => Pomarine.Anchoring.Above, others => <>));
       end if;
    end Show_Context;
 
-   procedure Build
-     (Screen : in out UI.View;
-      Model  : not null access Gallery_VM.Model;
-      Parts  : in out Specimens)
-   is
+   procedure Build (Screen : in out UI.View; Model : not null access Gallery_VM.Model; Parts : in out Specimens) is
       Bound : constant Gallery_UI.Context'Class := Gallery_UI.Bind (Screen, Model);
-      Whole : constant UI.Layout := UI.Column
-        ([UI.Scroll (Gallery_Screen (Bound, Parts), Grow => 1.0, Height => 0.0)], Grow => 1.0);
+      Whole : constant UI.Layout :=
+        UI.Column ([UI.Scroll (Gallery_Screen (Bound, Parts), Grow => 1.0, Height => 0.0)], Grow => 1.0);
       Root  : Widgets.Widget_Access;
    begin
       UI.Mount (Screen, Whole);

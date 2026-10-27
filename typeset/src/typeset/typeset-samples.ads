@@ -1,8 +1,8 @@
 --  Text to try things on.
+
 package Typeset.Samples is
 
-   function Document
-     (Paragraphs : Positive; Seed : Natural := 1) return String;
+   function Document (Paragraphs : Positive; Seed : Natural := 1) return String;
    --  A document of that many paragraphs, a line each, of varied length:
    --  mostly of a few sentences, some of one word and some of a few
    --  thousand. Made from pseudo-random words, with some in other scripts

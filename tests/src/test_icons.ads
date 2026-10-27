@@ -2,6 +2,7 @@ with Pomarine.Icons;
 
 --  The icons the tests draw with: plain shapes in tests/icons, standing in
 --  for whatever an application would give. The library has no pictures.
+
 package Test_Icons is
 
    Square   : constant Pomarine.Icons.Icon := Pomarine.Icons.Custom (0);

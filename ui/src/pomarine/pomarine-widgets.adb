@@ -20,6 +20,7 @@ with Pomarine.Widgets.Dispatching;
 with Pomarine.Widgets.Lifecycle;
 with Pomarine.Widgets.Adding;
 with Pomarine.Widgets.Tipping;
+
 package body Pomarine.Widgets is
 
    use Pomarine.Widgets.Adding;
@@ -33,8 +34,8 @@ package body Pomarine.Widgets is
    use type Interfaces.Unsigned_64;
    use type Semantics.Role;
 
-   function Has_Pointer_Capture (Item : Widget'Class) return Boolean is
-     (Is_Attached (Item) and then Item.Owner.Capture = Item.Slot);
+   function Has_Pointer_Capture (Item : Widget'Class) return Boolean
+   is (Is_Attached (Item) and then Item.Owner.Capture = Item.Slot);
 
    procedure Capture_Pointer (Item : in out Widget'Class; Button : Natural := 0) is
    begin
@@ -58,73 +59,72 @@ package body Pomarine.Widgets is
 
    procedure Free_Table is new Ada.Unchecked_Deallocation (Node_Table, Table_Access);
 
-   function Is_Attached (Item : Widget'Class) return Boolean is
-     (Item.Owner /= null);
+   function Is_Attached (Item : Widget'Class) return Boolean
+   is (Item.Owner /= null);
 
-   function Tree_Of (Item : Widget'Class) return not null access Tree is (Item.Owner);
+   function Tree_Of (Item : Widget'Class) return not null access Tree
+   is (Item.Owner);
 
-   function Id_Of (Item : Widget'Class) return Node_Id is
-     (if Item.Owner = null then No_Node
-      else (Item.Slot, Item.Owner.Nodes.Use_Number (Item.Slot), 0));
+   function Id_Of (Item : Widget'Class) return Node_Id
+   is (if Item.Owner = null then No_Node else (Item.Slot, Item.Owner.Nodes.Use_Number (Item.Slot), 0));
 
-   function Part_Id (Item : Widget'Class; Part : Positive) return Node_Id is
-     (if Item.Owner = null then No_Node
-      else (Item.Slot, Item.Owner.Nodes.Use_Number (Item.Slot), Part));
+   function Part_Id (Item : Widget'Class; Part : Positive) return Node_Id
+   is (if Item.Owner = null then No_Node else (Item.Slot, Item.Owner.Nodes.Use_Number (Item.Slot), Part));
 
-   function Is_Live (Item : Tree; Id : Node_Id) return Boolean is
-     (Id.Slot /= 0 and then Item.Nodes /= null
-      and then Id.Slot <= Item.Nodes.Fresh
-      and then Item.Nodes.Object (Id.Slot) /= null
-      and then (if Id.Part = 0 then Item.Nodes.Use_Number (Id.Slot) = Id.Use_Number
-                else Item.Nodes.Use_Number (Id.Slot) mod 2 ** Use_Bits
-                     = Id.Use_Number));
+   function Is_Live (Item : Tree; Id : Node_Id) return Boolean
+   is (Id.Slot /= 0
+       and then Item.Nodes /= null
+       and then Id.Slot <= Item.Nodes.Fresh
+       and then Item.Nodes.Object (Id.Slot) /= null
+       and then (if Id.Part = 0
+                 then Item.Nodes.Use_Number (Id.Slot) = Id.Use_Number
+                 else Item.Nodes.Use_Number (Id.Slot) mod 2**Use_Bits = Id.Use_Number));
 
-   function Resolve (Item : Tree; Id : Node_Id) return Widget_Access is
-     (if Is_Live (Item, Id) then Item.Nodes.Object (Id.Slot) else null);
+   function Resolve (Item : Tree; Id : Node_Id) return Widget_Access
+   is (if Is_Live (Item, Id) then Item.Nodes.Object (Id.Slot) else null);
 
-   function Part_Of (Id : Node_Id; Part : Natural) return Node_Id is
-     ((Id.Slot, Id.Use_Number, Part));
+   function Part_Of (Id : Node_Id; Part : Natural) return Node_Id
+   is ((Id.Slot, Id.Use_Number, Part));
 
-   function Part_Number_Of (Id : Node_Id) return Natural is (Id.Part);
+   function Part_Number_Of (Id : Node_Id) return Natural
+   is (Id.Part);
 
-   function Root_Widget (Item : Tree) return Widget_Access is
-     (if Item.Root = 0 then null else Item.Nodes.Object (Item.Root));
+   function Root_Widget (Item : Tree) return Widget_Access
+   is (if Item.Root = 0 then null else Item.Nodes.Object (Item.Root));
 
-   function Root_Id (Item : Tree) return Node_Id is
-     (Id_Of_Slot (Item, Item.Root));
+   function Root_Id (Item : Tree) return Node_Id
+   is (Id_Of_Slot (Item, Item.Root));
 
-   function Parent_Id (Item : Tree; Id : Node_Id) return Node_Id is
-     (Id_Of_Slot (Item, Item.Nodes.Parent (Id.Slot)));
+   function Parent_Id (Item : Tree; Id : Node_Id) return Node_Id
+   is (Id_Of_Slot (Item, Item.Nodes.Parent (Id.Slot)));
 
-   function First_Child_Id (Item : Tree; Id : Node_Id) return Node_Id is
-     (Id_Of_Slot (Item, Item.Nodes.First (Id.Slot)));
+   function First_Child_Id (Item : Tree; Id : Node_Id) return Node_Id
+   is (Id_Of_Slot (Item, Item.Nodes.First (Id.Slot)));
 
-   function Next_Sibling_Id (Item : Tree; Id : Node_Id) return Node_Id is
-     (Id_Of_Slot (Item, Item.Nodes.Next (Id.Slot)));
+   function Next_Sibling_Id (Item : Tree; Id : Node_Id) return Node_Id
+   is (Id_Of_Slot (Item, Item.Nodes.Next (Id.Slot)));
 
    --  A number for an id: the use of the slot in the high half and the
    --  slot in the low, for a widget; with the top bit, and a part's number
    --  between, for a part, where the use is cut to fit.
 
-   function To_Unsigned_64 (Id : Node_Id) return Interfaces.Unsigned_64 is
-     (if Id.Part = 0
-      then Interfaces.Shift_Left (Interfaces.Unsigned_64 (Id.Use_Number), 32)
-           or Interfaces.Unsigned_64 (Id.Slot)
-      else 16#8000_0000_0000_0000#
-           or Interfaces.Shift_Left (Interfaces.Unsigned_64 (Id.Part), Slot_Bits + Use_Bits)
-           or Interfaces.Shift_Left
-                (Interfaces.Unsigned_64 (Id.Use_Number mod 2 ** Use_Bits), Slot_Bits)
-           or Interfaces.Unsigned_64 (Id.Slot));
+   function To_Unsigned_64 (Id : Node_Id) return Interfaces.Unsigned_64
+   is (if Id.Part = 0
+       then Interfaces.Shift_Left (Interfaces.Unsigned_64 (Id.Use_Number), 32) or Interfaces.Unsigned_64 (Id.Slot)
+       else
+         16#8000_0000_0000_0000#
+         or Interfaces.Shift_Left (Interfaces.Unsigned_64 (Id.Part), Slot_Bits + Use_Bits)
+         or Interfaces.Shift_Left (Interfaces.Unsigned_64 (Id.Use_Number mod 2**Use_Bits), Slot_Bits)
+         or Interfaces.Unsigned_64 (Id.Slot));
 
    function From_Unsigned_64 (Value : Interfaces.Unsigned_64) return Node_Id is
    begin
       if (Value and 16#8000_0000_0000_0000#) /= 0 then
          declare
-            Slot : constant Interfaces.Unsigned_64 := Value and (2 ** Slot_Bits - 1);
-            Used : constant Interfaces.Unsigned_64 :=
-              Interfaces.Shift_Right (Value, Slot_Bits) and (2 ** Use_Bits - 1);
+            Slot : constant Interfaces.Unsigned_64 := Value and (2**Slot_Bits - 1);
+            Used : constant Interfaces.Unsigned_64 := Interfaces.Shift_Right (Value, Slot_Bits) and (2**Use_Bits - 1);
             Part : constant Interfaces.Unsigned_64 :=
-              Interfaces.Shift_Right (Value, Slot_Bits + Use_Bits) and (2 ** 23 - 1);
+              Interfaces.Shift_Right (Value, Slot_Bits + Use_Bits) and (2**23 - 1);
          begin
             if Slot > Interfaces.Unsigned_64 (Node_Capacity) or else Part = 0 then
                return No_Node;
@@ -136,9 +136,7 @@ package body Pomarine.Widgets is
          Slot : constant Interfaces.Unsigned_64 := Value and 16#FFFF_FFFF#;
          Used : constant Interfaces.Unsigned_64 := Interfaces.Shift_Right (Value, 32);
       begin
-         if Slot > Interfaces.Unsigned_64 (Node_Capacity)
-           or else Used > Interfaces.Unsigned_64 (Natural'Last)
-         then
+         if Slot > Interfaces.Unsigned_64 (Node_Capacity) or else Used > Interfaces.Unsigned_64 (Natural'Last) then
             return No_Node;
          end if;
          return (Node_Index (Slot), Natural (Used), 0);
@@ -152,48 +150,47 @@ package body Pomarine.Widgets is
          return Text (Text'First + 1 .. Text'Last);
       end Trim;
    begin
-      return (if Id = No_Node then "none"
-              else Trim (Id.Slot) & "." & Trim (Id.Use_Number)
-                   & (if Id.Part = 0 then "" else ":" & Trim (Id.Part)));
+      return
+        (if Id = No_Node
+         then "none"
+         else Trim (Id.Slot) & "." & Trim (Id.Use_Number) & (if Id.Part = 0 then "" else ":" & Trim (Id.Part)));
    end Image;
 
    procedure Mark_Dirty (Item : in out Widget'Class; What : Dirty_Kind) is
       Table : Node_Table renames Item.Owner.Nodes.all;
    begin
       case What is
-         when Layout_Dirty =>
+         when Layout_Dirty    =>
             Table.Layout_Dirty (Item.Slot) := True;
             Item.Owner.Layout_Pending := True;
-         when Paint_Dirty =>
+
+         when Paint_Dirty     =>
             Table.Paint_Dirty (Item.Slot) := True;
+
          when Semantics_Dirty =>
             Table.Semantics_Dirty (Item.Slot) := True;
       end case;
    end Mark_Dirty;
 
-   function Is_Dirty (Item : Widget'Class; What : Dirty_Kind) return Boolean is
-     (Item.Owner /= null
-      and then (case What is
-                   when Layout_Dirty => Item.Owner.Nodes.Layout_Dirty (Item.Slot),
-                   when Paint_Dirty => Item.Owner.Nodes.Paint_Dirty (Item.Slot),
-                   when Semantics_Dirty =>
-                     Item.Owner.Nodes.Semantics_Dirty (Item.Slot)));
+   function Is_Dirty (Item : Widget'Class; What : Dirty_Kind) return Boolean
+   is (Item.Owner /= null
+       and then (case What is
+                   when Layout_Dirty    => Item.Owner.Nodes.Layout_Dirty (Item.Slot),
+                   when Paint_Dirty     => Item.Owner.Nodes.Paint_Dirty (Item.Slot),
+                   when Semantics_Dirty => Item.Owner.Nodes.Semantics_Dirty (Item.Slot)));
 
    --  The widgets
 
-   function Node (Item : Widget'Class) return Yoga.Nodes.Node is
-     (Item.Owner.Nodes.Yoga_Node (Item.Slot));
+   function Node (Item : Widget'Class) return Yoga.Nodes.Node
+   is (Item.Owner.Nodes.Yoga_Node (Item.Slot));
 
-   function Parent_Of (Item : Widget'Class) return Widget_Access is
-     (if Item.Owner = null then null
-      else Object (Item.Owner.all, Item.Owner.Nodes.Parent (Item.Slot)));
+   function Parent_Of (Item : Widget'Class) return Widget_Access
+   is (if Item.Owner = null then null else Object (Item.Owner.all, Item.Owner.Nodes.Parent (Item.Slot)));
 
-   function Child_Count (Item : Widget'Class) return Natural is
-     (if Item.Owner = null then 0 else Item.Owner.Nodes.Children (Item.Slot));
+   function Child_Count (Item : Widget'Class) return Natural
+   is (if Item.Owner = null then 0 else Item.Owner.Nodes.Children (Item.Slot));
 
-   function Child_At (Item : Widget'Class; Index : Positive)
-      return Widget_Access
-   is
+   function Child_At (Item : Widget'Class; Index : Positive) return Widget_Access is
       Table  : Node_Table renames Item.Owner.Nodes.all;
       Result : Node_Index := Table.First (Item.Slot);
    begin
@@ -203,35 +200,34 @@ package body Pomarine.Widgets is
       return Table.Object (Result);
    end Child_At;
 
-   function Left_Of (Item : Widget'Class) return Float is
-     (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).Left);
-   function Top_Of (Item : Widget'Class) return Float is
-     (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).Top);
-   function Width_Of (Item : Widget'Class) return Float is
-     (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).Wide);
-   function Height_Of (Item : Widget'Class) return Float is
-     (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).High);
-   function Is_Placed (Item : Widget'Class) return Boolean is
-     (Item.Owner /= null and then Item.Owner.Nodes.Spot (Item.Slot).Placed);
+   function Left_Of (Item : Widget'Class) return Float
+   is (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).Left);
+   function Top_Of (Item : Widget'Class) return Float
+   is (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).Top);
+   function Width_Of (Item : Widget'Class) return Float
+   is (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).Wide);
+   function Height_Of (Item : Widget'Class) return Float
+   is (if Item.Owner = null then 0.0 else Item.Owner.Nodes.Spot (Item.Slot).High);
+   function Is_Placed (Item : Widget'Class) return Boolean
+   is (Item.Owner /= null and then Item.Owner.Nodes.Spot (Item.Slot).Placed);
 
    function Contains (Item : Tree; Slot : Node_Index; X, Y : Float) return Boolean is
       Box : Spot renames Item.Nodes.Spot (Slot);
    begin
-      return X >= Box.Left and then X < Box.Left + Box.Wide
-        and then Y >= Box.Top and then Y < Box.Top + Box.High;
+      return X >= Box.Left and then X < Box.Left + Box.Wide and then Y >= Box.Top and then Y < Box.Top + Box.High;
    end Contains;
 
-   function Contains (Item : Widget'Class; X, Y : Float) return Boolean is
-     (Item.Owner /= null and then Contains (Item.Owner.all, Item.Slot, X, Y));
+   function Contains (Item : Widget'Class; X, Y : Float) return Boolean
+   is (Item.Owner /= null and then Contains (Item.Owner.all, Item.Slot, X, Y));
 
-   function Is_Hovered (Item : Widget'Class) return Boolean is
-     (Item.Owner /= null and then Item.Owner.Nodes.Hovered (Item.Slot));
+   function Is_Hovered (Item : Widget'Class) return Boolean
+   is (Item.Owner /= null and then Item.Owner.Nodes.Hovered (Item.Slot));
 
-   function Painting_Part (Item : Widget'Class) return Pixel_Box is
-     (Item.Owner.Nodes.Paint_Box (Item.Slot));
+   function Painting_Part (Item : Widget'Class) return Pixel_Box
+   is (Item.Owner.Nodes.Paint_Box (Item.Slot));
 
-   function Is_Visible (Item : Widget'Class) return Boolean is
-     (Item.Owner = null or else Item.Owner.Nodes.Spot (Item.Slot).Visible);
+   function Is_Visible (Item : Widget'Class) return Boolean
+   is (Item.Owner = null or else Item.Owner.Nodes.Spot (Item.Slot).Visible);
 
    function Is_Showing (Item : Widget'Class) return Boolean is
    begin
@@ -252,26 +248,22 @@ package body Pomarine.Widgets is
       end;
    end Is_Showing;
 
-   function Has_Focus (Item : Widget'Class) return Boolean is
-     (Item.Owner /= null and then Item.Owner.Nodes.Focused (Item.Slot));
+   function Has_Focus (Item : Widget'Class) return Boolean
+   is (Item.Owner /= null and then Item.Owner.Nodes.Focused (Item.Slot));
 
-   function Is_Focus_Visible (Item : Widget'Class) return Boolean is
-     (Has_Focus (Item) and then Item.Owner.Keyboard_Focus);
+   function Is_Focus_Visible (Item : Widget'Class) return Boolean
+   is (Has_Focus (Item) and then Item.Owner.Keyboard_Focus);
 
-   function Density (Item : Widget'Class) return Float is
-     (Item.Owner.Density);
+   function Density (Item : Widget'Class) return Float
+   is (Item.Owner.Density);
 
-   function Is_Settled (Item : Widget'Class) return Boolean is
-     (Item.Owner.Settled);
+   function Is_Settled (Item : Widget'Class) return Boolean
+   is (Item.Owner.Settled);
 
-   function Clipboard (Item : Widget'Class) return Clipboard_Access is
-     (Item.Owner.Board);
+   function Clipboard (Item : Widget'Class) return Clipboard_Access
+   is (Item.Owner.Board);
 
-   procedure Handle
-     (Item    : in out Widget;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   procedure Handle (Item : in out Widget; Event : Pomarine.Events.Event; Handled : out Boolean) is
       pragma Unreferenced (Item, Event);
    begin
       Handled := False;
@@ -312,7 +304,8 @@ package body Pomarine.Widgets is
 
    --  Building
 
-   function Has_Root (Item : Tree) return Boolean is (Item.Root /= 0);
+   function Has_Root (Item : Tree) return Boolean
+   is (Item.Root /= 0);
 
    procedure Set_Listener (Item : in out Tree; To : not null access Listener'Class) is
    begin
@@ -324,26 +317,21 @@ package body Pomarine.Widgets is
       Item.Own := Listener_Access (To);
    end Set_Listener;
 
-   procedure Set_Tag
-     (Item     : in out Widget'Class;
-      Tag      : Integer;
-      Index    : Natural := 0;
-      Reflects : Boolean := True) is
+   procedure Set_Tag (Item : in out Widget'Class; Tag : Integer; Index : Natural := 0; Reflects : Boolean := True) is
    begin
       Item.Tag := Tag;
       Item.Index := Index;
       Item.Reflects := Reflects;
    end Set_Tag;
 
-   function Tag_Of (Item : Widget'Class) return Integer is (Item.Tag);
+   function Tag_Of (Item : Widget'Class) return Integer
+   is (Item.Tag);
 
-   function Index_Of (Item : Widget'Class) return Natural is (Item.Index);
+   function Index_Of (Item : Widget'Class) return Natural
+   is (Item.Index);
 
    procedure Set_Hook
-     (Item : in out Widget'Class;
-      Kind : Event_Kind;
-      Run  : not null Hook_Runner;
-      Self, Proc : System.Address) is
+     (Item : in out Widget'Class; Kind : Event_Kind; Run : not null Hook_Runner; Self, Proc : System.Address) is
    begin
       Block (Cold (Item)).all.Hooks (Kind) := (Used => True, Run => Run, Self => Self, Proc => Proc);
    end Set_Hook;
@@ -358,27 +346,18 @@ package body Pomarine.Widgets is
    function To_Plain is new Ada.Unchecked_Conversion (System.Address, Plain_Handler);
    function To_Address is new Ada.Unchecked_Conversion (Plain_Handler, System.Address);
 
-   procedure Run_Plain
-     (Self, Proc : System.Address;
-      Source     : in out Widget'Class;
-      Event      : Widget_Event)
-   is
+   procedure Run_Plain (Self, Proc : System.Address; Source : in out Widget'Class; Event : Widget_Event) is
       pragma Unreferenced (Self);
    begin
       To_Plain (Proc) (Source, Event);
    end Run_Plain;
 
-   procedure Set_Handler
-     (Item    : in out Widget'Class;
-      Kind    : Event_Kind;
-      Do_This : not null Plain_Handler) is
+   procedure Set_Handler (Item : in out Widget'Class; Kind : Event_Kind; Do_This : not null Plain_Handler) is
    begin
       Set_Hook (Item, Kind, Run_Plain'Access, System.Null_Address, To_Address (Do_This));
    end Set_Handler;
 
-   procedure On_Click
-     (Item    : in out Widget'Class;
-      Do_This : not null Plain_Handler) is
+   procedure On_Click (Item : in out Widget'Class; Do_This : not null Plain_Handler) is
    begin
       Set_Handler (Item, Click, Do_This);
    end On_Click;
@@ -399,18 +378,12 @@ package body Pomarine.Widgets is
       Row    : Natural := 0;
       Across : Float := 0.0;
       Down   : Float := 0.0;
-      Action : Natural := 0)
-   is
+      Action : Natural := 0) is
    begin
       Queueing.Enqueue (Item, Kind, Row, Across, Down, Action);
    end Notify;
 
-   procedure Post
-     (Item  : in out Widget'Class;
-      Using : Posted_Hook;
-      Code  : Natural := 0;
-      Value : Natural := 0)
-   is
+   procedure Post (Item : in out Widget'Class; Using : Posted_Hook; Code : Natural := 0; Value : Natural := 0) is
    begin
       Queueing.Enqueue_Posted (Item, Using, Code, Value);
    end Post;
@@ -425,42 +398,30 @@ package body Pomarine.Widgets is
       Adding.Attach (Parent, Child);
    end Add;
 
-   procedure Add
-     (Parent : in out Widget'Class; First, Second : in out Widget'Class) is
+   procedure Add (Parent : in out Widget'Class; First, Second : in out Widget'Class) is
    begin
       Add (Parent, First);
       Add (Parent, Second);
    end Add;
 
-   procedure Add
-     (Parent : in out Widget'Class; First, Second, Third : in out Widget'Class) is
+   procedure Add (Parent : in out Widget'Class; First, Second, Third : in out Widget'Class) is
    begin
       Add (Parent, First);
       Add (Parent, Second);
       Add (Parent, Third);
    end Add;
 
-   procedure Add
-     (Parent : in out Widget'Class;
-      First, Second, Third, Fourth : in out Widget'Class)
-   is
+   procedure Add (Parent : in out Widget'Class; First, Second, Third, Fourth : in out Widget'Class) is
    begin
       Adding.Attach (Parent, First, Second, Third, Fourth);
    end Add;
 
-   procedure Add
-     (Parent : in out Widget'Class;
-      First, Second, Third, Fourth, Fifth : in out Widget'Class)
-   is
+   procedure Add (Parent : in out Widget'Class; First, Second, Third, Fourth, Fifth : in out Widget'Class) is
    begin
       Adding.Attach (Parent, First, Second, Third, Fourth, Fifth);
    end Add;
 
-   procedure Add_Before
-     (Parent : in out Widget'Class;
-      Child  : in out Widget'Class;
-      Before : Widget'Class)
-   is
+   procedure Add_Before (Parent : in out Widget'Class; Child : in out Widget'Class; Before : Widget'Class) is
    begin
       Adding.Attach_Before (Parent, Child, Before);
    end Add_Before;
@@ -502,7 +463,8 @@ package body Pomarine.Widgets is
       end if;
    end Set_Density;
 
-   function Density (Item : Tree) return Float is (Item.Density);
+   function Density (Item : Tree) return Float
+   is (Item.Density);
 
    procedure Set_Settled (Item : in out Tree; To : Boolean) is
    begin
@@ -514,31 +476,29 @@ package body Pomarine.Widgets is
       end if;
    end Set_Settled;
 
-   function Is_Settled (Item : Tree) return Boolean is (Item.Settled);
+   function Is_Settled (Item : Tree) return Boolean
+   is (Item.Settled);
 
-   procedure Set_Clipboard
-     (Item : in out Tree; Board : in out Clipboards.Clipboard'Class) is
+   procedure Set_Clipboard (Item : in out Tree; Board : in out Clipboards.Clipboard'Class) is
    begin
       Item.Board := Board'Unchecked_Access;
    end Set_Clipboard;
 
-   procedure Set_Line_Texts
-     (Item : in out Tree; Lines : aliased in out Line_Texts.Drawer) is
+   procedure Set_Line_Texts (Item : in out Tree; Lines : aliased in out Line_Texts.Drawer) is
    begin
       Item.Lines := Lines'Unchecked_Access;
    end Set_Line_Texts;
 
-   procedure Set_Icons
-     (Item : in out Tree; Library : aliased in out Icons.Library) is
+   procedure Set_Icons (Item : in out Tree; Library : aliased in out Icons.Library) is
    begin
       Item.Pictures := Library'Unchecked_Access;
    end Set_Icons;
 
-   function Icon_Library (Item : Widget'Class) return Icons_Access is
-     (Item.Owner.Pictures);
+   function Icon_Library (Item : Widget'Class) return Icons_Access
+   is (Item.Owner.Pictures);
 
-   function Text_Lines (Item : Widget'Class) return Line_Texts_Access is
-     (Item.Owner.Lines);
+   function Text_Lines (Item : Widget'Class) return Line_Texts_Access
+   is (Item.Owner.Lines);
 
    --  Damage
 
@@ -564,39 +524,30 @@ package body Pomarine.Widgets is
    end Request_Layout;
 
    procedure Move_To
-     (Item         : in out Widget'Class;
-      Left, Top    : Float;
-      Was_Left, Was_Top : in out Float;
-      Changed      : in out Boolean)
-   is
+     (Item : in out Widget'Class; Left, Top : Float; Was_Left, Was_Top : in out Float; Changed : in out Boolean) is
    begin
       Drawing.Place_At (Item, Left, Top, Was_Left, Was_Top, Changed);
    end Move_To;
 
-   function Needs_Paint (Item : Tree) return Boolean is
-     (Item.Lost or else Item.Layout_Pending
-      or else not Is_Empty (Item.Damaged));
+   function Needs_Paint (Item : Tree) return Boolean
+   is (Item.Lost or else Item.Layout_Pending or else not Is_Empty (Item.Damaged));
 
-   function Damage (Item : Tree) return Pixel_Box is (Item.Damaged);
+   function Damage (Item : Tree) return Pixel_Box
+   is (Item.Damaged);
 
    --  Layout
 
    --  Place Placing, whose parent is at Across, Down, and those of its
    --  children that the layout may have changed, or that moved with it.
 
-   procedure Layout
-     (Item   : in out Tree;
-      Target : SDL3.Painters.Painter'Class)
-   is
+   procedure Layout (Item : in out Tree; Target : SDL3.Painters.Painter'Class) is
    begin
       Drawing.Lay_Out (Item, Target);
    end Layout;
 
    --  Drawing
 
-   procedure Layout
-     (Item   : in out Tree;
-      Target : SDL3.Windows.Renderers.Renderer) is
+   procedure Layout (Item : in out Tree; Target : SDL3.Windows.Renderers.Renderer) is
    begin
       Layout (Item, SDL3.Painters.To (Target));
    end Layout;
@@ -605,20 +556,14 @@ package body Pomarine.Widgets is
    --  the clip.
 
    procedure Paint
-     (Item     : in out Tree;
-      Target   : SDL3.Painters.Painter'Class;
-      Colors   : Themes.Theme;
-      Retained : Boolean := False)
-   is
+     (Item : in out Tree; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme; Retained : Boolean := False) is
    begin
       Drawing.Paint_All (Item, Target, Colors, Retained);
    end Paint;
 
    procedure Paint
-     (Item     : in out Tree;
-      Target   : SDL3.Windows.Renderers.Renderer;
-      Colors   : Themes.Theme;
-      Retained : Boolean := False) is
+     (Item : in out Tree; Target : SDL3.Windows.Renderers.Renderer; Colors : Themes.Theme; Retained : Boolean := False)
+   is
    begin
       Paint (Item, SDL3.Painters.To (Target), Colors, Retained);
    end Paint;
@@ -648,8 +593,8 @@ package body Pomarine.Widgets is
       Deliver (Item);
    end Clear_Focus;
 
-   function Focus_Of (Item : Tree) return Widget_Access is
-     (Object (Item, Item.Focus));
+   function Focus_Of (Item : Tree) return Widget_Access
+   is (Object (Item, Item.Focus));
 
    --  Whether Slot is Inside or in it.
 
@@ -691,10 +636,12 @@ package body Pomarine.Widgets is
       Forget_Told_States (Item);
    end Set_Validator;
 
-   function Command_State_Of (Item : Tree; Tag : Integer; Index : Natural := 0) return Command_State is
-     (if Item.Judge /= null then Validate (Item.Judge.all, Tag, Index)
-      elsif Item.Validator /= null then Item.Validator (Tag)
-      else Enabled);
+   function Command_State_Of (Item : Tree; Tag : Integer; Index : Natural := 0) return Command_State
+   is (if Item.Judge /= null
+       then Validate (Item.Judge.all, Tag, Index)
+       elsif Item.Validator /= null
+       then Item.Validator (Tag)
+       else Enabled);
 
    procedure Revalidate (Item : in out Tree) is
    begin
@@ -706,17 +653,13 @@ package body Pomarine.Widgets is
       Revalidate (Item.Owner.all);
    end Revalidate;
 
-   procedure Handle_Command
-     (Item : in out Widget; Tag : Integer; Done : out Boolean)
-   is
+   procedure Handle_Command (Item : in out Widget; Tag : Integer; Done : out Boolean) is
       pragma Unreferenced (Item, Tag);
    begin
       Done := False;
    end Handle_Command;
 
-   procedure Perform_Command
-     (Item : in out Tree; Tag : Integer; Done : out Boolean)
-   is
+   procedure Perform_Command (Item : in out Tree; Tag : Integer; Done : out Boolean) is
    begin
       Commanding.Perform (Item, Tag, Done);
    end Perform_Command;
@@ -726,8 +669,7 @@ package body Pomarine.Widgets is
       Key     : Pomarine.Events.Key_Code;
       Command : Boolean := False;
       Shift   : Boolean := False;
-      Tag     : Integer)
-   is
+      Tag     : Integer) is
    begin
       Commanding.Bind (Item, Key, Command, Shift, Tag);
    end Bind_Key;
@@ -747,7 +689,8 @@ package body Pomarine.Widgets is
       Lifecycle.Take_Out (Item);
    end Remove;
 
-   overriding procedure Finalize (Item : in out Widget) is
+   overriding
+   procedure Finalize (Item : in out Widget) is
       Home : constant Tree_Access := Item.Owner;
    begin
       Give_Back_Cold (Item);
@@ -757,7 +700,7 @@ package body Pomarine.Widgets is
       --  Nothing is said to it or the widgets it is in: they may be gone
       --  already, in part.
       declare
-         Slot : constant Node_Index := Item.Slot;
+         Slot  : constant Node_Index := Item.Slot;
          Above : constant Node_Index := Home.Nodes.Parent (Slot);
       begin
          if Within (Home.all, Home.Focus, Slot) then
@@ -788,8 +731,7 @@ package body Pomarine.Widgets is
             Home.Lost := True;
          else
             Unlink (Home.all, Slot);
-            Yoga.Nodes.Delete
-              (Home.Nodes.Yoga_Node (Above), Home.Nodes.Yoga_Node (Slot));
+            Yoga.Nodes.Delete (Home.Nodes.Yoga_Node (Above), Home.Nodes.Yoga_Node (Slot));
             Home.Layout_Pending := True;
             Home.Lost := True;
          end if;
@@ -797,7 +739,8 @@ package body Pomarine.Widgets is
       end;
    end Finalize;
 
-   overriding procedure Finalize (Item : in out Tree) is
+   overriding
+   procedure Finalize (Item : in out Tree) is
    begin
       if Item.Nodes /= null then
          for Slot in 1 .. Item.Nodes.Fresh loop
@@ -815,8 +758,8 @@ package body Pomarine.Widgets is
       Lifecycle.Bring_Forward (Item);
    end Raise_To_Front;
 
-   function Hit (Item : Tree; X, Y : Float) return Widget_Access is
-     (Object (Item, Dispatching.Hit_Slot (Item, X, Y)));
+   function Hit (Item : Tree; X, Y : Float) return Widget_Access
+   is (Object (Item, Dispatching.Hit_Slot (Item, X, Y)));
 
    --  Events
 
@@ -827,44 +770,31 @@ package body Pomarine.Widgets is
    --  The last input was by key, or by pointer: the focus ring is shown
    --  for the one and not the other.
 
-   procedure Dispatch
-     (Item    : in out Tree;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   procedure Dispatch (Item : in out Tree; Event : Pomarine.Events.Event; Handled : out Boolean) is
    begin
       Dispatching.Dispatch_Event (Item, Event, Handled);
    end Dispatch;
 
-   function Wanted_Cursor (Item : Tree) return SDL3.Cursors.Kind is
-     (Dispatching.Cursor_Wanted (Item));
+   function Wanted_Cursor (Item : Tree) return SDL3.Cursors.Kind
+   is (Dispatching.Cursor_Wanted (Item));
 
    --  What widgets are to an assistive technology
 
-   procedure Describe
-     (Item  : Widget;
-      Facts : in out Semantics.Description) is
+   procedure Describe (Item : Widget; Facts : in out Semantics.Description) is
    begin
       if Facts.Kind = Semantics.Unknown then
          Facts.Kind := Semantics.Group;
       end if;
    end Describe;
 
-   procedure Perform
-     (Item    : in out Widget;
-      Request : Semantics.Request;
-      Done    : out Boolean)
-   is
+   procedure Perform (Item : in out Widget; Request : Semantics.Request; Done : out Boolean) is
       pragma Unreferenced (Item, Request);
    begin
       Done := False;
    end Perform;
 
    procedure Describe_Part
-     (Item   : Widget;
-      Part   : Positive;
-      Facts  : in out Semantics.Description;
-      Bounds : out Semantics.Rectangle)
+     (Item : Widget; Part : Positive; Facts : in out Semantics.Description; Bounds : out Semantics.Rectangle)
    is
       pragma Unreferenced (Item, Part);
    begin
@@ -872,12 +802,7 @@ package body Pomarine.Widgets is
       Bounds := (others => 0.0);
    end Describe_Part;
 
-   procedure Perform_Part
-     (Item    : in out Widget;
-      Part    : Positive;
-      Request : Semantics.Request;
-      Done    : out Boolean)
-   is
+   procedure Perform_Part (Item : in out Widget; Part : Positive; Request : Semantics.Request; Done : out Boolean) is
       pragma Unreferenced (Item, Part, Request);
    begin
       Done := False;
@@ -898,14 +823,11 @@ package body Pomarine.Widgets is
       end if;
    end Set_Tooltip;
 
-   function Tooltip_Of (Item : Widget'Class) return String is
-     (if Item.Cold = 0 then "" else Semantics.To_String (Block (Item.Cold).all.Tip));
+   function Tooltip_Of (Item : Widget'Class) return String
+   is (if Item.Cold = 0 then "" else Semantics.To_String (Block (Item.Cold).all.Tip));
 
    procedure Enable_Tooltips
-     (Item     : in out Tree;
-      Tip      : in out Widget'Class;
-      Present  : not null Tip_Presenter;
-      Delay_MS : Natural := 600) is
+     (Item : in out Tree; Tip : in out Widget'Class; Present : not null Tip_Presenter; Delay_MS : Natural := 600) is
    begin
       Item.Tip_Id := Id_Of (Tip);
       Item.Tip_Present := Present;
@@ -922,8 +844,7 @@ package body Pomarine.Widgets is
       end if;
    end Set_Accessible_Help;
 
-   procedure Set_Accessible_Role
-     (Item : in out Widget'Class; Role : Semantics.Role) is
+   procedure Set_Accessible_Role (Item : in out Widget'Class; Role : Semantics.Role) is
    begin
       Item.Said_Role := Role;
       if Item.Owner /= null then
@@ -941,8 +862,8 @@ package body Pomarine.Widgets is
       end if;
    end Hide_From_Accessibility;
 
-   function Accessible_Name (Item : Widget'Class) return String is
-     (if Item.Cold = 0 then "" else Semantics.To_String (Block (Item.Cold).all.Name));
+   function Accessible_Name (Item : Widget'Class) return String
+   is (if Item.Cold = 0 then "" else Semantics.To_String (Block (Item.Cold).all.Name));
 
    procedure Set_Title (Item : in out Tree; Text : String) is
    begin
@@ -954,43 +875,35 @@ package body Pomarine.Widgets is
 
    --  Tell of Slot if it has changed, and then of what is in it.
 
-   procedure Describe_Changes
-     (Item : in out Tree;
-      Into : in out Semantic_Sink'Class;
-      Whole : Boolean := False)
-   is
+   procedure Describe_Changes (Item : in out Tree; Into : in out Semantic_Sink'Class; Whole : Boolean := False) is
    begin
       Accessibility.Tell_Changes (Item, Into, Whole);
    end Describe_Changes;
 
-   procedure Act
-     (Item    : in out Tree;
-      Id      : Node_Id;
-      Request : Semantics.Request;
-      Done    : out Boolean)
-   is
+   procedure Act (Item : in out Tree; Id : Node_Id; Request : Semantics.Request; Done : out Boolean) is
    begin
       Accessibility.Perform_On (Item, Id, Request, Done);
    end Act;
 
    --  Animation
 
-   function Reduced_Motion (Item : Tree) return Boolean is (Item.Reduce_Motion);
+   function Reduced_Motion (Item : Tree) return Boolean
+   is (Item.Reduce_Motion);
 
    procedure Set_Reduced_Motion (Item : in out Tree; To : Boolean) is
    begin
       Item.Reduce_Motion := To;
    end Set_Reduced_Motion;
 
-   function Is_Animating (Item : Tree) return Boolean is (Item.Running > 0);
+   function Is_Animating (Item : Tree) return Boolean
+   is (Item.Running > 0);
 
    procedure Animate
      (Item         : in out Widget'Class;
       From, To     : Float;
       Milliseconds : Natural;
       How          : Easing := Ease_Out;
-      Apply        : not null Animation_Setter)
-   is
+      Apply        : not null Animation_Setter) is
    begin
       Animations.Start (Item, From, To, Milliseconds, How, Apply);
    end Animate;
@@ -1025,8 +938,7 @@ package body Pomarine.Widgets is
       while Asking /= 0 loop
          if Item.Nodes.Spot (Asking).Visible then
             declare
-               Wait : constant Integer :=
-                 Until_Update (Item.Nodes.Object (Asking).all);
+               Wait : constant Integer := Until_Update (Item.Nodes.Object (Asking).all);
             begin
                if Wait >= 0 and then (Result < 0 or else Wait < Result) then
                   Result := Wait;

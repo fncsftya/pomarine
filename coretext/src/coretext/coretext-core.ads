@@ -1,6 +1,7 @@
 with CoreText.Thin;
 
 --  Helpers shared by the CoreText child packages. Internal.
+
 private package CoreText.Core is
 
    function Create_String (Text : String) return Thin.Ref;

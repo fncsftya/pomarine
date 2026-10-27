@@ -3,7 +3,8 @@ with Pomarine.Events;
 
 package body Pomarine.Windows is
 
-   overriding procedure Finalize (Item : in out Platform) is
+   overriding
+   procedure Finalize (Item : in out Platform) is
    begin
       if Item.Started then
          SDL3.Shutdown;
@@ -12,11 +13,11 @@ package body Pomarine.Windows is
    end Finalize;
 
    procedure Open
-     (Item   : in out Window;
-      Tree   : in out Widgets.Tree;
-      Title  : String;
-      Width  : Positive;
-      Height : Positive;
+     (Item      : in out Window;
+      Tree      : in out Widgets.Tree;
+      Title     : String;
+      Width     : Positive;
+      Height    : Positive;
       Resizable : Boolean := True) is
    begin
       SDL3.Initialize;
@@ -30,7 +31,8 @@ package body Pomarine.Windows is
       Follow_System (Item);
    end Open;
 
-   function Is_Open (Item : Window) return Boolean is (SDL3.Windows.Is_Open (Item.Frame));
+   function Is_Open (Item : Window) return Boolean
+   is (SDL3.Windows.Is_Open (Item.Frame));
 
    procedure Set_Title (Item : in out Window; Title : String) is
    begin
@@ -49,10 +51,11 @@ package body Pomarine.Windows is
       Events.Wake;
    end Close;
 
-   function Is_Closing (Item : Window) return Boolean is (Item.Stopping);
+   function Is_Closing (Item : Window) return Boolean
+   is (Item.Stopping);
 
-   function System_Theme return Pomarine.Themes.Theme is
-     (if Events.System_Is_Dark then Pomarine.Themes.Dark else Pomarine.Themes.Light);
+   function System_Theme return Pomarine.Themes.Theme
+   is (if Events.System_Is_Dark then Pomarine.Themes.Dark else Pomarine.Themes.Light);
 
    procedure Set_Theme (Item : in out Window; Colors : Pomarine.Themes.Theme) is
    begin
@@ -68,34 +71,37 @@ package body Pomarine.Windows is
       Item.Restyle := True;
    end Follow_System;
 
-   procedure Step
-     (Item       : in out Window;
-      Tree       : in out Widgets.Tree;
-      Wait_For   : Integer := -1;
-      Closed     : out Boolean)
-   is
+   procedure Step (Item : in out Window; Tree : in out Widgets.Tree; Wait_For : Integer := -1; Closed : out Boolean) is
       Event   : Events.Event;
       Handled : Boolean;
       Resized : Boolean;
 
-      function Shorter (Widgets_Want, Caller_Wants : Integer) return Integer is
-        (if Widgets_Want < 0 then Caller_Wants
-         elsif Caller_Wants < 0 then Widgets_Want
-         else Integer'Min (Widgets_Want, Caller_Wants));
+      function Shorter (Widgets_Want, Caller_Wants : Integer) return Integer
+      is (if Widgets_Want < 0
+          then Caller_Wants
+          elsif Caller_Wants < 0
+          then Widgets_Want
+          else Integer'Min (Widgets_Want, Caller_Wants));
    begin
       if not Item.Stopping then
          if Events.Wait (Event, Timeout_MS => Shorter (Widgets.Until_Update (Tree), Wait_For)) then
             loop
                case Event.Kind is
-                  when Events.Quit          => Item.Stopping := True;
-                  when Events.Redraw        => Widgets.Invalidate_All (Tree);
+                  when Events.Quit          =>
+                     Item.Stopping := True;
+
+                  when Events.Redraw        =>
+                     Widgets.Invalidate_All (Tree);
+
                   when Events.Theme_Changed =>
                      if Item.Following then
                         Item.Active := System_Theme;
                         Item.Restyle := True;
                      end if;
                      Widgets.Dispatch (Tree, Event, Handled);
-                  when others               => Widgets.Dispatch (Tree, Event, Handled);
+
+                  when others               =>
+                     Widgets.Dispatch (Tree, Event, Handled);
                end case;
                exit when not Events.Poll (Event);
             end loop;
@@ -118,10 +124,7 @@ package body Pomarine.Windows is
    end Step;
 
    procedure Run
-     (Item        : in out Window;
-      Tree        : in out Widgets.Tree;
-      Idle        : Idle_Procedure := null;
-      Idle_Period : Positive := 100)
+     (Item : in out Window; Tree : in out Widgets.Tree; Idle : Idle_Procedure := null; Idle_Period : Positive := 100)
    is
       Closed : Boolean;
    begin

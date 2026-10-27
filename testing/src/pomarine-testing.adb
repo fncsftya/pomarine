@@ -9,15 +9,15 @@ package body Pomarine.Testing is
    use type Semantics.Role;
    use type Semantics.Toggle;
 
-   overriding procedure Begin_Update
-     (Self : in out Collector; Root, Focused : Widgets.Node_Id; Whole : Boolean)
-   is
+   overriding
+   procedure Begin_Update (Self : in out Collector; Root, Focused : Widgets.Node_Id; Whole : Boolean) is
       pragma Unreferenced (Root, Focused, Whole);
    begin
       Self.Nodes.Clear;
    end Begin_Update;
 
-   overriding procedure Describe_Node
+   overriding
+   procedure Describe_Node
      (Self     : in out Collector;
       Id       : Widgets.Node_Id;
       Facts    : Semantics.Description;
@@ -29,13 +29,15 @@ package body Pomarine.Testing is
       Self.Nodes.Append (Node'(Id => Id, Facts => Facts, Bounds => Bounds));
    end Describe_Node;
 
-   overriding procedure Take (Self : in out Plain; Event : Pomarine.Events.Event) is
+   overriding
+   procedure Take (Self : in out Plain; Event : Pomarine.Events.Event) is
       Handled : Boolean;
    begin
       Widgets.Dispatch (Self.Tree.all, Event, Handled);
    end Take;
 
-   overriding procedure Settle (Self : in out Plain; Milliseconds : Natural) is
+   overriding
+   procedure Settle (Self : in out Plain; Milliseconds : Natural) is
    begin
       Self.Clock := Self.Clock + Pomarine.Events.Milliseconds (Milliseconds);
       Widgets.Update (Self.Tree.all, Self.Clock);
@@ -62,9 +64,7 @@ package body Pomarine.Testing is
    end Open;
 
    procedure Attach
-     (Item : in out Session;
-      Tree : aliased in out Widgets.Tree;
-      Uses : not null access Application'Class) is
+     (Item : in out Session; Tree : aliased in out Widgets.Tree; Uses : not null access Application'Class) is
    begin
       Item.Tree := Tree'Unchecked_Access;
       Item.Uses := Uses.all'Unrestricted_Access;
@@ -113,13 +113,14 @@ package body Pomarine.Testing is
       return Unbounded.To_String (Said);
    end Screen;
 
-   function Shows (Item : in out Session; Part : String) return Boolean is
-     (Unbounded.Index (Unbounded.To_Unbounded_String (Screen (Item)), Part) > 0);
+   function Shows (Item : in out Session; Part : String) return Boolean
+   is (Unbounded.Index (Unbounded.To_Unbounded_String (Screen (Item)), Part) > 0);
 
    --  The first of what was just looked at that is called Name.
 
    function Find
-     (Item : Session; Name : String; Role : Semantics.Role; Nth : Positive) return Node_Vectors.Extended_Index is
+     (Item : Session; Name : String; Role : Semantics.Role; Nth : Positive) return Node_Vectors.Extended_Index
+   is
       Seen : Natural := 0;
    begin
       for Each in 1 .. Item.Heard.Nodes.Last_Index loop
@@ -167,30 +168,35 @@ package body Pomarine.Testing is
    procedure Click_At (Item : in out Session; X, Y : Float; Clicks : Positive := 1) is
    begin
       Take (Item.Uses.all, (Kind => Pomarine.Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, others => <>));
-      Take (Item.Uses.all,
-            (Kind => Pomarine.Events.Mouse_Down, Mouse_X => X, Mouse_Y => Y, Button => 1, Clicks => Clicks,
-             others => <>));
-      Take (Item.Uses.all,
-            (Kind => Pomarine.Events.Mouse_Up, Mouse_X => X, Mouse_Y => Y, Button => 1, others => <>));
+      Take
+        (Item.Uses.all,
+         (Kind => Pomarine.Events.Mouse_Down, Mouse_X => X, Mouse_Y => Y, Button => 1, Clicks => Clicks, others => <>));
+      Take (Item.Uses.all, (Kind => Pomarine.Events.Mouse_Up, Mouse_X => X, Mouse_Y => Y, Button => 1, others => <>));
       Settle (Item);
    end Click_At;
 
    function Act_On
-     (Item : in out Session; Name : String; Doing : Semantics.Action;
-      Role : Semantics.Role := Semantics.Unknown; Nth : Positive := 1) return Boolean
+     (Item  : in out Session;
+      Name  : String;
+      Doing : Semantics.Action;
+      Role  : Semantics.Role := Semantics.Unknown;
+      Nth   : Positive := 1) return Boolean
    is
       Done : Boolean;
    begin
       Look (Item);
-      Widgets.Act (Item.Tree.all, Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Id,
-                   (Doing => Doing, others => <>), Done);
+      Widgets.Act
+        (Item.Tree.all, Item.Heard.Nodes (Find (Item, Name, Role, Nth)).Id, (Doing => Doing, others => <>), Done);
       Settle (Item);
       return Done;
    end Act_On;
 
    procedure Click_On
-     (Item : in out Session; Name : String; Role : Semantics.Role := Semantics.Unknown;
-      Nth : Positive := 1; Clicks : Positive := 1) is
+     (Item   : in out Session;
+      Name   : String;
+      Role   : Semantics.Role := Semantics.Unknown;
+      Nth    : Positive := 1;
+      Clicks : Positive := 1) is
    begin
       Look (Item);
       declare
@@ -232,8 +238,9 @@ package body Pomarine.Testing is
    procedure Press
      (Item : in out Session; Key : Pomarine.Events.Key_Code; Command : Boolean := False; Shift : Boolean := False) is
    begin
-      Take (Item.Uses.all,
-            (Kind => Pomarine.Events.Key_Down, Key => Key, Command => Command, Shift => Shift, others => <>));
+      Take
+        (Item.Uses.all,
+         (Kind => Pomarine.Events.Key_Down, Key => Key, Command => Command, Shift => Shift, others => <>));
       Settle (Item);
    end Press;
 

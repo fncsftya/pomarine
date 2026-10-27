@@ -19,10 +19,10 @@
 --  It is for building and for when the density or the content changes, not
 --  for every frame. What it does not cover (a node's percentages, say) is
 --  done with Node, then Request_Layout.
+
 package Pomarine.Widgets.Layouts is
 
-   type Length is private
-     with Real_Literal => Length_Of_Literal;
+   type Length is private with Real_Literal => Length_Of_Literal;
    --  A size or an edge, which is one of: a number of points (a literal
    --  such as 8.0 is, or In_Points (Wide)); a number of device pixels
    --  (In_Pixels); Unset, which a call leaves as it is; Hairline, one
@@ -30,8 +30,7 @@ package Pomarine.Widgets.Layouts is
    --  rule; Shadow_Room, the offset of a shadow (see Pomarine.Boxes.Offset),
    --  in whole pixels.
 
-   type Weight is private
-     with Real_Literal => Weight_Of_Literal;
+   type Weight is private with Real_Literal => Weight_Of_Literal;
    --  A share of the room left over (Grow) or short (Shrink) among
    --  siblings: a number, or Unchanged.
 
@@ -127,47 +126,49 @@ package Pomarine.Widgets.Layouts is
    --     (Width => 120.0, Height => 32.0, others => <>)
 
    procedure Set_Layout (Item : in out Widget'Class; Using : Style)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  As the call below, with the style as a value.
 
    procedure Add (Parent : in out Widget'Class; Child : in out Widget'Class; Using : Style)
-     with Pre => Is_Attached (Parent) and then not Is_Attached (Child) and then Child_Count (Child) = 0,
-          Post => Is_Attached (Child);
+   with
+     Pre  => Is_Attached (Parent) and then not Is_Attached (Child) and then Child_Count (Child) = 0,
+     Post => Is_Attached (Child);
    --  Add Child to Parent (see Pomarine.Widgets.Add) and style its box, in
    --  one line:
    --     Layouts.Add (Footer, Summary, (Grow => 1.0, Height => 24.0, others => <>));
 
    procedure Add_Before
-     (Parent : in out Widget'Class;
-      Child  : in out Widget'Class;
-      Before : Widget'Class;
-      Using  : Style)
-     with Pre  => Is_Attached (Parent) and then not Is_Attached (Child) and then Child_Count (Child) = 0
-                  and then Parent_Of (Before) /= null,
-          Post => Is_Attached (Child);
+     (Parent : in out Widget'Class; Child : in out Widget'Class; Before : Widget'Class; Using : Style)
+   with
+     Pre  =>
+       Is_Attached (Parent)
+       and then not Is_Attached (Child)
+       and then Child_Count (Child) = 0
+       and then Parent_Of (Before) /= null,
+     Post => Is_Attached (Child);
    --  As Add, but just before Before, one of Parent's children (see
    --  Pomarine.Widgets.Add_Before).
 
    procedure Set_Layout
-     (Item     : in out Widget'Class;
-      Width    : Length := Unset;
-      Height   : Length := Unset;
-      Grow     : Weight := Unchanged;
-      Shrink   : Weight := Unchanged;
-      Padding  : Sides := (others => <>);
-      Outlined : Toggle_Kind := As_Is;
-      Shadowed : Toggle_Kind := As_Is;
-      Margin   : Sides := (others => <>);
-      Gap      : Length := Unset;
-      Flow     : Flow_Kind := As_Is;
-      Align    : Align_Kind := As_Is;
+     (Item       : in out Widget'Class;
+      Width      : Length := Unset;
+      Height     : Length := Unset;
+      Grow       : Weight := Unchanged;
+      Shrink     : Weight := Unchanged;
+      Padding    : Sides := (others => <>);
+      Outlined   : Toggle_Kind := As_Is;
+      Shadowed   : Toggle_Kind := As_Is;
+      Margin     : Sides := (others => <>);
+      Gap        : Length := Unset;
+      Flow       : Flow_Kind := As_Is;
+      Align      : Align_Kind := As_Is;
       Align_Self : Align_Kind := As_Is;
-      Spread   : Spread_Kind := As_Is;
-      Wrap     : Toggle_Kind := As_Is;
-      Place    : Place_Kind := As_Is;
-      Position : Sides := (others => <>);
-      Unit     : Unit_Kind := Points)
-     with Pre => Is_Attached (Item);
+      Spread     : Spread_Kind := As_Is;
+      Wrap       : Toggle_Kind := As_Is;
+      Place      : Place_Kind := As_Is;
+      Position   : Sides := (others => <>);
+      Unit       : Unit_Kind := Points)
+   with Pre => Is_Attached (Item);
    --  Width and Height are in points. Outlined and Shadowed make room in
    --  the padding for what a panel or grip draws inside its box: its
    --  outline all round, and a shadow (see Pomarine.Boxes) at its right and
@@ -182,60 +183,60 @@ package Pomarine.Widgets.Layouts is
    --  In_Pixels say theirs. Requests a layout.
 
    function Row
-     (Width    : Length := Unset;
-      Height   : Length := Unset;
-      Grow     : Weight := Unchanged;
-      Shrink   : Weight := Unchanged;
-      Padding  : Sides := (others => <>);
-      Margin   : Sides := (others => <>);
-      Gap      : Length := Unset;
-      Align    : Align_Kind := As_Is;
-      Spread   : Spread_Kind := As_Is;
-      Wrap     : Toggle_Kind := As_Is) return Style;
+     (Width   : Length := Unset;
+      Height  : Length := Unset;
+      Grow    : Weight := Unchanged;
+      Shrink  : Weight := Unchanged;
+      Padding : Sides := (others => <>);
+      Margin  : Sides := (others => <>);
+      Gap     : Length := Unset;
+      Align   : Align_Kind := As_Is;
+      Spread  : Spread_Kind := As_Is;
+      Wrap    : Toggle_Kind := As_Is) return Style;
    --  A style that has its children go across (Flow => Row), and what else is said.
 
    function Column
-     (Width    : Length := Unset;
-      Height   : Length := Unset;
-      Grow     : Weight := Unchanged;
-      Shrink   : Weight := Unchanged;
-      Padding  : Sides := (others => <>);
-      Margin   : Sides := (others => <>);
-      Gap      : Length := Unset;
-      Align    : Align_Kind := As_Is;
-      Spread   : Spread_Kind := As_Is;
-      Wrap     : Toggle_Kind := As_Is) return Style;
+     (Width   : Length := Unset;
+      Height  : Length := Unset;
+      Grow    : Weight := Unchanged;
+      Shrink  : Weight := Unchanged;
+      Padding : Sides := (others => <>);
+      Margin  : Sides := (others => <>);
+      Gap     : Length := Unset;
+      Align   : Align_Kind := As_Is;
+      Spread  : Spread_Kind := As_Is;
+      Wrap    : Toggle_Kind := As_Is) return Style;
    --  The same, down (Flow => Column).
    --     Layouts.Add (Page, Bar, Layouts.Row (Height => 32.0, Gap => 4.0));
 
    procedure Row
-     (Item     : in out Widget'Class;
-      Width    : Length := Unset;
-      Height   : Length := Unset;
-      Grow     : Weight := Unchanged;
-      Shrink   : Weight := Unchanged;
-      Padding  : Sides := (others => <>);
-      Margin   : Sides := (others => <>);
-      Gap      : Length := Unset;
-      Align    : Align_Kind := As_Is;
-      Spread   : Spread_Kind := As_Is;
-      Wrap     : Toggle_Kind := As_Is)
-     with Pre => Is_Attached (Item);
+     (Item    : in out Widget'Class;
+      Width   : Length := Unset;
+      Height  : Length := Unset;
+      Grow    : Weight := Unchanged;
+      Shrink  : Weight := Unchanged;
+      Padding : Sides := (others => <>);
+      Margin  : Sides := (others => <>);
+      Gap     : Length := Unset;
+      Align   : Align_Kind := As_Is;
+      Spread  : Spread_Kind := As_Is;
+      Wrap    : Toggle_Kind := As_Is)
+   with Pre => Is_Attached (Item);
    --  Set_Layout of Item with Row's style: Row (Bar, Gap => 4.0).
 
    procedure Column
-     (Item     : in out Widget'Class;
-      Width    : Length := Unset;
-      Height   : Length := Unset;
-      Grow     : Weight := Unchanged;
-      Shrink   : Weight := Unchanged;
-      Padding  : Sides := (others => <>);
-      Margin   : Sides := (others => <>);
-      Gap      : Length := Unset;
-      Align    : Align_Kind := As_Is;
-      Spread   : Spread_Kind := As_Is;
-      Wrap     : Toggle_Kind := As_Is)
-     with Pre => Is_Attached (Item);
+     (Item    : in out Widget'Class;
+      Width   : Length := Unset;
+      Height  : Length := Unset;
+      Grow    : Weight := Unchanged;
+      Shrink  : Weight := Unchanged;
+      Padding : Sides := (others => <>);
+      Margin  : Sides := (others => <>);
+      Gap     : Length := Unset;
+      Align   : Align_Kind := As_Is;
+      Spread  : Spread_Kind := As_Is;
+      Wrap    : Toggle_Kind := As_Is)
+   with Pre => Is_Attached (Item);
    --  The same, down.
 
 private

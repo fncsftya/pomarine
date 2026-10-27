@@ -16,94 +16,87 @@ package body Pomarine.Accessibility is
    --  numbered as the tables there are.
 
    type Node_Record is record
-      Id            : Interfaces.Unsigned_64;
-      Role          : C.unsigned_char;
-      Toggled       : C.unsigned_char;
-      Flags         : Interfaces.Unsigned_32;
-      Actions       : Interfaces.Unsigned_32;
-      Left, Top, Right, Bottom : C.double;
-      Name          : System.Address;
-      Name_Length   : Interfaces.Unsigned_32;
-      Value         : System.Address;
-      Value_Length  : Interfaces.Unsigned_32;
-      Help          : System.Address;
-      Help_Length   : Interfaces.Unsigned_32;
+      Id                             : Interfaces.Unsigned_64;
+      Role                           : C.unsigned_char;
+      Toggled                        : C.unsigned_char;
+      Flags                          : Interfaces.Unsigned_32;
+      Actions                        : Interfaces.Unsigned_32;
+      Left, Top, Right, Bottom       : C.double;
+      Name                           : System.Address;
+      Name_Length                    : Interfaces.Unsigned_32;
+      Value                          : System.Address;
+      Value_Length                   : Interfaces.Unsigned_32;
+      Help                           : System.Address;
+      Help_Length                    : Interfaces.Unsigned_32;
       Number, Minimum, Maximum, Step : C.double;
-      Anchor_Node   : Interfaces.Unsigned_64;
-      Anchor_Chars  : Interfaces.Unsigned_32;
-      Caret_Node    : Interfaces.Unsigned_64;
-      Caret_Chars   : Interfaces.Unsigned_32;
-      Children      : System.Address;
-      Child_Count   : Interfaces.Unsigned_32;
-      Position      : Interfaces.Unsigned_32;
-      Set_Size      : Interfaces.Unsigned_32;
+      Anchor_Node                    : Interfaces.Unsigned_64;
+      Anchor_Chars                   : Interfaces.Unsigned_32;
+      Caret_Node                     : Interfaces.Unsigned_64;
+      Caret_Chars                    : Interfaces.Unsigned_32;
+      Children                       : System.Address;
+      Child_Count                    : Interfaces.Unsigned_32;
+      Position                       : Interfaces.Unsigned_32;
+      Set_Size                       : Interfaces.Unsigned_32;
    end record
-     with Convention => C;
+   with Convention => C;
 
-   Flag_Disabled     : constant Interfaces.Unsigned_32 := 2 ** 0;
-   Flag_Selected     : constant Interfaces.Unsigned_32 := 2 ** 1;
-   Flag_Expanded     : constant Interfaces.Unsigned_32 := 2 ** 2;
-   Flag_Has_Expanded : constant Interfaces.Unsigned_32 := 2 ** 3;
-   Flag_Read_Only    : constant Interfaces.Unsigned_32 := 2 ** 4;
-   Flag_Invalid      : constant Interfaces.Unsigned_32 := 2 ** 5;
-   Flag_Modal        : constant Interfaces.Unsigned_32 := 2 ** 6;
-   Flag_Live         : constant Interfaces.Unsigned_32 := 2 ** 7;
-   Flag_Has_Number   : constant Interfaces.Unsigned_32 := 2 ** 8;
-   Flag_Has_Selection : constant Interfaces.Unsigned_32 := 2 ** 9;
-   Flag_Named        : constant Interfaces.Unsigned_32 := 2 ** 10;
+   Flag_Disabled      : constant Interfaces.Unsigned_32 := 2**0;
+   Flag_Selected      : constant Interfaces.Unsigned_32 := 2**1;
+   Flag_Expanded      : constant Interfaces.Unsigned_32 := 2**2;
+   Flag_Has_Expanded  : constant Interfaces.Unsigned_32 := 2**3;
+   Flag_Read_Only     : constant Interfaces.Unsigned_32 := 2**4;
+   Flag_Invalid       : constant Interfaces.Unsigned_32 := 2**5;
+   Flag_Modal         : constant Interfaces.Unsigned_32 := 2**6;
+   Flag_Live          : constant Interfaces.Unsigned_32 := 2**7;
+   Flag_Has_Number    : constant Interfaces.Unsigned_32 := 2**8;
+   Flag_Has_Selection : constant Interfaces.Unsigned_32 := 2**9;
+   Flag_Named         : constant Interfaces.Unsigned_32 := 2**10;
 
-   type Activated_Callback is access procedure (User : System.Address)
-     with Convention => C;
+   type Activated_Callback is access procedure (User : System.Address) with Convention => C;
 
-   type Acted_Callback is access procedure
-     (User         : System.Address;
-      Action       : Interfaces.Unsigned_32;
-      Node         : Interfaces.Unsigned_64;
-      Number       : C.double;
-      Value        : System.Address;
-      Value_Length : Interfaces.Unsigned_32;
-      Anchor_Node  : Interfaces.Unsigned_64;
-      Anchor_Chars : Interfaces.Unsigned_32;
-      Focus_Node   : Interfaces.Unsigned_64;
-      Focus_Chars  : Interfaces.Unsigned_32)
-     with Convention => C;
+   type Acted_Callback is
+     access procedure
+       (User         : System.Address;
+        Action       : Interfaces.Unsigned_32;
+        Node         : Interfaces.Unsigned_64;
+        Number       : C.double;
+        Value        : System.Address;
+        Value_Length : Interfaces.Unsigned_32;
+        Anchor_Node  : Interfaces.Unsigned_64;
+        Anchor_Chars : Interfaces.Unsigned_32;
+        Focus_Node   : Interfaces.Unsigned_64;
+        Focus_Chars  : Interfaces.Unsigned_32)
+   with Convention => C;
 
    function Adapter_New
-     (Window    : System.Address;
-      Activated : Activated_Callback;
-      Acted     : Acted_Callback;
-      User      : System.Address) return System.Address
-     with Import, Convention => C, External_Name => "ak_adapter_new";
+     (Window : System.Address; Activated : Activated_Callback; Acted : Acted_Callback; User : System.Address)
+      return System.Address
+   with Import, Convention => C, External_Name => "ak_adapter_new";
 
    procedure Adapter_Free (Handle : System.Address)
-     with Import, Convention => C, External_Name => "ak_adapter_free";
+   with Import, Convention => C, External_Name => "ak_adapter_free";
 
    function Adapter_Is_Active (Handle : System.Address) return C.unsigned_char
-     with Import, Convention => C, External_Name => "ak_adapter_is_active";
+   with Import, Convention => C, External_Name => "ak_adapter_is_active";
 
    procedure Adapter_Send
-     (Handle : System.Address;
-      Batch  : System.Address;
-      Title  : System.Address;
-      Length : Interfaces.Unsigned_32)
-     with Import, Convention => C, External_Name => "ak_adapter_send";
+     (Handle : System.Address; Batch : System.Address; Title : System.Address; Length : Interfaces.Unsigned_32)
+   with Import, Convention => C, External_Name => "ak_adapter_send";
 
    procedure Adapter_Window_Focus (Handle : System.Address; Focused : C.unsigned_char)
-     with Import, Convention => C, External_Name => "ak_adapter_window_focus";
+   with Import, Convention => C, External_Name => "ak_adapter_window_focus";
 
    function Update_New
-     (Root : Interfaces.Unsigned_64;
-      Focus : Interfaces.Unsigned_64;
-      Whole : C.unsigned_char) return System.Address
-     with Import, Convention => C, External_Name => "ak_update_new";
+     (Root : Interfaces.Unsigned_64; Focus : Interfaces.Unsigned_64; Whole : C.unsigned_char) return System.Address
+   with Import, Convention => C, External_Name => "ak_update_new";
 
    procedure Update_Add (Batch : System.Address; Node : access constant Node_Record)
-     with Import, Convention => C, External_Name => "ak_update_add";
+   with Import, Convention => C, External_Name => "ak_update_add";
 
    --  The numbers must be as rust/src/lib.rs has them.
 
-   function Role_Code (Item : Semantics.Role) return C.unsigned_char is
-     (C.unsigned_char (Semantics.Role'Pos (Item)));
+   function Role_Code (Item : Semantics.Role) return C.unsigned_char
+   is (C.unsigned_char (Semantics.Role'Pos (Item)));
 
    function Action_Bits (Item : Semantics.Action_Set) return Interfaces.Unsigned_32 is
       Result : Interfaces.Unsigned_32 := 0;
@@ -116,14 +109,16 @@ package body Pomarine.Accessibility is
       return Result;
    end Action_Bits;
 
-   pragma Assert (Semantics.Role'Pos (Semantics.Text_Run) = 26
-                  and then Semantics.Role'Pos (Semantics.Window) = 1
-                  and then Semantics.Action'Pos (Semantics.Hide_Tooltip) = 17);
+   pragma
+     Assert
+       (Semantics.Role'Pos (Semantics.Text_Run) = 26
+          and then Semantics.Role'Pos (Semantics.Window) = 1
+          and then Semantics.Action'Pos (Semantics.Hide_Tooltip) = 17);
 
    --  The system's requests
 
    procedure Activated (User : System.Address)
-     with Convention => C;
+   with Convention => C;
 
    procedure Acted
      (User         : System.Address;
@@ -136,7 +131,7 @@ package body Pomarine.Accessibility is
       Anchor_Chars : Interfaces.Unsigned_32;
       Focus_Node   : Interfaces.Unsigned_64;
       Focus_Chars  : Interfaces.Unsigned_32)
-     with Convention => C;
+   with Convention => C;
 
    function Owner_Of (User : System.Address) return access Adapter is
       function Convert is new Ada.Unchecked_Conversion (System.Address, Adapter_Access);
@@ -172,7 +167,7 @@ package body Pomarine.Accessibility is
       if Value /= System.Null_Address and then Value_Length > 0 then
          declare
             Text : String (1 .. Natural (Value_Length))
-              with Import, Address => Value;
+            with Import, Address => Value;
          begin
             Semantics.Set (Request.Contents, Text);
             Request.Has_Text := True;
@@ -203,9 +198,7 @@ package body Pomarine.Accessibility is
          end if;
       end Put;
 
-      procedure Take
-        (Node : out Widgets.Node_Id; Request : out Semantics.Request;
-         Found : out Boolean) is
+      procedure Take (Node : out Widgets.Node_Id; Request : out Semantics.Request; Found : out Boolean) is
       begin
          Found := Count > 0;
          if Found then
@@ -224,9 +217,11 @@ package body Pomarine.Accessibility is
          Asked := False;
       end Take_Activation;
 
-      function Waiting return Boolean is (Asked or else Count > 0);
+      function Waiting return Boolean
+      is (Asked or else Count > 0);
 
-      function Dropped return Natural is (Lost);
+      function Dropped return Natural
+      is (Lost);
 
    end Mailbox;
 
@@ -236,18 +231,18 @@ package body Pomarine.Accessibility is
       Native : constant System.Address := SDL3.Windows.Native_Handle (Window);
    begin
       if Native /= System.Null_Address then
-         Item.Handle :=
-           Adapter_New (Native, Activated'Access, Acted'Access, Item'Address);
+         Item.Handle := Adapter_New (Native, Activated'Access, Acted'Access, Item'Address);
       end if;
    end Attach;
 
-   overriding procedure Finalize (Item : in out Adapter) is
+   overriding
+   procedure Finalize (Item : in out Adapter) is
    begin
       Detach (Item);
    end Finalize;
 
-   function Is_Attached (Item : Adapter) return Boolean is
-     (Item.Handle /= System.Null_Address);
+   function Is_Attached (Item : Adapter) return Boolean
+   is (Item.Handle /= System.Null_Address);
 
    procedure Detach (Item : in out Adapter) is
    begin
@@ -257,13 +252,14 @@ package body Pomarine.Accessibility is
       end if;
    end Detach;
 
-   function Is_Active (Item : Adapter) return Boolean is
-     (Item.Handle /= System.Null_Address
-      and then Adapter_Is_Active (Item.Handle) /= 0);
+   function Is_Active (Item : Adapter) return Boolean
+   is (Item.Handle /= System.Null_Address and then Adapter_Is_Active (Item.Handle) /= 0);
 
-   function Is_Waiting (Item : Adapter) return Boolean is (Item.Mail.Waiting);
+   function Is_Waiting (Item : Adapter) return Boolean
+   is (Item.Mail.Waiting);
 
-   function Requests_Dropped (Item : Adapter) return Natural is (Item.Mail.Dropped);
+   function Requests_Dropped (Item : Adapter) return Natural
+   is (Item.Mail.Dropped);
 
    procedure Window_Focus_Changed (Item : in out Adapter; Focused : Boolean) is
    begin
@@ -294,19 +290,15 @@ package body Pomarine.Accessibility is
       end if;
    end Update;
 
-   overriding procedure Begin_Update
-     (Self : in out Adapter;
-      Root : Widgets.Node_Id;
-      Focused : Widgets.Node_Id;
-      Whole : Boolean) is
+   overriding
+   procedure Begin_Update (Self : in out Adapter; Root : Widgets.Node_Id; Focused : Widgets.Node_Id; Whole : Boolean) is
    begin
       Self.Pending :=
-        Update_New
-          (Widgets.To_Unsigned_64 (Root), Widgets.To_Unsigned_64 (Focused),
-           (if Whole then 1 else 0));
+        Update_New (Widgets.To_Unsigned_64 (Root), Widgets.To_Unsigned_64 (Focused), (if Whole then 1 else 0));
    end Begin_Update;
 
-   overriding procedure Describe_Node
+   overriding
+   procedure Describe_Node
      (Self     : in out Adapter;
       Id       : Widgets.Node_Id;
       Facts    : Semantics.Description;
@@ -362,15 +354,11 @@ package body Pomarine.Accessibility is
          Minimum      => C.double (Facts.Minimum),
          Maximum      => C.double (Facts.Maximum),
          Step         => C.double (Facts.Step),
-         Anchor_Node  => (if Facts.Has_Selection
-                          then Widgets.To_Unsigned_64
-                                 (Widgets.Part_Of (Id, Facts.Anchor.Part))
-                          else 0),
+         Anchor_Node  =>
+           (if Facts.Has_Selection then Widgets.To_Unsigned_64 (Widgets.Part_Of (Id, Facts.Anchor.Part)) else 0),
          Anchor_Chars => Interfaces.Unsigned_32 (Facts.Anchor.Characters),
-         Caret_Node   => (if Facts.Has_Selection
-                          then Widgets.To_Unsigned_64
-                                 (Widgets.Part_Of (Id, Facts.Caret.Part))
-                          else 0),
+         Caret_Node   =>
+           (if Facts.Has_Selection then Widgets.To_Unsigned_64 (Widgets.Part_Of (Id, Facts.Caret.Part)) else 0),
          Caret_Chars  => Interfaces.Unsigned_32 (Facts.Caret.Characters),
          Children     => (if Children'Length > 0 then Kids'Address else System.Null_Address),
          Child_Count  => Interfaces.Unsigned_32 (Children'Length),
@@ -379,7 +367,8 @@ package body Pomarine.Accessibility is
       Update_Add (Self.Pending, Raw'Access);
    end Describe_Node;
 
-   overriding procedure End_Update (Self : in out Adapter) is
+   overriding
+   procedure End_Update (Self : in out Adapter) is
    begin
       Adapter_Send (Self.Handle, Self.Pending, System.Null_Address, 0);
       Self.Pending := System.Null_Address;

@@ -2,6 +2,7 @@ with Pomarine.UI;
 with Form_UI;
 
 --  Components of the tests of Pomarine.UI, made of Form_VM.
+
 package Form_Parts is
 
    package UI renames Pomarine.UI;

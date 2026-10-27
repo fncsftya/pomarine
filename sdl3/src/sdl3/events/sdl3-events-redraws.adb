@@ -12,14 +12,10 @@ package body SDL3.Events.Redraws is
 
    package Contexts is new System.Address_To_Access_Conversions (Context);
 
-   function Callback
-     (User_Data : System.Address; E : access Thin.Event)
-      return Interfaces.C.C_bool
-     with Convention => C;
+   function Callback (User_Data : System.Address; E : access Thin.Event) return Interfaces.C.C_bool
+   with Convention => C;
 
-   function Callback
-     (User_Data : System.Address; E : access Thin.Event)
-      return Interfaces.C.C_bool is
+   function Callback (User_Data : System.Address; E : access Thin.Event) return Interfaces.C.C_bool is
    begin
       if E.Kind = Thin.Event_Window_Pixel_Size_Changed then
          Redraw (Contexts.To_Pointer (User_Data).all);
@@ -29,19 +25,17 @@ package body SDL3.Events.Redraws is
 
    procedure Install (Item : in out Watch; Target : aliased in out Context) is
    begin
-      if not Boolean
-               (Thin.Add_Event_Watch
-                  (Callback'Unrestricted_Access, Target'Address))
-      then
+      if not Boolean (Thin.Add_Event_Watch (Callback'Unrestricted_Access, Target'Address)) then
          raise SDL_Error with "SDL_AddEventWatch failed";
       end if;
       Item.Data := Target'Address;
    end Install;
 
-   function Is_Installed (Item : Watch) return Boolean is
-     (Item.Data /= System.Null_Address);
+   function Is_Installed (Item : Watch) return Boolean
+   is (Item.Data /= System.Null_Address);
 
-   overriding procedure Finalize (Item : in out Watch) is
+   overriding
+   procedure Finalize (Item : in out Watch) is
    begin
       if Item.Data /= System.Null_Address then
          Thin.Remove_Event_Watch (Callback'Unrestricted_Access, Item.Data);

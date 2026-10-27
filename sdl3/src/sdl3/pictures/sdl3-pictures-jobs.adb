@@ -4,8 +4,7 @@ package body SDL3.Pictures.Jobs is
    subtype Worker_Id is Positive range 1 .. Worker_Count;
    --  Fewer than the cores: the one that is drawing needs one.
 
-   type Job_States is (Free, Waiting, Running, Ready, Broken, Abandoned,
-                       Discarding);
+   type Job_States is (Free, Waiting, Running, Ready, Broken, Abandoned, Discarding);
    --  Abandoned: cancelled while running. Discarding: it has ended, and
    --  its task is letting go of what it read.
 
@@ -28,21 +27,16 @@ package body SDL3.Pictures.Jobs is
    --  otherwise by no one but the caller, once it is Ready.
 
    protected Board is
-      procedure Add
-        (File : String; Urgent : Boolean; Job : out Ticket;
-         Wake : out Natural);
+      procedure Add (File : String; Urgent : Boolean; Job : out Ticket; Wake : out Natural);
       --  Wake: a task that was idle and is now to look for work, or 0.
       procedure Bump (Job : Ticket);
       --  Make it Urgent.
       procedure Cancel (Job : Ticket; Release : out Boolean);
       --  Release: the caller is to let go of Results (Job).
       procedure Take (Job : Ticket; Dark : out Boolean);
-      procedure Claim
-        (Worker : Worker_Id; Job : out Natural;
-         File : in out Name_Text; Length : out Natural);
+      procedure Claim (Worker : Worker_Id; Job : out Natural; File : in out Name_Text; Length : out Natural);
       --  The next job to read, or 0, when the task is idle.
-      procedure Finish
-        (Job : Ticket; Ok : Boolean; Dark : Boolean; Release : out Boolean);
+      procedure Finish (Job : Ticket; Ok : Boolean; Dark : Boolean; Release : out Boolean);
       --  Release: the task is to let go of Results (Job), and then say so
       --  (Freed).
       procedure Freed (Job : Ticket);
@@ -56,9 +50,7 @@ package body SDL3.Pictures.Jobs is
 
    protected body Board is
 
-      procedure Add
-        (File : String; Urgent : Boolean; Job : out Ticket;
-         Wake : out Natural) is
+      procedure Add (File : String; Urgent : Boolean; Job : out Ticket; Wake : out Natural) is
       begin
          Job := 1;
          while Jobs (Job).State /= Free loop
@@ -69,8 +61,11 @@ package body SDL3.Pictures.Jobs is
          end loop;
          Counter := Counter + 1;
          Jobs (Job) :=
-           (State  => Waiting, Urgent => Urgent, Order => Counter,
-            Dark   => False, Length => File'Length,
+           (State  => Waiting,
+            Urgent => Urgent,
+            Order  => Counter,
+            Dark   => False,
+            Length => File'Length,
             Name   => [others => ' ']);
          Jobs (Job).Name (1 .. File'Length) := File;
          Wake := 0;
@@ -92,13 +87,16 @@ package body SDL3.Pictures.Jobs is
       begin
          Release := False;
          case Jobs (Job).State is
-            when Waiting | Broken =>
+            when Waiting | Broken              =>
                Jobs (Job).State := Free;
-            when Ready =>
+
+            when Ready                         =>
                Jobs (Job).State := Free;
                Release := True;
-            when Running =>
+
+            when Running                       =>
                Jobs (Job).State := Abandoned;
+
             when Free | Abandoned | Discarding =>
                null;
          end case;
@@ -110,20 +108,15 @@ package body SDL3.Pictures.Jobs is
          Jobs (Job).State := Free;
       end Take;
 
-      procedure Claim
-        (Worker : Worker_Id; Job : out Natural;
-         File : in out Name_Text; Length : out Natural)
-      is
+      procedure Claim (Worker : Worker_Id; Job : out Natural; File : in out Name_Text; Length : out Natural) is
          Best : Natural := 0;
       begin
          for Each in Ticket loop
             if Jobs (Each).State = Waiting
               and then (Best = 0
-                        or else (Jobs (Each).Urgent
-                                 and then not Jobs (Best).Urgent)
+                        or else (Jobs (Each).Urgent and then not Jobs (Best).Urgent)
                         or else (Jobs (Each).Urgent = Jobs (Best).Urgent
-                                 and then Jobs (Each).Order
-                                          < Jobs (Best).Order))
+                                 and then Jobs (Each).Order < Jobs (Best).Order))
             then
                Best := Each;
             end if;
@@ -139,8 +132,7 @@ package body SDL3.Pictures.Jobs is
          end if;
       end Claim;
 
-      procedure Finish
-        (Job : Ticket; Ok : Boolean; Dark : Boolean; Release : out Boolean) is
+      procedure Finish (Job : Ticket; Ok : Boolean; Dark : Boolean; Release : out Boolean) is
       begin
          Release := False;
          if Jobs (Job).State = Abandoned then
@@ -157,21 +149,18 @@ package body SDL3.Pictures.Jobs is
          Jobs (Job).State := Free;
       end Freed;
 
-      function Standing (Job : Ticket) return States is
-        (case Jobs (Job).State is
+      function Standing (Job : Ticket) return States
+      is (case Jobs (Job).State is
             when Ready  => Done,
             when Broken => Failed,
             when others => Working);
 
-      function Busy return Boolean is
-        (for some Each of Jobs =>
-           Each.State in Waiting | Running | Abandoned | Discarding);
+      function Busy return Boolean
+      is (for some Each of Jobs => Each.State in Waiting | Running | Abandoned | Discarding);
 
    end Board;
 
-   task type Worker (Me : Worker_Id)
-     with Storage_Size => 4 * 1024 * 1024
-   is
+   task type Worker (Me : Worker_Id) with Storage_Size => 4 * 1024 * 1024 is
       entry Run;
    end Worker;
 
@@ -214,16 +203,19 @@ package body SDL3.Pictures.Jobs is
    --  A task is idle, in Board, from when it finds no more work until it
    --  is woken for some: so Run is only called of a task about to accept.
 
-   procedure Request
-     (File_Name : String; Urgent : Boolean; Job : out Ticket)
-   is
+   procedure Request (File_Name : String; Urgent : Boolean; Job : out Ticket) is
       Wake : Natural;
    begin
       Board.Add (File_Name, Urgent, Job, Wake);
       case Wake is
-         when 1 => Worker_1.Run;
-         when 2 => Worker_2.Run;
-         when others => null;
+         when 1      =>
+            Worker_1.Run;
+
+         when 2      =>
+            Worker_2.Run;
+
+         when others =>
+            null;
       end case;
    end Request;
 
@@ -232,7 +224,8 @@ package body SDL3.Pictures.Jobs is
       Board.Bump (Job);
    end Prioritize;
 
-   function State (Job : Ticket) return States is (Board.Standing (Job));
+   function State (Job : Ticket) return States
+   is (Board.Standing (Job));
 
    procedure Finish
      (Job    : Ticket;
@@ -241,8 +234,7 @@ package body SDL3.Pictures.Jobs is
       Dark   : out Boolean) is
    begin
       begin
-         SDL3.Windows.Renderers.Textures.Create_From_Decoded
-           (Into, Target, Results (Job));
+         SDL3.Windows.Renderers.Textures.Create_From_Decoded (Into, Target, Results (Job));
       exception
          when others =>
             Cancel (Job);

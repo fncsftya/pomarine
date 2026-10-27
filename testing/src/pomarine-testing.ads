@@ -17,6 +17,7 @@ with SDL3.Windows.Renderers;
 --
 --  A test of a view-model alone needs none of this (see
 --  Pomarine.View_Models); this is for whether the view is tied to it.
+
 package Pomarine.Testing is
 
    type Session is limited private;
@@ -27,7 +28,7 @@ package Pomarine.Testing is
       Width   : Positive;
       Height  : Positive;
       Density : Float := 1.0)
-     with Pre => Pomarine.Widgets.Has_Root (Tree);
+   with Pre => Pomarine.Widgets.Has_Root (Tree);
    --  Have Tree, whose root is set and whose widgets are built, drawn to an
    --  offscreen target of Width x Height points, and laid out, with a
    --  clipboard of its own, in memory. The tree must be there as long as
@@ -50,9 +51,7 @@ package Pomarine.Testing is
    --  As if that much time had passed, and then lay out and draw what changed.
 
    procedure Attach
-     (Item : in out Session;
-      Tree : aliased in out Pomarine.Widgets.Tree;
-      Uses : not null access Application'Class);
+     (Item : in out Session; Tree : aliased in out Pomarine.Widgets.Tree; Uses : not null access Application'Class);
    --  Test Tree, which Uses has laid out already, through Uses: the events
    --  go to its Take, and time to its Settle, in place of what Open does.
    --  Both must be there as long as Item is used.
@@ -81,32 +80,35 @@ package Pomarine.Testing is
       Name : String;
       Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
       Nth  : Positive := 1) return Boolean
-     with Pre => Exists (Item, Name, Role, Nth);
+   with Pre => Exists (Item, Name, Role, Nth);
 
    function Value_Of
      (Item : in out Session;
       Name : String;
       Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
       Nth  : Positive := 1) return String
-     with Pre => Exists (Item, Name, Role, Nth);
+   with Pre => Exists (Item, Name, Role, Nth);
    --  What the first widget called Name holds: a field's text, a slider's reading.
 
    --  Doing: what a person does
 
    function Act_On
-     (Item : in out Session; Name : String; Doing : Pomarine.Semantics.Action;
-      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown; Nth : Positive := 1) return Boolean
-     with Pre => Exists (Item, Name, Role, Nth);
+     (Item  : in out Session;
+      Name  : String;
+      Doing : Pomarine.Semantics.Action;
+      Role  : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
+      Nth   : Positive := 1) return Boolean
+   with Pre => Exists (Item, Name, Role, Nth);
    --  Ask through accessibility by semantic name (Focus, Increment, Collapse, ...), then settle.
    --  False if refused. Click_On continues to test physical pointer input.
 
    procedure Click_On
-     (Item : in out Session;
-      Name : String;
-      Role : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
-      Nth  : Positive := 1;
+     (Item   : in out Session;
+      Name   : String;
+      Role   : Pomarine.Semantics.Role := Pomarine.Semantics.Unknown;
+      Nth    : Positive := 1;
       Clicks : Positive := 1)
-     with Pre => Exists (Item, Name, Role, Nth);
+   with Pre => Exists (Item, Name, Role, Nth);
    --  Move the pointer to the middle of the first widget called Name, press
    --  the left button and let it go. A disabled widget is clicked all the
    --  same: what it does about that is what is tested. Clicks => 2 sends a double press.
@@ -135,7 +137,7 @@ package Pomarine.Testing is
 private
 
    type Node is record
-      Id : Pomarine.Widgets.Node_Id;
+      Id     : Pomarine.Widgets.Node_Id;
       Facts  : Pomarine.Semantics.Description;
       Bounds : Pomarine.Semantics.Rectangle;
    end record;
@@ -146,17 +148,19 @@ private
       Nodes : Node_Vectors.Vector;
    end record;
 
-   overriding procedure Begin_Update
-     (Self : in out Collector; Root, Focused : Pomarine.Widgets.Node_Id; Whole : Boolean);
+   overriding
+   procedure Begin_Update (Self : in out Collector; Root, Focused : Pomarine.Widgets.Node_Id; Whole : Boolean);
 
-   overriding procedure Describe_Node
+   overriding
+   procedure Describe_Node
      (Self     : in out Collector;
       Id       : Pomarine.Widgets.Node_Id;
       Facts    : Pomarine.Semantics.Description;
       Bounds   : Pomarine.Semantics.Rectangle;
       Children : Pomarine.Widgets.Node_Id_Array);
 
-   overriding procedure End_Update (Self : in out Collector) is null;
+   overriding
+   procedure End_Update (Self : in out Collector) is null;
 
    type Tree_Access is access all Pomarine.Widgets.Tree;
 
@@ -168,9 +172,11 @@ private
    end record;
    --  What Open makes: events given to the tree, and time to its widgets.
 
-   overriding procedure Take (Self : in out Plain; Event : Pomarine.Events.Event);
+   overriding
+   procedure Take (Self : in out Plain; Event : Pomarine.Events.Event);
 
-   overriding procedure Settle (Self : in out Plain; Milliseconds : Natural);
+   overriding
+   procedure Settle (Self : in out Plain; Milliseconds : Natural);
 
    type Session is limited record
       Tree  : Tree_Access;

@@ -16,9 +16,9 @@ package body Pomarine.Application is
       function Waiting return Boolean;
       function Lost return Natural;
    private
-      Items : Entry_Array;
-      First : Positive := 1;
-      Count : Natural := 0;
+      Items  : Entry_Array;
+      First  : Positive := 1;
+      Count  : Natural := 0;
       Missed : Natural := 0;
    end Queue;
 
@@ -49,15 +49,15 @@ package body Pomarine.Application is
          end if;
       end Take;
 
-      function Waiting return Boolean is (Count > 0);
+      function Waiting return Boolean
+      is (Count > 0);
 
-      function Lost return Natural is (Missed);
+      function Lost return Natural
+      is (Missed);
 
    end Queue;
 
-   function Post (Run : not null Handler; Data : System.Address := System.Null_Address)
-      return Boolean
-   is
+   function Post (Run : not null Handler; Data : System.Address := System.Null_Address) return Boolean is
       Kept : Boolean;
    begin
       Queue.Put (Run, Data, Kept);
@@ -68,9 +68,9 @@ package body Pomarine.Application is
    end Post;
 
    procedure Run_Posted is
-      Run   : Handler;
-      Data  : System.Address;
-      Found : Boolean;
+      Run    : Handler;
+      Data   : System.Address;
+      Found  : Boolean;
       Failed : Ada.Exceptions.Exception_Occurrence;
       Raised : Boolean := False;
    begin
@@ -92,8 +92,10 @@ package body Pomarine.Application is
       end if;
    end Run_Posted;
 
-   function Is_Waiting return Boolean is (Queue.Waiting);
+   function Is_Waiting return Boolean
+   is (Queue.Waiting);
 
-   function Dropped return Natural is (Queue.Lost);
+   function Dropped return Natural
+   is (Queue.Lost);
 
 end Pomarine.Application;

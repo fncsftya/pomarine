@@ -37,18 +37,25 @@ package body Painter_Tests is
       Painters.Reset (Recorded);
       Seen := Painters.Recording_To (Recorded, 100, 100);
       Scene (Seen);
-      Goldens.Check_Text
-        ("painters-count", "8", Natural'Image (Painters.Count (Recorded)) (2 .. 2));
+      Goldens.Check_Text ("painters-count", "8", Natural'Image (Painters.Count (Recorded)) (2 .. 2));
       Goldens.Check_Text
         ("painters-summary",
-         "clear 240,240,230,255" & ASCII.LF
-         & "fill 200,30,30,255 10 10 60 40" & ASCII.LF
-         & "line 5 5 90 70" & ASCII.LF
-         & "disc 70 60 12" & ASCII.LF
-         & "clip 20 20 30 30" & ASCII.LF
-         & "fill 30,30,200,255 0 0 100 100" & ASCII.LF
-         & "unclip" & ASCII.LF
-         & "text 'ok' 8 80" & ASCII.LF,
+         "clear 240,240,230,255"
+         & ASCII.LF
+         & "fill 200,30,30,255 10 10 60 40"
+         & ASCII.LF
+         & "line 5 5 90 70"
+         & ASCII.LF
+         & "disc 70 60 12"
+         & ASCII.LF
+         & "clip 20 20 30 30"
+         & ASCII.LF
+         & "fill 30,30,200,255 0 0 100 100"
+         & ASCII.LF
+         & "unclip"
+         & ASCII.LF
+         & "text 'ok' 8 80"
+         & ASCII.LF,
          Painters.Summary (Recorded));
    end Recording_Kept;
 
@@ -78,11 +85,9 @@ package body Painter_Tests is
       Seen.Narrow_Clip (10, 10, 50, 50);
       Seen.Narrow_Clip (30, 30, 50, 50);
       declare
-         Now : constant Renderers.Clip := Seen.Current_Clip;
+         Now  : constant Renderers.Clip := Seen.Current_Clip;
          Same : constant Renderers.Clip :=
-           Renderers.Narrowed
-             (Renderers.Narrowed (Renderers.No_Clip, 10, 10, 50, 50),
-              30, 30, 50, 50);
+           Renderers.Narrowed (Renderers.Narrowed (Renderers.No_Clip, 10, 10, 50, 50), 30, 30, 50, 50);
       begin
          Goldens.Check_Text
            ("painters-clips-nest",
@@ -119,7 +124,8 @@ package body Painter_Tests is
             --  A capital reaches above half the requested em, and stays
             --  within it, including when the cached glyph is drawn again.
             Goldens.Check_Text
-              ("character-size" & Positive'Image (Size), "TRUE",
+              ("character-size" & Positive'Image (Size),
+               "TRUE",
                Boolean'Image (Top >= 80 - Size and then Top < 80 - Size / 2));
          end;
       end loop;
@@ -136,8 +142,7 @@ package body Painter_Tests is
       Goldens.Check_Text
         ("painters-full",
          "TRUE" & Natural'Image (Painters.Command_Capacity),
-         Boolean'Image (Painters.Overflowed (Recorded))
-         & Natural'Image (Painters.Count (Recorded)));
+         Boolean'Image (Painters.Overflowed (Recorded)) & Natural'Image (Painters.Count (Recorded)));
    end Full_Recording;
 
 end Painter_Tests;

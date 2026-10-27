@@ -8,15 +8,18 @@
 --
 --  so that there is one list of the icons, and no numbers to keep in step with
 --  the files.
+
 generic
    type Name is (<>);
 package Pomarine.Icons.Sets is
 
-   pragma Compile_Time_Error
-     (Name'Pos (Name'Last) > Natural (Capacity) - Natural (First_Custom),
-      "more icons than a library holds (see Pomarine_Ui_Config.Icon_Capacity)");
+   pragma
+     Compile_Time_Error
+       (Name'Pos (Name'Last) > Natural (Capacity) - Natural (First_Custom),
+        "more icons than a library holds (see Pomarine_Ui_Config.Icon_Capacity)");
 
-   function Icon_Of (Which : Name) return Icon is (Custom (Name'Pos (Which)));
+   function Icon_Of (Which : Name) return Icon
+   is (Custom (Name'Pos (Which)));
    --  The icon that is Which, among the library's.
 
    function File_Of (Which : Name) return String;

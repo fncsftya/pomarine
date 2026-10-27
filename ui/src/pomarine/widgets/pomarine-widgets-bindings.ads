@@ -23,6 +23,7 @@ with Texts.Documents;
 --  The setters are given what the widget has already and do nothing then, so
 --  a Sync that sets everything is cheap; Changed is so that it need not look.
 --  Declarative controls and commands are bound through Pomarine.UI.Contexts.
+
 package Pomarine.Widgets.Bindings is
 
    type Syncable is limited interface;
@@ -38,7 +39,8 @@ package Pomarine.Widgets.Bindings is
    procedure Set_Owner (Item : in out Sync_Root; Owner : not null access Syncable'Class);
    --  The view to Sync; it must be there as long as the root is used.
 
-   overriding procedure Update (Item : in out Sync_Root; Now : Pomarine.Events.Milliseconds);
+   overriding
+   procedure Update (Item : in out Sync_Root; Now : Pomarine.Events.Milliseconds);
 
    type Text_Link is limited private;
    --  What ties a field's document to a text of the view-model, both ways,
@@ -52,10 +54,7 @@ package Pomarine.Widgets.Bindings is
    --        Set_Draft (Item.Model.all, Texts.Documents.Whole (Item.Typed));
    --     end if;
 
-   procedure Show
-     (Link     : in out Text_Link;
-      Document : in out Texts.Documents.Document;
-      Text     : String);
+   procedure Show (Link : in out Text_Link; Document : in out Texts.Documents.Document; Text : String);
    --  Have the document say Text, unless it does, and take that as seen, so
    --  that Edited is not True for what the view-model said itself. Ask
    --  Edited first, or what was typed is lost.

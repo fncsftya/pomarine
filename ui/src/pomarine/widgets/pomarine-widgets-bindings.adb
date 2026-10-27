@@ -7,7 +7,8 @@ package body Pomarine.Widgets.Bindings is
       Item.Owner := Owner;
    end Set_Owner;
 
-   overriding procedure Update (Item : in out Sync_Root; Now : Pomarine.Events.Milliseconds) is
+   overriding
+   procedure Update (Item : in out Sync_Root; Now : Pomarine.Events.Milliseconds) is
       pragma Unreferenced (Now);
    begin
       if Item.Owner /= null then
@@ -24,10 +25,7 @@ package body Pomarine.Widgets.Bindings is
       return True;
    end Edited;
 
-   procedure Show
-     (Link     : in out Text_Link;
-      Document : in out Texts.Documents.Document;
-      Text     : String) is
+   procedure Show (Link : in out Text_Link; Document : in out Texts.Documents.Document; Text : String) is
    begin
       if Documents.Whole (Document) /= Text then
          Documents.Load (Document, Text);

@@ -15,20 +15,15 @@
 --  Where the listener (see Pomarine.Widgets.Commands) says everything to
 --  one place, this says each thing where it is wanted; use whichever is
 --  the clearer.
+
 generic
    type Context is limited private;
 package Pomarine.Widgets.Callbacks is
 
-   type Handler is access procedure
-     (Self   : in out Context;
-      Source : in out Widget'Class;
-      Event  : Widget_Event);
+   type Handler is access procedure (Self : in out Context; Source : in out Widget'Class; Event : Widget_Event);
 
    procedure On
-     (Item    : in out Widget'Class;
-      Kind    : Event_Kind;
-      Self    : not null access Context;
-      Do_This : not null Handler);
+     (Item : in out Widget'Class; Kind : Event_Kind; Self : not null access Context; Do_This : not null Handler);
    --  When Item says Kind, call Do_This with Self. Self must be there as
    --  long as Item is in use. Replaces a handler for that kind.
 

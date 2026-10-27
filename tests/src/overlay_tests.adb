@@ -38,14 +38,16 @@ package body Overlay_Tests is
       Ears    : aliased Hearers.Hearer;
    end record;
 
-   function Image (Value : Integer) return String is
-     (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
+   function Image (Value : Integer) return String
+   is (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
 
-   procedure Put
-     (Item : in out Widgets.Widget'Class; Left, Top, Wide, High : Float) is
+   procedure Put (Item : in out Widgets.Widget'Class; Left, Top, Wide, High : Float) is
    begin
       Layouts.Set_Layout
-        (Item, Width => Layouts.In_Points (Wide), Height => Layouts.In_Points (High), Place => Layouts.Absolute,
+        (Item,
+         Width    => Layouts.In_Points (Wide),
+         Height   => Layouts.In_Points (High),
+         Place    => Layouts.Absolute,
          Position => (Left => Layouts.In_Points (Left), Top => Layouts.In_Points (Top), others => <>));
    end Put;
 
@@ -75,8 +77,8 @@ package body Overlay_Tests is
       Widgets.Layout (Item.Tree, Item.Target);
    end Open;
 
-   function Where (Item : Widgets.Widget'Class) return String is
-     (Image (Integer (Widgets.Left_Of (Item))) & "," & Image (Integer (Widgets.Top_Of (Item))));
+   function Where (Item : Widgets.Widget'Class) return String
+   is (Image (Integer (Widgets.Left_Of (Item))) & "," & Image (Integer (Widgets.Top_Of (Item))));
 
    procedure Settle (Item : in out Fixture) is
    begin
@@ -92,10 +94,12 @@ package body Overlay_Tests is
    procedure Click (Item : in out Fixture; X, Y : Float) is
       Handled : Boolean;
    begin
-      Widgets.Dispatch (Item.Tree, (Kind => Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => X, Mouse_Y => Y,
-                                    others => <>), Handled);
-      Widgets.Dispatch (Item.Tree, (Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y,
-                                    others => <>), Handled);
+      Widgets.Dispatch
+        (Item.Tree,
+         (Kind => Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => X, Mouse_Y => Y, others => <>),
+         Handled);
+      Widgets.Dispatch
+        (Item.Tree, (Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y, others => <>), Handled);
       Settle (Item);
    end Click;
 
@@ -202,16 +206,14 @@ package body Overlay_Tests is
       Goldens.Check_Text ("overlay-outside-swallowed", "no", Said (Item, Item.Behind, Widgets.Click));
 
       --  With Pass_Through, it is.
-      Overlays.Present_Beside
-        (Item.Content, Item.Anchor, How => (Pass_Through => True, others => <>));
+      Overlays.Present_Beside (Item.Content, Item.Anchor, How => (Pass_Through => True, others => <>));
       Settle (Item);
       Click (Item, 280.0, 165.0);
       Goldens.Check_Text ("overlay-pass-through-let-go", "FALSE", Overlays.Is_Presented (Item.Content)'Image);
       Goldens.Check_Text ("overlay-pass-through-clicked", "yes", Said (Item, Item.Behind, Widgets.Click));
 
       --  A press on what it is anchored to only lets it go: a second click on a select closes its menu.
-      Overlays.Present_Beside
-        (Item.Content, Item.Anchor, How => (Pass_Through => True, others => <>));
+      Overlays.Present_Beside (Item.Content, Item.Anchor, How => (Pass_Through => True, others => <>));
       Settle (Item);
       Click (Item, 40.0, 30.0);
       Goldens.Check_Text ("overlay-anchor-let-go", "FALSE", Overlays.Is_Presented (Item.Content)'Image);
@@ -238,16 +240,18 @@ package body Overlay_Tests is
       Widgets.Focus (Item.Behind);
       Overlays.Present_Centered (Item.Content);
       Settle (Item);
-      Goldens.Check_Text ("overlay-modal-focus-in", "TRUE",
-                          Boolean'Image (Widgets.Focus_Of (Item.Tree) = Item.Inner'Unchecked_Access));
+      Goldens.Check_Text
+        ("overlay-modal-focus-in", "TRUE", Boolean'Image (Widgets.Focus_Of (Item.Tree) = Item.Inner'Unchecked_Access));
 
       --  What is outside takes nothing: not a press, and Tab stays in.
       Click (Item, 280.0, 165.0);
       Goldens.Check_Text ("overlay-modal-blocks-click", "no", Said (Item, Item.Behind, Widgets.Click));
       Goldens.Check_Text ("overlay-modal-stays", "TRUE", Overlays.Is_Presented (Item.Content)'Image);
       Press_Key (Item, Events.Key_Tab);
-      Goldens.Check_Text ("overlay-modal-tab-stays-in", "TRUE",
-                          Boolean'Image (Widgets.Focus_Of (Item.Tree) = Item.Inner'Unchecked_Access));
+      Goldens.Check_Text
+        ("overlay-modal-tab-stays-in",
+         "TRUE",
+         Boolean'Image (Widgets.Focus_Of (Item.Tree) = Item.Inner'Unchecked_Access));
 
       --  Inside it, a press is taken as always.
       Click (Item, 200.0, 115.0);
@@ -256,8 +260,10 @@ package body Overlay_Tests is
       --  Escape lets it go, and the focus goes back where it was.
       Press_Key (Item, Events.Key_Escape);
       Goldens.Check_Text ("overlay-modal-escape", "FALSE", Overlays.Is_Presented (Item.Content)'Image);
-      Goldens.Check_Text ("overlay-modal-focus-back", "TRUE",
-                          Boolean'Image (Widgets.Focus_Of (Item.Tree) = Item.Behind'Unchecked_Access));
+      Goldens.Check_Text
+        ("overlay-modal-focus-back",
+         "TRUE",
+         Boolean'Image (Widgets.Focus_Of (Item.Tree) = Item.Behind'Unchecked_Access));
       Click (Item, 280.0, 165.0);
       Goldens.Check_Text ("overlay-modal-gone-click", "yes", Said (Item, Item.Behind, Widgets.Click));
    end Modality;
@@ -273,8 +279,10 @@ package body Overlay_Tests is
 
       --  Escape lets go of the top one only.
       Press_Key (Item, Events.Key_Escape);
-      Goldens.Check_Text ("overlay-stack-top-first", "TRUE,FALSE",
-                          Overlays.Is_Presented (Item.Content)'Image & "," & Overlays.Is_Presented (Item.Second)'Image);
+      Goldens.Check_Text
+        ("overlay-stack-top-first",
+         "TRUE,FALSE",
+         Overlays.Is_Presented (Item.Content)'Image & "," & Overlays.Is_Presented (Item.Second)'Image);
       Press_Key (Item, Events.Key_Escape);
       Goldens.Check_Text ("overlay-stack-then-dialog", "0", Image (Overlays.Presented_Count (Item.Tree)));
 
@@ -294,8 +302,8 @@ package body Overlay_Tests is
       After  : Images.Image;
       Light  : Images.Image;
 
-      function Red_At (Picture : Images.Image) return Natural is
-        (Natural (Images.Pixel (Picture, 300, 250).Red));
+      function Red_At (Picture : Images.Image) return Natural
+      is (Natural (Images.Pixel (Picture, 300, 250).Red));
 
       procedure Draw (Into : in out Images.Image) is
       begin

@@ -52,14 +52,14 @@ package Pomarine.Models is
       Icon   : Pomarine.Icons.Icon;
       Name   : String;
       Danger : Boolean := False)
-     with Pre => Number <= Max_Actions;
+   with Pre => Number <= Max_Actions;
    --  Give the row an action button: Danger, for one that cannot be undone.
 
    function Count_Actions (Item : Row_Content) return Natural;
    --  How many it has.
 
    function Action_Name (Item : Row_Content; Number : Positive) return String
-     with Pre => Number <= Max_Actions;
+   with Pre => Number <= Max_Actions;
 
    function Text_Of (Item : Row_Content) return String;
    function Detail_Of (Item : Row_Content) return String;
@@ -75,16 +75,13 @@ package Pomarine.Models is
    --  changed.
 
    function Row_Id (Self : List_Model; Row : Positive) return Positive is abstract
-     with Pre'Class => Row <= Count (Self);
+   with Pre'Class => Row <= Count (Self);
    --  A number for the row that is its own for as long as the row lasts,
    --  wherever it moves to: what a list keeps for the row it has selected,
    --  and an assistive technology for each row. Different for each.
 
-   procedure Describe_Row
-     (Self    : List_Model;
-      Row     : Positive;
-      Content : out Row_Content) is abstract
-     with Pre'Class => Row <= Count (Self);
+   procedure Describe_Row (Self : List_Model; Row : Positive; Content : out Row_Content) is abstract
+   with Pre'Class => Row <= Count (Self);
    --  What the row shows.
 
    type Model_Access is access all List_Model'Class;
@@ -95,25 +92,26 @@ package Pomarine.Models is
    type Text_List (Capacity : Positive) is limited new List_Model with private;
 
    procedure Clear (Item : in out Text_List)
-     with Post => Count (Item) = 0;
+   with Post => Count (Item) = 0;
 
    procedure Append (Item : in out Text_List; Text : String; Detail : String := "")
-     with Pre  => Count (Item) < Item.Capacity,
-          Post => Count (Item) = Count (Item)'Old + 1;
+   with Pre => Count (Item) < Item.Capacity, Post => Count (Item) = Count (Item)'Old + 1;
 
    procedure Replace (Item : in out Text_List; Row : Positive; Text : String; Detail : String := "")
-     with Pre => Row <= Count (Item);
+   with Pre => Row <= Count (Item);
 
    procedure Delete (Item : in out Text_List; Row : Positive)
-     with Pre  => Row <= Count (Item),
-          Post => Count (Item) = Count (Item)'Old - 1;
+   with Pre => Row <= Count (Item), Post => Count (Item) = Count (Item)'Old - 1;
    --  The rows after it move up; each keeps its id.
 
-   overriding function Count (Self : Text_List) return Natural;
-   overriding function Version (Self : Text_List) return Natural;
-   overriding function Row_Id (Self : Text_List; Row : Positive) return Positive;
-   overriding procedure Describe_Row
-     (Self : Text_List; Row : Positive; Content : out Row_Content);
+   overriding
+   function Count (Self : Text_List) return Natural;
+   overriding
+   function Version (Self : Text_List) return Natural;
+   overriding
+   function Row_Id (Self : Text_List; Row : Positive) return Positive;
+   overriding
+   procedure Describe_Row (Self : Text_List; Row : Positive; Content : out Row_Content);
 
 private
 

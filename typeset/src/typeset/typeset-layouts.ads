@@ -23,34 +23,27 @@ private with Typeset.Sums;
 --  has them; lines are UTF-16 ranges, as CoreText has them. Everything
 --  on the page is in the layout units of Configure, at whose size the
 --  font is set: the display scales them.
+
 package Typeset.Layouts is
 
    subtype Document is Texts.Documents.Document;
 
    type Layout is limited private;
 
-   procedure Configure
-     (Item       : in out Layout;
-      Family     : String;
-      Size       : Float;
-      Page_Width : Float;
-      Spacing    : Float := 0.0)
-     with Pre  => Size > 0.0 and then Page_Width > 0.0
-                  and then Spacing >= 0.0,
-          Post => Is_Configured (Item);
+   procedure Configure (Item : in out Layout; Family : String; Size : Float; Page_Width : Float; Spacing : Float := 0.0)
+   with Pre => Size > 0.0 and then Page_Width > 0.0 and then Spacing >= 0.0, Post => Is_Configured (Item);
    --  Set text in font Family at Size, its lines no wider than
    --  Page_Width, with Spacing between paragraphs. Forgets all layout.
 
    function Is_Configured (Item : Layout) return Boolean;
 
    procedure Set_Width (Item : in out Layout; Page_Width : Float)
-     with Pre => Is_Configured (Item) and then Page_Width > 0.0;
+   with Pre => Is_Configured (Item) and then Page_Width > 0.0;
    --  Make lines no wider than Page_Width. Forgets all layout, but keeps
    --  the font.
 
    procedure Sync (Item : in out Layout; Doc : Document)
-     with Pre  => Is_Configured (Item),
-          Post => Is_Synced (Item, Doc);
+   with Pre => Is_Configured (Item), Post => Is_Synced (Item, Doc);
    --  Catch up with Doc's changes since the layout last saw it. The
    --  layout of another document, or of one too far behind, starts
    --  again. Sync after Doc changes, before asking anything else of it.
@@ -66,84 +59,72 @@ package Typeset.Layouts is
    --  the configured size.
 
    function Line_Height (Item : Layout; Para : Natural := 0) return Float
-     with Pre => Is_Configured (Item);
+   with Pre => Is_Configured (Item);
    function Ascent (Item : Layout; Para : Natural := 0) return Float
-     with Pre => Is_Configured (Item);
+   with Pre => Is_Configured (Item);
    function Font_Size (Item : Layout; Para : Natural := 0) return Float
-     with Pre => Is_Configured (Item);
+   with Pre => Is_Configured (Item);
    function Width (Item : Layout) return Float
-     with Pre => Is_Configured (Item);
+   with Pre => Is_Configured (Item);
 
    Indent_Step : constant := 32.0;
    --  How far in, in layout units, each step of a paragraph's indent is.
-   Quote_Room : constant := 18.0;
+   Quote_Room  : constant := 18.0;
    --  How far in a quoted paragraph's text is from its rule.
-   Rule_Width : constant := 3.0;
+   Rule_Width  : constant := 3.0;
 
    function Is_Held (Item : Layout; Para : Positive) return Boolean
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
    --  Whether the layout has the paragraph's kind and inset, as it has once it is laid out or being.
 
    function Is_Quoted (Item : Layout; Para : Positive) return Boolean
-     with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
+   with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
 
    function Rule_Offset (Item : Layout; Para : Positive) return Float
-     with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
+   with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
    --  How far across the rule of a quoted paragraph is, in layout units.
 
    function Inset_Of (Item : Layout; Para : Positive) return Float
-     with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
+   with Pre => Para <= Count (Item) and then Is_Held (Item, Para);
    --  How far in the paragraph's lines start, in layout units: they are
    --  that much narrower. Caret_Offset and Units_At_Offset count it.
 
    --  Lines
 
    function Is_Laid_Out (Item : Layout; Para : Positive) return Boolean
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
    --  Whether some of the paragraph's lines are made and current.
 
    function Is_Complete (Item : Layout; Para : Positive) return Boolean
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
    --  Whether all of them are.
 
-   procedure Lay_Out
-     (Item  : in out Layout;
-      Doc   : Document;
-      Para  : Positive;
-      Lines : Positive := Positive'Last)
-     with Pre  => Is_Synced (Item, Doc) and then Para <= Count (Item),
-          Post => Is_Laid_Out (Item, Para)
-                  and then (Is_Complete (Item, Para)
-                            or else Line_Count (Item, Para) >= Lines);
+   procedure Lay_Out (Item : in out Layout; Doc : Document; Para : Positive; Lines : Positive := Positive'Last)
+   with
+     Pre  => Is_Synced (Item, Doc) and then Para <= Count (Item),
+     Post => Is_Laid_Out (Item, Para) and then (Is_Complete (Item, Para) or else Line_Count (Item, Para) >= Lines);
    --  Break the paragraph into at least Lines lines, or all of them.
    --  Changes its height, and so where those after it are.
 
-   function Covers
-     (Item : Layout; Para : Positive; Units : Natural) return Boolean
-     with Pre => Para <= Count (Item);
+   function Covers (Item : Layout; Para : Positive; Units : Natural) return Boolean
+   with Pre => Para <= Count (Item);
    --  Whether the line the caret before UTF-16 unit Units is on is made.
 
-   procedure Lay_Out_To
-     (Item  : in out Layout;
-      Doc   : Document;
-      Para  : Positive;
-      Units : Natural)
-     with Pre  => Is_Synced (Item, Doc) and then Para <= Count (Item),
-          Post => Is_Laid_Out (Item, Para) and then Covers (Item, Para, Units);
+   procedure Lay_Out_To (Item : in out Layout; Doc : Document; Para : Positive; Units : Natural)
+   with
+     Pre  => Is_Synced (Item, Doc) and then Para <= Count (Item),
+     Post => Is_Laid_Out (Item, Para) and then Covers (Item, Para, Units);
    --  Break the paragraph into lines as far as unit Units.
 
    function Line_Count (Item : Layout; Para : Positive) return Positive
-     with Pre => Para <= Count (Item) and then Is_Laid_Out (Item, Para);
+   with Pre => Para <= Count (Item) and then Is_Laid_Out (Item, Para);
    --  How many are made.
 
-   function Line
-     (Item : Layout; Para : Positive; Number : Positive)
-      return CoreText.Wrapping.Span
-     with Pre => Para <= Count (Item) and then Is_Laid_Out (Item, Para)
-                 and then Number <= Line_Count (Item, Para);
+   function Line (Item : Layout; Para : Positive; Number : Positive) return CoreText.Wrapping.Span
+   with Pre => Para <= Count (Item) and then Is_Laid_Out (Item, Para) and then Number <= Line_Count (Item, Para);
 
    function Layout_Id (Item : Layout; Para : Positive) return Positive
-     with Pre => Para <= Count (Item) and then Is_Laid_Out (Item, Para);
+   with Pre => Para <= Count (Item) and then Is_Laid_Out (Item, Para);
    --  A number for this laying out of the paragraph's lines, which no
    --  other has, so that things made from its lines can be kept by it.
    --  Lines made later, further on, are of the same laying out.
@@ -155,34 +136,32 @@ package Typeset.Layouts is
       Para   : Positive;
       Number : Positive;
       Result : out CoreText.Shaping.Shaped)
-     with Pre => Is_Synced (Item, Doc) and then Para <= Count (Item)
-                 and then Is_Laid_Out (Item, Para)
-                 and then Number <= Line_Count (Item, Para);
+   with
+     Pre =>
+       Is_Synced (Item, Doc)
+       and then Para <= Count (Item)
+       and then Is_Laid_Out (Item, Para)
+       and then Number <= Line_Count (Item, Para);
    --  Set the line as glyphs.
 
    --  Where paragraphs are
 
    function Top (Item : Layout; Para : Positive) return Float
-     with Pre => Para <= Count (Item) + 1;
+   with Pre => Para <= Count (Item) + 1;
    --  How far down the page the paragraph is, as far as it is known.
 
    function Height (Item : Layout; Para : Positive) return Float
-     with Pre => Para <= Count (Item);
+   with Pre => Para <= Count (Item);
 
    function Total_Height (Item : Layout) return Float;
 
    function Paragraph_At (Item : Layout; Y : Float) return Positive
-     with Pre => Count (Item) > 0;
+   with Pre => Count (Item) > 0;
    --  The paragraph that covers Y down the page; the first or last if Y
    --  is above or below the page.
 
-   procedure Scroll
-     (Item   : Layout;
-      Anchor : in out Positive;
-      Offset : in out Float;
-      By     : Float;
-      Extent : Float)
-     with Pre => Anchor <= Count (Item) and then Extent >= 0.0;
+   procedure Scroll (Item : Layout; Anchor : in out Positive; Offset : in out Float; By : Float; Extent : Float)
+   with Pre => Anchor <= Count (Item) and then Extent >= 0.0;
    --  Move the top of a view Extent high, which is Offset below the top
    --  of paragraph Anchor, down the page by By (up if negative), but not
    --  off the page. Holding the view as a paragraph and an offset in it
@@ -190,17 +169,15 @@ package Typeset.Layouts is
    --  change height.
 
    procedure Visible
-     (Item   : in out Layout;
-      Doc    : Document;
-      Anchor : in out Positive;
-      Offset : in out Float;
-      Extent : Float;
+     (Item        : in out Layout;
+      Doc         : Document;
+      Anchor      : in out Positive;
+      Offset      : in out Float;
+      Extent      : Float;
       First, Last : out Positive)
-     with Pre  => Is_Synced (Item, Doc) and then Anchor <= Count (Item)
-                  and then Extent >= 0.0,
-          Post => First <= Last and then Last <= Count (Item)
-                  and then (for all P in First .. Last =>
-                              Is_Laid_Out (Item, P));
+   with
+     Pre  => Is_Synced (Item, Doc) and then Anchor <= Count (Item) and then Extent >= 0.0,
+     Post => First <= Last and then Last <= Count (Item) and then (for all P in First .. Last => Is_Laid_Out (Item, P));
    --  Lay out what a view Extent high shows, whose top is Offset below
    --  the top of paragraph Anchor, and give the paragraphs it shows.
    --  Anchor and Offset are renormalized: Anchor is First and Offset
@@ -210,98 +187,86 @@ package Typeset.Layouts is
    --  end. One at the break between two lines is at the start of the
    --  second.
 
-   function Line_At
-     (Item : Layout; Para : Positive; Units : Natural) return Positive
-     with Pre  => Para <= Count (Item) and then Is_Laid_Out (Item, Para)
-                  and then Covers (Item, Para, Units),
-          Post => Line_At'Result <= Line_Count (Item, Para);
+   function Line_At (Item : Layout; Para : Positive; Units : Natural) return Positive
+   with
+     Pre  => Para <= Count (Item) and then Is_Laid_Out (Item, Para) and then Covers (Item, Para, Units),
+     Post => Line_At'Result <= Line_Count (Item, Para);
    --  The line the caret before unit Units is on.
 
    function Caret_Offset
-     (Item   : Layout;
-      Doc    : Document;
-      Para   : Positive;
-      Number : Positive;
-      Units  : Natural) return Float
-     with Pre => Is_Synced (Item, Doc) and then Para <= Count (Item)
-                 and then Is_Laid_Out (Item, Para)
-                 and then Number <= Line_Count (Item, Para)
-                 and then Units >= Line (Item, Para, Number).First
-                 and then Units <= Line (Item, Para, Number).Stop;
+     (Item : Layout; Doc : Document; Para : Positive; Number : Positive; Units : Natural) return Float
+   with
+     Pre =>
+       Is_Synced (Item, Doc)
+       and then Para <= Count (Item)
+       and then Is_Laid_Out (Item, Para)
+       and then Number <= Line_Count (Item, Para)
+       and then Units >= Line (Item, Para, Number).First
+       and then Units <= Line (Item, Para, Number).Stop;
    --  How far along line Number, in layout units, the caret before unit
    --  Units is.
 
    function Units_At_Offset
-     (Item   : Layout;
-      Doc    : Document;
-      Para   : Positive;
-      Number : Positive;
-      X      : Float) return Natural
-     with Pre  => Is_Synced (Item, Doc) and then Para <= Count (Item)
-                  and then Is_Laid_Out (Item, Para)
-                  and then Number <= Line_Count (Item, Para),
-          Post => Units_At_Offset'Result >= Line (Item, Para, Number).First
-                  and then Units_At_Offset'Result
-                           <= Line (Item, Para, Number).Stop
-                  and then Line_At (Item, Para, Units_At_Offset'Result)
-                           = Number;
+     (Item : Layout; Doc : Document; Para : Positive; Number : Positive; X : Float) return Natural
+   with
+     Pre  =>
+       Is_Synced (Item, Doc)
+       and then Para <= Count (Item)
+       and then Is_Laid_Out (Item, Para)
+       and then Number <= Line_Count (Item, Para),
+     Post =>
+       Units_At_Offset'Result >= Line (Item, Para, Number).First
+       and then Units_At_Offset'Result <= Line (Item, Para, Number).Stop
+       and then Line_At (Item, Para, Units_At_Offset'Result) = Number;
    --  Where on line Number the caret nearest X layout units along it is.
 
    --  Characters and words, as a reader sees them (an emoji and its
    --  modifiers are one character): see CoreText.Strings. Positions are
    --  bytes.
 
-   function Next_Character
-     (Doc : Document; Para : Positive; Index : Positive) return Positive
-     with Pre  => Para <= Texts.Documents.Count (Doc)
-                  and then Texts.Documents.Is_Position (Doc, (Para, Index))
-                  and then Index <= Texts.Documents.Byte_Length (Doc, Para),
-          Post => Next_Character'Result > Index
-                  and then Texts.Documents.Is_Position
-                             (Doc, (Para, Next_Character'Result));
+   function Next_Character (Doc : Document; Para : Positive; Index : Positive) return Positive
+   with
+     Pre  =>
+       Para <= Texts.Documents.Count (Doc)
+       and then Texts.Documents.Is_Position (Doc, (Para, Index))
+       and then Index <= Texts.Documents.Byte_Length (Doc, Para),
+     Post => Next_Character'Result > Index and then Texts.Documents.Is_Position (Doc, (Para, Next_Character'Result));
 
-   function Previous_Character
-     (Doc : Document; Para : Positive; Index : Positive) return Positive
-     with Pre  => Para <= Texts.Documents.Count (Doc)
-                  and then Texts.Documents.Is_Position (Doc, (Para, Index))
-                  and then Index > 1,
-          Post => Previous_Character'Result < Index
-                  and then Texts.Documents.Is_Position
-                             (Doc, (Para, Previous_Character'Result));
+   function Previous_Character (Doc : Document; Para : Positive; Index : Positive) return Positive
+   with
+     Pre  =>
+       Para <= Texts.Documents.Count (Doc) and then Texts.Documents.Is_Position (Doc, (Para, Index)) and then Index > 1,
+     Post =>
+       Previous_Character'Result < Index and then Texts.Documents.Is_Position (Doc, (Para, Previous_Character'Result));
 
-   function Previous_Word
-     (Doc : Document; Para : Positive; Index : Positive) return Positive
-     with Pre  => Para <= Texts.Documents.Count (Doc)
-                  and then Texts.Documents.Is_Position (Doc, (Para, Index)),
-          Post => Previous_Word'Result <= Index
-                  and then (Index = 1 or else Previous_Word'Result < Index)
-                  and then Texts.Documents.Is_Position
-                             (Doc, (Para, Previous_Word'Result));
+   function Previous_Word (Doc : Document; Para : Positive; Index : Positive) return Positive
+   with
+     Pre  => Para <= Texts.Documents.Count (Doc) and then Texts.Documents.Is_Position (Doc, (Para, Index)),
+     Post =>
+       Previous_Word'Result <= Index
+       and then (Index = 1 or else Previous_Word'Result < Index)
+       and then Texts.Documents.Is_Position (Doc, (Para, Previous_Word'Result));
    --  The start of the last word that starts before Index; the
    --  paragraph's start if none does.
 
-   function Next_Word
-     (Doc : Document; Para : Positive; Index : Positive) return Positive
-     with Pre  => Para <= Texts.Documents.Count (Doc)
-                  and then Texts.Documents.Is_Position (Doc, (Para, Index)),
-          Post => Next_Word'Result >= Index
-                  and then (Index > Texts.Documents.Byte_Length (Doc, Para)
-                            or else Next_Word'Result > Index)
-                  and then Texts.Documents.Is_Position
-                             (Doc, (Para, Next_Word'Result));
+   function Next_Word (Doc : Document; Para : Positive; Index : Positive) return Positive
+   with
+     Pre  => Para <= Texts.Documents.Count (Doc) and then Texts.Documents.Is_Position (Doc, (Para, Index)),
+     Post =>
+       Next_Word'Result >= Index
+       and then (Index > Texts.Documents.Byte_Length (Doc, Para) or else Next_Word'Result > Index)
+       and then Texts.Documents.Is_Position (Doc, (Para, Next_Word'Result));
    --  After the end of the first word that ends after Index; the
    --  paragraph's end if none does.
 
-   procedure Word_At
-     (Doc   : Document;
-      Para  : Positive;
-      Index : Positive;
-      First, Stop : out Positive)
-     with Pre  => Para <= Texts.Documents.Count (Doc)
-                  and then Texts.Documents.Is_Position (Doc, (Para, Index)),
-          Post => First <= Index and then Index <= Stop
-                  and then Texts.Documents.Is_Position (Doc, (Para, First))
-                  and then Texts.Documents.Is_Position (Doc, (Para, Stop));
+   procedure Word_At (Doc : Document; Para : Positive; Index : Positive; First, Stop : out Positive)
+   with
+     Pre  => Para <= Texts.Documents.Count (Doc) and then Texts.Documents.Is_Position (Doc, (Para, Index)),
+     Post =>
+       First <= Index
+       and then Index <= Stop
+       and then Texts.Documents.Is_Position (Doc, (Para, First))
+       and then Texts.Documents.Is_Position (Doc, (Para, Stop));
    --  The bytes First .. Stop - 1 of the word Index is in, or that ends
    --  there; none, First = Stop = Index, if there is no such word.
 
@@ -334,8 +299,7 @@ private
 
    type Paragraph_Access is access Paragraph_Layout;
 
-   package Paragraph_Vectors is new Ada.Containers.Vectors
-     (Positive, Paragraph_Access);
+   package Paragraph_Vectors is new Ada.Containers.Vectors (Positive, Paragraph_Access);
 
    package Length_Vectors is new Ada.Containers.Vectors (Positive, Natural);
 
@@ -355,23 +319,24 @@ private
       Wide       : Float := 0.0;
       Gap        : Float := 0.0;
 
-      Heights    : Sums.Sum_Tree;
+      Heights : Sums.Sum_Tree;
       --  Of each paragraph: measured where laid out, otherwise estimated.
 
-      Serial     : Natural := 0;  --  of the document laid out
-      Seen       : Texts.Documents.Version := 0;
+      Serial : Natural := 0;  --  of the document laid out
+      Seen   : Texts.Documents.Version := 0;
 
-      Next_Id    : Natural := 0;
-      Units_Seen : Long_Float := 0.0;
+      Next_Id     : Natural := 0;
+      Units_Seen  : Long_Float := 0.0;
       --  Of the paragraphs of more than a line laid out, and
-      Lines_Seen : Long_Float := 0.0;
+      Lines_Seen  : Long_Float := 0.0;
       --  their lines, the base of the estimate.
-      Laid_Out   : Natural := 0;
+      Laid_Out    : Natural := 0;
       Next_Sample : Natural := 8;
-      Per_Line   : Long_Float := 1.0;
+      Per_Line    : Long_Float := 1.0;
       --  UTF-16 units a line is estimated to hold.
    end record;
 
-   overriding procedure Finalize (Item : in out Layout);
+   overriding
+   procedure Finalize (Item : in out Layout);
 
 end Typeset.Layouts;

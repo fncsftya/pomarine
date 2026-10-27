@@ -1,6 +1,7 @@
 private with Ada.Strings.Unbounded;
 
 --  Where cut and copied text goes, and pasted text comes from.
+
 package Pomarine.Clipboards is
 
    type Clipboard is limited interface;
@@ -14,16 +15,18 @@ package Pomarine.Clipboards is
    type System_Clipboard is limited new Clipboard with null record;
    --  The system's, shared with other programs. SDL must be initialized.
 
-   overriding function Text (Item : System_Clipboard) return String;
-   overriding procedure Set_Text
-     (Item : in out System_Clipboard; Value : String);
+   overriding
+   function Text (Item : System_Clipboard) return String;
+   overriding
+   procedure Set_Text (Item : in out System_Clipboard; Value : String);
 
    type Memory_Clipboard is limited new Clipboard with private;
    --  One of its own, as for testing.
 
-   overriding function Text (Item : Memory_Clipboard) return String;
-   overriding procedure Set_Text
-     (Item : in out Memory_Clipboard; Value : String);
+   overriding
+   function Text (Item : Memory_Clipboard) return String;
+   overriding
+   procedure Set_Text (Item : in out Memory_Clipboard; Value : String);
 
 private
 

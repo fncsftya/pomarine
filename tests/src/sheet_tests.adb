@@ -47,10 +47,8 @@ package body Sheet_Tests is
    type Icon_List is array (Positive range <>) of Pomarine.Icons.Icon;
 
    Bare_Icons : constant Icon_List :=
-     [Test_Icons.Square, Test_Icons.Plus, Test_Icons.Triangle, Test_Icons.Circle,
-      Pomarine.Icons.Close];
-   Tool_Icons : constant Icon_List :=
-     [Test_Icons.Arrow, Test_Icons.Bars, Test_Icons.Slash];
+     [Test_Icons.Square, Test_Icons.Plus, Test_Icons.Triangle, Test_Icons.Circle, Pomarine.Icons.Close];
+   Tool_Icons : constant Icon_List := [Test_Icons.Arrow, Test_Icons.Bars, Test_Icons.Slash];
 
    --  Building
 
@@ -67,9 +65,7 @@ package body Sheet_Tests is
 
    procedure Open (Item : in out Base; Wide, High : Positive) is
    begin
-      Renderers.Create_Offscreen
-        (Item.Target,
-         Positive (Float (Wide) * Density), Positive (Float (High) * Density));
+      Renderers.Create_Offscreen (Item.Target, Positive (Float (Wide) * Density), Positive (Float (High) * Density));
       Widgets.Set_Density (Item.Tree, Density);
       Widgets.Set_Clipboard (Item.Tree, Item.Board);
       Widgets.Set_Listener (Item.Tree, Item.Ears'Unchecked_Access);
@@ -79,15 +75,11 @@ package body Sheet_Tests is
       Widgets.Set_Root (Item.Tree, Item.Root);
       Panels.Set_Fill (Item.Root, Pomarine.Themes.Background);
       Nodes.Set_Flex_Direction (Widgets.Node (Item.Root), Yoga.Column);
-      Nodes.Set_Padding
-        (Widgets.Node (Item.Root), Yoga.All_Edges, 20.0 * Density);
-      Nodes.Set_Gap (Widgets.Node (Item.Root), Yoga.All_Gutters,
-                     14.0 * Density);
+      Nodes.Set_Padding (Widgets.Node (Item.Root), Yoga.All_Edges, 20.0 * Density);
+      Nodes.Set_Gap (Widgets.Node (Item.Root), Yoga.All_Gutters, 14.0 * Density);
    end Open;
 
-   procedure Row (Parent : in out Widgets.Widget'Class;
-                  Part   : in out Panels.Panel;
-                  High   : Float) is
+   procedure Row (Parent : in out Widgets.Widget'Class; Part : in out Panels.Panel; High : Float) is
    begin
       Widgets.Add (Parent, Part);
       Nodes.Set_Flex_Direction (Widgets.Node (Part), Yoga.Row);
@@ -96,9 +88,7 @@ package body Sheet_Tests is
       Nodes.Set_Height (Widgets.Node (Part), High * Density);
    end Row;
 
-   procedure Put (Parent : in out Widgets.Widget'Class;
-                  Part   : in out Widgets.Widget'Class;
-                  Wide, High : Float) is
+   procedure Put (Parent : in out Widgets.Widget'Class; Part : in out Widgets.Widget'Class; Wide, High : Float) is
    begin
       Widgets.Add (Parent, Part);
       Nodes.Set_Width (Widgets.Node (Part), Wide * Density);
@@ -119,9 +109,7 @@ package body Sheet_Tests is
       Buttons.Set_Kind (Part, Kind);
    end Button;
 
-   procedure Iconed
-     (Part : in out Buttons.Button; Which : Pomarine.Icons.Icon;
-      Captioned : Boolean := True) is
+   procedure Iconed (Part : in out Buttons.Button; Which : Pomarine.Icons.Icon; Captioned : Boolean := True) is
    begin
       Buttons.Set_Icon (Part, Which);
       Buttons.Set_Icon_Size (Part, 13.0);
@@ -136,16 +124,12 @@ package body Sheet_Tests is
       Wide   : Float) is
    begin
       Docs.Load (Doc, Text);
-      Pomarine.Widgets.Text_Fields.Configure
-        (Part, Pomarine.Line_Texts.Interface_Font, 13.0);
+      Pomarine.Widgets.Text_Fields.Configure (Part, Pomarine.Line_Texts.Interface_Font, 13.0);
       Pomarine.Widgets.Text_Fields.Attach (Part, Doc'Unchecked_Access);
       Put (Parent, Part, Wide, 30.0);
    end Field;
 
-   procedure Check_Painted
-     (Tree : in out Widgets.Tree; Target : Renderers.Renderer;
-      Name : String)
-   is
+   procedure Check_Painted (Tree : in out Widgets.Tree; Target : Renderers.Renderer; Name : String) is
       Drawn : Images.Image;
    begin
       Widgets.Paint (Tree, Target, Colors);
@@ -155,19 +139,17 @@ package body Sheet_Tests is
 
    --  Events, at X, Y points
 
-   function Move (X, Y : Float) return Events.Event is
-     ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, others => <>));
+   function Move (X, Y : Float) return Events.Event
+   is ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => Y, others => <>));
 
-   function Press (X, Y : Float) return Events.Event is
-     ((Kind => Events.Mouse_Down, Button => 1, Clicks => 1,
-       Mouse_X => X, Mouse_Y => Y, others => <>));
+   function Press (X, Y : Float) return Events.Event
+   is ((Kind => Events.Mouse_Down, Button => 1, Clicks => 1, Mouse_X => X, Mouse_Y => Y, others => <>));
 
-   function Release (X, Y : Float) return Events.Event is
-     ((Kind => Events.Mouse_Up, Button => 1,
-       Mouse_X => X, Mouse_Y => Y, others => <>));
+   function Release (X, Y : Float) return Events.Event
+   is ((Kind => Events.Mouse_Up, Button => 1, Mouse_X => X, Mouse_Y => Y, others => <>));
 
-   function Key (Code : Events.Key_Code) return Events.Event is
-     ((Kind => Events.Key_Down, Key => Code, others => <>));
+   function Key (Code : Events.Key_Code) return Events.Event
+   is ((Kind => Events.Key_Down, Key => Code, others => <>));
 
    procedure Send (Tree : in out Widgets.Tree; Event : Events.Event) is
       Handled : Boolean;
@@ -175,11 +157,11 @@ package body Sheet_Tests is
       Widgets.Dispatch (Tree, Event, Handled);
    end Send;
 
-   function Middle_X (Part : Widgets.Widget'Class) return Float is
-     ((Widgets.Left_Of (Part) + Widgets.Width_Of (Part) / 2.0) / Density);
+   function Middle_X (Part : Widgets.Widget'Class) return Float
+   is ((Widgets.Left_Of (Part) + Widgets.Width_Of (Part) / 2.0) / Density);
 
-   function Middle_Y (Part : Widgets.Widget'Class) return Float is
-     ((Widgets.Top_Of (Part) + Widgets.Height_Of (Part) / 2.0) / Density);
+   function Middle_Y (Part : Widgets.Widget'Class) return Float
+   is ((Widgets.Top_Of (Part) + Widgets.Height_Of (Part) / 2.0) / Density);
 
    procedure Click (Tree : in out Widgets.Tree; X, Y : Float) is
    begin
@@ -188,8 +170,7 @@ package body Sheet_Tests is
       Send (Tree, Release (X, Y));
    end Click;
 
-   procedure Click_On
-     (Tree : in out Widgets.Tree; Part : Widgets.Widget'Class) is
+   procedure Click_On (Tree : in out Widgets.Tree; Part : Widgets.Widget'Class) is
    begin
       Click (Tree, Middle_X (Part), Middle_Y (Part));
    end Click_On;
@@ -203,41 +184,40 @@ package body Sheet_Tests is
 
    type Button_Array is array (Positive range <>) of Buttons.Button;
    type Check_Array is array (Positive range <>) of Checks.Check;
-   type Field_Array is array (Positive range <>) of
-     Pomarine.Widgets.Text_Fields.Text_Field;
+   type Field_Array is array (Positive range <>) of Pomarine.Widgets.Text_Fields.Text_Field;
    type Doc_Array is array (Positive range <>) of aliased Docs.Document;
    type Panel_Array is array (Positive range <>) of Panels.Panel;
    type Label_Array is array (Positive range <>) of Labels.Label;
 
    type Board_Fixture is limited record
-      Docs_Of  : Doc_Array (1 .. 6);
-      Common   : Base;
-      Rows     : Panel_Array (1 .. 9);
-      Names    : Label_Array (1 .. 9);
-      Kinds    : Button_Array (1 .. 6);
+      Docs_Of    : Doc_Array (1 .. 6);
+      Common     : Base;
+      Rows       : Panel_Array (1 .. 9);
+      Names      : Label_Array (1 .. 9);
+      Kinds      : Button_Array (1 .. 6);
       Icons_Only : Button_Array (1 .. 5);
-      Sizes    : Button_Array (1 .. 3);
-      Toggles  : Button_Array (1 .. 2);
-      Drops    : Button_Array (1 .. 3);
-      Choice   : Pomarine.Widgets.Selects.Select_Field;
-      Modes    : Button_Array (1 .. 2);
-      Tools    : Button_Array (1 .. 3);
-      Boxes    : Check_Array (1 .. 5);
-      Flips    : Pomarine.Widgets.Switches.Switch;
-      Flips_On : Pomarine.Widgets.Switches.Switch;
-      Slide    : Pomarine.Widgets.Sliders.Slider;
-      Fields   : Field_Array (1 .. 5);
-      Add      : Buttons.Button;
-      Chip_A   : Pomarine.Widgets.Chips.Chip;
-      Chip_B   : Pomarine.Widgets.Chips.Chip;
-      Count    : Pomarine.Widgets.Badges.Badge;
-      Tag      : Pomarine.Widgets.Badges.Badge;
-      Tip      : Pomarine.Widgets.Tooltips.Tooltip;
-      Toast    : Pomarine.Widgets.Toasts.Toast;
-      Drop_Menu : Menus.Menu;
-      Context  : Menus.Menu;
-      Scroll   : Pomarine.Widgets.Scrollers.Scroller;
-      Long     : Panels.Panel;
+      Sizes      : Button_Array (1 .. 3);
+      Toggles    : Button_Array (1 .. 2);
+      Drops      : Button_Array (1 .. 3);
+      Choice     : Pomarine.Widgets.Selects.Select_Field;
+      Modes      : Button_Array (1 .. 2);
+      Tools      : Button_Array (1 .. 3);
+      Boxes      : Check_Array (1 .. 5);
+      Flips      : Pomarine.Widgets.Switches.Switch;
+      Flips_On   : Pomarine.Widgets.Switches.Switch;
+      Slide      : Pomarine.Widgets.Sliders.Slider;
+      Fields     : Field_Array (1 .. 5);
+      Add        : Buttons.Button;
+      Chip_A     : Pomarine.Widgets.Chips.Chip;
+      Chip_B     : Pomarine.Widgets.Chips.Chip;
+      Count      : Pomarine.Widgets.Badges.Badge;
+      Tag        : Pomarine.Widgets.Badges.Badge;
+      Tip        : Pomarine.Widgets.Tooltips.Tooltip;
+      Toast      : Pomarine.Widgets.Toasts.Toast;
+      Drop_Menu  : Menus.Menu;
+      Context    : Menus.Menu;
+      Scroll     : Pomarine.Widgets.Scrollers.Scroller;
+      Long       : Panels.Panel;
    end record;
 
    procedure Build (Item : in out Board_Fixture) is
@@ -255,15 +235,13 @@ package body Sheet_Tests is
 
       --  Buttons of each kind, and turned off.
       Named (1, "BUTTONS", 34.0);
-      Button (Item.Rows (1), Item.Kinds (1), "Add source", 104.0,
-              Buttons.Primary);
+      Button (Item.Rows (1), Item.Kinds (1), "Add source", 104.0, Buttons.Primary);
       Iconed (Item.Kinds (1), Test_Icons.Ring);
       Button (Item.Rows (1), Item.Kinds (2), "Add document", 120.0);
       Iconed (Item.Kinds (2), Test_Icons.Diamond);
       Button (Item.Rows (1), Item.Kinds (3), "Delete", 84.0, Buttons.Danger);
       Iconed (Item.Kinds (3), Test_Icons.Triangle);
-      Button (Item.Rows (1), Item.Kinds (4), "Add source", 104.0,
-              Buttons.Primary);
+      Button (Item.Rows (1), Item.Kinds (4), "Add source", 104.0, Buttons.Primary);
       Iconed (Item.Kinds (4), Test_Icons.Ring);
       Button (Item.Rows (1), Item.Kinds (5), "Add document", 120.0);
       Iconed (Item.Kinds (5), Test_Icons.Diamond);
@@ -280,15 +258,18 @@ package body Sheet_Tests is
             Which : constant Pomarine.Icons.Icon := Bare_Icons (Index);
             Side  : constant Float := (if Index <= 3 then 28.0 else 20.0);
          begin
-            Button (Item.Rows (2), Item.Icons_Only (Index), "x", Side,
-                    (case Index is
-                        when 2 => Buttons.Primary,
-                        when 3 => Buttons.Danger,
-                        when others => Buttons.Normal),
-                    High => Side);
+            Button
+              (Item.Rows (2),
+               Item.Icons_Only (Index),
+               "x",
+               Side,
+               (case Index is
+                  when 2      => Buttons.Primary,
+                  when 3      => Buttons.Danger,
+                  when others => Buttons.Normal),
+               High => Side);
             Buttons.Set_Icon (Item.Icons_Only (Index), Which);
-            Buttons.Set_Icon_Size
-              (Item.Icons_Only (Index), (if Index <= 3 then 13.0 else 11.0));
+            Buttons.Set_Icon_Size (Item.Icons_Only (Index), (if Index <= 3 then 13.0 else 11.0));
          end;
       end loop;
       Button (Item.Rows (2), Item.Sizes (1), "Small", 52.0, High => 22.0);
@@ -303,8 +284,7 @@ package body Sheet_Tests is
       --  Dropdowns, a select field, a mode switch and a tool group.
       Named (3, "DROPDOWNS", 30.0);
       for Index in Item.Drops'Range loop
-         Button (Item.Rows (3), Item.Drops (Index), "Sources", 112.0,
-                 High => 28.0);
+         Button (Item.Rows (3), Item.Drops (Index), "Sources", 112.0, High => 28.0);
          Buttons.Set_Dropdown (Item.Drops (Index), True);
          Buttons.Set_Badge (Item.Drops (Index), (if Index = 2 then 0 else 2));
       end loop;
@@ -326,14 +306,15 @@ package body Sheet_Tests is
       Named (4, "SELECTION", 24.0);
       for Index in Item.Boxes'Range loop
          Put (Item.Rows (4), Item.Boxes (Index), 92.0, 20.0);
-         Checks.Set_Kind
-           (Item.Boxes (Index), (if Index <= 3 then Checks.Box
-                                 else Checks.Radio));
+         Checks.Set_Kind (Item.Boxes (Index), (if Index <= 3 then Checks.Box else Checks.Radio));
          Checks.Set_Label
            (Item.Boxes (Index),
             (case Index is
-                when 1 => "Off", when 2 => "On", when 3 => "Disabled",
-                when 4 => "Selected", when others => "Unselected"));
+               when 1      => "Off",
+               when 2      => "On",
+               when 3      => "Disabled",
+               when 4      => "Selected",
+               when others => "Unselected"));
       end loop;
       Checks.Set_Checked (Item.Boxes (2), True);
       Checks.Set_Enabled (Item.Boxes (3), False);
@@ -349,19 +330,15 @@ package body Sheet_Tests is
       --  Fields: at rest, focused, invalid with a hint, turned off, and
       --  the address of a source with an icon, a hint and its button.
       Named (5, "INPUTS", 30.0);
-      Field (Item.Rows (5), Item.Fields (1), Item.Docs_Of (1),
-             "First project", 130.0);
-      Field (Item.Rows (5), Item.Fields (2), Item.Docs_Of (2),
-             "First project", 130.0);
+      Field (Item.Rows (5), Item.Fields (1), Item.Docs_Of (1), "First project", 130.0);
+      Field (Item.Rows (5), Item.Fields (2), Item.Docs_Of (2), "First project", 130.0);
       Field (Item.Rows (5), Item.Fields (3), Item.Docs_Of (3), "", 110.0);
       Pomarine.Widgets.Text_Fields.Set_Placeholder (Item.Fields (3), "Untitled");
       Pomarine.Widgets.Text_Fields.Set_Invalid (Item.Fields (3), True);
-      Field (Item.Rows (5), Item.Fields (4), Item.Docs_Of (4),
-             "First project", 110.0);
+      Field (Item.Rows (5), Item.Fields (4), Item.Docs_Of (4), "First project", 110.0);
       Pomarine.Widgets.Text_Fields.Set_Enabled (Item.Fields (4), False);
       Field (Item.Rows (5), Item.Fields (5), Item.Docs_Of (5), "", 150.0);
-      Pomarine.Text_Areas.Set_Single_Line
-        (Pomarine.Widgets.Text_Fields.Area (Item.Fields (5)).all);
+      Pomarine.Text_Areas.Set_Single_Line (Pomarine.Widgets.Text_Fields.Area (Item.Fields (5)).all);
       Pomarine.Widgets.Text_Fields.Set_Icon (Item.Fields (5), Test_Icons.Ring);
       Pomarine.Widgets.Text_Fields.Set_Placeholder (Item.Fields (5), "https://");
       Button (Item.Rows (5), Item.Add, "Add", 48.0, Buttons.Primary);
@@ -381,15 +358,11 @@ package body Sheet_Tests is
       Pomarine.Widgets.Badges.Set_Kind (Item.Tag, Pomarine.Widgets.Badges.Tag);
       Pomarine.Widgets.Badges.Set_Text (Item.Tag, "Captured 13 Oct 2026");
       Nodes.Set_Width
-        (Widgets.Node (Item.Tag),
-         Float'Rounding
-           (Pomarine.Widgets.Badges.Natural_Width (Item.Tag) * Density));
+        (Widgets.Node (Item.Tag), Float'Rounding (Pomarine.Widgets.Badges.Natural_Width (Item.Tag) * Density));
       Put (Item.Rows (6), Item.Tip, 70.0, Pomarine.Widgets.Tooltips.Height);
       Pomarine.Widgets.Tooltips.Set_Text (Item.Tip, "Highlight");
       Nodes.Set_Width
-        (Widgets.Node (Item.Tip),
-         Float'Rounding
-           (Pomarine.Widgets.Tooltips.Natural_Width (Item.Tip) * Density));
+        (Widgets.Node (Item.Tip), Float'Rounding (Pomarine.Widgets.Tooltips.Natural_Width (Item.Tip) * Density));
       Put (Item.Rows (6), Item.Toast, 200.0, Pomarine.Widgets.Toasts.Height);
       Pomarine.Widgets.Toasts.Set_Message (Item.Toast, "Highlight saved");
       Pomarine.Widgets.Toasts.Set_Action (Item.Toast, "Undo");
@@ -401,20 +374,20 @@ package body Sheet_Tests is
       Pomarine.UI.Menus.Set_Content
         (Item.Drop_Menu,
          [Pomarine.UI.Menus.Row (Menus.Heading, "LINKED TO INTRO"),
-          Pomarine.UI.Menus.Row (Menus.Check, "Ten steps towards happiness", Checked => True,
-                                 Swatch => Pomarine.Themes.Focus),
+          Pomarine.UI.Menus.Row
+            (Menus.Check, "Ten steps towards happiness", Checked => True, Swatch => Pomarine.Themes.Focus),
           Pomarine.UI.Menus.Row (Menus.Check, "Codeless Code", Swatch => Pomarine.Themes.Primary),
           Pomarine.UI.Menus.Row (Menus.Separator),
-          Pomarine.UI.Menus.Row (Menus.Action, "Add source", Menus.Primary,
-                                 Icon => Pomarine.Icons.Shown (Test_Icons.Plus))]);
+          Pomarine.UI.Menus.Row
+            (Menus.Action, "Add source", Menus.Primary, Icon => Pomarine.Icons.Shown (Test_Icons.Plus))]);
       Put (Item.Rows (7), Item.Context, 140.0, 10.0);
       Pomarine.UI.Menus.Set_Content
         (Item.Context,
          [Pomarine.UI.Menus.Row (Menus.Action, "Open", Icon => Pomarine.Icons.Shown (Test_Icons.Diamond)),
           Pomarine.UI.Menus.Row (Menus.Action, "Rename", Icon => Pomarine.Icons.Shown (Test_Icons.Square)),
           Pomarine.UI.Menus.Row (Menus.Separator),
-          Pomarine.UI.Menus.Row (Menus.Action, "Delete", Menus.Danger,
-                                 Icon => Pomarine.Icons.Shown (Test_Icons.Triangle))]);
+          Pomarine.UI.Menus.Row
+            (Menus.Action, "Delete", Menus.Danger, Icon => Pomarine.Icons.Shown (Test_Icons.Triangle))]);
       Put (Item.Rows (7), Item.Scroll, 110.0, 120.0);
       Widgets.Add (Item.Scroll, Item.Long);
       Panels.Set_Fill (Item.Long, Pomarine.Themes.Page);
@@ -430,8 +403,7 @@ package body Sheet_Tests is
    begin
       Build (Item);
       --  The pointer over the list, to show its bar.
-      Send (Item.Common.Tree,
-            Move (Middle_X (Item.Scroll), Middle_Y (Item.Scroll)));
+      Send (Item.Common.Tree, Move (Middle_X (Item.Scroll), Middle_Y (Item.Scroll)));
       Check_Painted (Item.Common.Tree, Item.Common.Target, "sheet-board");
    end Board;
 
@@ -443,28 +415,20 @@ package body Sheet_Tests is
       --  pressed, and one with the focus.
       Buttons.Set_Focusable (Item.Kinds (2), True);
       Widgets.Focus (Item.Kinds (2));
-      Send (Item.Common.Tree,
-            Move (Middle_X (Item.Context),
-                  Widgets.Top_Of (Item.Context) / Density + 44.0));
-      Check_Painted
-        (Item.Common.Tree, Item.Common.Target, "sheet-states-menu-hover");
-      Send (Item.Common.Tree,
-            Move (Middle_X (Item.Kinds (1)), Middle_Y (Item.Kinds (1))));
-      Check_Painted
-        (Item.Common.Tree, Item.Common.Target, "sheet-states-hover");
-      Send (Item.Common.Tree,
-            Move (Middle_X (Item.Kinds (3)), Middle_Y (Item.Kinds (3))));
-      Send (Item.Common.Tree,
-            Press (Middle_X (Item.Kinds (3)), Middle_Y (Item.Kinds (3))));
-      Check_Painted
-        (Item.Common.Tree, Item.Common.Target, "sheet-states-pressed");
+      Send (Item.Common.Tree, Move (Middle_X (Item.Context), Widgets.Top_Of (Item.Context) / Density + 44.0));
+      Check_Painted (Item.Common.Tree, Item.Common.Target, "sheet-states-menu-hover");
+      Send (Item.Common.Tree, Move (Middle_X (Item.Kinds (1)), Middle_Y (Item.Kinds (1))));
+      Check_Painted (Item.Common.Tree, Item.Common.Target, "sheet-states-hover");
+      Send (Item.Common.Tree, Move (Middle_X (Item.Kinds (3)), Middle_Y (Item.Kinds (3))));
+      Send (Item.Common.Tree, Press (Middle_X (Item.Kinds (3)), Middle_Y (Item.Kinds (3))));
+      Check_Painted (Item.Common.Tree, Item.Common.Target, "sheet-states-pressed");
    end States;
 
    procedure Behaviour is
-      Item : Board_Fixture;
-      Tree : Widgets.Tree renames Item.Common.Tree;
+      Item             : Board_Fixture;
+      Tree             : Widgets.Tree renames Item.Common.Tree;
       Clicked, Changed : Boolean;
-      Chosen : Natural;
+      Chosen           : Natural;
    begin
       Build (Item);
 
@@ -486,11 +450,9 @@ package body Sheet_Tests is
       Click_On (Tree, Item.Kinds (2));
       Hearers.Take (Item.Common.Ears, Item.Kinds (2), Widgets.Click, Clicked);
       Check_Flag ("sheet-focus-click", True, Clicked);
-      Check_Flag ("sheet-focus-not-taken-by-click", False,
-                  Widgets.Has_Focus (Item.Kinds (2)));
+      Check_Flag ("sheet-focus-not-taken-by-click", False, Widgets.Has_Focus (Item.Kinds (2)));
       Widgets.Focus (Item.Kinds (2));
-      Check_Flag ("sheet-focus-taken", True,
-                  Widgets.Has_Focus (Item.Kinds (2)));
+      Check_Flag ("sheet-focus-taken", True, Widgets.Has_Focus (Item.Kinds (2)));
       Send (Tree, Key (Events.Key_Return));
       Hearers.Take (Item.Common.Ears, Item.Kinds (2), Widgets.Click, Clicked);
       Check_Flag ("sheet-key-return", True, Clicked);
@@ -498,18 +460,15 @@ package body Sheet_Tests is
       Hearers.Take (Item.Common.Ears, Item.Kinds (2), Widgets.Click, Clicked);
       Check_Flag ("sheet-key-space", True, Clicked);
       Buttons.Set_Enabled (Item.Kinds (2), False);
-      Check_Flag ("sheet-focus-lost", False,
-                  Widgets.Has_Focus (Item.Kinds (2)));
+      Check_Flag ("sheet-focus-lost", False, Widgets.Has_Focus (Item.Kinds (2)));
 
       --  A box turns over; a radio is only chosen; one turned off stays.
       Click_On (Tree, Item.Boxes (1));
       Hearers.Take (Item.Common.Ears, Item.Boxes (1), Widgets.Change, Changed);
       Check_Flag ("sheet-box-changed", True, Changed);
-      Check_Flag ("sheet-box-ticked", True,
-                  Checks.Is_Checked (Item.Boxes (1)));
+      Check_Flag ("sheet-box-ticked", True, Checks.Is_Checked (Item.Boxes (1)));
       Click_On (Tree, Item.Boxes (2));
-      Check_Flag ("sheet-box-unticked", False,
-                  Checks.Is_Checked (Item.Boxes (2)));
+      Check_Flag ("sheet-box-unticked", False, Checks.Is_Checked (Item.Boxes (2)));
       Click_On (Tree, Item.Boxes (3));
       Hearers.Take (Item.Common.Ears, Item.Boxes (3), Widgets.Change, Changed);
       Check_Flag ("sheet-box-disabled", False, Changed);
@@ -518,14 +477,12 @@ package body Sheet_Tests is
       Check_Flag ("sheet-radio-stays", False, Changed);
       Click_On (Tree, Item.Boxes (5));
       Hearers.Take (Item.Common.Ears, Item.Boxes (5), Widgets.Change, Changed);
-      Check_Flag ("sheet-radio-chosen", True,
-                  Changed and then Checks.Is_Checked (Item.Boxes (5)));
+      Check_Flag ("sheet-radio-chosen", True, Changed and then Checks.Is_Checked (Item.Boxes (5)));
 
       --  A switch turns over.
       Click_On (Tree, Item.Flips);
       Hearers.Take (Item.Common.Ears, Item.Flips, Widgets.Change, Changed);
-      Check_Flag ("sheet-switch", True,
-                  Changed and then Pomarine.Widgets.Switches.Is_On (Item.Flips));
+      Check_Flag ("sheet-switch", True, Changed and then Pomarine.Widgets.Switches.Is_On (Item.Flips));
 
       --  A select field is clicked, as a button is.
       Click_On (Tree, Item.Choice);
@@ -533,47 +490,42 @@ package body Sheet_Tests is
       Check_Flag ("sheet-select", True, Clicked);
 
       --  A menu's rows: a heading and a line are not to choose.
-      Click (Tree, Middle_X (Item.Drop_Menu),
-             Widgets.Top_Of (Item.Drop_Menu) / Density + 10.0);
+      Click (Tree, Middle_X (Item.Drop_Menu), Widgets.Top_Of (Item.Drop_Menu) / Density + 10.0);
       Hearers.Take_Row (Item.Common.Ears, Item.Drop_Menu, Widgets.Choose, Chosen);
       Goldens.Check_Text ("sheet-menu-heading", "0", Chosen'Image (2 .. 2));
-      Click (Tree, Middle_X (Item.Drop_Menu),
-             Widgets.Top_Of (Item.Drop_Menu) / Density + 4.0 + 24.0 + 26.0
-             + 13.0);
+      Click (Tree, Middle_X (Item.Drop_Menu), Widgets.Top_Of (Item.Drop_Menu) / Density + 4.0 + 24.0 + 26.0 + 13.0);
       Hearers.Take_Row (Item.Common.Ears, Item.Drop_Menu, Widgets.Choose, Chosen);
       Goldens.Check_Text ("sheet-menu-check", "3", Chosen'Image (2 .. 2));
       Goldens.Check_Text
-        ("sheet-menu-height", "122",
-         Natural'Image (Natural (Menus.Height_For (Item.Drop_Menu))) (2 .. 4));
+        ("sheet-menu-height", "122", Natural'Image (Natural (Menus.Height_For (Item.Drop_Menu))) (2 .. 4));
 
       --  A chip's cross, and a toast's button.
-      Click (Tree,
-             (Widgets.Left_Of (Item.Chip_A) + Widgets.Width_Of (Item.Chip_A))
-             / Density - 10.0,
-             Middle_Y (Item.Chip_A));
+      Click
+        (Tree,
+         (Widgets.Left_Of (Item.Chip_A) + Widgets.Width_Of (Item.Chip_A)) / Density - 10.0,
+         Middle_Y (Item.Chip_A));
       Hearers.Take (Item.Common.Ears, Item.Chip_A, Widgets.Close, Clicked);
       Check_Flag ("sheet-chip-close", True, Clicked);
       Click_On (Tree, Item.Chip_B);
       Hearers.Take (Item.Common.Ears, Item.Chip_B, Widgets.Close, Clicked);
       Check_Flag ("sheet-chip-label", False, Clicked);
-      Click (Tree,
-             (Widgets.Left_Of (Item.Toast) + Widgets.Width_Of (Item.Toast))
-             / Density - 24.0,
-             Middle_Y (Item.Toast) - 1.0);
+      Click
+        (Tree,
+         (Widgets.Left_Of (Item.Toast) + Widgets.Width_Of (Item.Toast)) / Density - 24.0,
+         Middle_Y (Item.Toast) - 1.0);
       Hearers.Take (Item.Common.Ears, Item.Toast, Widgets.Click, Clicked);
       Check_Flag ("sheet-toast-action", True, Clicked);
 
       --  The arrows of a scroll bar scroll a step.
       Send (Tree, Move (Middle_X (Item.Scroll), Middle_Y (Item.Scroll)));
-      Click (Tree,
-             (Widgets.Left_Of (Item.Scroll) + Widgets.Width_Of (Item.Scroll))
-             / Density - 6.0,
-             (Widgets.Top_Of (Item.Scroll) + Widgets.Height_Of (Item.Scroll))
-             / Density - 6.0);
+      Click
+        (Tree,
+         (Widgets.Left_Of (Item.Scroll) + Widgets.Width_Of (Item.Scroll)) / Density - 6.0,
+         (Widgets.Top_Of (Item.Scroll) + Widgets.Height_Of (Item.Scroll)) / Density - 6.0);
       Goldens.Check_Text
-        ("sheet-scroll-arrow", "15",
-         Natural'Image
-           (Natural (Pomarine.Widgets.Scrollers.Offset (Item.Scroll))) (2 .. 3));
+        ("sheet-scroll-arrow",
+         "15",
+         Natural'Image (Natural (Pomarine.Widgets.Scrollers.Offset (Item.Scroll))) (2 .. 3));
    end Behaviour;
 
 end Sheet_Tests;

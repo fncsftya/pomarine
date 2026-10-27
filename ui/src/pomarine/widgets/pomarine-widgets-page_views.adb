@@ -23,8 +23,8 @@ package body Pomarine.Widgets.Page_Views is
    procedure Free is new Ada.Unchecked_Deallocation (Float_Array, Float_Array_Access);
 
    function Clamped_Mark (Left, Right, Y : Float; Page : Positive) return Mark is
-      function Unit (Value : Float) return Float is
-        (Float'Min (1.0, Float'Max (0.0, Value)));
+      function Unit (Value : Float) return Float
+      is (Float'Min (1.0, Float'Max (0.0, Value)));
       Low : constant Float := Unit (Left);
    begin
       return (Left => Low, Right => Float'Max (Low, Unit (Right)), Y => Unit (Y), Page => Page, Trace => <>);
@@ -32,36 +32,34 @@ package body Pomarine.Widgets.Page_Views is
 
    --  Where things are
 
-   function Count (Item : Page_View) return Natural is
-     (if Item.Sizes = null then 0 else Item.Sizes'Length);
+   function Count (Item : Page_View) return Natural
+   is (if Item.Sizes = null then 0 else Item.Sizes'Length);
 
-   function Wide_Of (Item : Page_View) return Float is
-     (Width_Of (Item) * Item.Zoomed);
+   function Wide_Of (Item : Page_View) return Float
+   is (Width_Of (Item) * Item.Zoomed);
 
-   function Gap_Px (Item : Page_View) return Float is
-     (Page_Gap * Density (Item));
+   function Gap_Px (Item : Page_View) return Float
+   is (Page_Gap * Density (Item));
 
-   function Offset (Item : Page_View; Index : Positive) return Float is
-     (Wide_Of (Item) * Item.Ratios (Index) + Float (Index - 1) * Gap_Px (Item));
+   function Offset (Item : Page_View; Index : Positive) return Float
+   is (Wide_Of (Item) * Item.Ratios (Index) + Float (Index - 1) * Gap_Px (Item));
    --  Pixels from the top of the document to the top of the page; of one
    --  past the last, to where a gap after it would end.
 
-   function Total_Of (Item : Page_View) return Float is
-     (if Count (Item) = 0 then 0.0
-      else Offset (Item, Count (Item) + 1) - Gap_Px (Item));
+   function Total_Of (Item : Page_View) return Float
+   is (if Count (Item) = 0 then 0.0 else Offset (Item, Count (Item) + 1) - Gap_Px (Item));
 
-   function Page_Height (Item : Page_View; Index : Positive) return Float is
-     (Wide_Of (Item) * (Item.Ratios (Index + 1) - Item.Ratios (Index)));
+   function Page_Height (Item : Page_View; Index : Positive) return Float
+   is (Wide_Of (Item) * (Item.Ratios (Index + 1) - Item.Ratios (Index)));
 
-   function Content_Top (Item : Page_View) return Float is
-     (Top_Of (Item) - Item.Down * Total_Of (Item));
+   function Content_Top (Item : Page_View) return Float
+   is (Top_Of (Item) - Item.Down * Total_Of (Item));
 
-   function Page_Top (Item : Page_View; Index : Positive) return Float is
-     (Content_Top (Item) + Offset (Item, Index));
+   function Page_Top (Item : Page_View; Index : Positive) return Float
+   is (Content_Top (Item) + Offset (Item, Index));
 
-   function Origin_X (Item : Page_View) return Float is
-     (Left_Of (Item)
-      - Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)));
+   function Origin_X (Item : Page_View) return Float
+   is (Left_Of (Item) - Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)));
 
    function Page_At (Item : Page_View; Y : Float) return Positive is
       Low  : Positive := 1;
@@ -99,8 +97,7 @@ package body Pomarine.Widgets.Page_Views is
       declare
          Which : constant Natural := Slot_Of (Item, Index);
       begin
-         return (if Which = 0 or else Item.Cached (Which).Content = null
-                 then null else Item.Cached (Which).Found);
+         return (if Which = 0 or else Item.Cached (Which).Content = null then null else Item.Cached (Which).Found);
       end;
    end Words_Of;
 
@@ -152,8 +149,7 @@ package body Pomarine.Widgets.Page_Views is
    begin
       Item.Ratios (1) := 0.0;
       for Index in Sizes'Range loop
-         Item.Ratios (Index + 1) :=
-           Item.Ratios (Index) + Sizes (Index).Height / Float'Max (1.0, Sizes (Index).Width);
+         Item.Ratios (Index + 1) := Item.Ratios (Index) + Sizes (Index).Height / Float'Max (1.0, Sizes (Index).Width);
       end loop;
    end Fill_Ratios;
 
@@ -200,12 +196,14 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Set_Document;
 
-   function Has_Document (Item : Page_View) return Boolean is (Item.Sizes /= null);
+   function Has_Document (Item : Page_View) return Boolean
+   is (Item.Sizes /= null);
 
-   function Page_Count (Item : Page_View) return Natural is (Count (Item));
+   function Page_Count (Item : Page_View) return Natural
+   is (Count (Item));
 
-   function Is_Settled (Item : Page_View) return Boolean is
-     (Item.Wanted = 0 and then Width_Of (Item) > 0.0);
+   function Is_Settled (Item : Page_View) return Boolean
+   is (Item.Wanted = 0 and then Width_Of (Item) > 0.0);
 
    function Current_Page (Item : Page_View) return Natural is
    begin
@@ -215,18 +213,19 @@ package body Pomarine.Widgets.Page_Views is
       return Page_At (Item, Top_Of (Item) + 0.3 * Height_Of (Item));
    end Current_Page;
 
-   function Scrolled (Item : Page_View) return Float is (Item.Down);
+   function Scrolled (Item : Page_View) return Float
+   is (Item.Down);
 
-   function Scrolled_Across (Item : Page_View) return Float is (Item.Across);
+   function Scrolled_Across (Item : Page_View) return Float
+   is (Item.Across);
 
-   function Zoom (Item : Page_View) return Float is (Item.Zoomed);
+   function Zoom (Item : Page_View) return Float
+   is (Item.Zoomed);
 
    function Furthest (Item : Page_View; High : Float) return Float is
       Total : constant Float := Total_Of (Item);
    begin
-      return (if Total <= 0.0 then 1.0
-              elsif High > 0.0 and then Total > High then 1.0 - High / Total
-              else 0.0);
+      return (if Total <= 0.0 then 1.0 elsif High > 0.0 and then Total > High then 1.0 - High / Total else 0.0);
    end Furthest;
    --  The most Down can be, for a box High pixels high, so that the end of
    --  the document is at the box's.
@@ -277,16 +276,20 @@ package body Pomarine.Widgets.Page_Views is
 
    --  Highlights
 
-   function Tool (Item : Page_View) return Tools is (Item.Chosen);
+   function Tool (Item : Page_View) return Tools
+   is (Item.Chosen);
 
-   function Is_Marking (Item : Page_View) return Boolean is (Item.Marking);
+   function Is_Marking (Item : Page_View) return Boolean
+   is (Item.Marking);
 
-   function Mark_Count (Item : Page_View) return Natural is (Item.Marks);
+   function Mark_Count (Item : Page_View) return Natural
+   is (Item.Marks);
 
-   function Mark_At (Item : Page_View; Index : Positive) return Mark is
-     (Item.Marked.Data (Index));
+   function Mark_At (Item : Page_View; Index : Positive) return Mark
+   is (Item.Marked.Data (Index));
 
-   function Marks_Version (Item : Page_View) return Natural is (Item.Version);
+   function Marks_Version (Item : Page_View) return Natural
+   is (Item.Version);
 
    procedure Set_Tool (Item : in out Page_View; To : Tools) is
    begin
@@ -298,9 +301,12 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Set_Tool;
 
-   function History_Of (Item : Page_View) return Pomarine.Marks.History is (Item.Past);
-   function Can_Undo (Item : Page_View) return Boolean is (Pomarine.Marks.Can_Undo (Item.Past));
-   function Can_Redo (Item : Page_View) return Boolean is (Pomarine.Marks.Can_Redo (Item.Past));
+   function History_Of (Item : Page_View) return Pomarine.Marks.History
+   is (Item.Past);
+   function Can_Undo (Item : Page_View) return Boolean
+   is (Pomarine.Marks.Can_Undo (Item.Past));
+   function Can_Redo (Item : Page_View) return Boolean
+   is (Pomarine.Marks.Can_Redo (Item.Past));
 
    procedure Undo (Item : in out Page_View) is
    begin
@@ -329,8 +335,8 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Redo;
 
-   overriding procedure Handle_Command
-     (Item : in out Page_View; Tag : Integer; Done : out Boolean) is
+   overriding
+   procedure Handle_Command (Item : in out Page_View; Tag : Integer; Done : out Boolean) is
    begin
       Done := True;
       if Tag = Edit_Undo then
@@ -343,8 +349,7 @@ package body Pomarine.Widgets.Page_Views is
    end Handle_Command;
 
    procedure Set_Marks
-     (Item : in out Page_View; To : Mark_Array;
-      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History) is
+     (Item : in out Page_View; To : Mark_Array; Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History) is
    begin
       Item.Past := Past;
       Item.Marks := To'Length;
@@ -358,8 +363,8 @@ package body Pomarine.Widgets.Page_Views is
 
    --  Text
 
-   function Has_Words (Item : Page_View) return Boolean is
-     (Words_Of (Item, Current_Page (Item)) /= null);
+   function Has_Words (Item : Page_View) return Boolean
+   is (Words_Of (Item, Current_Page (Item)) /= null);
 
    function Word_Count (Item : Page_View) return Natural is
       Found : constant Result_Access := Words_Of (Item, Current_Page (Item));
@@ -367,14 +372,14 @@ package body Pomarine.Widgets.Page_Views is
       return (if Found = null then 0 else Found.Count);
    end Word_Count;
 
-   function Has_Selection (Item : Page_View) return Boolean is
-     (Item.Anchor > 0 and then Item.Head > 0);
+   function Has_Selection (Item : Page_View) return Boolean
+   is (Item.Anchor > 0 and then Item.Head > 0);
 
-   function First_Selected (Item : Page_View) return Natural is
-     (Natural'Min (Item.Anchor, Item.Head));
+   function First_Selected (Item : Page_View) return Natural
+   is (Natural'Min (Item.Anchor, Item.Head));
 
-   function Last_Selected (Item : Page_View) return Natural is
-     (Natural'Max (Item.Anchor, Item.Head));
+   function Last_Selected (Item : Page_View) return Natural
+   is (Natural'Max (Item.Anchor, Item.Head));
 
    function Selected_Text (Item : Page_View) return String is
       Found  : constant Result_Access := Words_Of (Item, Item.Sel_Page);
@@ -390,9 +395,7 @@ package body Pomarine.Widgets.Page_Views is
       end if;
       for Index in First_Selected (Item) .. Last_Selected (Item) loop
          if Index > First_Selected (Item) then
-            Append
-              (if Found.Words (Index).Line = Found.Words (Index - 1).Line
-               then " " else [ASCII.LF]);
+            Append (if Found.Words (Index).Line = Found.Words (Index - 1).Line then " " else [ASCII.LF]);
          end if;
          Append (Pomarine.Words.Image (Found.Words (Index), Found.all));
       end loop;
@@ -425,14 +428,11 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Select_All;
 
-   function Gap (From, To, At_Point : Float) return Float is
-     (if At_Point < From then From - At_Point
-      elsif At_Point > To then At_Point - To else 0.0);
+   function Gap (From, To, At_Point : Float) return Float
+   is (if At_Point < From then From - At_Point elsif At_Point > To then At_Point - To else 0.0);
    --  How far a point is from the span From .. To.
 
-   function Word_At
-     (Item : Page_View; Page : Positive; X, Y : Float; Nearest : Boolean) return Natural
-   is
+   function Word_At (Item : Page_View; Page : Positive; X, Y : Float; Nearest : Boolean) return Natural is
       Found    : constant Result_Access := Words_Of (Item, Page);
       Best     : Natural := 0;
       Best_Gap : Float := Float'Last;
@@ -447,10 +447,8 @@ package body Pomarine.Widgets.Page_Views is
       for Index in 1 .. Found.Count loop
          declare
             Each   : Pomarine.Words.Word renames Found.Words (Index);
-            Across : constant Float :=
-              Gap (Left + Each.Left * Wide, Left + (Each.Left + Each.Width) * Wide, X);
-            Down   : constant Float :=
-              Gap (Top + Each.Top * High, Top + (Each.Top + Each.Height) * High, Y);
+            Across : constant Float := Gap (Left + Each.Left * Wide, Left + (Each.Left + Each.Width) * Wide, X);
+            Down   : constant Float := Gap (Top + Each.Top * High, Top + (Each.Top + Each.Height) * High, Y);
             --  Down counts for more: the nearest on its line is the one
             --  wanted, before one above or below.
             Away   : constant Float := Across + 4.0 * Down;
@@ -470,10 +468,11 @@ package body Pomarine.Widgets.Page_Views is
          return False;
       end if;
       declare
-         Under : constant Natural :=
-           Word_At (Item, Page_At (Item, Y), X, Y, Nearest => False);
+         Under : constant Natural := Word_At (Item, Page_At (Item, Y), X, Y, Nearest => False);
       begin
-         return Under > 0 and then Page_At (Item, Y) = Item.Sel_Page
+         return
+           Under > 0
+           and then Page_At (Item, Y) = Item.Sel_Page
            and then Under in First_Selected (Item) .. Last_Selected (Item);
       end;
    end Is_Over_Selection;
@@ -500,32 +499,36 @@ package body Pomarine.Widgets.Page_Views is
       Select_Range (Item, Page, First, Last);
    end Select_Line;
 
-   function Down_Metrics (Item : Page_View) return Scrollbars.Metrics is
-     (Left    => Left_Of (Item), Top => Top_Of (Item),
-      Width   => Width_Of (Item), Height => Height_Of (Item),
-      Density => Density (Item),
-      Start   => Item.Down * Total_Of (Item),
-      Shown   => Height_Of (Item),
-      Total   => Total_Of (Item),
-      Horizontal => False);
+   function Down_Metrics (Item : Page_View) return Scrollbars.Metrics
+   is (Left       => Left_Of (Item),
+       Top        => Top_Of (Item),
+       Width      => Width_Of (Item),
+       Height     => Height_Of (Item),
+       Density    => Density (Item),
+       Start      => Item.Down * Total_Of (Item),
+       Shown      => Height_Of (Item),
+       Total      => Total_Of (Item),
+       Horizontal => False);
 
-   function Across_Metrics (Item : Page_View) return Scrollbars.Metrics is
-     (Left    => Left_Of (Item), Top => Top_Of (Item),
-      Width   => Width_Of (Item), Height => Height_Of (Item),
-      Density => Density (Item),
-      Start   => Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)),
-      Shown   => Width_Of (Item),
-      Total   => Wide_Of (Item),
-      Horizontal => True);
+   function Across_Metrics (Item : Page_View) return Scrollbars.Metrics
+   is (Left       => Left_Of (Item),
+       Top        => Top_Of (Item),
+       Width      => Width_Of (Item),
+       Height     => Height_Of (Item),
+       Density    => Density (Item),
+       Start      => Item.Across * Float'Max (0.0, Wide_Of (Item) - Width_Of (Item)),
+       Shown      => Width_Of (Item),
+       Total      => Wide_Of (Item),
+       Horizontal => True);
 
    --  Marking
 
-   function Along (Item : Page_View; X : Float) return Float is
-     (Float'Min (1.0, Float'Max (0.0, (X - Origin_X (Item)) / Wide_Of (Item))));
+   function Along (Item : Page_View; X : Float) return Float
+   is (Float'Min (1.0, Float'Max (0.0, (X - Origin_X (Item)) / Wide_Of (Item))));
    --  How far across the pages the pixel X is, clamped to them.
 
-   function Down_Of (Item : Page_View; Page : Positive; Y : Float) return Float is
-     (Float'Min (1.0, Float'Max (0.0, (Y - Page_Top (Item, Page)) / Page_Height (Item, Page))));
+   function Down_Of (Item : Page_View; Page : Positive; Y : Float) return Float
+   is (Float'Min (1.0, Float'Max (0.0, (Y - Page_Top (Item, Page)) / Page_Height (Item, Page))));
 
    procedure Extend_Mark (Item : in out Page_View; X, Y : Float) is
       Each : Mark renames Item.Marked.Data (Item.Marks + 1);
@@ -542,12 +545,19 @@ package body Pomarine.Widgets.Page_Views is
             Each : Mark renames Item.Marked.Data (Index);
          begin
             if Each.Page <= Count (Item)
-              and then ((Each.Trace.Count > 0 and then
-                Mark_Paths.Contains (Each.Trace, X - Origin_X (Item), Y - Page_Top (Item, Each.Page),
-                                     Wide_Of (Item), Page_Height (Item, Each.Page), Half))
-              or else (Each.Trace.Count = 0 and then Across in Each.Left .. Each.Right
-              and then abs (Y - (Page_Top (Item, Each.Page)
-                                 + Each.Y * Page_Height (Item, Each.Page))) <= Half))
+              and then ((Each.Trace.Count > 0
+                         and then Mark_Paths.Contains
+                                    (Each.Trace,
+                                     X - Origin_X (Item),
+                                     Y - Page_Top (Item, Each.Page),
+                                     Wide_Of (Item),
+                                     Page_Height (Item, Each.Page),
+                                     Half))
+                        or else (Each.Trace.Count = 0
+                                 and then Across in Each.Left .. Each.Right
+                                 and then abs (Y
+                                               - (Page_Top (Item, Each.Page) + Each.Y * Page_Height (Item, Each.Page)))
+                                          <= Half))
             then
                return Index;
             end if;
@@ -556,27 +566,20 @@ package body Pomarine.Widgets.Page_Views is
       return 0;
    end Mark_Under;
 
-   procedure Handle_Marking
-     (Item    : in out Page_View;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   procedure Handle_Marking (Item : in out Page_View; Event : Pomarine.Events.Event; Handled : out Boolean) is
       X : constant Float := Event.Mouse_X * Density (Item);
       Y : constant Float := Event.Mouse_Y * Density (Item);
    begin
       Handled := False;
       case Event.Kind is
          when Pomarine.Events.Mouse_Down =>
-            if Event.Button = 1 and then Contains (Item, X, Y)
-              and then Item.Chosen = Pictures.Eraser
-            then
+            if Event.Button = 1 and then Contains (Item, X, Y) and then Item.Chosen = Pictures.Eraser then
                declare
                   Under : constant Natural := Mark_Under (Item, X, Y);
                begin
                   if Under > 0 then
                      Pomarine.Marks.Record_Remove (Item.Past, Item.Marked.Data (Under), Under);
-                     Item.Marked.Data (Under .. Item.Marks - 1) :=
-                       Item.Marked.Data (Under + 1 .. Item.Marks);
+                     Item.Marked.Data (Under .. Item.Marks - 1) := Item.Marked.Data (Under + 1 .. Item.Marks);
                      Item.Marks := Item.Marks - 1;
                      Item.Version := Item.Version + 1;
                      Invalidate (Item);
@@ -598,19 +601,20 @@ package body Pomarine.Widgets.Page_Views is
                   Handled := True;
                end;
             end if;
+
          when Pomarine.Events.Mouse_Move =>
             if Item.Marking then
                Extend_Mark (Item, X, Y);
                Invalidate (Item);
                Handled := True;
             end if;
-         when Pomarine.Events.Mouse_Up =>
+
+         when Pomarine.Events.Mouse_Up   =>
             if Item.Marking and then Event.Button = 1 then
                Item.Marking := False;
                Extend_Mark (Item, X, Y);
                --  A click, that went nowhere, marks nothing.
-               if Item.Marked.Data (Item.Marks + 1).Trace.Count > 1
-               then
+               if Item.Marked.Data (Item.Marks + 1).Trace.Count > 1 then
                   Item.Marks := Item.Marks + 1;
                   Pomarine.Marks.Record_Add (Item.Past, Item.Marked.Data (Item.Marks), Item.Marks);
                   Item.Version := Item.Version + 1;
@@ -618,21 +622,25 @@ package body Pomarine.Widgets.Page_Views is
                Invalidate (Item);
                Handled := True;
             end if;
-         when others =>
+
+         when others                     =>
             null;
       end case;
    end Handle_Marking;
 
-   overriding function Cursor (Item : Page_View) return SDL3.Cursors.Kind is
-     (case Item.Chosen is
+   overriding
+   function Cursor (Item : Page_View) return SDL3.Cursors.Kind
+   is (case Item.Chosen is
          when Pictures.Highlighter => SDL3.Cursors.Crosshair,
          when Pictures.Eraser      => SDL3.Cursors.Pointer,
          when Pictures.Pointer     => SDL3.Cursors.Default);
 
-   overriding function Is_Focusable (Item : Page_View) return Boolean is
-     (Has_Document (Item));
+   overriding
+   function Is_Focusable (Item : Page_View) return Boolean
+   is (Has_Document (Item));
 
-   overriding procedure Focus_Changed (Item : in out Page_View; Focused : Boolean) is
+   overriding
+   procedure Focus_Changed (Item : in out Page_View; Focused : Boolean) is
       pragma Unreferenced (Focused);
    begin
       if Has_Selection (Item) then
@@ -642,11 +650,7 @@ package body Pomarine.Widgets.Page_Views is
 
    --  Drawing
 
-   procedure Make_Page
-     (Item  : in out Page_View;
-      Index : Positive;
-      Which : Positive)
-   is
+   procedure Make_Page (Item : in out Page_View; Index : Positive; Which : Positive) is
       Each : Slot renames Item.Cached (Which);
    begin
       Release_Slot (Each);
@@ -665,11 +669,13 @@ package body Pomarine.Widgets.Page_Views is
       case Pomarine.Page_Builds.State (Each.Job) is
          when Pomarine.Page_Builds.Working =>
             Item.Pending := True;
-         when Pomarine.Page_Builds.Done =>
+
+         when Pomarine.Page_Builds.Done    =>
             Free (Each.Found);
             Pomarine.Page_Builds.Take (Each.Job, Each.Content, Each.Found);
             Each.Job := 0;
-         when Pomarine.Page_Builds.Failed =>
+
+         when Pomarine.Page_Builds.Failed  =>
             Pomarine.Page_Builds.Cancel (Each.Job);
             Each.Job := 0;
             if Each.Found = null then
@@ -687,25 +693,25 @@ package body Pomarine.Widgets.Page_Views is
       case Pomarine.Page_Builds.State (Item.Measuring) is
          when Pomarine.Page_Builds.Working =>
             Item.Pending := True;
-         when Pomarine.Page_Builds.Failed =>
+
+         when Pomarine.Page_Builds.Failed  =>
             --  The guess stays.
             Pomarine.Page_Builds.Cancel (Item.Measuring);
             Item.Measuring := 0;
-         when Pomarine.Page_Builds.Done =>
+
+         when Pomarine.Page_Builds.Done    =>
             Pomarine.Page_Builds.Take_Sizes (Item.Measuring, Fresh);
             Item.Measuring := 0;
             if Fresh'Length = Item.Sizes'Length then
                declare
                   --  What is at the top of the view stays there.
                   First  : constant Positive := Page_At (Item, Top_Of (Item));
-                  Inside : constant Float :=
-                    (Top_Of (Item) - Page_Top (Item, First)) / Float'Max (1.0, Wide_Of (Item));
+                  Inside : constant Float := (Top_Of (Item) - Page_Top (Item, First)) / Float'Max (1.0, Wide_Of (Item));
                begin
                   Item.Sizes.all := Fresh.all;
                   Fill_Ratios (Item);
                   if Total_Of (Item) > 0.0 then
-                     Item.Down :=
-                       Float'Min (1.0, (Offset (Item, First) + Inside * Wide_Of (Item)) / Total_Of (Item));
+                     Item.Down := Float'Min (1.0, (Offset (Item, First) + Inside * Wide_Of (Item)) / Total_Of (Item));
                   end if;
                end;
             end if;
@@ -714,16 +720,13 @@ package body Pomarine.Widgets.Page_Views is
    end Collect_Sizes;
    --  Take the sizes of the pages, if they have come.
 
-   function Free_Slot
-     (Item : Page_View; First_In_View, Last_In_View : Positive) return Natural
-   is
+   function Free_Slot (Item : Page_View; First_In_View, Last_In_View : Positive) return Natural is
       Best : Natural := 0;
    begin
       for Each in Item.Cached'Range loop
          if Item.Cached (Each).Index = 0 then
             return Each;
-         elsif (Item.Cached (Each).Index < First_In_View
-                or else Item.Cached (Each).Index > Last_In_View)
+         elsif (Item.Cached (Each).Index < First_In_View or else Item.Cached (Each).Index > Last_In_View)
            and then Item.Cached (Each).Index /= Item.Sel_Page
            and then (Best = 0 or else Item.Cached (Each).Stamp < Item.Cached (Best).Stamp)
          then
@@ -755,14 +758,16 @@ package body Pomarine.Widgets.Page_Views is
       Batched : Boolean := False;
       --  Whether characters are waiting to be drawn.
 
-      function X_Of (Value : Float) return Float is (Left + Value * Scale);
-      function Y_Of (Value : Float) return Float is (Top + Value * Scale);
+      function X_Of (Value : Float) return Float
+      is (Left + Value * Scale);
+      function Y_Of (Value : Float) return Float
+      is (Top + Value * Scale);
 
-      function Tint (Value : Pomarine.Pages.RGBA) return SDL3.Windows.Renderers.Color is
-        ((Red   => SDL3.Windows.Renderers.Color_Component (Value.Red),
-          Green => SDL3.Windows.Renderers.Color_Component (Value.Green),
-          Blue  => SDL3.Windows.Renderers.Color_Component (Value.Blue),
-          Alpha => SDL3.Windows.Renderers.Color_Component (Value.Alpha)));
+      function Tint (Value : Pomarine.Pages.RGBA) return SDL3.Windows.Renderers.Color
+      is ((Red   => SDL3.Windows.Renderers.Color_Component (Value.Red),
+           Green => SDL3.Windows.Renderers.Color_Component (Value.Green),
+           Blue  => SDL3.Windows.Renderers.Color_Component (Value.Blue),
+           Alpha => SDL3.Windows.Renderers.Color_Component (Value.Alpha)));
 
       procedure Set_Clip (To : Natural) is
       begin
@@ -817,8 +822,8 @@ package body Pomarine.Widgets.Page_Views is
       begin
          --  A line thinner than a pixel is a pixel, as it is in any viewer.
          if not Edge and then Op.Width * Scale < 1.0 then
-            Color.Alpha := SDL3.Windows.Renderers.Color_Component
-              (Float (Color.Alpha) * Float'Max (0.7, Op.Width * Scale));
+            Color.Alpha :=
+              SDL3.Windows.Renderers.Color_Component (Float (Color.Alpha) * Float'Max (0.7, Op.Width * Scale));
          end if;
          for K in 0 .. Op.Count - 1 loop
             declare
@@ -828,7 +833,9 @@ package body Pomarine.Widgets.Page_Views is
                Target.Draw_Line (Color, X_Of (A.X), Y_Of (A.Y), X_Of (B.X), Y_Of (B.Y), Thick);
                --  A line of one ending where the next begins is joined to it
                --  by a round join, or there is a notch between them.
-               if not Edge and then Thick >= 2.0 and then K + 1 < Op.Count
+               if not Edge
+                 and then Thick >= 2.0
+                 and then K + 1 < Op.Count
                  and then Content.Corner (Op.First + 2 * K + 2).X = B.X
                  and then Content.Corner (Op.First + 2 * K + 2).Y = B.Y
                then
@@ -846,9 +853,13 @@ package body Pomarine.Widgets.Page_Views is
             Pixels := Content.Letters (K).Size * Scale;
             if Pixels >= 1.0 then
                Pomarine.Line_Texts.Draw_Character
-                 (Lines, Target, Tint (Op.Color),
-                  Name.Name (1 .. Name.Last), Content.Letters (K).Code,
-                  X_Of (Content.Letters (K).X), Y_Of (Content.Letters (K).Y),
+                 (Lines,
+                  Target,
+                  Tint (Op.Color),
+                  Name.Name (1 .. Name.Last),
+                  Content.Letters (K).Code,
+                  X_Of (Content.Letters (K).X),
+                  Y_Of (Content.Letters (K).Y),
                   Pixels);
             end if;
          end loop;
@@ -866,21 +877,28 @@ package body Pomarine.Widgets.Page_Views is
                Source : Pomarine.Pages.Image renames Content.Pictures (Which);
             begin
                Tex.Create_Premultiplied_RGBA
-                 (Each.Images (Which), Target.Device.all,
-                  Source.Width, Source.Height,
-                  Content.Pixels (Source.First)'Address, 4 * Source.Width);
+                 (Each.Images (Which),
+                  Target.Device.all,
+                  Source.Width,
+                  Source.Height,
+                  Content.Pixels (Source.First)'Address,
+                  4 * Source.Width);
             end;
          end if;
          SDL3.Painters.Draw_Scaled
-           (Target, Each.Images (Which),
-            X_Of (Op.Box.Left), Y_Of (Op.Box.Top),
+           (Target,
+            Each.Images (Which),
+            X_Of (Op.Box.Left),
+            Y_Of (Op.Box.Top),
             (Op.Box.Right - Op.Box.Left) * Scale,
             (Op.Box.Bottom - Op.Box.Top) * Scale);
       end Show_Picture;
    begin
       for Op of Content.Op loop
-         if X_Of (Op.Box.Right) >= View_L and then X_Of (Op.Box.Left) <= View_R
-           and then Y_Of (Op.Box.Bottom) >= View_T and then Y_Of (Op.Box.Top) <= View_B
+         if X_Of (Op.Box.Right) >= View_L
+           and then X_Of (Op.Box.Left) <= View_R
+           and then Y_Of (Op.Box.Bottom) >= View_T
+           and then Y_Of (Op.Box.Top) <= View_B
          then
             Set_Clip (Op.Clip);
             if Op.Kind /= Pomarine.Pages.Text and then Batched then
@@ -888,10 +906,17 @@ package body Pomarine.Widgets.Page_Views is
                Batched := False;
             end if;
             case Op.Kind is
-               when Pomarine.Pages.Fill    => Fill (Op);
-               when Pomarine.Pages.Stroke  => Stroke (Op);
-               when Pomarine.Pages.Text    => Show_Text (Op);
-               when Pomarine.Pages.Picture => Show_Picture (Op);
+               when Pomarine.Pages.Fill    =>
+                  Fill (Op);
+
+               when Pomarine.Pages.Stroke  =>
+                  Stroke (Op);
+
+               when Pomarine.Pages.Text    =>
+                  Show_Text (Op);
+
+               when Pomarine.Pages.Picture =>
+                  Show_Picture (Op);
             end case;
          end if;
       end loop;
@@ -923,12 +948,12 @@ package body Pomarine.Widgets.Page_Views is
          if B.Hit = Item.Search_Found.Current then
             Item.Wanted := 0;
             if Total_Of (Item) > 0.0 then
-               Scroll_To (Item, Float'Min (1.0,
-                 (Offset (Item, B.Page) + B.Top * Page_Height (Item, B.Page)) / Total_Of (Item)));
+               Scroll_To
+                 (Item,
+                  Float'Min (1.0, (Offset (Item, B.Page) + B.Top * Page_Height (Item, B.Page)) / Total_Of (Item)));
             end if;
             if Wide_Of (Item) > Width_Of (Item) then
-               Scroll_Across_To (Item, Float'Min (1.0,
-                 B.Left * Wide_Of (Item) / (Wide_Of (Item) - Width_Of (Item))));
+               Scroll_Across_To (Item, Float'Min (1.0, B.Left * Wide_Of (Item) / (Wide_Of (Item) - Width_Of (Item))));
             end if;
             exit;
          end if;
@@ -936,15 +961,18 @@ package body Pomarine.Widgets.Page_Views is
       Invalidate (Item);
    end Search_Step;
 
-   function Search_Busy (Item : Page_View) return Boolean is (Item.Search_Page /= 0);
-   function Search_Count (Item : Page_View) return Natural is (Natural (Item.Search_Found.Matches.Length));
-   function Search_Current (Item : Page_View) return Natural is (Item.Search_Found.Current);
+   function Search_Busy (Item : Page_View) return Boolean
+   is (Item.Search_Page /= 0);
+   function Search_Count (Item : Page_View) return Natural
+   is (Natural (Item.Search_Found.Matches.Length));
+   function Search_Current (Item : Page_View) return Natural
+   is (Item.Search_Found.Current);
 
    procedure Search_Update (Item : in out Page_View) is
       use type Pomarine.Page_Builds.States;
       Content : Pomarine.Pages.Page_Access;
-      Found : Result_Access;
-      Job : Pomarine.Page_Builds.Ticket;
+      Found   : Result_Access;
+      Job     : Pomarine.Page_Builds.Ticket;
    begin
       if Item.Search_Page = 0 then
          return;
@@ -978,20 +1006,16 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Search_Update;
 
-   overriding procedure Draw
-     (Item   : in out Page_View;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme)
-   is
-      Box   : constant Float := Width_Of (Item);
-      Wide  : constant Float := Wide_Of (Item);
-      Left  : constant Float := Origin_X (Item);
-      View_B : constant Float := Top_Of (Item) + Height_Of (Item);
+   overriding
+   procedure Draw (Item : in out Page_View; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
+      Box         : constant Float := Width_Of (Item);
+      Wide        : constant Float := Wide_Of (Item);
+      Left        : constant Float := Origin_X (Item);
+      View_B      : constant Float := Top_Of (Item) + Height_Of (Item);
       First, Last : Natural := 0;
    begin
       SDL3.Painters.Fill_Rect
-        (Target, Colors (Themes.Background),
-         Left_Of (Item), Top_Of (Item), Box, Height_Of (Item));
+        (Target, Colors (Themes.Background), Left_Of (Item), Top_Of (Item), Box, Height_Of (Item));
       if Count (Item) = 0 or else Wide <= 0.0 then
          return;
       end if;
@@ -1040,8 +1064,7 @@ package body Pomarine.Widgets.Page_Views is
             if Which /= 0 then
                Item.Cached (Which).Stamp := Item.Clock;
                if Item.Cached (Which).Content /= null then
-                  Draw_Page_Content
-                    (Item, Target, Item.Cached (Which), Left, Top, Scale);
+                  Draw_Page_Content (Item, Target, Item.Cached (Which), Left, Top, Scale);
                end if;
             end if;
          end;
@@ -1058,9 +1081,16 @@ package body Pomarine.Widgets.Page_Views is
          if Item.Marks > 0 or else Item.Marking then
             for Page in First .. Last loop
                Pomarine.Marks.Drawing.Draw
-                 (Item.Marked.Data (1 .. Item.Marks + (if Item.Marking then 1 else 0)), Page,
-                  Target, Colors (Themes.Marker), SDL3.Windows.Renderers.Multiply,
-                  Left, Page_Top (Item, Page), Wide, Page_Height (Item, Page), High / 2.0);
+                 (Item.Marked.Data (1 .. Item.Marks + (if Item.Marking then 1 else 0)),
+                  Page,
+                  Target,
+                  Colors (Themes.Marker),
+                  SDL3.Windows.Renderers.Multiply,
+                  Left,
+                  Page_Top (Item, Page),
+                  Wide,
+                  Page_Height (Item, Page),
+                  High / 2.0);
             end loop;
          end if;
       end;
@@ -1068,8 +1098,7 @@ package body Pomarine.Widgets.Page_Views is
          declare
             Found : constant Result_Access := Words_Of (Item, Item.Sel_Page);
             Tint  : SDL3.Windows.Renderers.Color :=
-              (if Has_Focus (Item) then Colors (Themes.Selection)
-               else Themes.Inactive_Selection (Colors));
+              (if Has_Focus (Item) then Colors (Themes.Selection) else Themes.Inactive_Selection (Colors));
             Top   : constant Float := Page_Top (Item, Item.Sel_Page);
             High  : constant Float := Page_Height (Item, Item.Sel_Page);
          begin
@@ -1080,9 +1109,12 @@ package body Pomarine.Widgets.Page_Views is
                      Each : Pomarine.Words.Word renames Found.Words (Index);
                   begin
                      SDL3.Painters.Fill_Rect
-                       (Target, Tint,
-                        Left + Each.Left * Wide, Top + Each.Top * High,
-                        Each.Width * Wide, Each.Height * High);
+                       (Target,
+                        Tint,
+                        Left + Each.Left * Wide,
+                        Top + Each.Top * High,
+                        Each.Width * Wide,
+                        Each.Height * High);
                   end;
                end loop;
             end if;
@@ -1092,9 +1124,8 @@ package body Pomarine.Widgets.Page_Views is
       Scrollbars.Draw (Item.Across_Bar, Target, Colors, Across_Metrics (Item));
    end Draw;
 
-   overriding procedure Update
-     (Item : in out Page_View; Now : Pomarine.Events.Milliseconds)
-   is
+   overriding
+   procedure Update (Item : in out Page_View; Now : Pomarine.Events.Milliseconds) is
       pragma Unreferenced (Now);
    begin
       Search_Update (Item);
@@ -1103,36 +1134,31 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Update;
 
-   overriding function Until_Update (Item : Page_View) return Integer is
-     (if Item.Pending or else Item.Search_Page /= 0 then Poll else -1);
+   overriding
+   function Until_Update (Item : Page_View) return Integer
+   is (if Item.Pending or else Item.Search_Page /= 0 then Poll else -1);
 
-   overriding procedure Hover_Changed (Item : in out Page_View; Hovered : Boolean) is
+   overriding
+   procedure Hover_Changed (Item : in out Page_View; Hovered : Boolean) is
    begin
       Scrollbars.Set_Pane (Item.Down_Bar, Hovered);
       Scrollbars.Set_Pane (Item.Across_Bar, Hovered);
       Invalidate (Item);
    end Hover_Changed;
 
-   procedure Handle_Bars
-     (Item    : in out Page_View;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean)
-   is
+   procedure Handle_Bars (Item : in out Page_View; Event : Pomarine.Events.Event; Handled : out Boolean) is
       Moved, Changed, Other_Changed : Boolean;
-      Other_Taken, Other_Moved : Boolean;
-      To, Other_To : Float;
+      Other_Taken, Other_Moved      : Boolean;
+      To, Other_To                  : Float;
    begin
-      Scrollbars.Handle
-        (Item.Down_Bar, Event, Down_Metrics (Item), Handled, Moved, To, Changed);
+      Scrollbars.Handle (Item.Down_Bar, Event, Down_Metrics (Item), Handled, Moved, To, Changed);
       if Moved then
          Scroll_To (Item, Float'Min (1.0, Float'Max (0.0, To / Total_Of (Item))));
       end if;
       Scrollbars.Handle
-        (Item.Across_Bar, Event, Across_Metrics (Item), Other_Taken,
-         Other_Moved, Other_To, Other_Changed);
+        (Item.Across_Bar, Event, Across_Metrics (Item), Other_Taken, Other_Moved, Other_To, Other_Changed);
       if Other_Moved then
-         Item.Across :=
-           Float'Min (1.0, Float'Max (0.0, Other_To / (Wide_Of (Item) - Width_Of (Item))));
+         Item.Across := Float'Min (1.0, Float'Max (0.0, Other_To / (Wide_Of (Item) - Width_Of (Item))));
       end if;
       Handled := Handled or else Other_Taken;
       if Changed or else Moved or else Other_Changed or else Other_Moved then
@@ -1140,13 +1166,13 @@ package body Pomarine.Widgets.Page_Views is
       end if;
    end Handle_Bars;
 
-   overriding procedure Handle
-     (Item    : in out Page_View;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean) is
+   overriding
+   procedure Handle (Item : in out Page_View; Event : Pomarine.Events.Event; Handled : out Boolean) is
    begin
       Handled := False;
-      if Event.Kind = Pomarine.Events.Key_Down and then Event.Command and then not Event.Option
+      if Event.Kind = Pomarine.Events.Key_Down
+        and then Event.Command
+        and then not Event.Option
         and then Event.Key = Pomarine.Events.Key_Z
       then
          Handle_Command (Item, (if Event.Shift then Edit_Redo else Edit_Undo), Handled);
@@ -1155,8 +1181,7 @@ package body Pomarine.Widgets.Page_Views is
       if Count (Item) = 0 then
          return;
       end if;
-      if Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up
-      then
+      if Event.Kind in Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Up then
          Handle_Bars (Item, Event, Handled);
          if Handled then
             return;
@@ -1169,9 +1194,8 @@ package body Pomarine.Widgets.Page_Views is
          end if;
       end if;
       case Event.Kind is
-         when Pomarine.Events.Mouse_Down =>
-            if Event.Button = 1
-              and then Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item))
+         when Pomarine.Events.Mouse_Down  =>
+            if Event.Button = 1 and then Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item))
             then
                declare
                   X     : constant Float := Event.Mouse_X * Density (Item);
@@ -1197,26 +1221,37 @@ package body Pomarine.Widgets.Page_Views is
                   end if;
                end;
             end if;
-         when Pomarine.Events.Mouse_Move =>
+
+         when Pomarine.Events.Mouse_Move  =>
             if Item.Held and then Item.Sel_Page > 0 then
                declare
                   Under : constant Natural :=
-                    Word_At (Item, Item.Sel_Page, Event.Mouse_X * Density (Item),
-                             Event.Mouse_Y * Density (Item), Nearest => True);
+                    Word_At
+                      (Item,
+                       Item.Sel_Page,
+                       Event.Mouse_X * Density (Item),
+                       Event.Mouse_Y * Density (Item),
+                       Nearest => True);
                begin
                   Select_Range
-                    (Item, Item.Sel_Page, Item.Anchor,
+                    (Item,
+                     Item.Sel_Page,
+                     Item.Anchor,
                      (if Under = Item.Anchor and then not Item.Drag_Words then 0 else Under));
                   Handled := True;
                end;
             end if;
-         when Pomarine.Events.Mouse_Up =>
+
+         when Pomarine.Events.Mouse_Up    =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Handled := True;
             end if;
-         when Pomarine.Events.Key_Down =>
-            if Event.Command and then Event.Key = Pomarine.Events.Key_C and then Has_Selection (Item)
+
+         when Pomarine.Events.Key_Down    =>
+            if Event.Command
+              and then Event.Key = Pomarine.Events.Key_C
+              and then Has_Selection (Item)
               and then Clipboard (Item) /= null
             then
                Clipboard (Item).Set_Text (Selected_Text (Item));
@@ -1225,6 +1260,7 @@ package body Pomarine.Widgets.Page_Views is
                Select_All (Item);
                Handled := True;
             end if;
+
          when Pomarine.Events.Mouse_Wheel =>
             if Item.Zoomed > 1.0 and then Event.Wheel_X /= 0.0 then
                Item.Across :=
@@ -1233,28 +1269,23 @@ package body Pomarine.Widgets.Page_Views is
                     Float'Max
                       (0.0,
                        Item.Across
-                       - Event.Wheel_X * Points_Per_Notch * Density (Item)
-                         / (Width_Of (Item) * (Item.Zoomed - 1.0))));
+                       - Event.Wheel_X * Points_Per_Notch * Density (Item) / (Width_Of (Item) * (Item.Zoomed - 1.0))));
                Invalidate (Item);
             end if;
             Scroll_To
               (Item,
                Float'Min
                  (1.0,
-                  Float'Max
-                    (0.0,
-                     Item.Down
-                     - Event.Wheel_Y * Points_Per_Notch * Density (Item) / Total_Of (Item))));
+                  Float'Max (0.0, Item.Down - Event.Wheel_Y * Points_Per_Notch * Density (Item) / Total_Of (Item))));
             Handled := True;
-         when others =>
+
+         when others                      =>
             null;
       end case;
    end Handle;
 
-   overriding procedure Describe
-     (Item  : Page_View;
-      Facts : in out Semantics.Description)
-   is
+   overriding
+   procedure Describe (Item : Page_View; Facts : in out Semantics.Description) is
       pragma Unreferenced (Item);
    begin
       if Facts.Kind = Semantics.Unknown then

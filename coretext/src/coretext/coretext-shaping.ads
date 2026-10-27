@@ -39,13 +39,13 @@ package CoreText.Shaping is
    --  font it was set in.
 
    procedure Shape
-     (Reg    : in out Registry;
-      Using  : Fonts.Font;
-      Text   : Strings.Text;
-      First, Stop : Natural;
-      Result : out Shaped)
-     with Pre => Fonts.Is_Open (Using) and then Strings.Is_Set (Text)
-                 and then First <= Stop and then Stop <= Strings.Length (Text);
+     (Reg : in out Registry; Using : Fonts.Font; Text : Strings.Text; First, Stop : Natural; Result : out Shaped)
+   with
+     Pre =>
+       Fonts.Is_Open (Using)
+       and then Strings.Is_Set (Text)
+       and then First <= Stop
+       and then Stop <= Strings.Length (Text);
    --  Set the UTF-16 range [First, Stop) of Text, a line without
    --  newlines, in Using, replacing Result.
 
@@ -64,13 +64,11 @@ private
 
    package Entry_Vectors is new Ada.Containers.Vectors (Font_Id, Font_Entry);
 
-   package Name_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-     (String, Font_Id, Ada.Strings.Hash, "=");
+   package Name_Maps is new Ada.Containers.Indefinite_Hashed_Maps (String, Font_Id, Ada.Strings.Hash, "=");
 
    function Hash (Key : System.Address) return Ada.Containers.Hash_Type;
 
-   package Handle_Maps is new Ada.Containers.Hashed_Maps
-     (System.Address, Font_Id, Hash, System."=");
+   package Handle_Maps is new Ada.Containers.Hashed_Maps (System.Address, Font_Id, Hash, System."=");
 
    Max_Seen : constant := 256;
    --  Run fonts kept by handle; past this many they are looked up by
@@ -85,6 +83,7 @@ private
       --  runs, and looking it up by name is costly.
    end record;
 
-   overriding procedure Finalize (Item : in out Registry);
+   overriding
+   procedure Finalize (Item : in out Registry);
 
 end CoreText.Shaping;

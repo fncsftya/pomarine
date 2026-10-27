@@ -1,6 +1,7 @@
 with Ada.Strings.Fixed;
 with Pomarine.Text_Areas.Core;
 with Texts.Documents;
+
 package body Pomarine.Text_Areas.Blocks is
 
    package Docs renames Texts.Documents;
@@ -10,15 +11,15 @@ package body Pomarine.Text_Areas.Blocks is
    use type Texts.Position;
 
    function Marker_Of (Item : Text_Area; Para : Positive) return Marker is
-      Stop  : constant Positive := Natural'Min (Docs.Byte_Length (Item.Doc.all, Para), 48) + 1;
-      Text  : constant String := Docs.Slice (Item.Doc.all, Para, 1, Stop);
-      Lead  : Natural := 0;
+      Stop : constant Positive := Natural'Min (Docs.Byte_Length (Item.Doc.all, Para), 48) + 1;
+      Text : constant String := Docs.Slice (Item.Doc.all, Para, 1, Stop);
+      Lead : Natural := 0;
    begin
       while Lead < Text'Length and then Text (Text'First + Lead) = ' ' loop
          Lead := Lead + 1;
       end loop;
       declare
-         Rest   : constant String := Text (Text'First + Lead .. Text'Last);
+         Rest    : constant String := Text (Text'First + Lead .. Text'Last);
          Figures : Natural := 0;
       begin
          if Rest'Length >= Bullet_Mark'Length
@@ -29,7 +30,8 @@ package body Pomarine.Text_Areas.Blocks is
          while Figures < Rest'Length and then Rest (Rest'First + Figures) in '0' .. '9' loop
             Figures := Figures + 1;
          end loop;
-         if Figures > 0 and then Rest'Length >= Figures + 2
+         if Figures > 0
+           and then Rest'Length >= Figures + 2
            and then Rest (Rest'First + Figures .. Rest'First + Figures + 1) = ". "
          then
             return (Lead, Figures + 2, Numbers);
@@ -57,9 +59,10 @@ package body Pomarine.Text_Areas.Blocks is
       Last  : Positive := Para;
       Lead  : Natural;
 
-      function Joins (Other : Positive) return Boolean is
-        (Marker_Of (Item, Other).Which = Numbers and then Marker_Of (Item, Other).Length > 0
-         and then Marker_Of (Item, Other).Lead = Lead);
+      function Joins (Other : Positive) return Boolean
+      is (Marker_Of (Item, Other).Which = Numbers
+          and then Marker_Of (Item, Other).Length > 0
+          and then Marker_Of (Item, Other).Lead = Lead);
    begin
       if Marker_Of (Item, Para).Length = 0 or else Marker_Of (Item, Para).Which /= Numbers then
          return;
@@ -73,10 +76,10 @@ package body Pomarine.Text_Areas.Blocks is
       end loop;
       for Each in First .. Last loop
          declare
-            Found : constant Marker := Marker_Of (Item, Each);
+            Found  : constant Marker := Marker_Of (Item, Each);
             Wanted : constant String :=
               Ada.Strings.Fixed.Trim (Natural'Image (Each - First + 1), Ada.Strings.Left) & ". ";
-            Old   : constant String := Docs.Slice (Item.Doc.all, Each, Found.Lead + 1, Found.Lead + Found.Length + 1);
+            Old    : constant String := Docs.Slice (Item.Doc.all, Each, Found.Lead + 1, Found.Lead + Found.Length + 1);
          begin
             if Old /= Wanted then
                Replace_Range (Item, (Each, Found.Lead + 1), (Each, Found.Lead + Found.Length + 1), Wanted);
@@ -86,8 +89,8 @@ package body Pomarine.Text_Areas.Blocks is
    end Renumber_Run;
 
    procedure Renumber_Around (Item : in out Text_Area; First, Last : Integer) is
-      From : constant Position := Selection_First (Item);
-      To   : constant Position := Selection_Last (Item);
+      From      : constant Position := Selection_First (Item);
+      To        : constant Position := Selection_Last (Item);
       From_Tail : constant Natural := Docs.Byte_Length (Item.Doc.all, From.Paragraph) + 1 - From.Index;
       To_Tail   : constant Natural := Docs.Byte_Length (Item.Doc.all, To.Paragraph) + 1 - To.Index;
    begin
@@ -95,14 +98,15 @@ package body Pomarine.Text_Areas.Blocks is
          Renumber_Run (Item, Para);
       end loop;
       Select_Range
-        (Item, (From.Paragraph, Docs.Byte_Length (Item.Doc.all, From.Paragraph) + 1 - From_Tail),
+        (Item,
+         (From.Paragraph, Docs.Byte_Length (Item.Doc.all, From.Paragraph) + 1 - From_Tail),
          (To.Paragraph, Docs.Byte_Length (Item.Doc.all, To.Paragraph) + 1 - To_Tail));
    end Renumber_Around;
 
    procedure Toggle (Item : in out Text_Area; Which : Block) is
       First, Last : Positive;
-      Every  : Boolean := True;
-      Number : Natural := 0;
+      Every       : Boolean := True;
+      Number      : Natural := 0;
    begin
       if Item.Single or else Item.Read_Only then
          return;
@@ -137,12 +141,16 @@ package body Pomarine.Text_Areas.Blocks is
          begin
             Number := Number + 1;
             Docs.Replace
-              (Item.Doc.all, (Para, Found.Lead + 1), (Para, Found.Lead + 1 + Found.Length),
-               (if Every then ""
-                else (case Which is
-                         when Bullets => Bullet_Mark,
-                         when Quote   => raise Program_Error,
-                         when Numbers => Ada.Strings.Fixed.Trim (Natural'Image (Number), Ada.Strings.Left) & ". ")));
+              (Item.Doc.all,
+               (Para, Found.Lead + 1),
+               (Para, Found.Lead + 1 + Found.Length),
+               (if Every
+                then ""
+                else
+                  (case Which is
+                     when Bullets => Bullet_Mark,
+                     when Quote   => raise Program_Error,
+                     when Numbers => Ada.Strings.Fixed.Trim (Natural'Image (Number), Ada.Strings.Left) & ". ")));
          end;
       end loop;
       Docs.End_Step (Item.Doc.all);
@@ -170,14 +178,15 @@ package body Pomarine.Text_Areas.Blocks is
          Insert (Item, [ASCII.LF]);
       else
          declare
-            Lead : constant String := [1 .. Found.Lead => ' '];
-            Prefix : constant String :=
-              Docs.Slice (Item.Doc.all, Para, Found.Lead + 1, Found.Lead + Found.Length + 1);
-            Next : constant String :=
-              (if Found.Which = Bullets then Bullet_Mark
-               else Ada.Strings.Fixed.Trim
-                      (Natural'Image (Natural'Value (Prefix (Prefix'First .. Prefix'Last - 2)) + 1), Ada.Strings.Left)
-                    & ". ");
+            Lead   : constant String := [1 .. Found.Lead => ' '];
+            Prefix : constant String := Docs.Slice (Item.Doc.all, Para, Found.Lead + 1, Found.Lead + Found.Length + 1);
+            Next   : constant String :=
+              (if Found.Which = Bullets
+               then Bullet_Mark
+               else
+                 Ada.Strings.Fixed.Trim
+                   (Natural'Image (Natural'Value (Prefix (Prefix'First .. Prefix'Last - 2)) + 1), Ada.Strings.Left)
+                 & ". ");
          begin
             Insert (Item, ASCII.LF & Lead & Next);
          end;
@@ -241,7 +250,8 @@ package body Pomarine.Text_Areas.Blocks is
    procedure Clear_Of_Mark (Item : in out Text_Area; Typed : String) is
       Where : constant Position := Item.At_Caret;
    begin
-      if Has_Selection (Item) or else (Typed'Length > 0 and then Typed (Typed'First) = ASCII.LF)
+      if Has_Selection (Item)
+        or else (Typed'Length > 0 and then Typed (Typed'First) = ASCII.LF)
         or else Marker_Of (Item, Where.Paragraph).Length = 0
         or else Where.Index > Mark_End (Item, Where.Paragraph).Index
       then

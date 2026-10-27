@@ -21,6 +21,7 @@ with Pomarine.Icons;
 --  It is as tall as its rows (and sets its own node's height, so), and as
 --  wide as the application makes it. The application shows it, over what
 --  is there, and hides it.
+
 package Pomarine.Widgets.Menus is
 
    type Row_Kind is (Heading, Action, Check, Separator, Note);
@@ -41,14 +42,18 @@ package Pomarine.Widgets.Menus is
    package Row_Vectors is new Ada.Containers.Vectors (Positive, Row_Description);
 
    function Describe_Row
-     (Kind : Row_Kind; Text : String := ""; Shade : Tone := Plain; Checked : Boolean := False;
-      Allowed : Boolean := True; Icon : Pomarine.Icons.Optional := Pomarine.Icons.No_Icon;
-      Swatch : Themes.Slot := 0) return Row_Description;
+     (Kind    : Row_Kind;
+      Text    : String := "";
+      Shade   : Tone := Plain;
+      Checked : Boolean := False;
+      Allowed : Boolean := True;
+      Icon    : Pomarine.Icons.Optional := Pomarine.Icons.No_Icon;
+      Swatch  : Themes.Slot := 0) return Row_Description;
 
    type Menu is new Widget with private;
 
    procedure Set_Rows (Item : in out Menu; Rows : Row_Vectors.Vector)
-     with Post => Row_Count (Item) = Natural (Rows.Length) and then Hovered_Row (Item) = 0;
+   with Post => Row_Count (Item) = Natural (Rows.Length) and then Hovered_Row (Item) = 0;
    --  Prepare all rows before replacing the menu. A failed allocation leaves it unchanged.
 
    procedure Set_Keyboard (Item : in out Menu; To : Boolean);
@@ -57,16 +62,20 @@ package Pomarine.Widgets.Menus is
    --  and Return or Space chooses the one that is shaded. Off to begin with, so that menus are not Tab stops.
 
    procedure Highlight (Item : in out Menu; Row : Natural)
-     with Pre => Row <= Row_Count (Item);
+   with Pre => Row <= Row_Count (Item);
    --  Shade a row, as the pointer over it does, and bring it into view; 0 for none. A row that cannot be chosen
    --  is not shaded.
 
-   overriding function Is_Focusable (Item : Menu) return Boolean;
+   overriding
+   function Is_Focusable (Item : Menu) return Boolean;
 
-   overriding procedure Focus_Changed (Item : in out Menu; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Menu; Focused : Boolean);
    --  A menu worked by keys has nothing shaded once the focus has left it.
 
-   overriding function Focuses_On_Click (Item : Menu) return Boolean is (False);
+   overriding
+   function Focuses_On_Click (Item : Menu) return Boolean
+   is (False);
 
    procedure Set_Closes_On_Choose (Item : in out Menu; To : Boolean);
    --  When a row is chosen, say so and then let go of the menu if it is presented (see Pomarine.Widgets.Overlays), as
@@ -79,20 +88,20 @@ package Pomarine.Widgets.Menus is
    --  menu of fonts.
 
    function Is_Enabled (Item : Menu; Row : Positive) return Boolean
-     with Pre => Row <= Row_Count (Item);
+   with Pre => Row <= Row_Count (Item);
 
    function Text_Of (Item : Menu; Row : Positive) return String
-     with Pre => Row <= Row_Count (Item);
+   with Pre => Row <= Row_Count (Item);
 
    function Is_Checked (Item : Menu; Row : Positive) return Boolean
-     with Pre => Row <= Row_Count (Item);
+   with Pre => Row <= Row_Count (Item);
 
    function Height_For (Item : Menu) return Float;
    --  In points: of its rows, its padding and outline, and its shadow;
    --  what it would be if it were not held to a Max_Height.
 
    procedure Set_Max_Height (Item : in out Menu; Points : Float)
-     with Pre => Points >= 0.0;
+   with Pre => Points >= 0.0;
    --  Hold the menu to no more than Points of height (0.0 for no limit):
    --  if its rows are more, it is as tall as that, and they are scrolled
    --  by the wheel, with a thin bar at its right.
@@ -101,7 +110,7 @@ package Pomarine.Widgets.Menus is
    --  In points: Height_For, or the Max_Height if that is less.
 
    procedure Reveal (Item : in out Menu; Row : Positive)
-     with Pre => Row <= Row_Count (Item);
+   with Pre => Row <= Row_Count (Item);
    --  Scroll to have the row in view, if it is not.
 
    function Is_Scrollable (Item : Menu) return Boolean;
@@ -110,38 +119,30 @@ package Pomarine.Widgets.Menus is
    function Hovered_Row (Item : Menu) return Natural;
    --  The row that can be clicked under the pointer; 0 if none.
 
-   overriding procedure Handle
-     (Item    : in out Menu;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Menu; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Menu;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Menu; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Menu; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Menu; Hovered : Boolean);
 
-   overriding function Cursor (Item : Menu) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Menu) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe
-     (Item  : Menu;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Menu; Facts : in out Semantics.Description);
 
-   overriding function Part_Count (Item : Menu) return Natural;
+   overriding
+   function Part_Count (Item : Menu) return Natural;
 
-   overriding procedure Describe_Part
-     (Item   : Menu;
-      Part   : Positive;
-      Facts  : in out Semantics.Description;
-      Bounds : out Semantics.Rectangle);
+   overriding
+   procedure Describe_Part
+     (Item : Menu; Part : Positive; Facts : in out Semantics.Description; Bounds : out Semantics.Rectangle);
 
-   overriding procedure Perform_Part
-     (Item    : in out Menu;
-      Part    : Positive;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Perform_Part (Item : in out Menu; Part : Positive; Request : Semantics.Request; Done : out Boolean);
 
 private
 

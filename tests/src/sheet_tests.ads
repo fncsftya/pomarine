@@ -1,6 +1,7 @@
 --  Tests of the widgets of the interface, as the design's sheet of them
 --  shows them: each kind, in its states, drawn on one board, and what
 --  each does with clicks and keys. See Goldens.
+
 package Sheet_Tests is
 
    procedure Board;

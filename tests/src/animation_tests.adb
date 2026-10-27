@@ -11,8 +11,8 @@ package body Animation_Tests is
    package Panels renames Pomarine.Widgets.Panels;
    package Renderers renames SDL3.Windows.Renderers;
 
-   function Image (Value : Integer) return String is
-     (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
+   function Image (Value : Integer) return String
+   is (Ada.Strings.Fixed.Trim (Integer'Image (Value), Ada.Strings.Left));
 
    --  A widget that shows the numbers it is given
 
@@ -33,8 +33,8 @@ package body Animation_Tests is
       null;
    end Other;
 
-   function Percent (Item : Meter) return String is
-     (Image (Integer (Item.Shown * 100.0)));
+   function Percent (Item : Meter) return String
+   is (Image (Integer (Item.Shown * 100.0)));
 
    type Fixture is limited record
       Tree   : Widgets.Tree;
@@ -58,8 +58,7 @@ package body Animation_Tests is
       Open (Item);
       Widgets.Animate (Item.Gauge, 0.0, 1.0, 200, Widgets.Linear, Show'Access);
       Goldens.Check_Text
-        ("animation-starts", "0 TRUE",
-         Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
+        ("animation-starts", "0 TRUE", Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
 
       Widgets.Update (Item.Tree, 1050);
       Goldens.Check_Text ("animation-quarter", "25", Percent (Item.Gauge));
@@ -69,8 +68,7 @@ package body Animation_Tests is
       --  The end is exact, and it is over.
       Widgets.Update (Item.Tree, 1500);
       Goldens.Check_Text
-        ("animation-end", "100 FALSE",
-         Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
+        ("animation-end", "100 FALSE", Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
       declare
          Told : constant Natural := Item.Gauge.Told;
       begin
@@ -96,8 +94,7 @@ package body Animation_Tests is
       Goldens.Check_Text ("animation-replaced", "25", Percent (Item.Gauge));
       Widgets.Update (Item.Tree, 1200);
       Goldens.Check_Text
-        ("animation-replaced-end", "0 FALSE",
-         Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
+        ("animation-replaced-end", "0 FALSE", Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
 
       --  Another number of the same widget runs beside it.
       Widgets.Animate (Item.Gauge, 0.0, 1.0, 100, Widgets.Linear, Show'Access);
@@ -113,8 +110,7 @@ package body Animation_Tests is
       Widgets.Set_Reduced_Motion (Item.Tree, True);
       Widgets.Animate (Item.Gauge, 0.0, 1.0, 200, Widgets.Linear, Show'Access);
       Goldens.Check_Text
-        ("animation-reduced", "100 FALSE",
-         Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
+        ("animation-reduced", "100 FALSE", Percent (Item.Gauge) & " " & Widgets.Is_Animating (Item.Tree)'Image);
    end Less_Movement;
 
    procedure Wakes_The_Loop is
@@ -148,12 +144,13 @@ package body Animation_Tests is
       Widgets.Update (Tree, 50);
       Widgets.Layout (Tree, Target);
       Goldens.Check_Text
-        ("animation-scroll-between", "TRUE",
-         Boolean'Image (Pomarine.Widgets.Scrollers.Offset (Window) > 100.0
-                        and then Pomarine.Widgets.Scrollers.Offset (Window) < 200.0));
+        ("animation-scroll-between",
+         "TRUE",
+         Boolean'Image
+           (Pomarine.Widgets.Scrollers.Offset (Window) > 100.0
+            and then Pomarine.Widgets.Scrollers.Offset (Window) < 200.0));
       Widgets.Update (Tree, 200);
-      Goldens.Check_Text
-        ("animation-scroll-end", "200", Image (Integer (Pomarine.Widgets.Scrollers.Offset (Window))));
+      Goldens.Check_Text ("animation-scroll-end", "200", Image (Integer (Pomarine.Widgets.Scrollers.Offset (Window))));
    end Smooth_Scroll;
 
 end Animation_Tests;

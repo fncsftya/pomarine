@@ -7,6 +7,7 @@ with Form_UI;
 with Form_VM;
 
 --  The first slice: a text field and commands, through a view that owns its widgets.
+
 procedure UI_Slice_Test is
    package UI renames Pomarine.UI;
    package Testing renames Pomarine.Testing;
@@ -19,15 +20,17 @@ procedure UI_Slice_Test is
    Window : Testing.Session;
 
    function Form_Part (Parent : Forms.Context'Class) return UI.Layout is
-      Bound : aliased Forms.Component (Parent'Access);
-      Name  : constant UI.Field_Handle := Bound.Text_Field
-        (Form_UI.Name, Submit => Save, Placeholder => "Name", Name => "Name");
-      Shown : constant UI.Label_Handle := Bound.Label (Form_UI.Status);
-      Done  : constant UI.Button_Handle := Bound.Button ("Save", Save);
-      Clear : constant UI.Button_Handle := Bound.Button ("Reset", Reset);
-      Result : constant UI.Layout := UI.Column
-        ([UI.Place (Name), UI.Place (Shown), UI.Row ([UI.Place (Done), UI.Place (Clear)], Gap => 8.0)],
-         Padding => 12.0, Gap => 8.0);
+      Bound  : aliased Forms.Component (Parent'Access);
+      Name   : constant UI.Field_Handle :=
+        Bound.Text_Field (Form_UI.Name, Submit => Save, Placeholder => "Name", Name => "Name");
+      Shown  : constant UI.Label_Handle := Bound.Label (Form_UI.Status);
+      Done   : constant UI.Button_Handle := Bound.Button ("Save", Save);
+      Clear  : constant UI.Button_Handle := Bound.Button ("Reset", Reset);
+      Result : constant UI.Layout :=
+        UI.Column
+          ([UI.Place (Name), UI.Place (Shown), UI.Row ([UI.Place (Done), UI.Place (Clear)], Gap => 8.0)],
+           Padding => 12.0,
+           Gap     => 8.0);
    begin
       Bound.Focus_Initially (UI.Focus_Of (Name));
       Bound.Commit;

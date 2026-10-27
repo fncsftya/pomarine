@@ -3,6 +3,7 @@ with Yoga.Nodes;
 with Pomarine.Icons;
 with Pomarine.Widgets.Editors.Metrics;
 with Pomarine.Widgets.Editors.Links;
+
 package body Pomarine.Widgets.Editors.Versions is
 
    package Docs renames Texts.Documents;
@@ -35,8 +36,14 @@ package body Pomarine.Widgets.Editors.Versions is
       Yoga.Nodes.Set_Position (Node (Item.Cycle_Count), Yoga.Top, (Bubble_High - Button_High) / 2.0 * Pixels);
       Yoga.Nodes.Set_Width (Node (Item.Cycle_Count), Count_Wide * Pixels);
       Yoga.Nodes.Set_Height (Node (Item.Cycle_Count), Button_High * Pixels);
-      Put_Button (Item, Item.Cycle, Item.Next_Button, 3.0 * Bubble_Pad + Button_Wide + Count_Wide, Button_Wide, ">",
-           "Next version");
+      Put_Button
+        (Item,
+         Item.Cycle,
+         Item.Next_Button,
+         3.0 * Bubble_Pad + Button_Wide + Count_Wide,
+         Button_Wide,
+         ">",
+         "Next version");
       Request_Layout (Item);
    end Build_Bubbles;
 
@@ -78,7 +85,8 @@ package body Pomarine.Widgets.Editors.Versions is
          declare
             R : constant Docs.Format_Run := Docs.Run (Doc.all, I);
          begin
-            if Docs."=" (R.Style, Docs.Versioned) and then R.From < R.To
+            if Docs."=" (R.Style, Docs.Versioned)
+              and then R.From < R.To
               and then Text_Areas.Is_Over_Range (Item.Text, R.From, R.To, X, Y)
             then
                return I;
@@ -135,7 +143,8 @@ package body Pomarine.Widgets.Editors.Versions is
          declare
             R     : constant Docs.Format_Run := Docs.Run (Doc.all, Docs.Version_At (Doc.all, Item.Cycle_From));
             Shown : constant String :=
-              Ada.Strings.Fixed.Trim (R.Choice'Image, Ada.Strings.Both) & " / "
+              Ada.Strings.Fixed.Trim (R.Choice'Image, Ada.Strings.Both)
+              & " / "
               & Ada.Strings.Fixed.Trim (Natural (R.Versions.Length)'Image, Ada.Strings.Both);
          begin
             if Labels.Text (Item.Cycle_Count) /= Shown then
@@ -154,8 +163,10 @@ package body Pomarine.Widgets.Editors.Versions is
       Last  : Texts.Position := Text_Areas.Mark (Item.Text);
       Run   : Natural;
    begin
-      if Item.Writing or else not Text_Areas.Has_Selection (Item.Text)
-        or else Text_Areas.Is_Read_Only (Item.Text) or else Text_Areas.Is_Composing (Item.Text)
+      if Item.Writing
+        or else not Text_Areas.Has_Selection (Item.Text)
+        or else Text_Areas.Is_Read_Only (Item.Text)
+        or else Text_Areas.Is_Composing (Item.Text)
       then
          return;
       end if;
@@ -195,7 +206,8 @@ package body Pomarine.Widgets.Editors.Versions is
          --  What was typed as markup, to keep its styles; if it is more than a paragraph, as text.
          Typed : constant String :=
            (if Item.Typed_From < Item.Typed_To and then Item.Typed_From.Paragraph = Item.Typed_To.Paragraph
-            then Docs.Fragment (Doc.all, Item.Typed_From, Item.Typed_To) else Docs.Escaped (Plain));
+            then Docs.Fragment (Doc.all, Item.Typed_From, Item.Typed_To)
+            else Docs.Escaped (Plain));
          Seen  : Natural;
       begin
          Item.Writing := False;
@@ -220,14 +232,16 @@ package body Pomarine.Widgets.Editors.Versions is
    begin
       --  A link is followed with Command held: Cursor shows it, while it is.
       if Event.Kind in Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Up then
-         Item.Over_Link := Item.Pointer_In_Text and then not Item.Writing
+         Item.Over_Link :=
+           Item.Pointer_In_Text
+           and then not Item.Writing
            and then Pointer_Link (Item, Event.Mouse_X * Pixels, Event.Mouse_Y * Pixels) /= "";
       end if;
       if Item.Writing then
          Item.Hovering := False;
       elsif Event.Kind in Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Down | Pomarine.Events.Mouse_Up then
-         Run := (if Item.Pointer_In_Text then Pointer_Version (Item, Event.Mouse_X * Pixels, Event.Mouse_Y * Pixels)
-                 else 0);
+         Run :=
+           (if Item.Pointer_In_Text then Pointer_Version (Item, Event.Mouse_X * Pixels, Event.Mouse_Y * Pixels) else 0);
          Item.Hovering := Run /= 0;
          if Run /= 0 then
             Item.Hover_From := Docs.Run (Text_Areas.Document (Item.Text).all, Run).From;

@@ -17,6 +17,7 @@ with Yoga.Nodes;
 --  row; the cost is of building them, drawing every one, moving the pointer
 --  between two, clicking (and finding the click by asking each button, as
 --  an application does), and looking up a colour of the theme.
+
 procedure UI_Bench is
    package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
@@ -33,11 +34,9 @@ procedure UI_Bench is
    Density : constant Float := 2.0;
 
    Pairs  : constant Positive :=
-     (if Ada.Command_Line.Argument_Count > 0
-      then Positive'Value (Ada.Command_Line.Argument (1)) else 150);
+     (if Ada.Command_Line.Argument_Count > 0 then Positive'Value (Ada.Command_Line.Argument (1)) else 150);
    Rounds : constant Positive :=
-     (if Ada.Command_Line.Argument_Count > 1
-      then Positive'Value (Ada.Command_Line.Argument (2)) else 300);
+     (if Ada.Command_Line.Argument_Count > 1 then Positive'Value (Ada.Command_Line.Argument (2)) else 300);
 
    Colors : constant Themes.Theme := Themes.Light;
 
@@ -45,11 +44,8 @@ procedure UI_Bench is
       Count : Natural := 0;
    end record;
 
-   overriding procedure Handle_Event
-     (Self   : in out Counter;
-      Source : in out Widgets.Widget'Class;
-      Event  : Widgets.Widget_Event)
-   is
+   overriding
+   procedure Handle_Event (Self : in out Counter; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
       pragma Unreferenced (Source, Event);
    begin
       Self.Count := Self.Count + 1;
@@ -61,8 +57,7 @@ procedure UI_Bench is
       Shown : String (1 .. 11);
    begin
       Ada.Float_Text_IO.Put (Shown, Micros, Aft => 3, Exp => 0);
-      Put_Line ("  " & What & (1 .. Integer'Max (1, 46 - What'Length) => ' ')
-                & Shown & " us");
+      Put_Line ("  " & What & (1 .. Integer'Max (1, 46 - What'Length) => ' ') & Shown & " us");
    end Report;
 
    Win    : SDL3.Windows.Window;
@@ -74,8 +69,8 @@ procedure UI_Bench is
    Pushes  : array (1 .. Pairs) of aliased Buttons.Button;
    Tree    : Widgets.Tree;
 
-   function Micros_Of (Span : Time_Span; Divisor : Positive) return Float is
-     (Float (To_Duration (Span)) * 1.0E6 / Float (Divisor));
+   function Micros_Of (Span : Time_Span; Divisor : Positive) return Float
+   is (Float (To_Duration (Span)) * 1.0E6 / Float (Divisor));
 
    procedure Build is
    begin
@@ -98,18 +93,21 @@ procedure UI_Bench is
       end loop;
    end Build;
 
-   function Over (K : Positive) return Events.Event is
-     --  The middle of button K, in points.
-     ((Kind => Events.Mouse_Move,
-       Mouse_X => Widgets.Left_Of (Pushes (K)) / Density + 10.0,
-       Mouse_Y => Widgets.Top_Of (Pushes (K)) / Density + 10.0,
-       others => <>));
+   function Over (K : Positive) return Events.Event
+   is
+      --  The middle of button K, in points.
+      ((Kind    => Events.Mouse_Move,
+        Mouse_X => Widgets.Left_Of (Pushes (K)) / Density + 10.0,
+        Mouse_Y => Widgets.Top_Of (Pushes (K)) / Density + 10.0,
+        others  => <>));
 
-   function Press (K : Positive; Kind : Events.Event_Kind) return Events.Event is
-     ((Kind => Kind, Button => 1, Clicks => 1,
-       Mouse_X => Widgets.Left_Of (Pushes (K)) / Density + 10.0,
-       Mouse_Y => Widgets.Top_Of (Pushes (K)) / Density + 10.0,
-       others => <>));
+   function Press (K : Positive; Kind : Events.Event_Kind) return Events.Event
+   is ((Kind    => Kind,
+        Button  => 1,
+        Clicks  => 1,
+        Mouse_X => Widgets.Left_Of (Pushes (K)) / Density + 10.0,
+        Mouse_Y => Widgets.Top_Of (Pushes (K)) / Density + 10.0,
+        others  => <>));
 
    procedure Frame is
       Resized : Boolean;
@@ -174,7 +172,7 @@ begin
    end if;
 
    declare
-      Sum : Natural := 0;
+      Sum   : Natural := 0;
       Slots : constant array (1 .. 4) of Themes.Slot := [Themes.Foreground, Themes.Border, Themes.Primary, Themes.Page];
    begin
       Start := Clock;

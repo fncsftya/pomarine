@@ -21,20 +21,15 @@ private with Typeset.Layouts;
 --
 --  Its text is in layout units, Density x Zoom pixels each; its outline
 --  and padding are in points, Density pixels each.
+
 package Pomarine.Text_Areas is
 
    type Text_Area is limited private;
    --  Declare it after the Renderer it draws to, and always draw it to
    --  that Renderer.
 
-   procedure Configure
-     (Item    : in out Text_Area;
-      Family  : String;
-      Size    : Float;
-      Measure : Float;
-      Spacing : Float := 0.0)
-     with Pre  => Size > 0.0 and then Measure > 0.0 and then Spacing >= 0.0,
-          Post => Is_Configured (Item);
+   procedure Configure (Item : in out Text_Area; Family : String; Size : Float; Measure : Float; Spacing : Float := 0.0)
+   with Pre => Size > 0.0 and then Measure > 0.0 and then Spacing >= 0.0, Post => Is_Configured (Item);
    --  Set the text in font Family at Size layout units, in lines no wider
    --  than Measure, with Spacing between paragraphs.
 
@@ -42,13 +37,11 @@ package Pomarine.Text_Areas is
 
    subtype Shared_Access is Typeset.Views.Shared_Access;
 
-   procedure Set_Shared
-     (Item   : in out Text_Area;
-      Shared : not null Shared_Access);
+   procedure Set_Shared (Item : in out Text_Area; Shared : not null Shared_Access);
    --  Direct Item's view to share font registry and glyph atlas.
 
    procedure Set_Single_Line (Item : in out Text_Area; To : Boolean := True)
-     with Pre => Is_Configured (Item);
+   with Pre => Is_Configured (Item);
    --  Make it a field for one line: the text is not wrapped, but scrolls
    --  across to keep the caret in view; the padding is less; Return
    --  does not break the paragraph, but is kept for Return_Pending; line
@@ -64,12 +57,12 @@ package Pomarine.Text_Areas is
    function Is_Read_Only (Item : Text_Area) return Boolean;
 
    procedure Set_Lead (Item : in out Text_Area; Points : Float)
-     with Pre => Points >= 0.0;
+   with Pre => Points >= 0.0;
    --  Leave Points at the left of a field for one line, before its text,
    --  as for an icon its owner draws there. None to begin with.
 
    procedure Set_Trail (Item : in out Text_Area; Points : Float)
-     with Pre => Points >= 0.0;
+   with Pre => Points >= 0.0;
    --  Leave Points at the right of a field for one line, after its text,
    --  as for a button its owner puts there. None to begin with.
 
@@ -82,7 +75,7 @@ package Pomarine.Text_Areas is
    --  owner to draw beside it, as a hint in a field that is empty.
 
    procedure Set_Grows (Item : in out Text_Area; To : Boolean := True)
-     with Pre => Is_Configured (Item);
+   with Pre => Is_Configured (Item);
    --  Make it as tall as its text, for its owner to size it so (see
    --  Content_Height) and to scroll, as a page in a column of them: it
    --  does not scroll, has no scroll bar, and leaves the wheel to its
@@ -91,7 +84,7 @@ package Pomarine.Text_Areas is
    function Is_Growing (Item : Text_Area) return Boolean;
 
    function Content_Height (Item : in out Text_Area) return Float
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  How tall it needs to be to show all its text at the width it was
    --  last placed at, in points: every paragraph is laid out.
 
@@ -105,33 +98,32 @@ package Pomarine.Text_Areas is
    subtype Document_Access is Texts.Documents.Document_Access;
 
    procedure Attach (Item : in out Text_Area; Doc : not null Document_Access)
-     with Pre  => Is_Configured (Item),
-          Post => Is_Attached (Item);
+   with Pre => Is_Configured (Item), Post => Is_Attached (Item);
    --  Show Doc, from its start, with the caret there. Doc must outlive
    --  the text area, or be attached to another first.
 
    function Is_Attached (Item : Text_Area) return Boolean;
 
    function Document (Item : Text_Area) return Document_Access
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
 
    procedure Toggle_Format (Item : in out Text_Area; Style : Texts.Documents.Format)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    function Format_Active (Item : Text_Area; Style : Texts.Documents.Format) return Boolean
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
 
    --  Size and family: of the text selected (of what is typed next, if
    --  nothing is) in points and by name; none (0, "") for those of the text
    --  area's font.
 
    procedure Set_Size (Item : in out Text_Area; Points : Natural)
-     with Pre => Is_Attached (Item) and then Points <= Texts.Documents.Largest_Size;
+   with Pre => Is_Attached (Item) and then Points <= Texts.Documents.Largest_Size;
    procedure Set_Family (Item : in out Text_Area; Name : String)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    function Size_Here (Item : Text_Area) return Natural
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    function Family_Here (Item : Text_Area) return String
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  The text at the start of the selection, or before the caret.
 
    function Is_Address (Words : String) return Boolean;
@@ -140,12 +132,12 @@ package Pomarine.Text_Areas is
    --  and no more than Texts.Documents.Link_Capacity bytes.
 
    function Link_Here (Item : Text_Area) return String
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  The address the text at the start of the selection, or before the
    --  caret, links to; "" if it links to none.
 
    procedure Set_Link (Item : in out Text_Area; Address : String)
-     with Pre => Is_Attached (Item) and then (Address = "" or else Is_Address (Address));
+   with Pre => Is_Attached (Item) and then (Address = "" or else Is_Address (Address));
    --  Make the selected text a link to Address, one step to undo; none ("")
    --  to take the link away. Nothing is done if nothing is selected, or the
    --  text area is read only or for one line.
@@ -159,36 +151,36 @@ package Pomarine.Text_Areas is
    --  stored with the paragraph (Texts.Paragraph_Inset), not in its text.
 
    procedure Toggle_Block (Item : in out Text_Area; Which : Block)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Mark the paragraphs as Which, in place of any other mark (Quote
    --  is apart from the others), or, if they all are already, take the
    --  mark off. One step to undo.
 
    function Block_Active (Item : Text_Area; Which : Block) return Boolean
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Whether the paragraph with the caret is marked as Which.
 
    procedure Shift_Indent (Item : in out Text_Area; Outward : Boolean)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Set the paragraphs in a step further (Outward, a step less, if they
    --  are in at all). The text is not changed.
 
    procedure Set_Style (Item : in out Text_Area; To : Texts.Paragraph_Kind)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Make the paragraphs of kind To (Plain, a heading), as one step.
 
    function Paragraph_Style (Item : Text_Area) return Texts.Paragraph_Kind
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  The kind of the paragraph with the caret.
 
    Toolbar_Points : constant Float := 42.0;
 
    procedure Set_Radius (Item : in out Text_Area; Points : Float)
-     with Pre => Points >= 0.0;
+   with Pre => Points >= 0.0;
    --  Corner radius in points, initially Themes.Small_Radius; zero makes square corners.
 
    procedure Set_Indent (Item : in out Text_Area; Points : Float)
-     with Pre => Points >= 0.0;
+   with Pre => Points >= 0.0;
    --  Leave Points more at each side of the text of more than one line,
    --  as of a page, whose toolbar's band, and outline, are the full width.
    --  None to begin with.
@@ -205,14 +197,10 @@ package Pomarine.Text_Areas is
 
    --  Where it is
 
-   procedure Place
-     (Item    : in out Text_Area;
-      Left, Top, Width, Height : Float;
-      Density : Float;
-      Zoom    : Float := 1.0)
-     with Pre => Is_Configured (Item)
-                 and then Width >= 0.0 and then Height >= 0.0
-                 and then Density >= 1.0 and then Zoom > 0.0;
+   procedure Place (Item : in out Text_Area; Left, Top, Width, Height : Float; Density : Float; Zoom : Float := 1.0)
+   with
+     Pre =>
+       Is_Configured (Item) and then Width >= 0.0 and then Height >= 0.0 and then Density >= 1.0 and then Zoom > 0.0;
    --  Put it in the part of the target Width x Height pixels with its top
    --  left at Left, Top, which has Density pixels to a point, with its
    --  text Zoom times its size.
@@ -223,7 +211,7 @@ package Pomarine.Text_Areas is
    --  Focus: only a focused text area takes typing and shows its caret.
 
    procedure Set_Focus (Item : in out Text_Area; Focused : Boolean)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
 
    function Is_Focused (Item : Text_Area) return Boolean;
 
@@ -234,9 +222,8 @@ package Pomarine.Text_Areas is
    function "<" (Left, Right : Position) return Boolean renames Texts."<";
    function "=" (Left, Right : Position) return Boolean renames Texts."=";
 
-   function Is_Position (Item : Text_Area; At_Point : Position)
-      return Boolean
-     with Pre => Is_Attached (Item);
+   function Is_Position (Item : Text_Area; At_Point : Position) return Boolean
+   with Pre => Is_Attached (Item);
    --  Whether At_Point is in the document, before a character or at the
    --  end of a paragraph.
 
@@ -248,52 +235,45 @@ package Pomarine.Text_Areas is
 
    function Has_Selection (Item : Text_Area) return Boolean;
 
-   function Is_Over_Selection
-     (Item : in out Text_Area; X, Y : Float) return Boolean
-     with Pre => Is_Attached (Item);
+   function Is_Over_Selection (Item : in out Text_Area; X, Y : Float) return Boolean
+   with Pre => Is_Attached (Item);
    --  Whether pixel X, Y is nearest a place in the selection, which there
    --  must be.
 
-   function Is_Over_Range
-     (Item : in out Text_Area; From, To : Position; X, Y : Float) return Boolean
-     with Pre => Is_Attached (Item) and then Is_Position (Item, From)
-                 and then Is_Position (Item, To) and then From < To;
+   function Is_Over_Range (Item : in out Text_Area; From, To : Position; X, Y : Float) return Boolean
+   with Pre => Is_Attached (Item) and then Is_Position (Item, From) and then Is_Position (Item, To) and then From < To;
    --  Whether pixel X, Y is over text in this half-open range. Uses the
    --  same line geometry as decorations, including wrapping and zoom;
    --  empty space past a line or between paragraphs is excluded.
 
    function Selected_Text (Item : Text_Area) return String
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  A line to each paragraph.
 
    procedure Select_Range (Item : in out Text_Area; From, To : Position)
-     with Pre  => Is_Attached (Item)
-                  and then Is_Position (Item, From)
-                  and then Is_Position (Item, To),
-          Post => Mark (Item) = From and then Caret (Item) = To;
+   with
+     Pre  => Is_Attached (Item) and then Is_Position (Item, From) and then Is_Position (Item, To),
+     Post => Mark (Item) = From and then Caret (Item) = To;
    --  Select from From to To, with the caret at To.
 
    procedure Search (Item : in out Text_Area; Term : String)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    procedure Search_Step (Item : in out Text_Area; Backwards : Boolean := False)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    procedure Search_Choose (Item : in out Text_Area; Index : Natural)
-     with Pre => Is_Attached (Item) and then Index <= Search_Count (Item),
-          Post => Search_Current (Item) = Index;
+   with Pre => Is_Attached (Item) and then Index <= Search_Count (Item), Post => Search_Current (Item) = Index;
    procedure Search_Box (Item : in out Text_Area; X, Y, Width, Height : out Float)
-     with Pre => Is_Attached (Item) and then Search_Current (Item) > 0;
+   with Pre => Is_Attached (Item) and then Search_Current (Item) > 0;
    --  Select a transient find result and measure its first character, without moving the editing caret.
 
    function Search_Count (Item : Text_Area) return Natural;
    function Search_Current (Item : Text_Area) return Natural;
 
    procedure Select_All (Item : in out Text_Area)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
 
    procedure Set_Faint (Item : in out Text_Area; From, To : Position)
-     with Pre => Is_Attached (Item)
-                 and then Is_Position (Item, From)
-                 and then Is_Position (Item, To);
+   with Pre => Is_Attached (Item) and then Is_Position (Item, From) and then Is_Position (Item, To);
    --  Draw the text from From to To at low opacity (it is not settled,
    --  as dictation is). Any edit of the text afterwards puts the fade away
    --  until it is set again.
@@ -303,25 +283,34 @@ package Pomarine.Text_Areas is
    Max_Highlights : constant := 512;
    procedure Clear_Highlights (Item : in out Text_Area);
    function Highlight_Count (Item : Text_Area) return Natural;
-   procedure Add_Highlight
-     (Item : in out Text_Area; From, To : Position; Fill, Ink : Themes.Color)
-     with Pre => Is_Attached (Item) and then Is_Position (Item, From)
-                 and then Is_Position (Item, To) and then From < To
-                 and then Highlight_Count (Item) < Max_Highlights;
+   procedure Add_Highlight (Item : in out Text_Area; From, To : Position; Fill, Ink : Themes.Color)
+   with
+     Pre =>
+       Is_Attached (Item)
+       and then Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then From < To
+       and then Highlight_Count (Item) < Max_Highlights;
    --  Background and underline decorations, independent of selection.
    --  They expire on any document edit or attachment and follow wrapping,
    --  scrolling and zoom. The owner invalidates its widget after adding.
 
    type Motion is
-     (Previous_Character, Next_Character, Previous_Word, Next_Word,
-      Previous_Line, Next_Line, Line_Start, Line_End,
-      Paragraph_Start, Paragraph_End, Text_Start, Text_End);
+     (Previous_Character,
+      Next_Character,
+      Previous_Word,
+      Next_Word,
+      Previous_Line,
+      Next_Line,
+      Line_Start,
+      Line_End,
+      Paragraph_Start,
+      Paragraph_End,
+      Text_Start,
+      Text_End);
 
-   procedure Move
-     (Item   : in out Text_Area;
-      By     : Motion;
-      Extend : Boolean := False)
-     with Pre => Is_Attached (Item);
+   procedure Move (Item : in out Text_Area; By : Motion; Extend : Boolean := False)
+   with Pre => Is_Attached (Item);
    --  Move the caret: a character or a word back or forward; a line up
    --  or down, as near as can be to where it was across (from the first
    --  or last line, to the start or end of the text); or to the start or
@@ -332,25 +321,20 @@ package Pomarine.Text_Areas is
 
    --  The mouse
 
-   procedure Click
-     (Item   : in out Text_Area;
-      X, Y   : Float;
-      Clicks : Positive := 1;
-      Extend : Boolean := False)
-     with Pre  => Is_Attached (Item),
-          Post => Is_Focused (Item) and then Is_Dragging (Item);
+   procedure Click (Item : in out Text_Area; X, Y : Float; Clicks : Positive := 1; Extend : Boolean := False)
+   with Pre => Is_Attached (Item), Post => Is_Focused (Item) and then Is_Dragging (Item);
    --  Focus it, with the caret where it is nearest pixel X, Y; with
    --  Extend, the selection extended to there. A double click selects
    --  the word there, a triple its paragraph. Until Release, Drag
    --  extends the selection, by whole words after a double click.
 
    procedure Drag (Item : in out Text_Area; X, Y : Float)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Extend the selection to where it is nearest pixel X, Y, if a click
    --  has not been released.
 
    procedure Release (Item : in out Text_Area)
-     with Post => not Is_Dragging (Item);
+   with Post => not Is_Dragging (Item);
 
    function Is_Dragging (Item : Text_Area) return Boolean;
 
@@ -358,83 +342,86 @@ package Pomarine.Text_Areas is
    --  view
 
    procedure Insert (Item : in out Text_Area; Typed : String)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Type Typed, in UTF-8, in place of the selection. A line feed in it
    --  breaks the paragraph. Typing in a row is undone together.
 
    procedure Replace_Range (Item : in out Text_Area; From, To : Position; By : String)
-     with Pre => Is_Attached (Item) and then not Is_Read_Only (Item) and then not Is_Composing (Item)
-                 and then Is_Position (Item, From) and then Is_Position (Item, To) and then not (To < From)
-                 and then (for all C of By => C /= ASCII.CR);
+   with
+     Pre =>
+       Is_Attached (Item)
+       and then not Is_Read_Only (Item)
+       and then not Is_Composing (Item)
+       and then Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then not (To < From)
+       and then (for all C of By => C /= ASCII.CR);
    --  Apply an external correction, move the caret after it, and keep it
    --  as its own undo step. The caller invalidates the owning widget.
 
    procedure Add_Version (Item : in out Text_Area; From, To : Position; Words : String)
-     with Pre => Is_Attached (Item) and then not Is_Read_Only (Item)
-                 and then Is_Position (Item, From) and then Is_Position (Item, To) and then From < To
-                 and then From.Paragraph = To.Paragraph and then Words'Length > 0;
+   with
+     Pre =>
+       Is_Attached (Item)
+       and then not Is_Read_Only (Item)
+       and then Is_Position (Item, From)
+       and then Is_Position (Item, To)
+       and then From < To
+       and then From.Paragraph = To.Paragraph
+       and then Words'Length > 0;
    --  As Texts.Documents.Add_Version, Words being markup, as its own undo step, with the caret
    --  after the new text. The caller invalidates the owning widget.
 
    procedure Choose_Version (Item : in out Text_Area; Index : Positive; Choice : Positive)
-     with Pre => Is_Attached (Item) and then not Is_Read_Only (Item)
-                 and then Index <= Texts.Documents.Run_Count (Document (Item).all)
-                 and then Texts.Documents."="
-                            (Texts.Documents.Run (Document (Item).all, Index).Style, Texts.Documents.Versioned)
-                 and then Choice <= Natural (Texts.Documents.Run (Document (Item).all, Index).Versions.Length);
+   with
+     Pre =>
+       Is_Attached (Item)
+       and then not Is_Read_Only (Item)
+       and then Index <= Texts.Documents.Run_Count (Document (Item).all)
+       and then Texts.Documents."=" (Texts.Documents.Run (Document (Item).all, Index).Style, Texts.Documents.Versioned)
+       and then Choice <= Natural (Texts.Documents.Run (Document (Item).all, Index).Versions.Length);
    --  As Texts.Documents.Choose_Version, as its own undo step, with the
    --  caret after the text. The caller invalidates the owning widget.
 
    type Deletion is (Character, Word, Line_Part);
 
-   procedure Delete_Backward
-     (Item : in out Text_Area; By : Deletion := Character)
-     with Pre => Is_Attached (Item);
-   procedure Delete_Forward
-     (Item : in out Text_Area; By : Deletion := Character)
-     with Pre => Is_Attached (Item);
+   procedure Delete_Backward (Item : in out Text_Area; By : Deletion := Character)
+   with Pre => Is_Attached (Item);
+   procedure Delete_Forward (Item : in out Text_Area; By : Deletion := Character)
+   with Pre => Is_Attached (Item);
    --  Delete the selection, if there is one; otherwise the character,
    --  the word, or the rest of the line, before or after the caret. At
    --  the start or end of a paragraph, join it to the one before or
    --  after.
 
-   procedure Copy
-     (Item  : in out Text_Area;
-      Board : in out Clipboards.Clipboard'Class)
-     with Pre => Is_Attached (Item);
+   procedure Copy (Item : in out Text_Area; Board : in out Clipboards.Clipboard'Class)
+   with Pre => Is_Attached (Item);
    --  Put the selection on Board, if there is one.
 
-   procedure Cut
-     (Item  : in out Text_Area;
-      Board : in out Clipboards.Clipboard'Class)
-     with Pre => Is_Attached (Item);
+   procedure Cut (Item : in out Text_Area; Board : in out Clipboards.Clipboard'Class)
+   with Pre => Is_Attached (Item);
    --  Copy the selection, and delete it.
 
-   procedure Paste
-     (Item  : in out Text_Area;
-      Board : in out Clipboards.Clipboard'Class)
-     with Pre => Is_Attached (Item);
+   procedure Paste (Item : in out Text_Area; Board : in out Clipboards.Clipboard'Class)
+   with Pre => Is_Attached (Item);
    --  Insert what is on Board, in place of the selection.
 
    --  Undoing
 
    procedure Undo (Item : in out Text_Area)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Take back the document's last step not taken back, if there is
    --  one, selecting what it restored.
 
    procedure Redo (Item : in out Text_Area)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Make the last step taken back again, selecting what it made.
 
    --  Input methods, which show what they are given before they send it
    --  as typing
 
-   procedure Compose
-     (Item   : in out Text_Area;
-      Shown  : String;
-      Cursor : Natural)
-     with Pre => Is_Attached (Item);
+   procedure Compose (Item : in out Text_Area; Shown : String; Cursor : Natural)
+   with Pre => Is_Attached (Item);
    --  Show Shown, in UTF-8, underlined in place of the selection, with
    --  the caret after Cursor characters of it (at its end, if there are
    --  fewer); "" to show none. Insert takes its place. It is not an edit
@@ -442,10 +429,8 @@ package Pomarine.Text_Areas is
 
    function Is_Composing (Item : Text_Area) return Boolean;
 
-   procedure Caret_Box
-     (Item : in out Text_Area;
-      X, Y, Width, Height : out Float)
-     with Pre => Is_Attached (Item);
+   procedure Caret_Box (Item : in out Text_Area; X, Y, Width, Height : out Float)
+   with Pre => Is_Attached (Item);
    --  Where the caret is drawn, in pixels, as to show an input method's
    --  choices beside it.
 
@@ -455,10 +440,7 @@ package Pomarine.Text_Areas is
 
    Blink_Period : constant := 500;  --  milliseconds
 
-   procedure Tick
-     (Item    : in out Text_Area;
-      Now     : Pomarine.Events.Milliseconds;
-      Changed : out Boolean);
+   procedure Tick (Item : in out Text_Area; Now : Pomarine.Events.Milliseconds; Changed : out Boolean);
    --  Say the time is Now, as Pomarine.Events.Ticks; events tell it too.
    --  Changed says whether the caret has shown or hidden since the time
    --  was last said.
@@ -470,18 +452,18 @@ package Pomarine.Text_Areas is
    function Is_Caret_Shown (Item : Text_Area) return Boolean;
 
    procedure Set_Caret_Visible (Item : in out Text_Area; To : Boolean := True)
-     with Post => To or else not Is_Caret_Shown (Item);
+   with Post => To or else not Is_Caret_Shown (Item);
    --  Allow drawing the caret (on by default). Focus, navigation and
    --  text selection still work when the caret is hidden.
 
    function Until_Blink (Item : Text_Area) return Pomarine.Events.Milliseconds
-     with Post => Until_Blink'Result in 1 .. Blink_Period;
+   with Post => Until_Blink'Result in 1 .. Blink_Period;
    --  How long after the time last said it shows or hides.
 
    --  Scrolling
 
    procedure Scroll (Item : in out Text_Area; By : Float)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Move what is shown By layout units down the text (up, if negative),
    --  but not past either end. The caret stays where it is.
 
@@ -489,7 +471,7 @@ package Pomarine.Text_Areas is
    --  How far down the text what is shown starts, in layout units.
 
    procedure Scroll_To (Item : in out Text_Area; Top : Float)
-     with Pre => Is_Attached (Item) and then Top >= 0.0;
+   with Pre => Is_Attached (Item) and then Top >= 0.0;
    --  Show the text from Top (as Scroll_Top says), but not past the end.
    --  The caret stays where it is.
 
@@ -497,8 +479,7 @@ package Pomarine.Text_Areas is
    --  Say whether the pointer is over it, which shows the scroll bar (it
    --  is told so by mouse moves in it, but not when the pointer leaves).
 
-   procedure Take_Bar_Change
-     (Item : in out Text_Area; Changed : out Boolean);
+   procedure Take_Bar_Change (Item : in out Text_Area; Changed : out Boolean);
    --  Whether the scroll bar has changed how it looks, since last asked,
    --  so that it is to be drawn again.
 
@@ -509,7 +490,7 @@ package Pomarine.Text_Areas is
       Event   : Pomarine.Events.Event;
       Board   : in out Clipboards.Clipboard'Class;
       Handled : out Boolean)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Take Event if it is for the text area, and say so; then it is to be
    --  drawn again.
    --
@@ -541,7 +522,7 @@ package Pomarine.Text_Areas is
       Settled   : Boolean := True;
       Rows_From : Float := Float'First;
       Rows_To   : Float := Float'Last)
-     with Pre => Is_Attached (Item);
+   with Pre => Is_Attached (Item);
    --  Draw it where it was placed. Settled says the zoom is not changing:
    --  see Typeset.Views.
    --
@@ -563,75 +544,75 @@ private
    use type Pomarine.Events.Milliseconds;
 
    type Highlight is record
-      From, To : Position;
+      From, To  : Position;
       Fill, Ink : Themes.Color;
    end record;
    type Highlight_Array is array (1 .. Max_Highlights) of Highlight;
 
    type Text_Area is limited record
-      Doc      : Document_Access;
-      Serial   : Natural := 0;  --  of Doc, when attached
-      Seen     : Texts.Documents.Version := 0;
+      Doc              : Document_Access;
+      Serial           : Natural := 0;  --  of Doc, when attached
+      Seen             : Texts.Documents.Version := 0;
       --  Of Doc: the caret, the selection and what is shown are as of
       --  then.
-      Laid     : Typeset.Layouts.Layout;
-      View     : Typeset.Views.View;
-      Measure  : Float := 1.0;
-      Toolbar  : Boolean := False;
-      Indent   : Float := 0.0;
-      Pending_Formats : Texts.Documents.Format_Set := Texts.Documents.No_Formats;
+      Laid             : Typeset.Layouts.Layout;
+      View             : Typeset.Views.View;
+      Measure          : Float := 1.0;
+      Toolbar          : Boolean := False;
+      Indent           : Float := 0.0;
+      Pending_Formats  : Texts.Documents.Format_Set := Texts.Documents.No_Formats;
       Explicit_Formats : Boolean := False;
-      Pending_Size   : Natural := 0;
-      Pending_Family : Ada.Strings.Unbounded.Unbounded_String;
-      Single   : Boolean := False;
-      Read_Only : Boolean := False;
-      Grows    : Boolean := False;
-      Radius   : Float := Themes.Small_Radius;
-      Returned : Boolean := False;
-      Across_Scroll : Float := 0.0;
-      Lead     : Float := 0.0;  --  in points: see Set_Lead
-      Trail    : Float := 0.0;  --  in points: see Set_Trail
+      Pending_Size     : Natural := 0;
+      Pending_Family   : Ada.Strings.Unbounded.Unbounded_String;
+      Single           : Boolean := False;
+      Read_Only        : Boolean := False;
+      Grows            : Boolean := False;
+      Radius           : Float := Themes.Small_Radius;
+      Returned         : Boolean := False;
+      Across_Scroll    : Float := 0.0;
+      Lead             : Float := 0.0;  --  in points: see Set_Lead
+      Trail            : Float := 0.0;  --  in points: see Set_Trail
       --  For one line: how far its start is left of the padding, in
       --  pixels.
 
       Left, Top, Width, Height : Float := 0.0;  --  in pixels
-      Density  : Float := 1.0;
-      Zoom     : Float := 1.0;
+      Density                  : Float := 1.0;
+      Zoom                     : Float := 1.0;
 
-      Anchor   : Positive := 1;
-      Offset   : Float := 0.0;
+      Anchor : Positive := 1;
+      Offset : Float := 0.0;
       --  The top of what is shown, from the top of paragraph Anchor.
 
-      At_Caret : Position;
-      At_Mark  : Position;
-      Has_Goal : Boolean := False;
-      Goal     : Float := 0.0;
+      At_Caret              : Position;
+      At_Mark               : Position;
+      Has_Goal              : Boolean := False;
+      Goal                  : Float := 0.0;
       --  How far across the caret is to go, moving up and down: where it
       --  was before it moved so.
-      Focused  : Boolean := False;
-      Dragging : Boolean := False;
-      Drag_Words : Boolean := False;
+      Focused               : Boolean := False;
+      Dragging              : Boolean := False;
+      Drag_Words            : Boolean := False;
       Drag_First, Drag_Stop : Position := (1, 1);
-      Bar      : Scrollbars.Bar;
-      Bar_Dirty : Boolean := False;
+      Bar                   : Scrollbars.Bar;
+      Bar_Dirty             : Boolean := False;
 
-      Faint_On      : Boolean := False;
-      Faint_From    : Position;
-      Faint_To      : Position;
-      Faint_Version : Texts.Documents.Version := 0;
-      Found : Pomarine.Searches.Results;
-      Search_Term : Ada.Strings.Unbounded.Unbounded_String;
-      Search_Seen : Texts.Documents.Version := 0;
-      Search_Serial : Natural := 0;
-      Highlights : Highlight_Array;
-      Highlight_Total : Natural range 0 .. Max_Highlights := 0;
+      Faint_On          : Boolean := False;
+      Faint_From        : Position;
+      Faint_To          : Position;
+      Faint_Version     : Texts.Documents.Version := 0;
+      Found             : Pomarine.Searches.Results;
+      Search_Term       : Ada.Strings.Unbounded.Unbounded_String;
+      Search_Seen       : Texts.Documents.Version := 0;
+      Search_Serial     : Natural := 0;
+      Highlights        : Highlight_Array;
+      Highlight_Total   : Natural range 0 .. Max_Highlights := 0;
       Highlight_Version : Texts.Documents.Version := 0;
-      Highlight_Serial : Natural := 0;
+      Highlight_Serial  : Natural := 0;
       --  The text from Faint_From to Faint_To is drawn faintly, if the
       --  document is still as of Faint_Version.
 
-      Composing : Boolean := False;
-      Composed  : Position;  --  where the input method's text starts
+      Composing       : Boolean := False;
+      Composed        : Position;  --  where the input method's text starts
       Composed_Length : Natural := 0;  --  in bytes
 
       Caret_Kept    : Boolean := False;
@@ -646,15 +627,15 @@ private
       --  units, which take shaping to find, as of the position, document
       --  and width of lines in the other fields.
 
-      Now      : Pomarine.Events.Milliseconds := 0;
-      Since    : Pomarine.Events.Milliseconds := 0;
+      Now                 : Pomarine.Events.Milliseconds := 0;
+      Since               : Pomarine.Events.Milliseconds := 0;
       --  When the caret last moved, or the text was edited.
-      Caret_On : Boolean := True;
-      Caret_Visible : Boolean := True;
+      Caret_On            : Boolean := True;
+      Caret_Visible       : Boolean := True;
       Keyboard_Navigation : Boolean := True;
    end record;
 
-   function Has_Toolbar (Item : Text_Area) return Boolean is
-     (Item.Toolbar and then not Item.Single and then not Item.Read_Only);
+   function Has_Toolbar (Item : Text_Area) return Boolean
+   is (Item.Toolbar and then not Item.Single and then not Item.Read_Only);
 
 end Pomarine.Text_Areas;

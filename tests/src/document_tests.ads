@@ -1,6 +1,7 @@
 --  Tests of documents (Texts.Documents) and their layouts
 --  (Typeset.Layouts) without drawing: text, ids, kinds, the history, the
 --  log of changes, and lines kept right through edits. See Goldens.
+
 package Document_Tests is
 
    procedure Loading;

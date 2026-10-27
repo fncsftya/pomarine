@@ -16,11 +16,7 @@ package SDL3.Windows.Renderers is
    Debug_Text_Size : constant := 8;
    --  Width and height in pixels of one Draw_Text character at Scale 1.
 
-   procedure Create
-     (Item       : in out Renderer;
-      Target     : Window;
-      VSync      : Boolean := True;
-      Keep_Frame : Boolean := True);
+   procedure Create (Item : in out Renderer; Target : Window; VSync : Boolean := True; Keep_Frame : Boolean := True);
    --  With VSync, Present waits for the display's refresh: no tearing,
    --  and it paces the render loop. Without it frames are as fast as
    --  they can be drawn, as for measuring.
@@ -32,12 +28,11 @@ package SDL3.Windows.Renderers is
    --  swapped, and are not as they were left: draw each one all.
 
    procedure Set_VSync (Item : in out Renderer; On : Boolean)
-     with Pre => not Is_Offscreen (Item);
+   with Pre => not Is_Offscreen (Item);
    --  Make Present wait for the display's refresh, or not, as Create's VSync.
 
-   procedure Create_Offscreen
-     (Item : in out Renderer; Width, Height : Positive)
-     with Post => Is_Offscreen (Item);
+   procedure Create_Offscreen (Item : in out Renderer; Width, Height : Positive)
+   with Post => Is_Offscreen (Item);
    --  Draw, without a window, into a Width x Height image of its own, in
    --  software: the same drawing gives the same pixels every time, as for
    --  testing. Read them with Images.Read.
@@ -54,70 +49,50 @@ package SDL3.Windows.Renderers is
    --  Do it before drawing a frame. Nothing is done otherwise.
 
    procedure Resize (Item : in out Renderer; Width, Height : Positive)
-     with Pre => Is_Offscreen (Item);
+   with Pre => Is_Offscreen (Item);
    --  Make the image Width x Height, losing what is drawn.
 
-   procedure Output_Size
-     (Item : Renderer; Width, Height : out Natural);
+   procedure Output_Size (Item : Renderer; Width, Height : out Natural);
    --  Size of the drawable area in pixels: of the image drawn to, which
    --  Fit makes the window's size.
 
    procedure Clear (Item : Renderer; Value : Color);
 
-   procedure Fill_Rect
-     (Item : Renderer;
-      Value : Color;
-      X, Y, Width, Height : Float);
+   procedure Fill_Rect (Item : Renderer; Value : Color; X, Y, Width, Height : Float);
 
    type Blends is (Solid, Multiply, Add);
    --  How a fill meets what is behind: Solid, as Fill_Rect does; Multiply,
    --  where white takes on the colour and black stays black; Add, where
    --  black takes on the colour and white stays white.
 
-   procedure Fill_Rect
-     (Item : Renderer;
-      Value : Color;
-      Blend : Blends;
-      X, Y, Width, Height : Float);
+   procedure Fill_Rect (Item : Renderer; Value : Color; Blend : Blends; X, Y, Width, Height : Float);
    --  The colour's alpha is not used, unless Solid.
 
    type Point is record
       X, Y : Float;
    end record
-     with Convention => C;
+   with Convention => C;
 
-   type Point_Array is array (Positive range <>) of Point
-     with Convention => C;
+   type Point_Array is array (Positive range <>) of Point with Convention => C;
 
-   procedure Fill_Triangles
-     (Item           : Renderer;
-      Value          : Color;
-      Points         : Point_Array;
-      Triangle_Count : Natural)
-     with Pre => Points'Length >= 3 * Triangle_Count;
+   procedure Fill_Triangles (Item : Renderer; Value : Color; Points : Point_Array; Triangle_Count : Natural)
+   with Pre => Points'Length >= 3 * Triangle_Count;
    --  Fill Triangle_Count triangles, each three consecutive Points, with
    --  the colour, blended with what is behind by its alpha. The edges are
    --  not smoothed.
 
-   procedure Draw_Line
-     (Item : Renderer;
-      Value : Color;
-      From_X, From_Y, To_X, To_Y : Float;
-      Width : Float := 1.0)
-     with Pre => Width > 0.0;
+   procedure Draw_Line (Item : Renderer; Value : Color; From_X, From_Y, To_X, To_Y : Float; Width : Float := 1.0)
+   with Pre => Width > 0.0;
    --  A straight line Width pixels wide, its edges smoothed, blended with
    --  what is behind by the colour's alpha.
 
-   procedure Fill_Circle
-     (Item : Renderer;
-      Value : Color;
-      Centre_X, Centre_Y, Radius : Float)
-     with Pre => Radius > 0.0;
+   procedure Fill_Circle (Item : Renderer; Value : Color; Centre_X, Centre_Y, Radius : Float)
+   with Pre => Radius > 0.0;
    --  A disc, its edge smoothed, blended with what is behind by the
    --  colour's alpha.
 
    procedure Set_Clip (Item : Renderer; X, Y, Width, Height : Integer)
-     with Pre => Width >= 0 and then Height >= 0;
+   with Pre => Width >= 0 and then Height >= 0;
    --  Draw only into the rectangle Width x Height pixels with its top
    --  left at X, Y, until Clear_Clip.
 
@@ -135,9 +110,8 @@ package SDL3.Windows.Renderers is
    No_Clip : constant Clip;
    --  Draws anywhere.
 
-   function Narrowed
-     (Value : Clip; X, Y, Width, Height : Integer) return Clip
-     with Pre => Width >= 0 and then Height >= 0;
+   function Narrowed (Value : Clip; X, Y, Width, Height : Integer) return Clip
+   with Pre => Width >= 0 and then Height >= 0;
    --  Value, and only the rectangle Width x Height pixels with its top
    --  left at X, Y: what Narrow_Clip makes of the clip, without a
    --  renderer, for a painter that records.
@@ -148,16 +122,11 @@ package SDL3.Windows.Renderers is
    --  Set the clip to Value, as Current_Clip gave it.
 
    procedure Narrow_Clip (Item : Renderer; X, Y, Width, Height : Integer)
-     with Pre => Width >= 0 and then Height >= 0;
+   with Pre => Width >= 0 and then Height >= 0;
    --  Draw only where the clip allows and in the rectangle Width x Height
    --  pixels with its top left at X, Y, until Restore_Clip.
 
-   procedure Draw_Text
-     (Item  : Renderer;
-      Value : Color;
-      X, Y  : Float;
-      Text  : String;
-      Scale : Positive := 1);
+   procedure Draw_Text (Item : Renderer; Value : Color; X, Y : Float; Text : String; Scale : Positive := 1);
    --  Draw Text with SDL's built-in 8x8 debug font; the result is
    --  Text'Length * Debug_Text_Size * Scale pixels wide.
 
@@ -172,18 +141,19 @@ package SDL3.Windows.Renderers is
 private
 
    type Clip is record
-      Enabled : Boolean := False;
+      Enabled             : Boolean := False;
       X, Y, Width, Height : Integer := 0;
    end record;
 
    No_Clip : constant Clip := (Enabled => False, others => 0);
 
-   function Is_Clipped (Value : Clip) return Boolean is (Value.Enabled);
+   function Is_Clipped (Value : Clip) return Boolean
+   is (Value.Enabled);
 
    type Renderer is new Ada.Finalization.Limited_Controlled with record
-      Handle : System.Address := System.Null_Address;
-      Surface : System.Address := System.Null_Address;
-      Canvas  : System.Address := System.Null_Address;
+      Handle                      : System.Address := System.Null_Address;
+      Surface                     : System.Address := System.Null_Address;
+      Canvas                      : System.Address := System.Null_Address;
       --  Offscreen, the surface the renderer is made for, and the texture
       --  it draws to: a target texture can be resized, a surface not. In
       --  a window, with Keep_Frame, the texture it draws to, to copy to
@@ -191,6 +161,7 @@ private
       Canvas_Width, Canvas_Height : Natural := 0;
    end record;
 
-   overriding procedure Finalize (Item : in out Renderer);
+   overriding
+   procedure Finalize (Item : in out Renderer);
 
 end SDL3.Windows.Renderers;

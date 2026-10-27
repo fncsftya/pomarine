@@ -14,6 +14,7 @@ with Todo_VM;
 
 --  Keeping widgets and models in step: the first turn, the order of an edit and a command, the watches, and
 --  two models in one view.
+
 procedure UI_Sync_Test is
    package UI renames Pomarine.UI;
    package Testing renames Pomarine.Testing;
@@ -21,8 +22,8 @@ procedure UI_Sync_Test is
    package Forms renames Form_UI.Forms;
    package Docs renames Texts.Documents;
 
-   function Shown (Screen : UI.View; Field : UI.Field_Handle) return String is
-     (Docs.Whole (Widgets.Editors.Document (Widgets.Editors.Editor (UI.Widget_Of (Screen, Field).all)).all));
+   function Shown (Screen : UI.View; Field : UI.Field_Handle) return String
+   is (Docs.Whole (Widgets.Editors.Document (Widgets.Editors.Editor (UI.Widget_Of (Screen, Field).all)).all));
 
    procedure The_First_Turn_Is_Before_Anyone_Can_Use_It is
       Tree   : aliased Widgets.Tree;
@@ -153,12 +154,12 @@ procedure UI_Sync_Test is
    end Each_Binding_Watches_Its_Own_Version;
 
    procedure Two_Models_Share_A_View is
-      Tree    : aliased Widgets.Tree;
-      First   : aliased Form_VM.Model;
-      Second  : aliased Form_VM.Model;
-      Items   : aliased Todo_VM.Model;
-      Screen  : UI.View (Tree'Access);
-      Window  : Testing.Session;
+      Tree   : aliased Widgets.Tree;
+      First  : aliased Form_VM.Model;
+      Second : aliased Form_VM.Model;
+      Items  : aliased Todo_VM.Model;
+      Screen : UI.View (Tree'Access);
+      Window : Testing.Session;
    begin
       Todo_VM.Seed (Items);
       declare
@@ -168,8 +169,10 @@ procedure UI_Sync_Test is
          Part_1  : constant UI.Layout := Form_Parts.Form_Part (Bound_1, "A");
          Part_2  : constant UI.Layout := Form_Parts.Form_Part (Bound_2, "B");
          Part_3  : constant UI.Layout :=
-           UI.Column ([Todo.Task_Entry (Bound_3), Todo.Task_Content (Bound_3), Todo.Task_Actions (Bound_3)],
-                      Height => 260.0, Gap => 8.0);
+           UI.Column
+             ([Todo.Task_Entry (Bound_3), Todo.Task_Content (Bound_3), Todo.Task_Actions (Bound_3)],
+              Height => 260.0,
+              Gap    => 8.0);
       begin
          UI.Mount (Screen, UI.Column ([Part_1, Part_2, Part_3], Gap => 4.0));
       end;

@@ -1,6 +1,7 @@
 with Gallery_VM;
 
 --  The gallery's model alone, as its commands' contracts say, with no widgets.
+
 procedure Gallery_VM_Test is
    use Gallery_VM;
    State : Gallery_VM.Model;

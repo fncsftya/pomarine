@@ -1,4 +1,5 @@
 with Pomarine.Widgets.Nodes;
+
 package body Pomarine.Widgets.Focusing is
 
    use Pomarine.Widgets.Nodes;
@@ -25,8 +26,8 @@ package body Pomarine.Widgets.Focusing is
       end if;
    end Set_Focus;
 
-   function Is_Taker (Item : Tree; Slot : Node_Index) return Boolean is
-     (Item.Nodes.Spot (Slot).Visible and then Is_Focusable (Item.Nodes.Object (Slot).all));
+   function Is_Taker (Item : Tree; Slot : Node_Index) return Boolean
+   is (Item.Nodes.Spot (Slot).Visible and then Is_Focusable (Item.Nodes.Object (Slot).all));
    --  Whether Slot is one the focus may go to.
 
    procedure Next_Focus (Item : in out Tree; Backwards : Boolean := False) is

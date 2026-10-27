@@ -3,19 +3,15 @@ package body Pomarine.Testing.Hearers is
    use type System.Address;
    use type Pomarine.Widgets.Event_Kind;
 
-   overriding procedure Handle_Event
-     (Self   : in out Hearer;
-      Source : in out Pomarine.Widgets.Widget'Class;
-      Event  : Pomarine.Widgets.Widget_Event) is
+   overriding
+   procedure Handle_Event
+     (Self : in out Hearer; Source : in out Pomarine.Widgets.Widget'Class; Event : Pomarine.Widgets.Widget_Event) is
    begin
       Self.Log.Append (Heard'(From => Source'Address, Event => Event));
    end Handle_Event;
 
    procedure Find
-     (Self   : Hearer;
-      Source : Pomarine.Widgets.Widget'Class;
-      Kind   : Pomarine.Widgets.Event_Kind;
-      Found  : out Natural) is
+     (Self : Hearer; Source : Pomarine.Widgets.Widget'Class; Kind : Pomarine.Widgets.Event_Kind; Found : out Natural) is
    begin
       Found := 0;
       for Each in 1 .. Natural (Self.Log.Length) loop
@@ -74,9 +70,10 @@ package body Pomarine.Testing.Hearers is
          declare
             Said : constant Pomarine.Widgets.Widget_Event := Self.Log (Found).Event;
          begin
-            Row := (case Said.Kind is
-                       when Pomarine.Widgets.Choose | Pomarine.Widgets.Act => Said.Row,
-                       when others => 0);
+            Row :=
+              (case Said.Kind is
+                 when Pomarine.Widgets.Choose | Pomarine.Widgets.Act => Said.Row,
+                 when others                                         => 0);
          end;
          Self.Log.Delete (Found);
       end if;

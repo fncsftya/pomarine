@@ -9,6 +9,7 @@ with Pomarine.Words;
 --  anyway).
 --
 --  Only one thread, the caller's, may use the subprograms here.
+
 package Pomarine.Page_Builds is
 
    use type Pomarine.Pages.Source_Access;
@@ -24,37 +25,26 @@ package Pomarine.Page_Builds is
 
    type Result_Access is access Pomarine.Words.Result;
 
-   procedure Request_Sizes
-     (Source : Pomarine.Pages.Source_Access;
-      Count  : Positive;
-      Job    : out Ticket)
-     with Pre => Source /= null;
+   procedure Request_Sizes (Source : Pomarine.Pages.Source_Access; Count : Positive; Job : out Ticket)
+   with Pre => Source /= null;
    --  Begin to measure the first Count pages of what Source reads (see
    --  Pomarine.Pages.Measure), in the order of the pages asked for.
 
-   procedure Request
-     (Source : Pomarine.Pages.Source_Access;
-      Index  : Positive;
-      Job    : out Ticket)
-     with Pre => Source /= null;
+   procedure Request (Source : Pomarine.Pages.Source_Access; Index : Positive; Job : out Ticket)
+   with Pre => Source /= null;
    --  Begin to make page Index of what Source reads. Raises Program_Error
    --  if there are Max_Builds outstanding. Source is used until the ticket
    --  is taken or cancelled, so is not to change before then.
 
    function State (Job : Ticket) return States;
 
-   procedure Take
-     (Job     : Ticket;
-      Content : out Pomarine.Pages.Page_Access;
-      Found   : out Result_Access)
-     with Pre => State (Job) = Done;
+   procedure Take (Job : Ticket; Content : out Pomarine.Pages.Page_Access; Found : out Result_Access)
+   with Pre => State (Job) = Done;
    --  The page and its words, which the caller is to free. The ticket is
    --  used up.
 
-   procedure Take_Sizes
-     (Job   : Ticket;
-      Sizes : out Pomarine.Pages.Size_Array_Access)
-     with Pre => State (Job) = Done;
+   procedure Take_Sizes (Job : Ticket; Sizes : out Pomarine.Pages.Size_Array_Access)
+   with Pre => State (Job) = Done;
    --  The sizes, which the caller is to free. The ticket is used up.
 
    procedure Cancel (Job : Ticket);

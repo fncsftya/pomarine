@@ -20,6 +20,7 @@ with Yoga.Nodes;
 --  and without: widget_bench [paragraphs [frames]]. Each is the time to
 --  draw one frame, averaged over many, not counting presenting it: that
 --  waits for the display, even without vsync.
+
 procedure Widget_Bench is
    package Events renames Pomarine.Events;
    package Renderers renames SDL3.Windows.Renderers;
@@ -34,8 +35,7 @@ procedure Widget_Bench is
    Colors  : constant Pomarine.Themes.Theme := Pomarine.Themes.Light;
    Density : constant Float := 2.0;
    Frames  : constant Positive :=
-     (if Ada.Command_Line.Argument_Count > 1
-      then Positive'Value (Ada.Command_Line.Argument (2)) else 300);
+     (if Ada.Command_Line.Argument_Count > 1 then Positive'Value (Ada.Command_Line.Argument (2)) else 300);
    --  Of each kind to measure.
    Blink   : constant := 500;  --  milliseconds, as the caret's
 
@@ -43,38 +43,36 @@ procedure Widget_Bench is
       Shown : String (1 .. 10);
    begin
       Ada.Float_Text_IO.Put (Shown, Millis, Aft => 3, Exp => 0);
-      Put_Line ("  " & What & (1 .. Integer'Max (1, 44 - What'Length) => ' ')
-                & Shown & " ms");
+      Put_Line ("  " & What & (1 .. Integer'Max (1, 44 - What'Length) => ' ') & Shown & " ms");
    end Report;
 
    Spent : Duration := 0.0;
    --  Of the frames of this run, not counting presenting them: that waits
    --  for the display, even without vsync.
 
-   function Average return Float is
-     (Float (Spent) * 1000.0 / Float (Frames));
+   function Average return Float
+   is (Float (Spent) * 1000.0 / Float (Frames));
 
    Win    : SDL3.Windows.Window;
    Target : Renderers.Renderer;
 
    procedure Measure (Source : String; Keep : Boolean) is
-      Tree   : Widgets.Tree;
-      Root   : aliased Widgets.Panels.Panel;
-      Bar    : aliased Widgets.Panels.Panel;
-      Button : aliased Widgets.Buttons.Button;
+      Tree     : Widgets.Tree;
+      Root     : aliased Widgets.Panels.Panel;
+      Bar      : aliased Widgets.Panels.Panel;
+      Button   : aliased Widgets.Buttons.Button;
       Text_Box : aliased Widgets.Editors.Editor;
-      Doc    : aliased Docs.Document;
-      Board  : Pomarine.Clipboards.Memory_Clipboard;
-      Handled : Boolean;
-      Start   : Time;
-      Now     : Pomarine.Events.Milliseconds := 0;
+      Doc      : aliased Docs.Document;
+      Board    : Pomarine.Clipboards.Memory_Clipboard;
+      Handled  : Boolean;
+      Start    : Time;
+      Now      : Pomarine.Events.Milliseconds := 0;
 
       procedure Frame is
          Resized : Boolean;
       begin
          Renderers.Fit (Target, Resized);
-         Widgets.Paint
-           (Tree, Target, Colors, Retained => Renderers.Keeps_Frame (Target));
+         Widgets.Paint (Tree, Target, Colors, Retained => Renderers.Keeps_Frame (Target));
       end Frame;
 
       procedure Finish (Started : Time) is
@@ -83,9 +81,8 @@ procedure Widget_Bench is
          Renderers.Present (Target);
       end Finish;
 
-      function Move (X : Float) return Events.Event is
-        ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => 16.0,
-          others => <>));
+      function Move (X : Float) return Events.Event
+      is ((Kind => Events.Mouse_Move, Mouse_X => X, Mouse_Y => 16.0, others => <>));
    begin
       Renderers.Create (Target, Win, VSync => False, Keep_Frame => Keep);
       Docs.Load (Doc, Source);
@@ -105,15 +102,13 @@ procedure Widget_Bench is
       Nodes.Set_Padding (Widgets.Node (Bar), Yoga.All_Edges, 4.0 * Density);
       Nodes.Set_Width (Widgets.Node (Button), 80.0 * Density);
       Nodes.Set_Flex_Grow (Widgets.Node (Text_Box), 1.0);
-      Nodes.Set_Margin
-        (Widgets.Node (Text_Box), Yoga.All_Edges, 16.0 * Density);
+      Nodes.Set_Margin (Widgets.Node (Text_Box), Yoga.All_Edges, 16.0 * Density);
       Frame;
       Renderers.Present (Target);
       Frame;
       Renderers.Present (Target);
 
-      Put_Line (if Keep then " frame kept (draw what changed):"
-                else " frame not kept (draw all):");
+      Put_Line (if Keep then " frame kept (draw what changed):" else " frame not kept (draw all):");
 
       Spent := 0.0;
       for K in 1 .. Frames loop
@@ -159,8 +154,7 @@ procedure Widget_Bench is
       Spent := 0.0;
       for K in 1 .. Frames loop
          Start := Clock;
-         Widgets.Dispatch
-           (Tree, Move (if K mod 2 = 0 then 20.0 else 600.0), Handled);
+         Widgets.Dispatch (Tree, Move (if K mod 2 = 0 then 20.0 else 600.0), Handled);
          Frame;
          Finish (Start);
       end loop;
@@ -177,16 +171,13 @@ procedure Widget_Bench is
 
 begin
    SDL3.Initialize;
-   SDL3.Windows.Create
-     (Win, "bench", 1000, 800, High_Density => True, Hidden => True);
+   SDL3.Windows.Create (Win, "bench", 1000, 800, High_Density => True, Hidden => True);
    declare
       Paragraphs : constant Positive :=
-        (if Ada.Command_Line.Argument_Count > 0
-         then Positive'Value (Ada.Command_Line.Argument (1)) else 1_000);
-      Source : constant String := Typeset.Samples.Document (Paragraphs);
+        (if Ada.Command_Line.Argument_Count > 0 then Positive'Value (Ada.Command_Line.Argument (1)) else 1_000);
+      Source     : constant String := Typeset.Samples.Document (Paragraphs);
    begin
-      Put_Line (Paragraphs'Image & " paragraphs," & Source'Length'Image
-                & " bytes:");
+      Put_Line (Paragraphs'Image & " paragraphs," & Source'Length'Image & " bytes:");
       Measure (Source, Keep => True);
       Measure (Source, Keep => False);
    end;

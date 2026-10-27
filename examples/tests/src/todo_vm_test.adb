@@ -6,8 +6,8 @@ with Pomarine.View_Models;
 procedure Todo_VM_Test is
    use Todo_VM;
    use type Pomarine.View_Models.Version_Number;
-   Item : Model;
-   Before : Pomarine.View_Models.Version_Number;
+   Item    : Model;
+   Before  : Pomarine.View_Models.Version_Number;
    Refused : Boolean := False;
 begin
    pragma Assert (not Can_Execute (Item, Add_Task));
@@ -16,7 +16,8 @@ begin
    begin
       Commands.Execute (Commands.Model'Class (Item), Add_Task);
    exception
-      when Ada.Assertions.Assertion_Error => Refused := True;
+      when Ada.Assertions.Assertion_Error =>
+         Refused := True;
    end;
    pragma Assert (Refused);
    Before := Version (Item);
@@ -52,10 +53,10 @@ begin
 
    --  A choice is of a task, not of a row.
    declare
-      Other : Model;
-      Held  : constant not null access Tasks.Task_List := Todo_VM.Rows (Other);
+      Other  : Model;
+      Held   : constant not null access Tasks.Task_List := Todo_VM.Rows (Other);
       Chosen : Natural;
-      Was   : Pomarine.View_Models.Version_Number;
+      Was    : Pomarine.View_Models.Version_Number;
    begin
       Seed (Other);
       Set_Draft (Other, "third");

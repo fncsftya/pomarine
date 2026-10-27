@@ -18,6 +18,7 @@ with Pomarine.Events;
 --  for the application to take, as a button's, and to show a menu of the values for (see Pomarine.Widgets.Menus); it
 --  says the one chosen with Set_Value. Turned off (Set_Enabled), it is tinted and
 --  faint, and takes nothing.
+
 package Pomarine.Widgets.Selects is
 
    type Select_Field is new Widget with private;
@@ -34,10 +35,10 @@ package Pomarine.Widgets.Selects is
    function Choice_Count (Item : Select_Field) return Natural;
 
    function Choice (Item : Select_Field; Index : Positive) return String
-     with Pre => Index <= Choice_Count (Item);
+   with Pre => Index <= Choice_Count (Item);
 
    procedure Choose (Item : in out Select_Field; Index : Positive)
-     with Pre => Index <= Choice_Count (Item), Post => Chosen (Item) = Index;
+   with Pre => Index <= Choice_Count (Item), Post => Chosen (Item) = Index;
    --  Make a choice its value, as the person would, but saying nothing.
 
    function Chosen (Item : Select_Field) return Natural;
@@ -55,40 +56,33 @@ package Pomarine.Widgets.Selects is
 
    function Is_Enabled (Item : Select_Field) return Boolean;
 
-   overriding procedure Handle
-     (Item    : in out Select_Field;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Select_Field; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Select_Field;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Select_Field; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Select_Field; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Select_Field; Hovered : Boolean);
 
-   overriding function Cursor
-     (Item : Select_Field) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Select_Field) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe
-     (Item  : Select_Field;
-      Facts : in out Semantics.Description);
-   overriding procedure Perform
-     (Item    : in out Select_Field;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Describe (Item : Select_Field; Facts : in out Semantics.Description);
+   overriding
+   procedure Perform (Item : in out Select_Field; Request : Semantics.Request; Done : out Boolean);
 
-   overriding procedure Command_State_Changed
-     (Item : in out Select_Field; State : Command_State);
+   overriding
+   procedure Command_State_Changed (Item : in out Select_Field; State : Command_State);
 
 private
 
-   package Choice_Vectors is new Ada.Containers.Vectors
-     (Positive, Ada.Strings.Unbounded.Unbounded_String, Ada.Strings.Unbounded."=");
+   package Choice_Vectors is new
+     Ada.Containers.Vectors (Positive, Ada.Strings.Unbounded.Unbounded_String, Ada.Strings.Unbounded."=");
 
    type Select_Field is new Widget with record
-      Text : Ada.Strings.Unbounded.Unbounded_String;
+      Text    : Ada.Strings.Unbounded.Unbounded_String;
       Choices : Choice_Vectors.Vector;
       Menu    : Menus.Menu;
       --  Its menu, added to the root of the tree when it is first opened.
@@ -96,7 +90,7 @@ private
       Enabled : Boolean := True;
       Down    : Boolean := False;
 
-      Faced   : Boolean := False;
+      Faced : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Selects;

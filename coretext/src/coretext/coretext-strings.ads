@@ -13,35 +13,29 @@ package CoreText.Strings is
    --  text is unchanged.
 
    procedure Set (Item : in out Text; Value : String)
-     with Post => Is_Set (Item) and then Length (Item) = UTF16_Length (Value);
+   with Post => Is_Set (Item) and then Length (Item) = UTF16_Length (Value);
    --  Replace Item's text with the UTF-8 Value.
 
-   procedure Replace
-     (Item        : in out Text;
-      First, Stop : Natural;
-      By          : String)
-     with Pre  => Is_Set (Item) and then First <= Stop
-                  and then Stop <= Length (Item),
-          Post => Length (Item)
-                  = Length (Item)'Old - (Stop - First) + UTF16_Length (By)
-                  and then Is_Set (Item);
+   procedure Replace (Item : in out Text; First, Stop : Natural; By : String)
+   with
+     Pre  => Is_Set (Item) and then First <= Stop and then Stop <= Length (Item),
+     Post => Length (Item) = Length (Item)'Old - (Stop - First) + UTF16_Length (By) and then Is_Set (Item);
    --  Replace the UTF-16 range [First, Stop) with the UTF-8 By, in place:
    --  as the text it holds is edited, without making it again from the
    --  whole. The first replacement copies it once, to be changeable.
 
    procedure Clear (Item : in out Text)
-     with Post => not Is_Set (Item);
+   with Post => not Is_Set (Item);
 
    function Is_Set (Item : Text) return Boolean;
 
    function Length (Item : Text) return Natural;
    --  In UTF-16 units; 0 if not set.
 
-   procedure Cluster
-     (Item : Text; Unit : Natural; First, Stop : out Natural)
-     with Pre  => Is_Set (Item) and then Unit < Length (Item),
-          Post => First <= Unit and then Unit < Stop
-                  and then Stop <= Length (Item);
+   procedure Cluster (Item : Text; Unit : Natural; First, Stop : out Natural)
+   with
+     Pre  => Is_Set (Item) and then Unit < Length (Item),
+     Post => First <= Unit and then Unit < Stop and then Stop <= Length (Item);
    --  The UTF-16 range [First, Stop) of the character Unit is part of,
    --  as a reader sees one: a letter and its accents, an emoji and its
    --  modifiers, a surrogate pair. Move and delete by these.
@@ -50,61 +44,60 @@ package CoreText.Strings is
    --  the spaces and punctuation between them.
 
    function Previous_Word_Start (Item : Text; Unit : Natural) return Natural
-     with Pre  => Is_Set (Item) and then Unit <= Length (Item),
-          Post => Previous_Word_Start'Result <= Unit
-                  and then (Unit = 0
-                            or else Previous_Word_Start'Result < Unit);
+   with
+     Pre  => Is_Set (Item) and then Unit <= Length (Item),
+     Post => Previous_Word_Start'Result <= Unit and then (Unit = 0 or else Previous_Word_Start'Result < Unit);
    --  Where the last word that starts before Unit starts; 0 if none does.
 
    function Next_Word_Stop (Item : Text; Unit : Natural) return Natural
-     with Pre  => Is_Set (Item) and then Unit <= Length (Item),
-          Post => Next_Word_Stop'Result >= Unit
-                  and then Next_Word_Stop'Result <= Length (Item)
-                  and then (Unit = Length (Item)
-                            or else Next_Word_Stop'Result > Unit);
+   with
+     Pre  => Is_Set (Item) and then Unit <= Length (Item),
+     Post =>
+       Next_Word_Stop'Result >= Unit
+       and then Next_Word_Stop'Result <= Length (Item)
+       and then (Unit = Length (Item) or else Next_Word_Stop'Result > Unit);
    --  Where the first word that ends after Unit ends; the end of the text
    --  if none does.
 
-   procedure Word_At
-     (Item : Text; Unit : Natural; First, Stop : out Natural)
-     with Pre  => Is_Set (Item) and then Unit <= Length (Item),
-          Post => First <= Unit and then Unit <= Stop
-                  and then Stop <= Length (Item);
+   procedure Word_At (Item : Text; Unit : Natural; First, Stop : out Natural)
+   with
+     Pre  => Is_Set (Item) and then Unit <= Length (Item),
+     Post => First <= Unit and then Unit <= Stop and then Stop <= Length (Item);
    --  The UTF-16 range [First, Stop) of the word Unit is in, or that ends
    --  at Unit; First = Stop = Unit if there is none.
 
    procedure Clear_Styles (Item : in out Text);
    procedure Add_Style
-     (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean;
-      Size : Float := 0.0; Family : String := "")
-     with Pre => First < Stop and then Stop <= Length (Item);
+     (Item : in out Text; First, Stop : Natural; Bold, Italic : Boolean; Size : Float := 0.0; Family : String := "")
+   with Pre => First < Stop and then Stop <= Length (Item);
    --  Set the range in bold and italic, if they are, and in a size and
    --  family of its own, if it has them (0.0 and "" for those of the font).
    function Attributed (Item : Text; Using : Fonts.Font; First, Stop : Natural) return System.Address
-     with Pre => Is_Set (Item) and then First <= Stop and then Stop <= Length (Item);
+   with Pre => Is_Set (Item) and then First <= Stop and then Stop <= Length (Item);
    --  Owned CFAttributedStringRef; caller releases it.
 
    function Handle (Item : Text) return System.Address
-     with Pre => Is_Set (Item);
+   with Pre => Is_Set (Item);
    --  The CFStringRef, for CoreText's own packages.
 
 private
 
    type Style_Run is record
-      First, Stop : Natural;
+      First, Stop  : Natural;
       Bold, Italic : Boolean;
-      Size   : Float;
-      Family : Ada.Strings.Unbounded.Unbounded_String;
+      Size         : Float;
+      Family       : Ada.Strings.Unbounded.Unbounded_String;
    end record;
    package Style_Vectors is new Ada.Containers.Vectors (Positive, Style_Run);
 
    type Text is new Ada.Finalization.Limited_Controlled with record
-      Styles : Style_Vectors.Vector;
-      Ref   : System.Address := System.Null_Address;
-      Units : Natural := 0;
+      Styles  : Style_Vectors.Vector;
+      Ref     : System.Address := System.Null_Address;
+      Units   : Natural := 0;
       Mutable : Boolean := False;  --  Ref is a CFMutableString
    end record;
 
-   overriding procedure Finalize (Item : in out Text);
+   overriding
+   procedure Finalize (Item : in out Text);
 
 end CoreText.Strings;

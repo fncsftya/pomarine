@@ -7,13 +7,14 @@ with Pomarine.Widgets.Editors.Links;
 with Pomarine.Widgets.Editors.Metrics;
 with Pomarine.Widgets.Editors.Toolbars;
 with Pomarine.Widgets.Editors.Versions;
+
 package body Pomarine.Widgets.Editors is
 
-   function Document (Item : Editor) return not null access constant Texts.Documents.Document is
-     (Text_Areas.Document (Item.Text));
+   function Document (Item : Editor) return not null access constant Texts.Documents.Document
+   is (Text_Areas.Document (Item.Text));
 
-   function Highlight_Count (Item : Editor) return Natural is
-     (Text_Areas.Highlight_Count (Item.Text));
+   function Highlight_Count (Item : Editor) return Natural
+   is (Text_Areas.Highlight_Count (Item.Text));
 
    use type Pomarine.Events.Event_Kind;
    use type Pomarine.Events.Key_Code;
@@ -42,12 +43,7 @@ package body Pomarine.Widgets.Editors is
    procedure Begin_Version (Item : in out Editor) renames Versions.Begin_Writing;
    procedure Finish_Version (Item : in out Editor; Keep : Boolean) renames Versions.Finish_Writing;
 
-   procedure Configure
-     (Item    : in out Editor;
-      Family  : String;
-      Size    : Float;
-      Measure : Float;
-      Spacing : Float := 0.0) is
+   procedure Configure (Item : in out Editor; Family : String; Size : Float; Measure : Float; Spacing : Float := 0.0) is
    begin
       Text_Areas.Configure (Item.Text, Family, Size, Measure, Spacing);
       Item.Face_Length := Natural'Min (Family'Length, Family_Capacity);
@@ -62,9 +58,11 @@ package body Pomarine.Widgets.Editors is
       Buttons.Set_Icon (Item.Editing (Action), To);
    end Set_Edit_Icon;
 
-   function Font_Family (Item : Editor) return String is (Item.Face (1 .. Item.Face_Length));
+   function Font_Family (Item : Editor) return String
+   is (Item.Face (1 .. Item.Face_Length));
 
-   function Font_Size (Item : Editor) return Float is (Item.Points);
+   function Font_Size (Item : Editor) return Float
+   is (Item.Points);
 
    procedure Set_Font (Item : in out Editor; Family : String; Size : Float) is
    begin
@@ -83,19 +81,16 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Set_Font;
 
-   function Is_Configured (Item : Editor) return Boolean is
-     (Text_Areas.Is_Configured (Item.Text));
+   function Is_Configured (Item : Editor) return Boolean
+   is (Text_Areas.Is_Configured (Item.Text));
 
-   procedure Set_Shared
-     (Item   : in out Editor;
-      Shared : not null Shared_Access) is
+   procedure Set_Shared (Item : in out Editor; Shared : not null Shared_Access) is
    begin
       Text_Areas.Set_Shared (Item.Text, Shared);
       Item.Shared := Shared;
    end Set_Shared;
 
-   procedure Attach
-     (Item : in out Editor; Doc : not null Texts.Documents.Document_Access) is
+   procedure Attach (Item : in out Editor; Doc : not null Texts.Documents.Document_Access) is
    begin
       Text_Areas.Attach (Item.Text, Doc);
       Update_Toolbar (Item);
@@ -104,10 +99,11 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Attach;
 
-   function Has_Document (Item : Editor) return Boolean is
-     (Text_Areas.Is_Attached (Item.Text));
+   function Has_Document (Item : Editor) return Boolean
+   is (Text_Areas.Is_Attached (Item.Text));
 
-   function Zoom (Item : Editor) return Float is (Item.Zoomed);
+   function Zoom (Item : Editor) return Float
+   is (Item.Zoomed);
 
    procedure Set_Zoom (Item : in out Editor; To : Float) is
    begin
@@ -116,8 +112,7 @@ package body Pomarine.Widgets.Editors is
          if Is_Placed (Item) then
             --  Now, not at the next layout, which may be after an event
             --  for the text.
-            Placed (Item, Left_Of (Item), Top_Of (Item), Width_Of (Item),
-                    Height_Of (Item));
+            Placed (Item, Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item));
             Invalidate (Item);
          end if;
       end if;
@@ -133,7 +128,8 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Set_Invalid;
 
-   function Is_Invalid (Item : Editor) return Boolean is (Item.Invalid);
+   function Is_Invalid (Item : Editor) return Boolean
+   is (Item.Invalid);
 
    procedure Set_Enabled (Item : in out Editor; To : Boolean) is
    begin
@@ -148,7 +144,8 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Set_Enabled;
 
-   function Is_Enabled (Item : Editor) return Boolean is (Item.Enabled);
+   function Is_Enabled (Item : Editor) return Boolean
+   is (Item.Enabled);
 
    procedure Set_Placeholder (Item : in out Editor; Text : String) is
    begin
@@ -180,34 +177,32 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Clear_Icon;
 
-   function Is_Focused (Item : Editor) return Boolean is
-     (Text_Areas.Is_Focused (Item.Text));
+   function Is_Focused (Item : Editor) return Boolean
+   is (Text_Areas.Is_Focused (Item.Text));
 
-   procedure Caret_Box
-     (Item : in out Editor;
-      X, Y, Width, Height : out Float) is
+   procedure Caret_Box (Item : in out Editor; X, Y, Width, Height : out Float) is
    begin
       Text_Areas.Caret_Box (Item.Text, X, Y, Width, Height);
    end Caret_Box;
 
-   function Search_Count (Item : Editor) return Natural is (Text_Areas.Search_Count (Item.Text));
-   function Search_Current (Item : Editor) return Natural is (Text_Areas.Search_Current (Item.Text));
+   function Search_Count (Item : Editor) return Natural
+   is (Text_Areas.Search_Count (Item.Text));
+   function Search_Current (Item : Editor) return Natural
+   is (Text_Areas.Search_Current (Item.Text));
 
-   function Can_Edit (Item : Editor) return Boolean is
-     (Has_Document (Item) and then not Text_Areas.Is_Read_Only (Item.Text)
-      and then not Text_Areas.Is_Composing (Item.Text));
+   function Can_Edit (Item : Editor) return Boolean
+   is (Has_Document (Item)
+       and then not Text_Areas.Is_Read_Only (Item.Text)
+       and then not Text_Areas.Is_Composing (Item.Text));
 
-   function Area (Item : in out Editor)
-      return not null access Pomarine.Text_Areas.Text_Area is
-     (Item.Text'Unchecked_Access);
+   function Area (Item : in out Editor) return not null access Pomarine.Text_Areas.Text_Area
+   is (Item.Text'Unchecked_Access);
 
-   function Tool_Count (Item : Editor) return Natural is (Item.Tool_Total);
+   function Tool_Count (Item : Editor) return Natural
+   is (Item.Tool_Total);
 
    procedure Add_Tool
-     (Item            : in out Editor;
-      Label           : String;
-      Key             : Character := ASCII.NUL;
-      Needs_Selection : Boolean := False)
+     (Item : in out Editor; Label : String; Key : Character := ASCII.NUL; Needs_Selection : Boolean := False)
    is
       Tool : constant Tool_Number := Item.Tool_Total + 1;
    begin
@@ -233,7 +228,8 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Set_Toolbar;
 
-   function Has_Toolbar (Item : Editor) return Boolean is (Item.Toolbar_On);
+   function Has_Toolbar (Item : Editor) return Boolean
+   is (Item.Toolbar_On);
 
    procedure Set_Indent (Item : in out Editor; Points : Float) is
    begin
@@ -244,11 +240,14 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Set_Indent;
 
-   function Followed (Item : Editor) return String is (Ada.Strings.Unbounded.To_String (Item.Followed_To));
+   function Followed (Item : Editor) return String
+   is (Ada.Strings.Unbounded.To_String (Item.Followed_To));
 
-   function Is_Writing_Version (Item : Editor) return Boolean is (Item.Writing);
+   function Is_Writing_Version (Item : Editor) return Boolean
+   is (Item.Writing);
 
-   function Is_Linking (Item : Editor) return Boolean is (Item.Linking);
+   function Is_Linking (Item : Editor) return Boolean
+   is (Item.Linking);
 
    procedure Clear_Link_Choices (Item : in out Editor) is
    begin
@@ -266,7 +265,8 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Add_Link_Choice;
 
-   function Link_Choice_Count (Item : Editor) return Natural is (Natural (Item.Link_Addresses.Length));
+   function Link_Choice_Count (Item : Editor) return Natural
+   is (Natural (Item.Link_Addresses.Length));
 
    procedure Choose_Row (Item : in out Editor; Row : Positive) is
       Which : constant Choice := Item.Choosing;
@@ -281,36 +281,39 @@ package body Pomarine.Widgets.Editors is
                   Text_Areas.Set_Family (Item.Text, Names (Row));
                end if;
             end;
-         when Pick_Size =>
+
+         when Pick_Size   =>
             if Row <= Sizes'Last and then Has_Document (Item) then
                Text_Areas.Set_Size (Item.Text, Sizes (Row));
             end if;
-         when Pick_Style =>
+
+         when Pick_Style  =>
             if Row <= 4 then
                Text_Areas.Set_Style (Item.Text, Texts.Paragraph_Kind (Row - 1));
             end if;
+
          when Pick_Source =>
             if Row <= Link_Choice_Count (Item) and then Item.Linking then
                Choose_Link (Item, Row);
             end if;
-         when Nothing =>
+
+         when Nothing     =>
             null;
       end case;
       Refresh_Toolbar (Item);
       Invalidate (Item);
    end Choose_Row;
 
-   overriding procedure Handle_Event
-     (Self   : in out Editor;
-      Source : in out Widget'Class;
-      Event  : Widget_Event) is
+   overriding
+   procedure Handle_Event (Self : in out Editor; Source : in out Widget'Class; Event : Widget_Event) is
    begin
       case Event.Kind is
          when Choose =>
             if Is_Attached (Self.Chooser) and then Source'Address = Self.Chooser'Address then
                Choose_Row (Self, Event.Row);
             end if;
-         when Click =>
+
+         when Click  =>
             if Is_Attached (Self.Family_Box) and then Source'Address = Self.Family_Box'Address then
                Open_Chooser (Self, Pick_Family);
             elsif Is_Attached (Self.Size_Box) and then Source'Address = Self.Size_Box'Address then
@@ -321,18 +324,29 @@ package body Pomarine.Widgets.Editors is
                end if;
             elsif Is_Attached (Self.Style_Box) and then Source'Address = Self.Style_Box'Address then
                Open_Chooser (Self, Pick_Style);
-            elsif (for some Action in Edit_Action => Is_Attached (Self.Editing (Action))
-                   and then Source'Address = Self.Editing (Action)'Address)
+            elsif (for some Action in Edit_Action =>
+                     Is_Attached (Self.Editing (Action)) and then Source'Address = Self.Editing (Action)'Address)
             then
                for Action in Edit_Action loop
                   if Source'Address = Self.Editing (Action)'Address and then Has_Document (Self) then
                      case Action is
-                        when Bulleted => Text_Areas.Toggle_Block (Self.Text, Text_Areas.Bullets);
-                        when Numbered => Text_Areas.Toggle_Block (Self.Text, Text_Areas.Numbers);
-                        when Quoted   => Text_Areas.Toggle_Block (Self.Text, Text_Areas.Quote);
-                        when Outdent  => Text_Areas.Shift_Indent (Self.Text, Outward => True);
-                        when Indent   => Text_Areas.Shift_Indent (Self.Text, Outward => False);
-                        when Link     => Begin_Link (Self);
+                        when Bulleted =>
+                           Text_Areas.Toggle_Block (Self.Text, Text_Areas.Bullets);
+
+                        when Numbered =>
+                           Text_Areas.Toggle_Block (Self.Text, Text_Areas.Numbers);
+
+                        when Quoted   =>
+                           Text_Areas.Toggle_Block (Self.Text, Text_Areas.Quote);
+
+                        when Outdent  =>
+                           Text_Areas.Shift_Indent (Self.Text, Outward => True);
+
+                        when Indent   =>
+                           Text_Areas.Shift_Indent (Self.Text, Outward => False);
+
+                        when Link     =>
+                           Begin_Link (Self);
                      end case;
                   end if;
                end loop;
@@ -376,28 +390,29 @@ package body Pomarine.Widgets.Editors is
                   end if;
                end loop;
             end if;
+
          when Submit =>
-            if Self.Linking and then Self.Link_Parts /= null
-              and then Source'Address = Self.Link_Parts.Field'Address and then Links.Link_Acceptable (Self)
+            if Self.Linking
+              and then Self.Link_Parts /= null
+              and then Source'Address = Self.Link_Parts.Field'Address
+              and then Links.Link_Acceptable (Self)
             then
                Finish_Link (Self, True);
             end if;
+
          when others =>
             null;
       end case;
    end Handle_Event;
 
-   overriding procedure Placed
-     (Item : in out Editor; Left, Top, Width, Height : Float) is
+   overriding
+   procedure Placed (Item : in out Editor; Left, Top, Width, Height : Float) is
    begin
-      pragma Assert
-        (Is_Configured (Item), "an editor must be configured to be placed");
+      pragma Assert (Is_Configured (Item), "an editor must be configured to be placed");
       --  Hidden, it has no room: it keeps where it was, rather than be
       --  wrapped to nothing and then wrapped again.
       if Width > 0.0 and then Height > 0.0 then
-         Text_Areas.Place
-           (Item.Text, Left, Top, Width, Height,
-            Density => Density (Item), Zoom => Item.Zoomed);
+         Text_Areas.Place (Item.Text, Left, Top, Width, Height, Density => Density (Item), Zoom => Item.Zoomed);
       end if;
    end Placed;
 
@@ -416,40 +431,42 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Set_Borderless;
 
-   overriding procedure Draw
-     (Item   : in out Editor;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme) is
+   overriding
+   procedure Draw (Item : in out Editor; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
    begin
       if Has_Document (Item) then
          --  Of the lines, only those the part to draw touches.
          declare
-            Part  : constant Pixel_Box := Painting_Part (Item);
-            Paper : constant Themes.Color :=
-              (if not Item.Enabled then Colors (Themes.Tint)
-               elsif Item.Has_Paper then Themes.Resolve (Colors, Item.Paper)
+            Part   : constant Pixel_Box := Painting_Part (Item);
+            Paper  : constant Themes.Color :=
+              (if not Item.Enabled
+               then Colors (Themes.Tint)
+               elsif Item.Has_Paper
+               then Themes.Resolve (Colors, Item.Paper)
                else Colors (Themes.Page));
-            Shown : constant Themes.Theme :=
+            Shown  : constant Themes.Theme :=
               Themes.With_Slot
                 (Themes.With_Slot
                    (Themes.With_Slot
-                      (Themes.With_Slot
-                         (Colors, Themes.Background, Paper),
+                      (Themes.With_Slot (Colors, Themes.Background, Paper),
                        Themes.Selection,
                        Themes.Mix (Paper, Colors (Themes.Accent), 0.4)),
                     Themes.Foreground,
-                    (if Item.Enabled then Colors (Themes.Foreground)
-                     else Colors (Themes.Muted))),
+                    (if Item.Enabled then Colors (Themes.Foreground) else Colors (Themes.Muted))),
                  Themes.Border,
-                 (if Item.Invalid then Colors (Themes.Danger)
-                  elsif Item.Borderless then Paper
+                 (if Item.Invalid
+                  then Colors (Themes.Danger)
+                  elsif Item.Borderless
+                  then Paper
                   else Colors (Themes.Border)));
-            Faint : constant Themes.Color :=
-              Themes.Mix (Colors (Themes.Foreground), Paper, 0.55);
+            Faint  : constant Themes.Color := Themes.Mix (Colors (Themes.Foreground), Paper, 0.55);
             Pixels : constant Float := Density (Item);
          begin
             Text_Areas.Draw
-              (Item.Text, Target, Shown, Is_Settled (Item),
+              (Item.Text,
+               Target,
+               Shown,
+               Is_Settled (Item),
                Rows_From => Float (Part.Top),
                Rows_To   => Float (Part.Top + Part.Height));
             if Item.Toolbar_Shown and then Is_Attached (Item.Editing (Bulleted)) then
@@ -461,33 +478,47 @@ package body Pomarine.Widgets.Editors is
                begin
                   if Is_Visible (Item.Editing (Bulleted)) then
                      SDL3.Painters.Fill_Rect
-                       (Target, Colors (Themes.Border), Origin + (Edit_Left - Divider_Gap - 1.0) * Pixels, Top,
-                        Pixels, High);
+                       (Target,
+                        Colors (Themes.Border),
+                        Origin + (Edit_Left - Divider_Gap - 1.0) * Pixels,
+                        Top,
+                        Pixels,
+                        High);
                   end if;
                   if Is_Visible (Item.Family_Box) then
                      SDL3.Painters.Fill_Rect
-                       (Target, Colors (Themes.Border), Origin + (Font_Left - Divider_Gap - 1.0) * Pixels, Top,
-                        Pixels, High);
+                       (Target,
+                        Colors (Themes.Border),
+                        Origin + (Font_Left - Divider_Gap - 1.0) * Pixels,
+                        Top,
+                        Pixels,
+                        High);
                   end if;
                end;
             end if;
-            if Item.Toolbar_Shown and then Item.Tool_Total > 0 and then Is_Attached (Item.Tools (1))
+            if Item.Toolbar_Shown
+              and then Item.Tool_Total > 0
+              and then Is_Attached (Item.Tools (1))
               and then Is_Visible (Item.Tools (1))
             then
                --  The divider between the style buttons and the tools.
                SDL3.Painters.Fill_Rect
-                 (Target, Colors (Themes.Border),
+                 (Target,
+                  Colors (Themes.Border),
                   Left_Of (Item.Tools (1)) - (Divider_Gap + 1.0) * Pixels,
                   Top_Of (Item.Tools (1)) + 3.0 * Pixels,
-                  Pixels, Height_Of (Item.Tools (1)) - 6.0 * Pixels);
+                  Pixels,
+                  Height_Of (Item.Tools (1)) - 6.0 * Pixels);
             end if;
-            if Item.Hint_Length > 0 and then Text_Lines (Item) /= null
+            if Item.Hint_Length > 0
+              and then Text_Lines (Item) /= null
               and then Docs.Count (Text_Areas.Document (Item.Text).all) = 1
-              and then Docs.Length (Text_Areas.Document (Item.Text).all, 1)
-                       = 0
+              and then Docs.Length (Text_Areas.Document (Item.Text).all, 1) = 0
             then
                Pomarine.Line_Texts.Draw
-                 (Text_Lines (Item).all, Target, Faint,
+                 (Text_Lines (Item).all,
+                  Target,
+                  Faint,
                   Item.Hint (1 .. Item.Hint_Length),
                   Text_Areas.Line_Left (Item.Text),
                   Text_Areas.Line_Middle (Item.Text),
@@ -495,107 +526,134 @@ package body Pomarine.Widgets.Editors is
             end if;
             if Item.Iconed and then Icon_Library (Item) /= null then
                declare
-                  Size  : constant Positive :=
-                    Positive (Float'Rounding (Icon_Size * Pixels));
+                  Size  : constant Positive := Positive (Float'Rounding (Icon_Size * Pixels));
                   Drawn : Boolean;
                begin
                   Pomarine.Icons.Draw
-                    (Icon_Library (Item).all, Target, Item.Which, Faint,
-                     Float'Rounding
-                       (Text_Areas.Lead_Left (Item.Text)
-                        + (Icon_Room - Icon_Size) / 2.0 * Pixels),
-                     Float'Rounding
-                       (Text_Areas.Line_Middle (Item.Text)
-                        - Float (Size) / 2.0),
-                     Size, Drawn);
+                    (Icon_Library (Item).all,
+                     Target,
+                     Item.Which,
+                     Faint,
+                     Float'Rounding (Text_Areas.Lead_Left (Item.Text) + (Icon_Room - Icon_Size) / 2.0 * Pixels),
+                     Float'Rounding (Text_Areas.Line_Middle (Item.Text) - Float (Size) / 2.0),
+                     Size,
+                     Drawn);
                end;
             end if;
          end;
          Item.Shown := Docs.Current (Text_Areas.Document (Item.Text).all);
-         Item.Shown_Serial :=
-           Docs.Serial (Text_Areas.Document (Item.Text).all);
+         Item.Shown_Serial := Docs.Serial (Text_Areas.Document (Item.Text).all);
       end if;
    end Draw;
 
-   overriding procedure Handle
-     (Item    : in out Editor;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean) is
+   overriding
+   procedure Handle (Item : in out Editor; Event : Pomarine.Events.Event; Handled : out Boolean) is
    begin
       Handled := False;
       if Has_Document (Item) and then Item.Enabled then
-         if Event.Kind in Pomarine.Events.Mouse_Move | Pomarine.Events.Mouse_Down
-           | Pomarine.Events.Mouse_Up | Pomarine.Events.Mouse_Wheel
+         if Event.Kind
+            in Pomarine.Events.Mouse_Move
+             | Pomarine.Events.Mouse_Down
+             | Pomarine.Events.Mouse_Up
+             | Pomarine.Events.Mouse_Wheel
          then
             Item.Pointer_In_Text :=
               not Item.Toolbar_Shown
-              or else Event.Mouse_Y * Density (Item)
-                      >= Top_Of (Item) + Text_Areas.Toolbar_Points * Density (Item);
+              or else Event.Mouse_Y * Density (Item) >= Top_Of (Item) + Text_Areas.Toolbar_Points * Density (Item);
          end if;
-         if Item.Choosing /= Nothing and then Event.Kind = Pomarine.Events.Mouse_Down
-           and then not Is_Hovered (Item.Chooser) and then not Is_Hovered (Item.Family_Box)
-           and then not Is_Hovered (Item.Size_Box) and then not Is_Hovered (Item.Style_Box)
+         if Item.Choosing /= Nothing
+           and then Event.Kind = Pomarine.Events.Mouse_Down
+           and then not Is_Hovered (Item.Chooser)
+           and then not Is_Hovered (Item.Family_Box)
+           and then not Is_Hovered (Item.Size_Box)
+           and then not Is_Hovered (Item.Style_Box)
            and then not Is_Hovered (Item.Link_Sources)
          then
             Close_Chooser (Item);
          end if;
-         if Item.Linking and then Event.Kind = Pomarine.Events.Mouse_Down
-           and then not Is_Hovered (Item.Link_Box) and then not Is_Hovered (Item.Link_Parts.Field)
-           and then not Is_Hovered (Item.Link_Accept) and then not Is_Hovered (Item.Link_Cancel)
-           and then not Is_Hovered (Item.Link_Sources) and then not Is_Hovered (Item.Chooser)
+         if Item.Linking
+           and then Event.Kind = Pomarine.Events.Mouse_Down
+           and then not Is_Hovered (Item.Link_Box)
+           and then not Is_Hovered (Item.Link_Parts.Field)
+           and then not Is_Hovered (Item.Link_Accept)
+           and then not Is_Hovered (Item.Link_Cancel)
+           and then not Is_Hovered (Item.Link_Sources)
+           and then not Is_Hovered (Item.Chooser)
          then
             Finish_Link (Item, False);
          end if;
-         if Item.Link_Owner /= null and then Item.Link_Owner.Linking and then Event.Kind = Pomarine.Events.Key_Down
+         if Item.Link_Owner /= null
+           and then Item.Link_Owner.Linking
+           and then Event.Kind = Pomarine.Events.Key_Down
            and then Event.Key = Pomarine.Events.Key_Escape
          then
             Finish_Link (Item.Link_Owner.all, False);
             Handled := True;
-         elsif Item.Link_Owner = null and then Event.Kind = Pomarine.Events.Key_Down and then Event.Command
-           and then not Event.Option and then not Event.Shift and then Event.Key = Pomarine.Events.Key_K
-           and then Has_Focus (Item) and then not Text_Areas.Is_Single_Line (Item.Text)
+         elsif Item.Link_Owner = null
+           and then Event.Kind = Pomarine.Events.Key_Down
+           and then Event.Command
+           and then not Event.Option
+           and then not Event.Shift
+           and then Event.Key = Pomarine.Events.Key_K
+           and then Has_Focus (Item)
+           and then not Text_Areas.Is_Single_Line (Item.Text)
            and then not Text_Areas.Is_Read_Only (Item.Text)
          then
             Begin_Link (Item);
             Handled := True;
-         elsif Item.Writing and then Event.Kind = Pomarine.Events.Key_Down
+         elsif Item.Writing
+           and then Event.Kind = Pomarine.Events.Key_Down
            and then Event.Key in Pomarine.Events.Key_Return | Pomarine.Events.Key_Escape
          then
             Finish_Version (Item, Event.Key = Pomarine.Events.Key_Return);
             Handled := True;
-         elsif Item.Cycle_Open and then Event.Kind = Pomarine.Events.Key_Down
+         elsif Item.Cycle_Open
+           and then Event.Kind = Pomarine.Events.Key_Down
            and then Event.Key = Pomarine.Events.Key_Escape
          then
             Close_Cycle (Item);
             Handled := True;
-         elsif Event.Kind = Pomarine.Events.Mouse_Down and then Event.Button = 1 and then Event.Command
-           and then Item.Pointer_In_Text and then not Item.Writing
+         elsif Event.Kind = Pomarine.Events.Mouse_Down
+           and then Event.Button = 1
+           and then Event.Command
+           and then Item.Pointer_In_Text
+           and then not Item.Writing
            and then Link_Under (Item, Event) /= ""
          then
             Item.Followed_To := Ada.Strings.Unbounded.To_Unbounded_String (Link_Under (Item, Event));
             Post (Item, Item.Follow_Hook);
             Handled := True;
-         elsif Event.Kind = Pomarine.Events.Key_Down and then not Event.Command and then not Event.Option
+         elsif Event.Kind = Pomarine.Events.Key_Down
+           and then not Event.Command
+           and then not Event.Option
            and then not Event.Shift
            and then Event.Key in Pomarine.Events.Key_Left_Arrow | Pomarine.Events.Key_Right_Arrow
            and then Cycling_From (Item, Item.Cycle_Target)
          then
             Cycle_Version (Item, Item.Cycle_Target, (if Event.Key = Pomarine.Events.Key_Right_Arrow then 1 else -1));
             Handled := True;
-         elsif Item.Toolbar_On and then Has_Focus (Item)
+         elsif Item.Toolbar_On
+           and then Has_Focus (Item)
            and then Event.Kind = Pomarine.Events.Key_Down
-           and then Event.Command and then not Event.Option and then not Event.Shift
+           and then Event.Command
+           and then not Event.Option
+           and then not Event.Shift
            and then Event.Key in Pomarine.Events.Key_B | Pomarine.Events.Key_U | Pomarine.Events.Key_I
          then
             Text_Areas.Toggle_Format
               (Item.Text,
-               (if Event.Key = Pomarine.Events.Key_B then Docs.Bold
-                elsif Event.Key = Pomarine.Events.Key_U then Docs.Underline
+               (if Event.Key = Pomarine.Events.Key_B
+                then Docs.Bold
+                elsif Event.Key = Pomarine.Events.Key_U
+                then Docs.Underline
                 else Docs.Italic));
             Handled := True;
-         elsif Item.Toolbar_On and then Has_Focus (Item)
+         elsif Item.Toolbar_On
+           and then Has_Focus (Item)
            and then Event.Kind = Pomarine.Events.Key_Down
-           and then Event.Command and then not Event.Option and then not Event.Shift
+           and then Event.Command
+           and then not Event.Option
+           and then not Event.Shift
            and then Tool_For_Key (Item, Event.Key) /= 0
          then
             declare
@@ -612,7 +670,8 @@ package body Pomarine.Widgets.Editors is
          --  A field that takes no changes says when it is pressed: for the
          --  application to offer what it is for (a file's name, to choose
          --  another).
-         if Handled and then Text_Areas.Is_Read_Only (Item.Text)
+         if Handled
+           and then Text_Areas.Is_Read_Only (Item.Text)
            and then Pomarine.Events."=" (Event.Kind, Pomarine.Events.Mouse_Down)
          then
             Notify (Item, Click);
@@ -645,9 +704,8 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Handle;
 
-   overriding procedure Update
-     (Item : in out Editor; Now : Pomarine.Events.Milliseconds)
-   is
+   overriding
+   procedure Update (Item : in out Editor; Now : Pomarine.Events.Milliseconds) is
       Blinked : Boolean;
    begin
       if not Has_Document (Item) then
@@ -672,42 +730,41 @@ package body Pomarine.Widgets.Editors is
       end if;
       --  Where the caret and the selection are is part of what an
       --  assistive technology is told.
-      if Text_Areas.Caret (Item.Text) /= Item.Told_Caret
-        or else Text_Areas.Mark (Item.Text) /= Item.Told_Mark
-      then
+      if Text_Areas.Caret (Item.Text) /= Item.Told_Caret or else Text_Areas.Mark (Item.Text) /= Item.Told_Mark then
          Item.Told_Caret := Text_Areas.Caret (Item.Text);
          Item.Told_Mark := Text_Areas.Mark (Item.Text);
          Mark_Dirty (Item, Semantics_Dirty);
       end if;
       --  The document may have been changed from elsewhere.
       declare
-         Doc : constant Docs.Document_Access :=
-           Text_Areas.Document (Item.Text);
+         Doc : constant Docs.Document_Access := Text_Areas.Document (Item.Text);
       begin
-         if Docs.Current (Doc.all) /= Item.Shown
-           or else Docs.Serial (Doc.all) /= Item.Shown_Serial
-         then
+         if Docs.Current (Doc.all) /= Item.Shown or else Docs.Serial (Doc.all) /= Item.Shown_Serial then
             Invalidate (Item);
          end if;
       end;
    end Update;
 
-   overriding function Until_Update (Item : Editor) return Integer is
-     (if Has_Document (Item) and then Is_Focused (Item)
-      then Integer (Text_Areas.Until_Blink (Item.Text)) else -1);
+   overriding
+   function Until_Update (Item : Editor) return Integer
+   is (if Has_Document (Item) and then Is_Focused (Item) then Integer (Text_Areas.Until_Blink (Item.Text)) else -1);
 
-   overriding function Is_Focusable (Item : Editor) return Boolean is
-     (Has_Document (Item) and then Item.Enabled);
+   overriding
+   function Is_Focusable (Item : Editor) return Boolean
+   is (Has_Document (Item) and then Item.Enabled);
 
-   overriding function Cursor (Item : Editor) return SDL3.Cursors.Kind is
-     (if Item.Enabled and then (not Item.Toolbar_Shown or else Item.Pointer_In_Text)
-      then (if not Item.Writing and then (Item.Hovering or else (Item.Over_Link and then Pomarine.Events.Command_Held))
-           then SDL3.Cursors.Pointer else SDL3.Cursors.Text)
-      else SDL3.Cursors.Default);
+   overriding
+   function Cursor (Item : Editor) return SDL3.Cursors.Kind
+   is (if Item.Enabled and then (not Item.Toolbar_Shown or else Item.Pointer_In_Text)
+       then
+         (if not Item.Writing and then (Item.Hovering or else (Item.Over_Link and then Pomarine.Events.Command_Held))
+          then SDL3.Cursors.Pointer
+          else SDL3.Cursors.Text)
+       else SDL3.Cursors.Default);
    --  A text with versions is clicked, to go through them.
 
-   overriding procedure Hover_Changed
-     (Item : in out Editor; Hovered : Boolean) is
+   overriding
+   procedure Hover_Changed (Item : in out Editor; Hovered : Boolean) is
    begin
       if Has_Document (Item) then
          Text_Areas.Set_Hovered (Item.Text, Hovered);
@@ -720,8 +777,8 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Hover_Changed;
 
-   overriding procedure Focus_Changed
-     (Item : in out Editor; Focused : Boolean) is
+   overriding
+   procedure Focus_Changed (Item : in out Editor; Focused : Boolean) is
    begin
       if Has_Document (Item) then
          Text_Areas.Set_Focus (Item.Text, Focused);
@@ -735,43 +792,41 @@ package body Pomarine.Widgets.Editors is
       end if;
    end Focus_Changed;
 
-   overriding procedure Describe
-     (Item  : Editor;
-      Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Editor; Facts : in out Semantics.Description) is
    begin
       Accessibility.Describe_Editor (Item, Facts);
    end Describe;
 
-   overriding function Part_Count (Item : Editor) return Natural is (Accessibility.Count_Parts (Item));
+   overriding
+   function Part_Count (Item : Editor) return Natural
+   is (Accessibility.Count_Parts (Item));
 
-   overriding function Part_Number (Item : Editor; Index : Positive) return Positive is
-     (Accessibility.Number_Of_Part (Item, Index));
+   overriding
+   function Part_Number (Item : Editor; Index : Positive) return Positive
+   is (Accessibility.Number_Of_Part (Item, Index));
 
-   overriding procedure Describe_Part
-     (Item   : Editor;
-      Part   : Positive;
-      Facts  : in out Semantics.Description;
-      Bounds : out Semantics.Rectangle) is
+   overriding
+   procedure Describe_Part
+     (Item : Editor; Part : Positive; Facts : in out Semantics.Description; Bounds : out Semantics.Rectangle) is
    begin
       Accessibility.Describe_Piece (Item, Part, Facts, Bounds);
    end Describe_Part;
 
-   overriding procedure Perform
-     (Item    : in out Editor;
-      Request : Semantics.Request;
-      Done    : out Boolean) is
+   overriding
+   procedure Perform (Item : in out Editor; Request : Semantics.Request; Done : out Boolean) is
    begin
       Accessibility.Perform_Request (Item, Request, Done);
    end Perform;
 
-   overriding procedure Command_State_Changed
-     (Item : in out Editor; State : Command_State) is
+   overriding
+   procedure Command_State_Changed (Item : in out Editor; State : Command_State) is
    begin
       Set_Enabled (Item, State in Enabled | Ticked);
    end Command_State_Changed;
 
-   overriding procedure Handle_Command
-     (Item : in out Editor; Tag : Integer; Done : out Boolean) is
+   overriding
+   procedure Handle_Command (Item : in out Editor; Tag : Integer; Done : out Boolean) is
    begin
       Done := False;
       if not Has_Document (Item) or else not Item.Enabled then

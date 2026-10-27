@@ -15,8 +15,8 @@ package body SDL3.Events is
    Command_Keys : constant Interfaces.Unsigned_16 := 16#0C00#;
    --  SDL_KMOD_GUI
    Control_Keys : constant Interfaces.Unsigned_16 := 16#00C0#;
-   Alt_Keys   : constant Interfaces.Unsigned_16 := 16#0300#;
-   Shift_Keys : constant Interfaces.Unsigned_16 := 16#0003#;
+   Alt_Keys     : constant Interfaces.Unsigned_16 := 16#0300#;
+   Shift_Keys   : constant Interfaces.Unsigned_16 := 16#0003#;
 
    Left_Button_Mask : constant Interfaces.Unsigned_32 := 1;
    --  SDL_BUTTON_LMASK
@@ -24,22 +24,14 @@ package body SDL3.Events is
    function Decode (Raw : Thin.Event; Item : out Event) return Boolean;
    --  Fill Item from Raw.
 
-   function To_Common is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Common_Event);
-   function To_Wheel is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Wheel_Event);
-   function To_Pinch is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Pinch_Event);
-   function To_Key is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Key_Event);
-   function To_Text is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Text_Event);
-   function To_Editing is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Editing_Event);
-   function To_Button is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Button_Event);
-   function To_Motion is new Ada.Unchecked_Conversion
-     (Thin.Event, Thin.Motion_Event);
+   function To_Common is new Ada.Unchecked_Conversion (Thin.Event, Thin.Common_Event);
+   function To_Wheel is new Ada.Unchecked_Conversion (Thin.Event, Thin.Wheel_Event);
+   function To_Pinch is new Ada.Unchecked_Conversion (Thin.Event, Thin.Pinch_Event);
+   function To_Key is new Ada.Unchecked_Conversion (Thin.Event, Thin.Key_Event);
+   function To_Text is new Ada.Unchecked_Conversion (Thin.Event, Thin.Text_Event);
+   function To_Editing is new Ada.Unchecked_Conversion (Thin.Event, Thin.Editing_Event);
+   function To_Button is new Ada.Unchecked_Conversion (Thin.Event, Thin.Button_Event);
+   function To_Motion is new Ada.Unchecked_Conversion (Thin.Event, Thin.Motion_Event);
 
    procedure Set_Text (Item : in out Event; Text : String);
    --  As much of Text as there is room for, cut at a character.
@@ -49,10 +41,7 @@ package body SDL3.Events is
    begin
       --  Back off continuation bytes, to the start of a character.
       if Length < Text'Length then
-         while Length > 0
-           and then Character'Pos (Text (Text'First + Length))
-                    in 16#80# .. 16#BF#
-         loop
+         while Length > 0 and then Character'Pos (Text (Text'First + Length)) in 16#80# .. 16#BF# loop
             Length := Length - 1;
          end loop;
       end if;
@@ -60,12 +49,10 @@ package body SDL3.Events is
       Item.Text_Length := Length;
    end Set_Text;
 
-   procedure Set_Text
-     (Item : in out Event; Text : Interfaces.C.Strings.chars_ptr);
+   procedure Set_Text (Item : in out Event; Text : Interfaces.C.Strings.chars_ptr);
    --  SDL's text, if there is any.
 
-   procedure Set_Text
-     (Item : in out Event; Text : Interfaces.C.Strings.chars_ptr) is
+   procedure Set_Text (Item : in out Event; Text : Interfaces.C.Strings.chars_ptr) is
    begin
       if Text /= Interfaces.C.Strings.Null_Ptr then
          Set_Text (Item, Interfaces.C.Strings.Value (Text));
@@ -86,11 +73,9 @@ package body SDL3.Events is
       return Result;
    end Editing_Event;
 
-   procedure Set_Modifiers
-     (Item : in out Event; Modifiers : Interfaces.Unsigned_16);
+   procedure Set_Modifiers (Item : in out Event; Modifiers : Interfaces.Unsigned_16);
 
-   procedure Set_Modifiers
-     (Item : in out Event; Modifiers : Interfaces.Unsigned_16) is
+   procedure Set_Modifiers (Item : in out Event; Modifiers : Interfaces.Unsigned_16) is
    begin
       Item.Command := (Modifiers and Command_Keys) /= 0;
       Item.Control := (Modifiers and Control_Keys) /= 0;
@@ -101,8 +86,7 @@ package body SDL3.Events is
    function Decode (Raw : Thin.Event; Item : out Event) return Boolean is
    begin
       Item := (others => <>);
-      Item.Time :=
-        Milliseconds (To_Common (Raw).Timestamp / 1_000_000);
+      Item.Time := Milliseconds (To_Common (Raw).Timestamp / 1_000_000);
       --  The mouse's events do not say which keys are held: now, then.
       Set_Modifiers (Item, Thin.Get_Mod_State);
 
@@ -127,19 +111,13 @@ package body SDL3.Events is
          begin
             Item.Kind := Text_Editing;
             Set_Text (Item, Editing.Text);
-            Item.Cursor :=
-              (if Editing.Start < 0 then Natural'Last
-               else Natural (Editing.Start));
+            Item.Cursor := (if Editing.Start < 0 then Natural'Last else Natural (Editing.Start));
          end;
-      elsif Raw.Kind = Thin.Event_Mouse_Button_Down
-        or else Raw.Kind = Thin.Event_Mouse_Button_Up
-      then
+      elsif Raw.Kind = Thin.Event_Mouse_Button_Down or else Raw.Kind = Thin.Event_Mouse_Button_Up then
          declare
             Button : constant Thin.Button_Event := To_Button (Raw);
          begin
-            Item.Kind :=
-              (if Raw.Kind = Thin.Event_Mouse_Button_Down then Mouse_Down
-               else Mouse_Up);
+            Item.Kind := (if Raw.Kind = Thin.Event_Mouse_Button_Down then Mouse_Down else Mouse_Up);
             Item.Button := Natural (Button.Button);
             Item.Clicks := Natural (Button.Clicks);
             Item.Mouse_X := Float (Button.X);
@@ -166,9 +144,8 @@ package body SDL3.Events is
          end;
       elsif Raw.Kind = Thin.Event_Pinch_Update then
          declare
-            X, Y : aliased Interfaces.C.C_float;
-            Buttons : constant Interfaces.Unsigned_32 :=
-              Thin.Get_Mouse_State (X'Access, Y'Access);
+            X, Y    : aliased Interfaces.C.C_float;
+            Buttons : constant Interfaces.Unsigned_32 := Thin.Get_Mouse_State (X'Access, Y'Access);
             pragma Unreferenced (Buttons);
          begin
             --  Where the pointer is, which the event does not say.
@@ -186,40 +163,36 @@ package body SDL3.Events is
       return True;
    end Decode;
 
-   function Command_Held return Boolean is
-     ((Thin.Get_Mod_State and Command_Keys) /= 0);
+   function Command_Held return Boolean
+   is ((Thin.Get_Mod_State and Command_Keys) /= 0);
 
-   function Ticks return Milliseconds is (Milliseconds (Thin.Get_Ticks));
+   function Ticks return Milliseconds
+   is (Milliseconds (Thin.Get_Ticks));
 
    function Poll (Item : out Event) return Boolean is
       Raw : aliased Thin.Event;
    begin
       Item := (others => <>);
-      return Boolean (Thin.Poll_Event (Raw'Access))
-        and then Decode (Raw, Item);
+      return Boolean (Thin.Poll_Event (Raw'Access)) and then Decode (Raw, Item);
    end Poll;
 
-   function Wait (Item : out Event; Timeout_MS : Integer := -1) return Boolean
-   is
+   function Wait (Item : out Event; Timeout_MS : Integer := -1) return Boolean is
       Raw : aliased Thin.Event;
    begin
       Item := (others => <>);
-      return Boolean
-               (Thin.Wait_Event_Timeout
-                  (Raw'Access, Interfaces.Integer_32 (Timeout_MS)))
-        and then Decode (Raw, Item);
+      return
+        Boolean (Thin.Wait_Event_Timeout (Raw'Access, Interfaces.Integer_32 (Timeout_MS))) and then Decode (Raw, Item);
    end Wait;
 
    procedure Wake is
-      Raw     : aliased Thin.Event :=
-        (Kind => Thin.Event_User, Padding => [others => Interfaces.C.nul]);
-      Pushed  : constant Interfaces.C.C_bool := Thin.Push_Event (Raw'Access);
+      Raw    : aliased Thin.Event := (Kind => Thin.Event_User, Padding => [others => Interfaces.C.nul]);
+      Pushed : constant Interfaces.C.C_bool := Thin.Push_Event (Raw'Access);
       pragma Unreferenced (Pushed);
    begin
       null;
    end Wake;
 
-   function System_Is_Dark return Boolean is
-     (Thin.Get_System_Theme = 2);
+   function System_Is_Dark return Boolean
+   is (Thin.Get_System_Theme = 2);
 
 end SDL3.Events;

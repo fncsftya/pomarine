@@ -6,6 +6,7 @@ with Pomarine.Icons;
 with Pomarine.Line_Texts;
 with Pomarine.Text_Areas;
 with Yoga.Nodes;
+
 package body Pomarine.Widgets.Frames is
 
    use type System.Address;
@@ -28,22 +29,19 @@ package body Pomarine.Widgets.Frames is
    Mini_Chars    : constant := 16;
    --  How many characters of a title the bar in the dock shows.
 
-   function Pixels_Per_Point (Item : Frame) return Float is
-     (if Is_Attached (Item.Outline_Panel) then Density (Item.Outline_Panel)
-      else Item.Pixels);
+   function Pixels_Per_Point (Item : Frame) return Float
+   is (if Is_Attached (Item.Outline_Panel) then Density (Item.Outline_Panel) else Item.Pixels);
 
-   function Edge (Item : Frame) return Float is
-     (Pomarine.Boxes.Edge (Pixels_Per_Point (Item) * Outline));
+   function Edge (Item : Frame) return Float
+   is (Pomarine.Boxes.Edge (Pixels_Per_Point (Item) * Outline));
    --  Whole pixels: a border that is not is a pixel more or less where it
    --  is drawn, or none.
 
-   function Shortened (Title : String) return String is
-     (if Title'Length <= Mini_Chars then Title
-      else Title (Title'First .. Title'First + Mini_Chars - 1) & "..");
+   function Shortened (Title : String) return String
+   is (if Title'Length <= Mini_Chars then Title else Title (Title'First .. Title'First + Mini_Chars - 1) & "..");
    --  For the bar in the dock.
 
-   procedure Size
-     (Part : in out Widget'Class; Wide, High : Float; Pixels : Float) is
+   procedure Size (Part : in out Widget'Class; Wide, High : Float; Pixels : Float) is
    begin
       Yoga.Nodes.Set_Width (Node (Part), Wide * Pixels);
       Yoga.Nodes.Set_Height (Node (Part), High * Pixels);
@@ -77,30 +75,27 @@ package body Pomarine.Widgets.Frames is
 
       Item.UI_Host.Open (Parent);
       declare
-         Screen : UI.View renames Item.UI_Host.Screen.all;
-         Tag : constant UI.Layout := UI.Put (Screen, Item.Tag);
-         Title : constant UI.Layout :=
+         Screen           : UI.View renames Item.UI_Host.Screen.all;
+         Tag              : constant UI.Layout := UI.Put (Screen, Item.Tag);
+         Title            : constant UI.Layout :=
            (if Editable_Title
             then UI.Put_In (Screen, Item.Title_Area, [UI.Put (Screen, Item.Title_Label)])
             else UI.Put (Screen, Item.Title_Label));
-         Field : constant UI.Layout :=
+         Field            : constant UI.Layout :=
            (if Editable_Title then UI.Put (Screen, Item.Title_Field) else UI.Nothing);
-         Spacer : constant UI.Layout :=
-           (if Editable_Title then UI.Put (Screen, Item.Spacer) else UI.Nothing);
+         Spacer           : constant UI.Layout := (if Editable_Title then UI.Put (Screen, Item.Spacer) else UI.Nothing);
          Minimize_Control : constant UI.Layout :=
            (if Item.Docked then UI.Put (Screen, Item.Minimize_Button) else UI.Nothing);
-         Close_Control : constant UI.Layout := UI.Put (Screen, Item.Close_Button);
-         Bar_Layout : constant UI.Layout :=
+         Close_Control    : constant UI.Layout := UI.Put (Screen, Item.Close_Button);
+         Bar_Layout       : constant UI.Layout :=
            UI.Put_In (Screen, Item.Title_Bar, [Tag, Title, Field, Spacer, Minimize_Control, Close_Control]);
-         Status : constant UI.Layout :=
-           UI.Put_In (Screen, Item.Status_Bar, [UI.Put (Screen, Item.Corner)]);
-         Chrome_Layout : constant UI.Layout := UI.Put_In (Screen, Item.Outline_Panel, [Bar_Layout, Status]);
-         Mini_Title : constant UI.Layout :=
-           (if Item.Docked then UI.Put_In (Screen, Item.Mini_Area, [UI.Put (Screen, Item.Mini_Title)])
-            else UI.Nothing);
-         Mini_Close : constant UI.Layout :=
+         Status           : constant UI.Layout := UI.Put_In (Screen, Item.Status_Bar, [UI.Put (Screen, Item.Corner)]);
+         Chrome_Layout    : constant UI.Layout := UI.Put_In (Screen, Item.Outline_Panel, [Bar_Layout, Status]);
+         Mini_Title       : constant UI.Layout :=
+           (if Item.Docked then UI.Put_In (Screen, Item.Mini_Area, [UI.Put (Screen, Item.Mini_Title)]) else UI.Nothing);
+         Mini_Close       : constant UI.Layout :=
            (if Item.Docked then UI.Put (Screen, Item.Mini_Close) else UI.Nothing);
-         Mini : constant UI.Layout :=
+         Mini             : constant UI.Layout :=
            (if Item.Docked then UI.Put_In (Screen, Item.Mini, [Mini_Title, Mini_Close]) else UI.Nothing);
       begin
          UI.Mount_Into (Screen, Parent, Chrome_Layout);
@@ -129,12 +124,8 @@ package body Pomarine.Widgets.Frames is
       if Item.Floating then
          Panels.Set_Shadow (Item.Outline_Panel, Themes.Shadow);
          Set_Position_Type (Node (Item.Outline_Panel), Yoga.Absolute);
-         Set_Padding
-           (Node (Item.Outline_Panel), Yoga.Right,
-            Edge (Item) + Pomarine.Boxes.Offset (Pixels));
-         Set_Padding
-           (Node (Item.Outline_Panel), Yoga.Bottom,
-            Edge (Item) + Pomarine.Boxes.Offset (Pixels));
+         Set_Padding (Node (Item.Outline_Panel), Yoga.Right, Edge (Item) + Pomarine.Boxes.Offset (Pixels));
+         Set_Padding (Node (Item.Outline_Panel), Yoga.Bottom, Edge (Item) + Pomarine.Boxes.Offset (Pixels));
       else
          Set_Flex_Grow (Node (Item.Outline_Panel), 1.0);
          Set_Height (Node (Item.Outline_Panel), 0.0);
@@ -143,8 +134,7 @@ package body Pomarine.Widgets.Frames is
       Grips.Set_Fill (Item.Title_Bar, Bar);
       Set_Flex_Direction (Node (Item.Title_Bar), Yoga.Row);
       Set_Align_Items (Node (Item.Title_Bar), Yoga.Center);
-      Set_Gap
-        (Node (Item.Title_Bar), Yoga.All_Gutters, Button_Gap * Pixels);
+      Set_Gap (Node (Item.Title_Bar), Yoga.All_Gutters, Button_Gap * Pixels);
       if not Item.Floating then
          Grips.Set_Wanted_Cursor (Item.Title_Bar, SDL3.Cursors.Default);
       end if;
@@ -154,8 +144,7 @@ package body Pomarine.Widgets.Frames is
       Labels.Set_Ink (Item.Title_Label, Themes.Bar_Ink);
       if Editable_Title then
          Labels.Set_Intrinsic (Item.Title_Label);
-         Text_Fields.Configure
-           (Item.Title_Field, Line_Texts.Face_Name (Line_Texts.Serif_Bold), Title_Size);
+         Text_Fields.Configure (Item.Title_Field, Line_Texts.Face_Name (Line_Texts.Serif_Bold), Title_Size);
          Set_Flex_Grow (Node (Item.Title_Field), 1.0);
          Set_Width (Node (Item.Title_Field), 0.0);
          --  The title is text, in the field's place, until it is to be
@@ -193,15 +182,13 @@ package body Pomarine.Widgets.Frames is
       Set_Flex_Direction (Node (Item.Status_Bar), Yoga.Row);
       Set_Align_Items (Node (Item.Status_Bar), Yoga.Center);
       Set_Padding (Node (Item.Status_Bar), Yoga.Horizontal, Status_Pad * Pixels);
-      Set_Gap
-        (Node (Item.Status_Bar), Yoga.All_Gutters, Button_Gap * Pixels);
+      Set_Gap (Node (Item.Status_Bar), Yoga.All_Gutters, Button_Gap * Pixels);
       --  Not drawn, and not in the row: in the corner over what is there,
       --  shown by a fill under the pointer.
       Grips.Set_Wanted_Cursor (Item.Corner, SDL3.Cursors.Resize);
       Grips.Set_Hover_Fill (Item.Corner, Themes.Hover_Row);
       if Item.Floating then
-         Grips.Set_Radius
-           (Item.Corner, Themes.Large_Radius, (Bottom_Right => True, others => False));
+         Grips.Set_Radius (Item.Corner, Themes.Large_Radius, (Bottom_Right => True, others => False));
       end if;
       Set_Position_Type (Node (Item.Corner), Yoga.Absolute);
       Set_Position (Node (Item.Corner), Yoga.Right, 0.0);
@@ -244,20 +231,20 @@ package body Pomarine.Widgets.Frames is
       Set_Visible (Item.Outline_Panel, False);
    end Build;
 
-   function Title_End (Item : in out Frame) return not null access Widget'Class is
-     (Item.Close_Button'Unchecked_Access);
+   function Title_End (Item : in out Frame) return not null access Widget'Class
+   is (Item.Close_Button'Unchecked_Access);
 
-   function Content_End (Item : in out Frame) return not null access Widget'Class is
-     (Item.Status_Bar'Unchecked_Access);
+   function Content_End (Item : in out Frame) return not null access Widget'Class
+   is (Item.Status_Bar'Unchecked_Access);
 
-   function Status_End (Item : in out Frame) return not null access Widget'Class is
-     (Item.Corner'Unchecked_Access);
+   function Status_End (Item : in out Frame) return not null access Widget'Class
+   is (Item.Corner'Unchecked_Access);
 
-   function Surface (Item : in out Frame) return not null access Widget'Class is
-     (Item.Outline_Panel'Unchecked_Access);
+   function Surface (Item : in out Frame) return not null access Widget'Class
+   is (Item.Outline_Panel'Unchecked_Access);
 
-   function Status_Surface (Item : in out Frame) return not null access Widget'Class is
-     (Item.Status_Bar'Unchecked_Access);
+   function Status_Surface (Item : in out Frame) return not null access Widget'Class
+   is (Item.Status_Bar'Unchecked_Access);
 
    procedure Set_Title (Item : in out Frame; To : String) is
    begin
@@ -288,9 +275,7 @@ package body Pomarine.Widgets.Frames is
       Set_Height (Node (Item.Title_Label), Label_Height * Pixels);
       Size (Item.Close_Button, Button_Size, Button_Size, Pixels);
       Size (Item.Tag, Tag_Size, Tag_Size, Pixels);
-      Set_Margin
-        (Node (Item.Tag), Yoga.Right,
-         (Tag_Gap - Button_Gap) * Pixels);
+      Set_Margin (Node (Item.Tag), Yoga.Right, (Tag_Gap - Button_Gap) * Pixels);
       Labels.Set_Scale (Item.Title_Label, To);
       if Item.Editable then
          Set_Height (Node (Item.Title_Field), Title_Height * Pixels);
@@ -332,9 +317,7 @@ package body Pomarine.Widgets.Frames is
       Widgets.Raise_To_Front (Item.Outline_Panel);
    end Raise_To_Front;
 
-   procedure Place
-     (Item : in out Frame; At_Left, At_Top, Wide, High : Float)
-   is
+   procedure Place (Item : in out Frame; At_Left, At_Top, Wide, High : Float) is
       use Yoga.Nodes;
    begin
       Set_Position (Node (Item.Outline_Panel), Yoga.Left, At_Left);
@@ -344,20 +327,20 @@ package body Pomarine.Widgets.Frames is
       Request_Layout (Item.Outline_Panel);
    end Place;
 
-   function Status_Width (Item : Frame; Wide : Float) return Float is
-     (Wide - 2.0 * Edge (Item) - Pomarine.Boxes.Offset (Pixels_Per_Point (Item)));
+   function Status_Width (Item : Frame; Wide : Float) return Float
+   is (Wide - 2.0 * Edge (Item) - Pomarine.Boxes.Offset (Pixels_Per_Point (Item)));
 
-   function Left_Of (Item : Frame) return Float is
-     (Widgets.Left_Of (Item.Outline_Panel));
+   function Left_Of (Item : Frame) return Float
+   is (Widgets.Left_Of (Item.Outline_Panel));
 
-   function Top_Of (Item : Frame) return Float is
-     (Widgets.Top_Of (Item.Outline_Panel));
+   function Top_Of (Item : Frame) return Float
+   is (Widgets.Top_Of (Item.Outline_Panel));
 
-   function Width_Of (Item : Frame) return Float is
-     (Widgets.Width_Of (Item.Outline_Panel));
+   function Width_Of (Item : Frame) return Float
+   is (Widgets.Width_Of (Item.Outline_Panel));
 
-   function Height_Of (Item : Frame) return Float is
-     (Widgets.Height_Of (Item.Outline_Panel));
+   function Height_Of (Item : Frame) return Float
+   is (Widgets.Height_Of (Item.Outline_Panel));
 
    function Owns (Item : Frame; Part : Widget_Access) return Boolean is
       Up : Widget_Access := Part;
@@ -371,16 +354,16 @@ package body Pomarine.Widgets.Frames is
       return False;
    end Owns;
 
-   function Is_Hovered (Item : Frame) return Boolean is
-     (Widgets.Is_Hovered (Item.Outline_Panel));
+   function Is_Hovered (Item : Frame) return Boolean
+   is (Widgets.Is_Hovered (Item.Outline_Panel));
 
-   function Is_Dragging (Item : Frame) return Boolean is
-     (Grips.Is_Dragging (Item.Title_Bar)
-      or else (Item.Editable and then Grips.Is_Dragging (Item.Title_Area))
-      or else Grips.Is_Dragging (Item.Corner));
+   function Is_Dragging (Item : Frame) return Boolean
+   is (Grips.Is_Dragging (Item.Title_Bar)
+       or else (Item.Editable and then Grips.Is_Dragging (Item.Title_Area))
+       or else Grips.Is_Dragging (Item.Corner));
 
-   function Is_Sizing (Item : Frame) return Boolean is
-     (Grips.Is_Dragging (Item.Corner));
+   function Is_Sizing (Item : Frame) return Boolean
+   is (Grips.Is_Dragging (Item.Corner));
 
    procedure Set_Tag (Item : in out Frame; Tag : Integer; Index : Natural := 0) is
    begin
@@ -392,63 +375,57 @@ package body Pomarine.Widgets.Frames is
       Widgets.Set_Listener (Item.Outline_Panel, To);
    end Set_Listener;
 
-   overriding procedure Handle_Event
-     (Self   : in out Frame;
-      Source : in out Widget'Class;
-      Event  : Widget_Event)
-   is
+   overriding
+   procedure Handle_Event (Self : in out Frame; Source : in out Widget'Class; Event : Widget_Event) is
       Part : constant System.Address := Source'Address;
    begin
       case Event.Kind is
-         when Drag =>
-            if Part = Self.Title_Bar'Address
-              or else (Self.Editable and then Part = Self.Title_Area'Address)
-            then
+         when Drag         =>
+            if Part = Self.Title_Bar'Address or else (Self.Editable and then Part = Self.Title_Area'Address) then
                Notify (Self.Outline_Panel, Move, Across => Event.Across, Down => Event.Down);
             elsif Part = Self.Corner'Address then
                Notify (Self.Outline_Panel, Resize, Across => Event.Across, Down => Event.Down);
             end if;
-         when Click =>
-            if Part = Self.Close_Button'Address
-              or else (Self.Docked and then Part = Self.Mini_Close'Address)
-            then
+
+         when Click        =>
+            if Part = Self.Close_Button'Address or else (Self.Docked and then Part = Self.Mini_Close'Address) then
                Notify (Self.Outline_Panel, Close);
             elsif Self.Docked and then Part = Self.Minimize_Button'Address then
                Notify (Self.Outline_Panel, Minimize);
             elsif Self.Docked and then Part = Self.Mini_Area'Address then
                Notify (Self.Outline_Panel, Restore);
             end if;
+
          when Double_Click =>
             if Self.Editable and then Part = Self.Title_Area'Address then
                Notify (Self.Outline_Panel, Double_Click);
             end if;
-         when Submit =>
+
+         when Submit       =>
             if Part = Self.Title_Field'Address then
                Notify (Self.Outline_Panel, Submit);
             end if;
-         when others =>
+
+         when others       =>
             null;
       end case;
    end Handle_Event;
 
-   procedure Attach_Title
-     (Item : in out Frame; Doc : not null Texts.Documents.Document_Access) is
+   procedure Attach_Title (Item : in out Frame; Doc : not null Texts.Documents.Document_Access) is
    begin
       Text_Fields.Attach (Item.Title_Field, Doc);
    end Attach_Title;
 
-   procedure Share_Title
-     (Item   : in out Frame;
-      Shared : not null Editors.Shared_Access) is
+   procedure Share_Title (Item : in out Frame; Shared : not null Editors.Shared_Access) is
    begin
       Text_Fields.Set_Shared (Item.Title_Field, Shared);
    end Share_Title;
 
-   function Is_Editing_Title (Item : Frame) return Boolean is
-     (Item.Editing);
+   function Is_Editing_Title (Item : Frame) return Boolean
+   is (Item.Editing);
 
-   function Title_Has_Focus (Item : Frame) return Boolean is
-     (Item.Editable and then Has_Focus (Item.Title_Field));
+   function Title_Has_Focus (Item : Frame) return Boolean
+   is (Item.Editable and then Has_Focus (Item.Title_Field));
 
    procedure Begin_Title_Edit (Item : in out Frame) is
    begin

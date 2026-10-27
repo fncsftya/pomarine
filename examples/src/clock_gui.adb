@@ -5,6 +5,7 @@ with Pomarine.Widgets;
 with Pomarine.Windows;
 
 --  A custom clock face, placed by a declarative view. The widget paints its hands and updates the time.
+
 procedure Clock_GUI is
    Win    : Pomarine.Windows.Window;
    Tree   : aliased Pomarine.Widgets.Tree;

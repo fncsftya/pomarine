@@ -15,6 +15,7 @@ with Pomarine.Events;
 --  other way; a radio is chosen, if it was not. What the application
 --  makes of it, it says back with Set_Checked, as for the others of a set
 --  of radios. Turned off (Set_Enabled), it is faint and takes nothing.
+
 package Pomarine.Widgets.Checks is
 
    type Kind is (Box, Radio);
@@ -30,7 +31,7 @@ package Pomarine.Widgets.Checks is
    function Label (Item : Check) return String;
 
    procedure Set_Checked (Item : in out Check; To : Boolean)
-     with Post => Is_Checked (Item) = To;
+   with Post => Is_Checked (Item) = To;
    --  As the application's model has it. It is not a change to take.
 
    function Is_Checked (Item : Check) return Boolean;
@@ -45,31 +46,25 @@ package Pomarine.Widgets.Checks is
    Box_Size : constant Float := 14.0;
    --  In points, a side of the box.
 
-   overriding procedure Handle
-     (Item    : in out Check;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Check; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding procedure Draw
-     (Item   : in out Check;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Check; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Hover_Changed
-     (Item : in out Check; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Check; Hovered : Boolean);
 
-   overriding function Cursor (Item : Check) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Check) return SDL3.Cursors.Kind;
 
-   overriding procedure Describe
-     (Item  : Check;
-      Facts : in out Semantics.Description);
-   overriding procedure Perform
-     (Item    : in out Check;
-      Request : Semantics.Request;
-      Done    : out Boolean);
+   overriding
+   procedure Describe (Item : Check; Facts : in out Semantics.Description);
+   overriding
+   procedure Perform (Item : in out Check; Request : Semantics.Request; Done : out Boolean);
 
-   overriding procedure Command_State_Changed
-     (Item : in out Check; State : Command_State);
+   overriding
+   procedure Command_State_Changed (Item : in out Check; State : Command_State);
 
    procedure Set_Focusable (Item : in out Check; To : Boolean);
    --  Let it take the focus, by a click or from the application, and then
@@ -77,24 +72,25 @@ package Pomarine.Widgets.Checks is
    --  to begin with, so that clicking it does not take the focus from what
    --  is being typed into.
 
-   overriding function Is_Focusable (Item : Check) return Boolean;
+   overriding
+   function Is_Focusable (Item : Check) return Boolean;
 
-   overriding function Focuses_On_Click (Item : Check) return Boolean is (False);
+   overriding
+   function Focuses_On_Click (Item : Check) return Boolean
+   is (False);
    --  Tab reaches it (if it is focusable), but a click does not move the focus.
 
-   overriding procedure Focus_Changed
-     (Item : in out Check; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Check; Focused : Boolean);
 
-   overriding procedure Draw_Over
-     (Item   : in out Check;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw_Over (Item : in out Check; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
 private
 
    type Check is new Widget with record
       Form     : Kind := Box;
-      Text : Ada.Strings.Unbounded.Unbounded_String;
+      Text     : Ada.Strings.Unbounded.Unbounded_String;
       Checked  : Boolean := False;
       Swatched : Boolean := False;
       Swatch   : Themes.Slot := Themes.Primary;
@@ -102,7 +98,7 @@ private
       Down     : Boolean := False;
 
       By_Command : Boolean := False;
-      Focusable : Boolean := False;
+      Focusable  : Boolean := False;
    end record;
 
 end Pomarine.Widgets.Checks;

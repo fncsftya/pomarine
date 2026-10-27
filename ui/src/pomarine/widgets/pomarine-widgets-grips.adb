@@ -47,13 +47,9 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Clear_Fill;
 
-   procedure Set_Border
-     (Item : in out Grip; Value : Themes.Slot; Dashed : Boolean := False)
-   is
+   procedure Set_Border (Item : in out Grip; Value : Themes.Slot; Dashed : Boolean := False) is
    begin
-      if not Item.Look.Bordered or else Item.Border_Slot /= Value
-        or else Item.Look.Dashed /= Dashed
-      then
+      if not Item.Look.Bordered or else Item.Border_Slot /= Value or else Item.Look.Dashed /= Dashed then
          Item.Look.Bordered := True;
          Item.Look.Dashed := Dashed;
          Item.Border_Slot := Value;
@@ -87,9 +83,7 @@ package body Pomarine.Widgets.Grips is
    end Clear_Shadow;
 
    procedure Set_Radius
-     (Item  : in out Grip;
-      Value : Float;
-      Round : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners) is
+     (Item : in out Grip; Value : Float; Round : Pomarine.Boxes.Corner_Flags := Pomarine.Boxes.All_Corners) is
    begin
       if Item.Look.Radius /= Value or else Pomarine.Boxes."/=" (Item.Look.Round, Round) then
          Item.Look.Radius := Value;
@@ -134,9 +128,12 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Set_Focusable;
 
-   overriding function Is_Focusable (Item : Grip) return Boolean is (Item.Focusable);
+   overriding
+   function Is_Focusable (Item : Grip) return Boolean
+   is (Item.Focusable);
 
-   overriding procedure Focus_Changed (Item : in out Grip; Focused : Boolean) is
+   overriding
+   procedure Focus_Changed (Item : in out Grip; Focused : Boolean) is
       pragma Unreferenced (Focused);
    begin
       if Item.Focusable then
@@ -144,9 +141,8 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Focus_Changed;
 
-   overriding procedure Describe
-     (Item  : Grip;
-      Facts : in out Semantics.Description) is
+   overriding
+   procedure Describe (Item : Grip; Facts : in out Semantics.Description) is
    begin
       --  What can be tabbed to and pressed is a button to an assistive
       --  technology; a handle only to be dragged is left a group.
@@ -160,10 +156,8 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Describe;
 
-   overriding procedure Perform
-     (Item    : in out Grip;
-      Request : Semantics.Request;
-      Done    : out Boolean) is
+   overriding
+   procedure Perform (Item : in out Grip; Request : Semantics.Request; Done : out Boolean) is
    begin
       Done := False;
       if Item.Focusable and then Semantics."=" (Request.Doing, Semantics.Click) then
@@ -172,9 +166,8 @@ package body Pomarine.Widgets.Grips is
       end if;
    end Perform;
 
-   overriding procedure Hover_Changed
-     (Item : in out Grip; Hovered : Boolean)
-   is
+   overriding
+   procedure Hover_Changed (Item : in out Grip; Hovered : Boolean) is
       pragma Unreferenced (Hovered);
    begin
       if Item.Outlined or else Item.Hover_Filled then
@@ -187,7 +180,8 @@ package body Pomarine.Widgets.Grips is
       Item.Wanted := To;
    end Set_Wanted_Cursor;
 
-   function Is_Dragging (Item : Grip) return Boolean is (Item.Held);
+   function Is_Dragging (Item : Grip) return Boolean
+   is (Item.Held);
 
    procedure Pointer (Item : Grip; X, Y : out Float) is
    begin
@@ -200,26 +194,24 @@ package body Pomarine.Widgets.Grips is
       Item.Held := False;
    end Cancel_Drag;
 
-   overriding procedure Handle
-     (Item    : in out Grip;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean) is
+   overriding
+   procedure Handle (Item : in out Grip; Event : Pomarine.Events.Event; Handled : out Boolean) is
    begin
       Handled := False;
       case Event.Kind is
-         when Pomarine.Events.Key_Down =>
+         when Pomarine.Events.Key_Down   =>
             --  Only with the focus: keys come to others as shortcuts.
-            if Item.Focusable and then Has_Focus (Item) and then not Event.Command
+            if Item.Focusable
+              and then Has_Focus (Item)
+              and then not Event.Command
               and then (Event.Key = Pomarine.Events.Key_Return or else Event.Key = Pomarine.Events.Key_Space)
             then
                Notify (Item, Click);
                Handled := True;
             end if;
+
          when Pomarine.Events.Mouse_Down =>
-            if Event.Button = 1
-              and then Contains
-                         (Item, Event.Mouse_X * Density (Item),
-                          Event.Mouse_Y * Density (Item))
+            if Event.Button = 1 and then Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item))
             then
                Item.Held := True;
 
@@ -230,40 +222,34 @@ package body Pomarine.Widgets.Grips is
                Item.Last_Y := Event.Mouse_Y;
                Handled := True;
             end if;
+
          when Pomarine.Events.Mouse_Move =>
             if Item.Held then
-               Notify
-                 (Item, Drag, Across => Event.Mouse_X - Item.Last_X,
-                  Down => Event.Mouse_Y - Item.Last_Y);
+               Notify (Item, Drag, Across => Event.Mouse_X - Item.Last_X, Down => Event.Mouse_Y - Item.Last_Y);
                Item.Last_X := Event.Mouse_X;
                Item.Last_Y := Event.Mouse_Y;
                Handled := True;
             end if;
-         when Pomarine.Events.Mouse_Up =>
+
+         when Pomarine.Events.Mouse_Up   =>
             if Item.Held and then Event.Button = 1 then
                Item.Held := False;
                Notify (Item, Release);
-               if Contains
-                    (Item, Event.Mouse_X * Density (Item),
-                     Event.Mouse_Y * Density (Item))
-               then
+               if Contains (Item, Event.Mouse_X * Density (Item), Event.Mouse_Y * Density (Item)) then
                   Notify (Item, Click);
                end if;
                Handled := True;
             end if;
-         when others =>
+
+         when others                     =>
             null;
       end case;
    end Handle;
 
-   overriding procedure Draw
-     (Item   : in out Grip;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme)
-   is
+   overriding
+   procedure Draw (Item : in out Grip; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme) is
       Side : constant Float := Float'Rounding (Dot_Size * Density (Item));
-      Ink  : constant Themes.Color :=
-        Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.55);
+      Ink  : constant Themes.Color := Themes.Mix (Colors (Themes.Background), Colors (Themes.Foreground), 0.55);
       Edge : constant Float := Left_Of (Item) + Width_Of (Item) - 2.0 * Side;
       Base : constant Float := Top_Of (Item) + Height_Of (Item) - 2.0 * Side;
       Look : Pomarine.Boxes.Look := Item.Look;
@@ -275,43 +261,50 @@ package body Pomarine.Widgets.Grips is
          Look.Fill := Themes.Resolve (Colors, Item.Hover_Fill);
       end if;
       Pomarine.Boxes.Draw
-        (Target, Look, Left_Of (Item), Top_Of (Item), Width_Of (Item),
-         Height_Of (Item), Density (Item));
+        (Target, Look, Left_Of (Item), Top_Of (Item), Width_Of (Item), Height_Of (Item), Density (Item));
       if Item.Outlined and then Is_Hovered (Item) then
          declare
-            Off : constant Float :=
-              Pomarine.Boxes.Inset (Item.Look, Density (Item));
+            Off : constant Float := Pomarine.Boxes.Inset (Item.Look, Density (Item));
          begin
             Pomarine.Boxes.Outline
-              (Target, Themes.Resolve (Colors, Item.Outline_Color),
-               Left_Of (Item), Top_Of (Item),
-               Width_Of (Item) - Off, Height_Of (Item) - Off,
-               Pomarine.Boxes.Edge (Density (Item)), Density => Density (Item),
-               Radius => Item.Look.Radius, Round => Item.Look.Round);
+              (Target,
+               Themes.Resolve (Colors, Item.Outline_Color),
+               Left_Of (Item),
+               Top_Of (Item),
+               Width_Of (Item) - Off,
+               Height_Of (Item) - Off,
+               Pomarine.Boxes.Edge (Density (Item)),
+               Density => Density (Item),
+               Radius  => Item.Look.Radius,
+               Round   => Item.Look.Round);
          end;
       end if;
       if Item.Focusable and then Is_Focus_Visible (Item) then
          Pomarine.Boxes.Outline
-           (Target, Themes.Resolve (Colors, Themes.Focus), Left_Of (Item), Top_Of (Item),
-            Width_Of (Item), Height_Of (Item), Float'Max (1.0, Float'Rounding (2.0 * Density (Item))),
-            Density => Density (Item), Radius => Item.Look.Radius, Round => Item.Look.Round);
+           (Target,
+            Themes.Resolve (Colors, Themes.Focus),
+            Left_Of (Item),
+            Top_Of (Item),
+            Width_Of (Item),
+            Height_Of (Item),
+            Float'Max (1.0, Float'Rounding (2.0 * Density (Item))),
+            Density => Density (Item),
+            Radius  => Item.Look.Radius,
+            Round   => Item.Look.Round);
       end if;
       if Item.Form = Corner then
          --  Dots a step apart, three along the bottom, two above, one
          --  at the top.
          for Row in 0 .. 2 loop
             for Column in 0 .. 2 - Row loop
-               Fill_Rect
-                 (Target, Ink,
-                  Edge - Float (Column) * 2.0 * Side,
-                  Base - Float (Row) * 2.0 * Side, Side, Side);
+               Fill_Rect (Target, Ink, Edge - Float (Column) * 2.0 * Side, Base - Float (Row) * 2.0 * Side, Side, Side);
             end loop;
          end loop;
       end if;
    end Draw;
 
-   overriding function Cursor (Item : Grip) return SDL3.Cursors.Kind is
-     (if Item.Held and then Item.Wanted in SDL3.Cursors.Grab
-      then SDL3.Cursors.Grabbing else Item.Wanted);
+   overriding
+   function Cursor (Item : Grip) return SDL3.Cursors.Kind
+   is (if Item.Held and then Item.Wanted in SDL3.Cursors.Grab then SDL3.Cursors.Grabbing else Item.Wanted);
 
 end Pomarine.Widgets.Grips;

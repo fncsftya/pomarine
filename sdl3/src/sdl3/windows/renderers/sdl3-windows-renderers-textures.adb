@@ -21,33 +21,25 @@ package body SDL3.Windows.Renderers.Textures is
    --  software renderer draws geometry only in this mode.
 
    procedure Create_Premultiplied_RGBA
-     (Item   : in out Texture;
-      Target : Renderer;
-      Columns, Rows : Positive;
-      Pixels : System.Address;
-      Pitch  : Positive)
+     (Item : in out Texture; Target : Renderer; Columns, Rows : Positive; Pixels : System.Address; Pitch : Positive)
    is
       Handle : constant Thin.Texture :=
         Thin.Create_Texture
-          (Target.Handle, Thin.Pixel_Format_RGBA32,
+          (Target.Handle,
+           Thin.Pixel_Format_RGBA32,
            Thin.Texture_Access_Static,
-           Interfaces.C.int (Columns), Interfaces.C.int (Rows));
+           Interfaces.C.int (Columns),
+           Interfaces.C.int (Rows));
    begin
       if Handle = System.Null_Address then
          Errors.Raise_Last_Error ("SDL_CreateTexture");
       end if;
 
       Errors.Check
-        (Thin.Update_Texture
-           (Handle, System.Null_Address, Pixels, Interfaces.C.int (Pitch)),
-         "SDL_UpdateTexture");
+        (Thin.Update_Texture (Handle, System.Null_Address, Pixels, Interfaces.C.int (Pitch)), "SDL_UpdateTexture");
       --  Source colour is already scaled by its alpha.
-      Errors.Check
-        (Thin.Set_Texture_Blend_Mode (Handle, Blend_Premultiplied),
-         "SDL_SetTextureBlendMode");
-      Errors.Check
-        (Thin.Set_Texture_Scale_Mode (Handle, Thin.Scale_Mode_Nearest),
-         "SDL_SetTextureScaleMode");
+      Errors.Check (Thin.Set_Texture_Blend_Mode (Handle, Blend_Premultiplied), "SDL_SetTextureBlendMode");
+      Errors.Check (Thin.Set_Texture_Scale_Mode (Handle, Thin.Scale_Mode_Nearest), "SDL_SetTextureScaleMode");
 
       Finalize (Item);
       Item.Handle := Handle;
@@ -55,8 +47,7 @@ package body SDL3.Windows.Renderers.Textures is
       Item.High := Rows;
    end Create_Premultiplied_RGBA;
 
-   type Index_Array is array (0 .. Max_Quads * 6 - 1) of Interfaces.C.int
-     with Convention => C;
+   type Index_Array is array (0 .. Max_Quads * 6 - 1) of Interfaces.C.int with Convention => C;
 
    function Quad_Indices return Index_Array;
    --  Two triangles to each four vertices.
@@ -79,21 +70,18 @@ package body SDL3.Windows.Renderers.Textures is
 
    Indices : aliased constant Index_Array := Quad_Indices;
 
-   procedure Create_Blank
-     (Item    : in out Texture;
-      Target  : Renderer;
-      Columns, Rows : Positive;
-      Smooth  : Boolean)
-   is
+   procedure Create_Blank (Item : in out Texture; Target : Renderer; Columns, Rows : Positive; Smooth : Boolean) is
       Handle : constant Thin.Texture :=
         Thin.Create_Texture
-          (Target.Handle, Thin.Pixel_Format_RGBA32,
+          (Target.Handle,
+           Thin.Pixel_Format_RGBA32,
            Thin.Texture_Access_Static,
-           Interfaces.C.int (Columns), Interfaces.C.int (Rows));
+           Interfaces.C.int (Columns),
+           Interfaces.C.int (Rows));
       type Zeros is array (1 .. 4 * Columns * Rows) of Interfaces.Unsigned_8;
       type Zeros_Access is access Zeros;
       procedure Free is new Ada.Unchecked_Deallocation (Zeros, Zeros_Access);
-      Blank : Zeros_Access := new Zeros'(others => 0);
+      Blank  : Zeros_Access := new Zeros'(others => 0);
    begin
       if Handle = System.Null_Address then
          Free (Blank);
@@ -102,18 +90,12 @@ package body SDL3.Windows.Renderers.Textures is
 
       --  A new texture holds whatever was in the memory.
       Errors.Check
-        (Thin.Update_Texture
-           (Handle, System.Null_Address, Blank.all'Address,
-            Interfaces.C.int (4 * Columns)),
+        (Thin.Update_Texture (Handle, System.Null_Address, Blank.all'Address, Interfaces.C.int (4 * Columns)),
          "SDL_UpdateTexture");
       Free (Blank);
+      Errors.Check (Thin.Set_Texture_Blend_Mode (Handle, Blend_Straight), "SDL_SetTextureBlendMode");
       Errors.Check
-        (Thin.Set_Texture_Blend_Mode (Handle, Blend_Straight),
-         "SDL_SetTextureBlendMode");
-      Errors.Check
-        (Thin.Set_Texture_Scale_Mode
-           (Handle, (if Smooth then Thin.Scale_Mode_Linear
-                     else Thin.Scale_Mode_Nearest)),
+        (Thin.Set_Texture_Scale_Mode (Handle, (if Smooth then Thin.Scale_Mode_Linear else Thin.Scale_Mode_Nearest)),
          "SDL_SetTextureScaleMode");
 
       Finalize (Item);
@@ -123,43 +105,36 @@ package body SDL3.Windows.Renderers.Textures is
    end Create_Blank;
 
    procedure Update_Region
-     (Item   : Texture;
-      Left, Top, Columns, Rows : Natural;
-      Pixels : System.Address;
-      Pitch  : Positive)
+     (Item : Texture; Left, Top, Columns, Rows : Natural; Pixels : System.Address; Pitch : Positive)
    is
       Area : aliased constant Thin.IRect :=
-        (X => Interfaces.C.int (Left), Y => Interfaces.C.int (Top),
-         W => Interfaces.C.int (Columns), H => Interfaces.C.int (Rows));
+        (X => Interfaces.C.int (Left),
+         Y => Interfaces.C.int (Top),
+         W => Interfaces.C.int (Columns),
+         H => Interfaces.C.int (Rows));
    begin
       Errors.Check
-        (Thin.Update_Texture
-           (Item.Handle, Area'Address, Pixels, Interfaces.C.int (Pitch)),
-         "SDL_UpdateTexture");
+        (Thin.Update_Texture (Item.Handle, Area'Address, Pixels, Interfaces.C.int (Pitch)), "SDL_UpdateTexture");
    end Update_Region;
 
-   procedure Draw_Quads
-     (Target     : Renderer;
-      Item       : Texture;
-      Vertices   : Vertex_Array;
-      Quad_Count : Natural) is
+   procedure Draw_Quads (Target : Renderer; Item : Texture; Vertices : Vertex_Array; Quad_Count : Natural) is
    begin
       if Quad_Count = 0 then
          return;
       end if;
       Errors.Check
         (Thin.Render_Geometry
-           (Target.Handle, Item.Handle, Vertices (Vertices'First)'Address,
-            Interfaces.C.int (4 * Quad_Count), Indices'Address,
+           (Target.Handle,
+            Item.Handle,
+            Vertices (Vertices'First)'Address,
+            Interfaces.C.int (4 * Quad_Count),
+            Indices'Address,
             Interfaces.C.int (6 * Quad_Count)),
          "SDL_RenderGeometry");
    end Draw_Quads;
 
    procedure Create_Mask_From_SVG
-     (Item      : in out Texture;
-      Target    : Renderer;
-      File_Name : String;
-      Columns, Rows : Positive)
+     (Item : in out Texture; Target : Renderer; File_Name : String; Columns, Rows : Positive)
    is
       use Interfaces.C.Strings;
       Name   : chars_ptr := New_String (File_Name);
@@ -167,7 +142,8 @@ package body SDL3.Windows.Renderers.Textures is
       Stream : constant System.Address := Thin.IO_From_File (Name, Mode);
       Loaded : Thin.Surface_Access;
       Plain  : Thin.Surface_Access;
-      Closed : Interfaces.C.C_bool with Unreferenced;
+      Closed : Interfaces.C.C_bool
+      with Unreferenced;
       type Bytes is array (Natural range <>) of Interfaces.Unsigned_8;
       type Bytes_Access is access Bytes;
       procedure Free is new Ada.Unchecked_Deallocation (Bytes, Bytes_Access);
@@ -178,18 +154,16 @@ package body SDL3.Windows.Renderers.Textures is
       if Stream = System.Null_Address then
          Errors.Raise_Last_Error ("SDL_IOFromFile " & File_Name);
       end if;
-      Loaded :=
-        Thin.Load_Sized_SVG_IO
-          (Stream, Interfaces.C.int (Columns), Interfaces.C.int (Rows));
+      Loaded := Thin.Load_Sized_SVG_IO (Stream, Interfaces.C.int (Columns), Interfaces.C.int (Rows));
       Closed := Thin.Close_IO (Stream);  --  the loader leaves it open
       if Loaded = null then
          Errors.Raise_Last_Error ("IMG_LoadSizedSVG_IO " & File_Name);
       end if;
       --  Whatever it gave: as R, G, B, A bytes.
       Plain :=
-        (if Loaded.Format = Thin.Pixel_Format_RGBA32 then Loaded
-         else Thin.Convert_Surface (Loaded.all'Address,
-                                    Thin.Pixel_Format_RGBA32));
+        (if Loaded.Format = Thin.Pixel_Format_RGBA32
+         then Loaded
+         else Thin.Convert_Surface (Loaded.all'Address, Thin.Pixel_Format_RGBA32));
       if Plain = null then
          Thin.Destroy_Surface (Loaded.all'Address);
          Errors.Raise_Last_Error ("SDL_ConvertSurface");
@@ -199,14 +173,13 @@ package body SDL3.Windows.Renderers.Textures is
       declare
          type Source_Bytes is array (Natural) of Interfaces.Unsigned_8;
          Source : Source_Bytes
-           with Import, Address => Plain.Pixels;
+         with Import, Address => Plain.Pixels;
       begin
          for Row in 0 .. Rows - 1 loop
             for Column in 0 .. Columns - 1 loop
                declare
                   Out_At : constant Natural := 4 * (Row * Columns + Column);
-                  In_At  : constant Natural :=
-                    Row * Natural (Plain.Pitch) + 4 * Column;
+                  In_At  : constant Natural := Row * Natural (Plain.Pitch) + 4 * Column;
                begin
                   Mask (Out_At .. Out_At + 2) := [255, 255, 255];
                   Mask (Out_At + 3) := Source (In_At + 3);
@@ -220,8 +193,7 @@ package body SDL3.Windows.Renderers.Textures is
       end if;
 
       Create_Blank (Item, Target, Columns, Rows, Smooth => True);
-      Update_Region
-        (Item, 0, 0, Columns, Rows, Mask (0)'Address, 4 * Columns);
+      Update_Region (Item, 0, 0, Columns, Rows, Mask (0)'Address, 4 * Columns);
       Free (Mask);
    exception
       when others =>
@@ -229,20 +201,18 @@ package body SDL3.Windows.Renderers.Textures is
          raise;
    end Create_Mask_From_SVG;
 
-   procedure Create_From_Decoded
-     (Item   : in out Texture;
-      Target : Renderer;
-      Source : SDL3.Pictures.Decoded) is
+   procedure Create_From_Decoded (Item : in out Texture; Target : Renderer; Source : SDL3.Pictures.Decoded) is
    begin
       --  A picture of a page is opaque, so its colour is as it is
       --  premultiplied.
       Create_Premultiplied_RGBA
-        (Item, Target, SDL3.Pictures.Width (Source),
-         SDL3.Pictures.Height (Source), SDL3.Pictures.Pixels (Source),
+        (Item,
+         Target,
+         SDL3.Pictures.Width (Source),
+         SDL3.Pictures.Height (Source),
+         SDL3.Pictures.Pixels (Source),
          SDL3.Pictures.Pitch (Source));
-      Errors.Check
-        (Thin.Set_Texture_Scale_Mode (Item.Handle, Thin.Scale_Mode_Linear),
-         "SDL_SetTextureScaleMode");
+      Errors.Check (Thin.Set_Texture_Scale_Mode (Item.Handle, Thin.Scale_Mode_Linear), "SDL_SetTextureScaleMode");
    end Create_From_Decoded;
 
    procedure Release (Item : in out Texture) is
@@ -250,30 +220,19 @@ package body SDL3.Windows.Renderers.Textures is
       Finalize (Item);
    end Release;
 
-   procedure Draw_Scaled
-     (Target : Renderer;
-      Item   : Texture;
-      X, Y, Wide, High : Float)
-   is
+   procedure Draw_Scaled (Target : Renderer; Item : Texture; X, Y, Wide, High : Float) is
       Dest : aliased constant Thin.FRect :=
         (X => Interfaces.C.C_float (X),
          Y => Interfaces.C.C_float (Y),
          W => Interfaces.C.C_float (Wide),
          H => Interfaces.C.C_float (High));
    begin
-      Errors.Check
-        (Thin.Render_Texture (Target.Handle, Item.Handle, null, Dest'Access),
-         "SDL_RenderTexture");
+      Errors.Check (Thin.Render_Texture (Target.Handle, Item.Handle, null, Dest'Access), "SDL_RenderTexture");
    end Draw_Scaled;
 
-   procedure Draw_Tinted
-     (Target : Renderer;
-      Item   : Texture;
-      X, Y   : Float;
-      Value  : Color)
-   is
-      function Part (Of_Value : Color_Component) return Float is
-        (Float (Of_Value) / 255.0);
+   procedure Draw_Tinted (Target : Renderer; Item : Texture; X, Y : Float; Value : Color) is
+      function Part (Of_Value : Color_Component) return Float
+      is (Float (Of_Value) / 255.0);
       Red   : constant Float := Part (Value.Red);
       Green : constant Float := Part (Value.Green);
       Blue  : constant Float := Part (Value.Blue);
@@ -283,7 +242,8 @@ package body SDL3.Windows.Renderers.Textures is
    begin
       --  Not premultiplied, as the texture is not.
       Draw_Quads
-        (Target, Item,
+        (Target,
+         Item,
          [(X, Y, Red, Green, Blue, Alpha, 0.0, 0.0),
           (Right, Y, Red, Green, Blue, Alpha, 1.0, 0.0),
           (X, Below, Red, Green, Blue, Alpha, 0.0, 1.0),
@@ -291,29 +251,26 @@ package body SDL3.Windows.Renderers.Textures is
          1);
    end Draw_Tinted;
 
-   function Is_Empty (Item : Texture) return Boolean is
-     (Item.Handle = System.Null_Address);
+   function Is_Empty (Item : Texture) return Boolean
+   is (Item.Handle = System.Null_Address);
 
-   procedure Draw
-     (Target : Renderer;
-      Item   : Texture;
-      X, Y   : Float)
-   is
+   procedure Draw (Target : Renderer; Item : Texture; X, Y : Float) is
       Dest : aliased constant Thin.FRect :=
         (X => Interfaces.C.C_float (X),
          Y => Interfaces.C.C_float (Y),
          W => Interfaces.C.C_float (Item.Wide),
          H => Interfaces.C.C_float (Item.High));
    begin
-      Errors.Check
-        (Thin.Render_Texture (Target.Handle, Item.Handle, null, Dest'Access),
-         "SDL_RenderTexture");
+      Errors.Check (Thin.Render_Texture (Target.Handle, Item.Handle, null, Dest'Access), "SDL_RenderTexture");
    end Draw;
 
-   function Width (Item : Texture) return Positive is (Item.Wide);
-   function Height (Item : Texture) return Positive is (Item.High);
+   function Width (Item : Texture) return Positive
+   is (Item.Wide);
+   function Height (Item : Texture) return Positive
+   is (Item.High);
 
-   overriding procedure Finalize (Item : in out Texture) is
+   overriding
+   procedure Finalize (Item : in out Texture) is
    begin
       if Item.Handle /= System.Null_Address then
          Thin.Destroy_Texture (Item.Handle);

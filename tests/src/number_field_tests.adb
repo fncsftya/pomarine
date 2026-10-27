@@ -17,13 +17,14 @@ package body Number_Field_Tests is
    package T renames Pomarine.Testing;
 
    procedure Rules is
-      function Valid (Text : String) return Boolean is (Fields.Valid (Text, Integer'First, Integer'Last));
+      function Valid (Text : String) return Boolean
+      is (Fields.Valid (Text, Integer'First, Integer'Last));
    begin
       pragma Assert (Valid ("0") and then Valid ("-0") and then Valid ("+42"));
       pragma Assert (Valid (Integer'Image (Integer'First)));
       --  'Image has a leading space for a positive integer; typed syntax deliberately does not.
       declare
-         Max : constant String := Integer'Image (Integer'Last);
+         Max   : constant String := Integer'Image (Integer'Last);
          Zeros : constant String (1 .. 10_000) := [others => '0'];
       begin
          pragma Assert (Valid (Max (2 .. Max'Last)));
@@ -40,13 +41,13 @@ package body Number_Field_Tests is
 
    procedure States is
       package Renderers renames SDL3.Windows.Renderers;
-      Target : Renderers.Renderer;
-      Lines : aliased Pomarine.Line_Texts.Drawer;
-      Tree : aliased W.Tree;
-      Root : aliased W.Panels.Panel;
+      Target                  : Renderers.Renderer;
+      Lines                   : aliased Pomarine.Line_Texts.Drawer;
+      Tree                    : aliased W.Tree;
+      Root                    : aliased W.Panels.Panel;
       Good, Bad, Off, Focused : aliased Fields.Number_Field;
-      Session : T.Session;
-      Drawn : Goldens.Images.Image;
+      Session                 : T.Session;
+      Drawn                   : Goldens.Images.Image;
    begin
       W.Set_Root (Tree, Root);
       W.Layouts.Column (Root, Padding => (others => 12.0), Gap => 8.0);
@@ -76,13 +77,13 @@ package body Number_Field_Tests is
    end States;
 
    procedure Editing is
-      Tree : aliased W.Tree;
-      Root : aliased W.Panels.Panel;
-      Field : aliased Fields.Number_Field;
-      Other : aliased Fields.Number_Field;
-      Ears : aliased Hearers.Hearer;
+      Tree    : aliased W.Tree;
+      Root    : aliased W.Panels.Panel;
+      Field   : aliased Fields.Number_Field;
+      Other   : aliased Fields.Number_Field;
+      Ears    : aliased Hearers.Hearer;
       Session : T.Session;
-      Said : Boolean;
+      Said    : Boolean;
 
       procedure Replace (Text : String) is
       begin
@@ -130,7 +131,8 @@ package body Number_Field_Tests is
          Fields.Commit (Field);
          raise Program_Error with "invalid draft accepted";
       exception
-         when Ada.Assertions.Assertion_Error => null;
+         when Ada.Assertions.Assertion_Error =>
+            null;
       end;
       Fields.Set_Value (Field, 23);
       pragma Assert (Fields.Draft (Field) = "23");

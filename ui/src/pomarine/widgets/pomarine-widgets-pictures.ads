@@ -36,6 +36,7 @@ with Pomarine.Words;
 --  fractions of the picture, as the words' boxes are, so they follow its
 --  zoom and scroll, and can be set (Set_Marks) and read (Mark_At) to be
 --  kept elsewhere; Marks_Version says when a mark was made.
+
 package Pomarine.Widgets.Pictures is
 
    Path_Capacity : constant := 1024;
@@ -66,13 +67,13 @@ package Pomarine.Widgets.Pictures is
    --  highlighter.
 
    procedure Set_Tool (Item : in out Picture; To : Tools)
-     with Post => Tool (Item) = To and then not Is_Marking (Item);
+   with Post => Tool (Item) = To and then not Is_Marking (Item);
    --  Any mark being made is dropped.
 
    function Mark_Count (Item : Picture) return Natural;
 
    function Mark_At (Item : Picture; Index : Positive) return Mark
-     with Pre => Index <= Mark_Count (Item);
+   with Pre => Index <= Mark_Count (Item);
 
    function Marks_Version (Item : Picture) return Natural;
    --  Changes on making, erasing, undoing, redoing or clearing marks; not by Set_Marks.
@@ -85,17 +86,16 @@ package Pomarine.Widgets.Pictures is
    --  One stroke or erasure per step. Undo during a drag cancels the preview.
 
    procedure Set_Marks
-     (Item : in out Picture; To : Mark_Array;
-      Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
-     with Post => Mark_Count (Item) = To'Length;
+     (Item : in out Picture; To : Mark_Array; Past : Pomarine.Marks.History := Pomarine.Marks.Empty_History)
+   with Post => Mark_Count (Item) = To'Length;
    --  Show these, in place of those made. Past must belong to To; omit it
    --  to start with no history (as when loading a source).
 
    procedure Clear_Marks (Item : in out Picture)
-     with Post => Mark_Count (Item) = 0;
+   with Post => Mark_Count (Item) = 0;
 
    procedure Set_File (Item : in out Picture; Path : String)
-     with Pre => Path'Length <= Path_Capacity;
+   with Pre => Path'Length <= Path_Capacity;
    --  Show the PNG file, from its top. "" shows none. It is read at the
    --  next draw, even if it is the file that was shown, which may have
    --  changed.
@@ -122,7 +122,7 @@ package Pomarine.Widgets.Pictures is
    --  to 1.0, its bottom (as of the last draw).
 
    procedure Scroll_To (Item : in out Picture; To : Float)
-     with Pre => To in 0.0 .. 1.0;
+   with Pre => To in 0.0 .. 1.0;
 
    function Scrolled_Across (Item : Picture) return Float;
    --  How far across the picture the box is, from 0.0, the left edge
@@ -130,10 +130,10 @@ package Pomarine.Widgets.Pictures is
    --  while the picture is no wider than the box.
 
    procedure Scroll_Across_To (Item : in out Picture; To : Float)
-     with Pre => To in 0.0 .. 1.0;
+   with Pre => To in 0.0 .. 1.0;
 
    procedure Set_Zoom (Item : in out Picture; To : Float)
-     with Pre => To > 0.0, Post => Zoom (Item) = To;
+   with Pre => To > 0.0, Post => Zoom (Item) = To;
    --  Show it To times as wide as the box (1.0 to begin with), kept at
    --  the same place along and down it.
 
@@ -148,7 +148,7 @@ package Pomarine.Widgets.Pictures is
    function Has_Selection (Item : Picture) return Boolean;
 
    function Word_Box (Item : Picture; Index : Positive) return Pixel_Box
-     with Pre => Has_Words (Item) and then Index <= Word_Count (Item);
+   with Pre => Has_Words (Item) and then Index <= Word_Count (Item);
    --  Where the word is, in pixels from the top left of the target, as of
    --  the last draw (empty before the picture is drawn).
 
@@ -167,86 +167,84 @@ package Pomarine.Widgets.Pictures is
    procedure Select_All (Item : in out Picture);
 
    procedure Clear_Selection (Item : in out Picture)
-     with Post => not Has_Selection (Item);
+   with Post => not Has_Selection (Item);
 
    procedure Search (Item : in out Picture; Term : String);
    procedure Search_Step (Item : in out Picture; Backwards : Boolean := False);
    function Search_Count (Item : Picture) return Natural;
    function Search_Current (Item : Picture) return Natural;
 
-   overriding procedure Draw
-     (Item   : in out Picture;
-      Target : SDL3.Painters.Painter'Class;
-      Colors : Themes.Theme);
+   overriding
+   procedure Draw (Item : in out Picture; Target : SDL3.Painters.Painter'Class; Colors : Themes.Theme);
 
-   overriding procedure Update
-     (Item : in out Picture; Now : Pomarine.Events.Milliseconds);
+   overriding
+   procedure Update (Item : in out Picture; Now : Pomarine.Events.Milliseconds);
 
-   overriding function Until_Update (Item : Picture) return Integer;
+   overriding
+   function Until_Update (Item : Picture) return Integer;
 
-   overriding procedure Handle_Command
-     (Item : in out Picture; Tag : Integer; Done : out Boolean);
+   overriding
+   procedure Handle_Command (Item : in out Picture; Tag : Integer; Done : out Boolean);
 
-   overriding procedure Handle
-     (Item    : in out Picture;
-      Event   : Pomarine.Events.Event;
-      Handled : out Boolean);
+   overriding
+   procedure Handle (Item : in out Picture; Event : Pomarine.Events.Event; Handled : out Boolean);
 
-   overriding function Cursor (Item : Picture) return SDL3.Cursors.Kind;
+   overriding
+   function Cursor (Item : Picture) return SDL3.Cursors.Kind;
 
-   overriding function Is_Focusable (Item : Picture) return Boolean;
+   overriding
+   function Is_Focusable (Item : Picture) return Boolean;
 
-   overriding procedure Hover_Changed
-     (Item : in out Picture; Hovered : Boolean);
+   overriding
+   procedure Hover_Changed (Item : in out Picture; Hovered : Boolean);
 
-   overriding procedure Focus_Changed
-     (Item : in out Picture; Focused : Boolean);
+   overriding
+   procedure Focus_Changed (Item : in out Picture; Focused : Boolean);
 
-   overriding procedure Describe
-     (Item  : Picture;
-      Facts : in out Semantics.Description);
+   overriding
+   procedure Describe (Item : Picture; Facts : in out Semantics.Description);
 
 private
 
    type Picture is new Widget with record
       Search_Found : Pomarine.Searches.Results;
-      Name    : String (1 .. Path_Capacity) := [others => ' '];
-      Length  : Natural range 0 .. Path_Capacity := 0;
-      Loaded  : Boolean := False;
-      Dark    : Boolean := False;  --  the picture is mostly dark
-      Failed  : Boolean := False;
-      Wide    : Natural := 0;
-      High    : Natural := 0;
+      Name         : String (1 .. Path_Capacity) := [others => ' '];
+      Length       : Natural range 0 .. Path_Capacity := 0;
+      Loaded       : Boolean := False;
+      Dark         : Boolean := False;  --  the picture is mostly dark
+      Failed       : Boolean := False;
+      Wide         : Natural := 0;
+      High         : Natural := 0;
       --  The file's size in pixels, from its header: 0 if not known.
-      Job     : Natural := 0;
+      Job          : Natural := 0;
       --  The ticket of the picture being read, 0 if none.
-      Pixels  : SDL3.Windows.Renderers.Textures.Texture;
-      Down    : Float := 0.0;
+      Pixels       : SDL3.Windows.Renderers.Textures.Texture;
+      Down         : Float := 0.0;
       --  How far the picture is scrolled, as a fraction of its height.
-      Zoomed  : Float := 1.0;
-      Across  : Float := 0.0;
+      Zoomed       : Float := 1.0;
+      Across       : Float := 0.0;
       --  How far across the picture is scrolled, as a fraction of how much
       --  wider it is than the box.
-      Fitted  : Float := 0.0;
+      Fitted       : Float := 0.0;
       --  The picture's height as of the last draw, in pixels.
-      Found   : Pomarine.Words.Result_Access;
-      Anchor  : Natural := 0;
+      Found        : Pomarine.Words.Result_Access;
+      Anchor       : Natural := 0;
       --  The word a drag began at, 0 if none.
-      Head    : Natural := 0;
+      Head         : Natural := 0;
       --  The word it has reached, 0 if it has not left the first: the
       --  selection is the words from Anchor to Head, either way round.
-      Held    : Boolean := False;
-      Drag_Words : Boolean := False;
-      Chosen  : Tools := Pointer;
-      Marked  : Pomarine.Marks.Mark_Store;
-      Marks   : Natural := 0;
-      Version : Natural := 0;
-      Past : Pomarine.Marks.History;
-      Down_Bar   : Scrollbars.Bar;
-      Across_Bar : Scrollbars.Bar;
+      Held         : Boolean := False;
+      Drag_Words   : Boolean := False;
+      Chosen       : Tools := Pointer;
+      Marked       : Pomarine.Marks.Mark_Store;
+      Marks        : Natural := 0;
+      Version      : Natural := 0;
+      Past         : Pomarine.Marks.History;
+      Down_Bar     : Scrollbars.Bar;
+      Across_Bar   : Scrollbars.Bar;
       --  The bars down its side and along its foot.
-      Marking : Boolean := False;
-      Started : Float := 0.0;
+      Marking      : Boolean := False;
+      Started      : Float := 0.0;
       --  While a mark is made, where along the picture it began, of its
       --  width; it is in Marked (Marks + 1), not counted until done.
    end record;

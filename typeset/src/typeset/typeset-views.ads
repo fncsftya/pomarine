@@ -10,6 +10,7 @@ with SDL3.Windows.Renderers;
 --  paragraphs are laid out, their lines shaped (once each: the shaped
 --  lines are kept) and drawn from the glyph atlas. Scrolling, and
 --  zooming, are changes to what it is asked to draw.
+
 package Typeset.Views is
 
    type View is limited private;
@@ -23,23 +24,22 @@ package Typeset.Views is
    --  drops those not drawn lately.
 
    procedure Draw
-     (Item   : in out View;
-      Laid   : in out Layouts.Layout;
-      Doc    : Layouts.Document;
-      Target : SDL3.Painters.Painter'Class;
-      Value  : SDL3.Windows.Renderers.Color;
-      Anchor : in out Positive;
-      Offset : in out Float;
-      Left   : Float;
-      Top    : Float;
-      Width  : Natural;
-      Height : Natural;
-      Scale  : Float;
-      Settled : Boolean;
+     (Item      : in out View;
+      Laid      : in out Layouts.Layout;
+      Doc       : Layouts.Document;
+      Target    : SDL3.Painters.Painter'Class;
+      Value     : SDL3.Windows.Renderers.Color;
+      Anchor    : in out Positive;
+      Offset    : in out Float;
+      Left      : Float;
+      Top       : Float;
+      Width     : Natural;
+      Height    : Natural;
+      Scale     : Float;
+      Settled   : Boolean;
       Rows_From : Float := Float'First;
       Rows_To   : Float := Float'Last)
-     with Pre => Layouts.Is_Synced (Laid, Doc) and then Scale > 0.0
-                 and then Anchor <= Layouts.Count (Laid);
+   with Pre => Layouts.Is_Synced (Laid, Doc) and then Scale > 0.0 and then Anchor <= Layouts.Count (Laid);
    --  Draw the page in colour Value into the part of the target Width x
    --  Height pixels with its top left at Left, Top (the left of the
    --  page is at Left). The top of what is shown is Offset layout units
@@ -61,9 +61,7 @@ package Typeset.Views is
 
    type Shared_Access is access all Shared_Resources;
 
-   procedure Set_Shared
-     (Item   : in out View;
-      Shared : not null Shared_Access);
+   procedure Set_Shared (Item : in out View; Shared : not null Shared_Access);
    --  Direct Item to shape and rasterize into Shared, sharing glyphs
    --  and font handles with other views using the same resources.
 
@@ -84,9 +82,8 @@ private
       Number : Positive;
    end record;
 
-   function Hash (Key : Line_Key) return Ada.Containers.Hash_Type is
-     (Ada.Containers.Hash_Type (Key.Layout) * 16#9E37_79B1#
-      + Ada.Containers.Hash_Type (Key.Number));
+   function Hash (Key : Line_Key) return Ada.Containers.Hash_Type
+   is (Ada.Containers.Hash_Type (Key.Layout) * 16#9E37_79B1# + Ada.Containers.Hash_Type (Key.Number));
 
    type Kept is record
       First : Positive := 1;  --  of its glyphs, in the active slab
@@ -94,8 +91,7 @@ private
       Used  : Natural := 0;  --  the frame last drawn
    end record;
 
-   package Line_Maps is new Ada.Containers.Bounded_Hashed_Maps
-     (Line_Key, Kept, Hash, "=");
+   package Line_Maps is new Ada.Containers.Bounded_Hashed_Maps (Line_Key, Kept, Hash, "=");
 
    subtype Slab is CoreText.Shaping.Glyph_Array (1 .. Glyphs_Kept);
    pragma Suppress_Initialization (Slab);
@@ -113,9 +109,7 @@ private
       Shared  : Shared_Access := null;
       Reg     : aliased CoreText.Shaping.Registry;
       Atlas   : aliased Glyph_Atlas.Atlas;
-      Lines   : Line_Maps.Map
-                  (Capacity => Lines_Kept,
-                   Modulus  => Line_Maps.Default_Modulus (Lines_Kept));
+      Lines   : Line_Maps.Map (Capacity => Lines_Kept, Modulus => Line_Maps.Default_Modulus (Lines_Kept));
       Slabs   : Slab_Pair;
       Active  : Slab_Index := 0;
       Filled  : Natural := 0;  --  of the active slab
@@ -126,7 +120,9 @@ private
       Drawn   : Natural := 0;
    end record;
 
-   overriding procedure Initialize (Item : in out View);
-   overriding procedure Finalize (Item : in out View);
+   overriding
+   procedure Initialize (Item : in out View);
+   overriding
+   procedure Finalize (Item : in out View);
 
 end Typeset.Views;

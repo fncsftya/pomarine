@@ -14,31 +14,29 @@ package body Pomarine.Native_Menus is
    use type C.unsigned_char;
    use type Interfaces.Unsigned_32;
 
-   type Chosen_Callback is access procedure (User : System.Address; Tag : Interfaces.Integer_32)
-     with Convention => C;
+   type Chosen_Callback is access procedure (User : System.Address; Tag : Interfaces.Integer_32) with Convention => C;
 
-   function Install_Native (Callback : Chosen_Callback; User : System.Address)
-      return C.unsigned_char
-     with Import, Convention => C, External_Name => "pn_menu_install";
+   function Install_Native (Callback : Chosen_Callback; User : System.Address) return C.unsigned_char
+   with Import, Convention => C, External_Name => "pn_menu_install";
 
-   function Add_Menu_Native (Title : System.Address; Length : Interfaces.Unsigned_32)
-      return System.Address
-     with Import, Convention => C, External_Name => "pn_menu_add_menu";
+   function Add_Menu_Native (Title : System.Address; Length : Interfaces.Unsigned_32) return System.Address
+   with Import, Convention => C, External_Name => "pn_menu_add_menu";
 
    procedure Add_Item_Native
-     (Target : System.Address;
-      Title : System.Address; Title_Length : Interfaces.Unsigned_32;
-      Key : System.Address; Key_Length : Interfaces.Unsigned_32;
-      Modifiers : Interfaces.Unsigned_32;
-      Tag : Interfaces.Integer_32)
-     with Import, Convention => C, External_Name => "pn_menu_add_item";
+     (Target       : System.Address;
+      Title        : System.Address;
+      Title_Length : Interfaces.Unsigned_32;
+      Key          : System.Address;
+      Key_Length   : Interfaces.Unsigned_32;
+      Modifiers    : Interfaces.Unsigned_32;
+      Tag          : Interfaces.Integer_32)
+   with Import, Convention => C, External_Name => "pn_menu_add_item";
 
    procedure Add_Separator_Native (Target : System.Address)
-     with Import, Convention => C, External_Name => "pn_menu_add_separator";
+   with Import, Convention => C, External_Name => "pn_menu_add_separator";
 
-   procedure Set_State_Native
-     (Tag : Interfaces.Integer_32; Offered, Enabled, Ticked : C.unsigned_char)
-     with Import, Convention => C, External_Name => "pn_menu_set_state";
+   procedure Set_State_Native (Tag : Interfaces.Integer_32; Offered, Enabled, Ticked : C.unsigned_char)
+   with Import, Convention => C, External_Name => "pn_menu_set_state";
 
    protected body Mailbox is
 
@@ -64,12 +62,13 @@ package body Pomarine.Native_Menus is
          end if;
       end Take;
 
-      function Waiting return Boolean is (Count > 0);
+      function Waiting return Boolean
+      is (Count > 0);
 
       procedure Discard (Tag : Integer) is
-         Kept   : Chosen_Array;
-         Left   : Natural := 0;
-         Seen   : Boolean := False;
+         Kept : Chosen_Array;
+         Left : Natural := 0;
+         Seen : Boolean := False;
       begin
          for Offset in 0 .. Count - 1 loop
             declare
@@ -109,7 +108,7 @@ package body Pomarine.Native_Menus is
    function To_Bar is new Ada.Unchecked_Conversion (System.Address, Bar_Access);
 
    procedure Chosen (User : System.Address; Tag : Interfaces.Integer_32)
-     with Convention => C;
+   with Convention => C;
 
    procedure Chosen (User : System.Address; Tag : Interfaces.Integer_32) is
    begin
@@ -119,17 +118,16 @@ package body Pomarine.Native_Menus is
 
    procedure Install (Item : in out Menu_Bar) is
    begin
-      Item.Installed :=
-        Install_Native (Chosen'Access, Item'Address) /= 0;
+      Item.Installed := Install_Native (Chosen'Access, Item'Address) /= 0;
    end Install;
 
-   function Is_Installed (Item : Menu_Bar) return Boolean is (Item.Installed);
+   function Is_Installed (Item : Menu_Bar) return Boolean
+   is (Item.Installed);
 
    procedure Add_Menu (Item : in out Menu_Bar; Title : String; Result : out Menu) is
       pragma Unreferenced (Item);
    begin
-      Result.Handle :=
-        Add_Menu_Native (Title'Address, Interfaces.Unsigned_32 (Title'Length));
+      Result.Handle := Add_Menu_Native (Title'Address, Interfaces.Unsigned_32 (Title'Length));
    end Add_Menu;
 
    procedure Add_Item
@@ -158,8 +156,12 @@ package body Pomarine.Native_Menus is
          Modifiers := Modifiers + 8;
       end if;
       Add_Item_Native
-        (To.Handle, Title'Address, Interfaces.Unsigned_32 (Title'Length),
-         Key'Address, Interfaces.Unsigned_32 (Key'Length), Modifiers,
+        (To.Handle,
+         Title'Address,
+         Interfaces.Unsigned_32 (Title'Length),
+         Key'Address,
+         Interfaces.Unsigned_32 (Key'Length),
+         Modifiers,
          Interfaces.Integer_32 (Tag));
       pragma Assert (Item.Tag_Count < Capacity, "more menu items than the bar keeps");
       Item.Tag_Count := Item.Tag_Count + 1;
@@ -181,9 +183,7 @@ package body Pomarine.Native_Menus is
          Ticked  => (if State = Widgets.Ticked then 1 else 0));
    end Show_State;
 
-   procedure Update_States
-     (Item      : in out Menu_Bar;
-      Validator : Widgets.Command_Validator) is
+   procedure Update_States (Item : in out Menu_Bar; Validator : Widgets.Command_Validator) is
    begin
       for Tag of Item.Tags (1 .. Item.Tag_Count) loop
          Show_State (Tag, (if Validator = null then Widgets.Enabled else Validator (Tag)));
@@ -197,7 +197,8 @@ package body Pomarine.Native_Menus is
       end loop;
    end Update_States;
 
-   function Is_Waiting (Item : Menu_Bar) return Boolean is (Item.Mail.Waiting);
+   function Is_Waiting (Item : Menu_Bar) return Boolean
+   is (Item.Mail.Waiting);
 
    procedure Pump (Item : in out Menu_Bar; Tree : in out Widgets.Tree) is
       Tag   : Integer;

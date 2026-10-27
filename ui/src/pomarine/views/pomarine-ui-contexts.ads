@@ -45,6 +45,7 @@ with Texts.Documents;
 --  access discriminants cannot be made for a nested component (the discriminant
 --  of one object cannot give the discriminant of another), so a context holds
 --  named access values of library-level types, made once, in Bind.
+
 generic
    with package Commands is new Pomarine.View_Models.Command_Models (<>);
    type Model is limited new Commands.Model with private;
@@ -85,8 +86,7 @@ package Pomarine.UI.Contexts is
    type Fraction_Getter is access function (Item : Model) return Float;
    type Fraction_Setter is access procedure (Item : in out Model; Value : Float);
    type Count_Getter is access function (Item : Model) return Natural;
-   type Rows_Getter is access function (Item : in out Model)
-     return not null access Pomarine.Models.List_Model'Class;
+   type Rows_Getter is access function (Item : in out Model) return not null access Pomarine.Models.List_Model'Class;
    type Choice_Setter is access procedure (Item : in out Model; Id : Natural);
    type Action_Performer is access procedure (Item : in out Model);
    type Version_Getter is access function (Item : Model) return VM.Version_Number;
@@ -134,8 +134,7 @@ package Pomarine.UI.Contexts is
 
    type Context is new Ada.Finalization.Limited_Controlled with private;
 
-   function Bind
-     (Screen : in out Pomarine.UI.View; Data : not null access Model) return Context'Class;
+   function Bind (Screen : in out Pomarine.UI.View; Data : not null access Model) return Context'Class;
    --  The context of the view's own scope (class-wide, since a component is a
    --  context too). The model must be there as long as the view is used (see
    --  Pomarine.UI).
@@ -172,11 +171,11 @@ package Pomarine.UI.Contexts is
    --  A label of a text that is no model's.
 
    function Button
-     (Self    : Context;
-      Caption : String;
-      Command : Commands.Command;
-      Look    : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
-      Index   : Natural := 0;
+     (Self      : Context;
+      Caption   : String;
+      Command   : Commands.Command;
+      Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
+      Index     : Natural := 0;
       Focusable : Boolean := False) return Pomarine.UI.Button_Handle;
    --  A button that does Command when it is clicked, if the model can, and is turned
    --  on and off as the model says.
@@ -210,8 +209,7 @@ package Pomarine.UI.Contexts is
    function Plain_Grip (Self : Context; Look : Pomarine.UI.Grip_Look) return Pomarine.UI.Grip_Handle;
    --  A grip the view places but does not hear: the application hooks what it wants (Click, Double_Click).
 
-   function Plain_Button
-     (Self : Context; Look : Pomarine.Widgets.Buttons.Settings) return Pomarine.UI.Button_Handle;
+   function Plain_Button (Self : Context; Look : Pomarine.Widgets.Buttons.Settings) return Pomarine.UI.Button_Handle;
    --  A button the view places but does not hear and the model knows nothing of: the application hooks its
    --  Click (Pomarine.Widgets.Callbacks) on Widget_Of.
 
@@ -222,7 +220,7 @@ package Pomarine.UI.Contexts is
       Name        : String := "";
       Replacing   : Replacement := Caret_At_End;
       Index       : Natural := 0) return Pomarine.UI.Field_Handle
-     with Pre => Is_Writable (Text);
+   with Pre => Is_Writable (Text);
 
    function Text_Field
      (Self        : Context;
@@ -232,7 +230,7 @@ package Pomarine.UI.Contexts is
       Name        : String := "";
       Replacing   : Replacement := Caret_At_End;
       Index       : Natural := 0) return Pomarine.UI.Field_Handle
-     with Pre => Is_Writable (Text);
+   with Pre => Is_Writable (Text);
 
    function Text_Field
      (Self        : Context;
@@ -242,7 +240,7 @@ package Pomarine.UI.Contexts is
       Name        : String := "";
       Replacing   : Replacement := Caret_At_End;
       Index       : Natural := 0) return Pomarine.UI.Field_Handle
-     with Pre => Is_Writable (Text);
+   with Pre => Is_Writable (Text);
    --  A field that shows the model's text and gives it what is typed, and, with Submit,
    --  does the command when Return is pressed (the field stays typeable when it cannot).
    --  Name is what an assistive technology (and a test) calls it; none, if not said.
@@ -265,7 +263,7 @@ package Pomarine.UI.Contexts is
       Checked : Flag_Property;
       Form    : Pomarine.Widgets.Checks.Kind := Pomarine.Widgets.Checks.Box;
       Name    : String := "") return Pomarine.UI.Check_Handle
-     with Pre => Is_Settable (Checked);
+   with Pre => Is_Settable (Checked);
    --  A box that is ticked as Checked says and gives the model what the person ticks (Edit_Flag).
 
    function Is_Settable (Item : Flag_Property) return Boolean;
@@ -281,8 +279,7 @@ package Pomarine.UI.Contexts is
 
    function Progress (Self : Context; Done : Fraction_Property) return Pomarine.UI.Progress_Handle;
 
-   procedure Show_When
-     (Self : Context; Target : Pomarine.UI.Control_Ref; Shown : Flag_Property; Index : Natural := 0);
+   procedure Show_When (Self : Context; Target : Pomarine.UI.Control_Ref; Shown : Flag_Property; Index : Natural := 0);
 
    procedure Enabled_When
      (Self : Context; Target : Pomarine.UI.Button_Handle; Allowed : Flag_Property; Index : Natural := 0);
@@ -297,16 +294,13 @@ package Pomarine.UI.Contexts is
    --  Give the control the focus, a field with its text selected, when Raised turns true: declare it after
    --  what shows the control, so that it is shown when it is given.
 
-   procedure Show_When
-     (Self : Context; Target : Pomarine.UI.Layout; Shown : Flag_Property; Index : Natural := 0);
+   procedure Show_When (Self : Context; Target : Pomarine.UI.Layout; Shown : Flag_Property; Index : Natural := 0);
    --  As above, for a Row, Column or Scroll: its panel, with all it holds.
    --  The control is in the layout while Shown is true, and out of it (it takes no room) when not.
 
    function List
-     (Self      : Context;
-      Rows      : Rows_Property;
-      Selection : Choice_Property;
-      Name      : String := "") return Pomarine.UI.List_Handle;
+     (Self : Context; Rows : Rows_Property; Selection : Choice_Property; Name : String := "")
+      return Pomarine.UI.List_Handle;
    --  A list of the model's rows (the existing model-backed rows) and the choice of one of them.
 
    --  Controls placed in one step
@@ -397,7 +391,7 @@ package Pomarine.UI.Contexts is
       Height          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Margin          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Align           : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
-     with Pre => Is_Writable (Text);
+   with Pre => Is_Writable (Text);
    --  With Focus_Initially the field has the focus when the screen is mounted.
 
    function Text_Field
@@ -414,7 +408,7 @@ package Pomarine.UI.Contexts is
       Height          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Margin          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Align           : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
-     with Pre => Is_Writable (Text);
+   with Pre => Is_Writable (Text);
 
    function Check
      (Self    : Context;
@@ -443,7 +437,7 @@ package Pomarine.UI.Contexts is
       Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
-     with Pre => Is_Settable (Checked);
+   with Pre => Is_Settable (Checked);
 
    function Switch
      (Self    : Context;
@@ -595,7 +589,7 @@ package Pomarine.UI.Contexts is
       Margin    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Align     : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
       Exact     : Boolean := False) return Pomarine.UI.Layout
-     with Pre => Is_Writable (Text);
+   with Pre => Is_Writable (Text);
 
    function Borrow_Slider
      (Self     : Context;
@@ -610,7 +604,7 @@ package Pomarine.UI.Contexts is
       Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
       Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is;
       Exact    : Boolean := False) return Pomarine.UI.Layout
-     with Pre => Is_Writable (Value);
+   with Pre => Is_Writable (Value);
 
    function Borrow_List
      (Self      : Context;
@@ -633,10 +627,7 @@ package Pomarine.UI.Contexts is
    --  Give the focus to the control when the screen is mounted.
 
    procedure Reveal_After
-     (Self    : Context;
-      Command : Commands.Command;
-      Target  : Pomarine.UI.Reveal_Target;
-      Count   : Count_Property);
+     (Self : Context; Command : Commands.Command; Target : Pomarine.UI.Reveal_Target; Count : Count_Property);
    --  After Command is done, if Count has grown, scroll the list to its last row.
    --  The view's, not the model's: the model knows nothing of scrolling.
 
@@ -666,22 +657,33 @@ package Pomarine.UI.Contexts is
       Backing   : aliased in out Texts.Documents.Document;
       Text      : Text_Property;
       Replacing : Replacement := Caret_At_End) return Pomarine.UI.Field_Handle
-     with Pre => Is_Writable (Text);
+   with Pre => Is_Writable (Text);
    --  Backing is the document the field shows (the application attached it).
 
    procedure On_Frame_Event
-     (Self : Context; Target : in out Pomarine.Widgets.Frames.Frame; Kind : Pomarine.Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0);
+     (Self    : Context;
+      Target  : in out Pomarine.Widgets.Frames.Frame;
+      Kind    : Pomarine.Widgets.Event_Kind;
+      Command : Commands.Command;
+      Index   : Natural := 0);
    --  Discrete frame actions. Target must outlive the binding; movement and resizing stay in the view.
 
    procedure On_Event
-     (Self : Context; Target : Pomarine.UI.Control_Ref; Kind : Pomarine.Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False);
+     (Self             : Context;
+      Target           : Pomarine.UI.Control_Ref;
+      Kind             : Pomarine.Widgets.Event_Kind;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False);
    --  Bind a discrete event on a typed control, without borrowing it again.
 
    procedure On_Event
-     (Self : Context; Target : Pomarine.UI.Widget_Handle; Kind : Pomarine.Widgets.Event_Kind;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False);
+     (Self             : Context;
+      Target           : Pomarine.UI.Widget_Handle;
+      Kind             : Pomarine.Widgets.Event_Kind;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False);
    --  Route an app-owned widget event through the normal edit-before-command turn. The binding owns
    --  this event handler until its scope is destroyed; the widget's tag is left unchanged.
 
@@ -690,9 +692,13 @@ package Pomarine.UI.Contexts is
    --  Command-clicked, it has begun to ask for a link's address.
 
    procedure On_Editor_Event
-     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Editor_Hook;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
-     with Pre => Hook = Tool_Used or else not Index_From_Event;
+     (Self             : Context;
+      Target           : Pomarine.UI.Widget_Handle;
+      Hook             : Editor_Hook;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False)
+   with Pre => Hook = Tool_Used or else not Index_From_Event;
    --  Route an event of an editor the application keeps (Borrow_Widget) through the normal turn. With
    --  Index_From_Event the command's index says the tool used as well as Index (Tool_Index); otherwise it is
    --  Index. Target must be an editor and each hook of it may be bound once.
@@ -702,26 +708,30 @@ package Pomarine.UI.Contexts is
    --  while one is selected.
 
    procedure On_Canvas_Event
-     (Self : Context; Target : Pomarine.UI.Widget_Handle; Hook : Canvas_Hook;
-      Command : Commands.Command; Index : Natural := 0; Index_From_Event : Boolean := False)
-     with Pre => Hook = Line_Selected or else not Index_From_Event;
+     (Self             : Context;
+      Target           : Pomarine.UI.Widget_Handle;
+      Hook             : Canvas_Hook;
+      Command          : Commands.Command;
+      Index            : Natural := 0;
+      Index_From_Event : Boolean := False)
+   with Pre => Hook = Line_Selected or else not Index_From_Event;
    --  As On_Editor_Event, of a canvas the application keeps. With Index_From_Event, of Line_Selected, the
    --  command's index is the Tag of the line selected, 0 for none.
 
-   function Tool_Index (Index : Natural; Tool : Positive) return Natural is
-     (Index * Pomarine.Widgets.Editors.Tool_Capacity + Tool)
-     with Pre => Tool <= Pomarine.Widgets.Editors.Tool_Capacity;
+   function Tool_Index (Index : Natural; Tool : Positive) return Natural
+   is (Index * Pomarine.Widgets.Editors.Tool_Capacity + Tool)
+   with Pre => Tool <= Pomarine.Widgets.Editors.Tool_Capacity;
    --  The index of a command of Tool_Used with Index_From_Event, of the editor bound with Index.
 
-   function Editor_Of (Index : Positive) return Natural is
-     ((Index - 1) / Pomarine.Widgets.Editors.Tool_Capacity);
-   function Tool_Of (Index : Positive) return Positive is
-     ((Index - 1) mod Pomarine.Widgets.Editors.Tool_Capacity + 1);
+   function Editor_Of (Index : Positive) return Natural
+   is ((Index - 1) / Pomarine.Widgets.Editors.Tool_Capacity);
+   function Tool_Of (Index : Positive) return Positive
+   is ((Index - 1) mod Pomarine.Widgets.Editors.Tool_Capacity + 1);
    --  What Tool_Index put together: the Index the editor was bound with, the tool.
 
    type List_Actions is array (Positive range <>) of Commands.Command;
    procedure On_List_Actions (Self : Context; Target : Pomarine.UI.Widget_Handle; Actions : List_Actions)
-     with Pre => Actions'First = 1 and then Actions'Length in 1 .. Pomarine.Models.Max_Actions;
+   with Pre => Actions'First = 1 and then Actions'Length in 1 .. Pomarine.Models.Max_Actions;
    --  Bind each numbered row action to a command, with the row as its index. Unknown actions are ignored.
    --  Target must borrow a list. For Click and Submit, On_Event with Index_From_Event uses its selected row;
    --  a list with no selection does not execute a command. Bindings detach with the control's scope.
@@ -729,7 +739,7 @@ package Pomarine.UI.Contexts is
    function Borrow_Slider
      (Self : Context; Existing : in out Pomarine.Widgets.Sliders.Slider; Value : Fraction_Property)
       return Pomarine.UI.Widget_Handle
-      with Pre => Is_Writable (Value);
+   with Pre => Is_Writable (Value);
    --  Changes are collected before commands. Programmatic refreshes preserve an active drag.
 
    function Borrow_Widget
@@ -738,10 +748,8 @@ package Pomarine.UI.Contexts is
    --  places it and Show_When shows or hides it. The rest of it is the application's.
 
    function Borrow_List
-     (Self      : Context;
-      Existing  : in out Pomarine.Widgets.Lists.List;
-      Rows      : Rows_Property;
-      Selection : Choice_Property) return Pomarine.UI.List_Handle;
+     (Self : Context; Existing : in out Pomarine.Widgets.Lists.List; Rows : Rows_Property; Selection : Choice_Property)
+      return Pomarine.UI.List_Handle;
 
    --  Components
 
@@ -813,11 +821,11 @@ private
    end record;
 
    type Count_Property is record
-      Get     : Count_Getter;
+      Get : Count_Getter;
    end record;
 
    type Rows_Property is record
-      Get     : Rows_Getter;
+      Get : Rows_Getter;
    end record;
 
    type Choice_Property is record
@@ -827,31 +835,31 @@ private
    end record;
 
    type Flag_Property is record
-      Get     : Flag_Getter;
-      Each    : Flag_Each_Getter;
-      Set     : Flag_Setter;
-      Pick    : access function (Item : Model) return Natural;
-      Want    : Natural := 0;
+      Get  : Flag_Getter;
+      Each : Flag_Each_Getter;
+      Set  : Flag_Setter;
+      Pick : access function (Item : Model) return Natural;
+      Want : Natural := 0;
    end record;
 
    type Fraction_Property is record
-      Get     : Fraction_Getter;
-      Set     : Fraction_Setter;
+      Get : Fraction_Getter;
+      Set : Fraction_Setter;
    end record;
 
-   function Is_Writable (Item : Fraction_Property) return Boolean is
-     (Item.Set /= null);
+   function Is_Writable (Item : Fraction_Property) return Boolean
+   is (Item.Set /= null);
 
    type Action_Property is record
       Allowed : Flag_Getter;
       Perform : Action_Performer;
    end record;
 
-   function Is_Settable (Item : Flag_Property) return Boolean is
-     (Item.Set /= null);
+   function Is_Settable (Item : Flag_Property) return Boolean
+   is (Item.Set /= null);
 
-   function Is_Writable (Item : Text_Property) return Boolean is
-     (Item.Set /= null);
+   function Is_Writable (Item : Text_Property) return Boolean
+   is (Item.Set /= null);
 
    type Context is new Ada.Finalization.Limited_Controlled with record
       Number : Natural := 0;
@@ -863,7 +871,9 @@ private
       Committed : Boolean := False;
    end record;
 
-   overriding procedure Initialize (Item : in out Component);
-   overriding procedure Finalize (Item : in out Component);
+   overriding
+   procedure Initialize (Item : in out Component);
+   overriding
+   procedure Finalize (Item : in out Component);
 
 end Pomarine.UI.Contexts;

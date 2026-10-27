@@ -59,12 +59,10 @@ package Yoga.Nodes is
       Width, Height : Float;
    end record;
 
-   type Measure_Handler is access function
-     (Context     : System.Address;
-      Width       : Float;
-      Width_Mode  : Measure_Mode;
-      Height      : Float;
-      Height_Mode : Measure_Mode) return Measured_Size;
+   type Measure_Handler is
+     access function
+       (Context : System.Address; Width : Float; Width_Mode : Measure_Mode; Height : Float; Height_Mode : Measure_Mode)
+        return Measured_Size;
    --  How big a leaf that has no size of its own is, in the room it has,
    --  given what its owner said it was (see Set_Measured).
 
@@ -88,10 +86,7 @@ package Yoga.Nodes is
 
    --  Layout
 
-   procedure Calculate_Layout
-     (Item             : Tree;
-      Available_Width  : Float;
-      Available_Height : Float);
+   procedure Calculate_Layout (Item : Tree; Available_Width : Float; Available_Height : Float);
    --  Compute the layout of the whole tree within the available size.
 
    function Left (Item : Node) return Float;
@@ -111,7 +106,9 @@ private
       Root_Node : Node;
    end record;
 
-   overriding procedure Initialize (Item : in out Tree);
-   overriding procedure Finalize (Item : in out Tree);
+   overriding
+   procedure Initialize (Item : in out Tree);
+   overriding
+   procedure Finalize (Item : in out Tree);
 
 end Yoga.Nodes;

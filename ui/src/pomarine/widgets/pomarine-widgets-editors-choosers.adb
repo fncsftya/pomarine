@@ -1,6 +1,7 @@
 with CoreText.Fonts;
 with Yoga.Nodes;
 with Pomarine.Widgets.Editors.Metrics;
+
 package body Pomarine.Widgets.Editors.Choosers is
 
    use type Texts.Paragraph_Kind;
@@ -10,11 +11,20 @@ package body Pomarine.Widgets.Editors.Choosers is
    procedure Mark_Open (Item : in out Editor; Which : Choice; On : Boolean) is
    begin
       case Which is
-         when Pick_Family  => Selects.Set_Open (Item.Family_Box, On);
-         when Pick_Size    => Selects.Set_Open (Item.Size_Box, On);
-         when Pick_Style   => Selects.Set_Open (Item.Style_Box, On);
-         when Pick_Source  => Selects.Set_Open (Item.Link_Sources, On);
-         when Nothing => null;
+         when Pick_Family =>
+            Selects.Set_Open (Item.Family_Box, On);
+
+         when Pick_Size   =>
+            Selects.Set_Open (Item.Size_Box, On);
+
+         when Pick_Style  =>
+            Selects.Set_Open (Item.Style_Box, On);
+
+         when Pick_Source =>
+            Selects.Set_Open (Item.Link_Sources, On);
+
+         when Nothing     =>
+            null;
       end case;
    end Mark_Open;
 
@@ -33,11 +43,17 @@ package body Pomarine.Widgets.Editors.Choosers is
    procedure Open_Chooser (Item : in out Editor; Which : Choice) is
       Pixels : constant Float := Density (Item);
       Left   : constant Float :=
-        (case Which is when Pick_Family => Font_Left, when Pick_Size => Size_Left,
-                       when Pick_Source => Float (Item.Link_Left) / Pixels, when others => Style_Left);
+        (case Which is
+           when Pick_Family => Font_Left,
+           when Pick_Size   => Size_Left,
+           when Pick_Source => Float (Item.Link_Left) / Pixels,
+           when others      => Style_Left);
       Wide   : constant Float :=
-        (case Which is when Pick_Family => Family_Wide, when Pick_Size => Size_Wide,
-                       when Pick_Source => Link_Wide - 2.0 * Bubble_Pad, when others => Style_Wide);
+        (case Which is
+           when Pick_Family => Family_Wide,
+           when Pick_Size   => Size_Wide,
+           when Pick_Source => Link_Wide - 2.0 * Bubble_Pad,
+           when others      => Style_Wide);
       Top    : Float := Toolbar_Top + Button_High + Tip_Gap;
       Rows   : Menus.Row_Vectors.Vector;
    begin
@@ -60,21 +76,24 @@ package body Pomarine.Widgets.Editors.Choosers is
                   Rows.Append (Menus.Describe_Row (Menus.Check, Name, Checked => Name = Family_Shown (Item)));
                end loop;
             end;
-         when Pick_Size =>
+
+         when Pick_Size   =>
             for Points of Sizes loop
                Rows.Append
-                 (Menus.Describe_Row (Menus.Check, Size_Text (Float (Points)),
-                                      Checked => Float (Points) = Size_Shown (Item)));
+                 (Menus.Describe_Row
+                    (Menus.Check, Size_Text (Float (Points)), Checked => Float (Points) = Size_Shown (Item)));
             end loop;
+
          when Pick_Source =>
             for Title of Item.Link_Titles loop
                Rows.Append (Menus.Describe_Row (Menus.Check, Ada.Strings.Unbounded.To_String (Title)));
             end loop;
-         when others =>
+
+         when others      =>
             for Kind in Texts.Paragraph_Kind range 0 .. 3 loop
                Rows.Append
-                 (Menus.Describe_Row (Menus.Check, Style_Name (Kind),
-                                      Checked => Kind = Text_Areas.Paragraph_Style (Item.Text)));
+                 (Menus.Describe_Row
+                    (Menus.Check, Style_Name (Kind), Checked => Kind = Text_Areas.Paragraph_Style (Item.Text)));
             end loop;
       end case;
       Menus.Set_Rows (Item.Chooser, Rows);

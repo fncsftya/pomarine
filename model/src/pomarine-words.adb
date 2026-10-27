@@ -42,7 +42,8 @@ package body Pomarine.Words is
       Item.Truncated := False;
    end Clear;
 
-   overriding procedure Adjust (Item : in out Result) is
+   overriding
+   procedure Adjust (Item : in out Result) is
    begin
       if Item.Words /= null then
          Item.Words := new Word_Array'(Item.Words (1 .. Item.Words'Length));
@@ -52,7 +53,8 @@ package body Pomarine.Words is
       end if;
    end Adjust;
 
-   overriding procedure Finalize (Item : in out Result) is
+   overriding
+   procedure Finalize (Item : in out Result) is
    begin
       Free (Item.Words);
       Free (Item.Text);

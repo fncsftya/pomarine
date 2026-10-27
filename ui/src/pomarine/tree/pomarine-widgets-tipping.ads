@@ -1,6 +1,7 @@
 --  The tooltips of a tree: which widget the pointer has rested on, for how long, and when to show the box beside it.
 --  A private child of Pomarine.Widgets: its operations are the parts of that package's body that are not
 --  its own interface, and are called from it.
+
 private package Pomarine.Widgets.Tipping is
 
    procedure Step (Home : in out Tree; Now : Pomarine.Events.Milliseconds);

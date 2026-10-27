@@ -6,11 +6,7 @@ package body Pomarine.UI.Syncing is
 
    package Hub_Callbacks is new Widgets.Callbacks (Hub);
 
-   procedure Heard
-     (Self   : in out Hub;
-      Source : in out Widgets.Widget'Class;
-      Event  : Widgets.Widget_Event)
-   is
+   procedure Heard (Self : in out Hub; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
       pragma Unreferenced (Source);
    begin
       if Self.Owner /= null then
@@ -18,9 +14,7 @@ package body Pomarine.UI.Syncing is
       end if;
    end Heard;
 
-   procedure Edited
-     (Self : in out Hub; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event)
-   is
+   procedure Edited (Self : in out Hub; Source : in out Widgets.Widget'Class; Event : Widgets.Widget_Event) is
       pragma Unreferenced (Source, Event);
    begin
       if Self.Owner /= null then
@@ -29,7 +23,9 @@ package body Pomarine.UI.Syncing is
    end Edited;
 
    procedure Install
-     (Within : in out View'Class; Item : in out Widgets.Widget'Class; Kind : Widgets.Event_Kind;
+     (Within     : in out View'Class;
+      Item       : in out Widgets.Widget'Class;
+      Kind       : Widgets.Event_Kind;
       Edits_Only : Boolean := False) is
    begin
       if Edits_Only then
@@ -100,7 +96,8 @@ package body Pomarine.UI.Syncing is
       use Tag_Maps;
       Found : constant Cursor :=
         (if Event.Kind in Widgets.Click | Widgets.Submit | Widgets.Change
-         then Within.Commands.Find (Event.Tag) else No_Element);
+         then Within.Commands.Find (Event.Tag)
+         else No_Element);
    begin
       if Found = No_Element then
          return;
@@ -126,11 +123,9 @@ package body Pomarine.UI.Syncing is
 
    --  One turn: passes, then the events that came meanwhile.
 
-   procedure Run
-     (Within : in out View'Class; First : Boolean; Event : Widgets.Widget_Event; Forced : Boolean)
-   is
-      Passes : Natural := 0;
-      Doing  : Boolean := First;
+   procedure Run (Within : in out View'Class; First : Boolean; Event : Widgets.Widget_Event; Forced : Boolean) is
+      Passes  : Natural := 0;
+      Doing   : Boolean := First;
       Changed : Boolean := False;
    begin
       Within.Syncing := True;

@@ -9,36 +9,23 @@
 --
 --  Like the others, they are called after the event that caused them, so
 --  that they may change the tree.
+
 generic
    type Context is limited private;
 package Pomarine.Widgets.Editors.Callbacks is
 
-   type Tool_Handler is access procedure
-     (Self   : in out Context;
-      Source : in out Editor'Class;
-      Tool   : Positive);
+   type Tool_Handler is access procedure (Self : in out Context; Source : in out Editor'Class; Tool : Positive);
 
-   type Link_Handler is access procedure
-     (Self   : in out Context;
-      Source : in out Editor'Class);
+   type Link_Handler is access procedure (Self : in out Context; Source : in out Editor'Class);
 
-   procedure On_Tool
-     (Item    : in out Editor'Class;
-      Self    : not null access Context;
-      Do_This : not null Tool_Handler);
+   procedure On_Tool (Item : in out Editor'Class; Self : not null access Context; Do_This : not null Tool_Handler);
    --  When one of the tools added with Add_Tool is used, call Do_This
    --  with its number, from 1. Self must be there as long as Item is in use.
 
-   procedure On_Follow
-     (Item    : in out Editor'Class;
-      Self    : not null access Context;
-      Do_This : not null Link_Handler);
+   procedure On_Follow (Item : in out Editor'Class; Self : not null access Context; Do_This : not null Link_Handler);
    --  When a link is Command-clicked: the address is Followed.
 
-   procedure On_Ask_Link
-     (Item    : in out Editor'Class;
-      Self    : not null access Context;
-      Do_This : not null Link_Handler);
+   procedure On_Ask_Link (Item : in out Editor'Class; Self : not null access Context; Do_This : not null Link_Handler);
    --  When it has begun to ask for a link's address: the application may
    --  answer with Add_Link_Choice.
 

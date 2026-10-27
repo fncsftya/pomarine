@@ -18,9 +18,9 @@ package body Pomarine.Searches is
       Query : constant Wide_Wide_String := Ada.Wide_Wide_Characters.Handling.To_Lower (UTF.Decode (Term));
       package Offsets is new Ada.Containers.Vectors (Positive, Positive);
       Bytes : Offsets.Vector;
-      Byte : Positive := Text'First;
+      Byte  : Positive := Text'First;
       Start : Positive := Lower'First;
-      Hit : Natural;
+      Hit   : Natural;
    begin
       if Query'Length = 0 then
          return;
@@ -42,14 +42,12 @@ package body Pomarine.Searches is
       end loop;
    end Find;
 
-   procedure Find_Words
-     (Item : in out Results; Found : Words.Result; Term : String; Page : Positive := 1)
-   is
+   procedure Find_Words (Item : in out Results; Found : Words.Result; Term : String; Page : Positive := 1) is
       use Ada.Strings.Unbounded;
-      Before : constant Natural := Natural (Item.Matches.Length);
+      Before     : constant Natural := Natural (Item.Matches.Length);
       First_Word : Positive := 1;
-      Text : Unbounded_String;
-      Ranges : Match_Lists.Vector;
+      Text       : Unbounded_String;
+      Ranges     : Match_Lists.Vector;
    begin
       if Found.Count = 0 or else Term = "" then
          return;
@@ -99,20 +97,26 @@ package body Pomarine.Searches is
    end Step;
 
    procedure Draw
-     (Item : Results; Target : SDL3.Painters.Painter'Class;
-      Page : Positive; Left, Top, Width, Height : Float)
+     (Item : Results; Target : SDL3.Painters.Painter'Class; Page : Positive; Left, Top, Width, Height : Float)
    is
       use SDL3.Windows.Renderers;
    begin
       for B of Item.Boxes loop
          if B.Page = Page then
             SDL3.Painters.Fill_Rect
-              (Target, (if B.Hit = Item.Current then Color'(40, 120, 255, 130)
-                        else Color'(60, 170, 255, 65)),
-               Left + B.Left * Width, Top + B.Top * Height, B.Width * Width, B.Height * Height);
+              (Target,
+               (if B.Hit = Item.Current then Color'(40, 120, 255, 130) else Color'(60, 170, 255, 65)),
+               Left + B.Left * Width,
+               Top + B.Top * Height,
+               B.Width * Width,
+               B.Height * Height);
             SDL3.Painters.Fill_Rect
-              (Target, Color'(30, 110, 240, 230), Left + B.Left * Width,
-               Top + (B.Top + B.Height) * Height - 1.0, B.Width * Width, 1.0);
+              (Target,
+               Color'(30, 110, 240, 230),
+               Left + B.Left * Width,
+               Top + (B.Top + B.Height) * Height - 1.0,
+               B.Width * Width,
+               1.0);
          end if;
       end loop;
    end Draw;

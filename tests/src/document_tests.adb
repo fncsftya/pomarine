@@ -20,28 +20,25 @@ package body Document_Tests is
 
    LF : constant Character := ASCII.LF;
 
-   function UTF_8 (Text : Wide_Wide_String) return String is
-     (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Text));
+   function UTF_8 (Text : Wide_Wide_String) return String
+   is (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Text));
 
-   function Image (At_Point : Texts.Position) return String is
-     ("(" & At_Point.Paragraph'Image & "," & At_Point.Index'Image & ")");
+   function Image (At_Point : Texts.Position) return String
+   is ("(" & At_Point.Paragraph'Image & "," & At_Point.Index'Image & ")");
 
-   procedure Check (Name : String; Doc : Docs.Document; Expected : String)
-   is
+   procedure Check (Name : String; Doc : Docs.Document; Expected : String) is
    begin
       Goldens.Check_Text (Name, Expected, Docs.Whole (Doc));
    end Check;
 
-   procedure Check_Count
-     (Name : String; Doc : Docs.Document; Expected : Positive) is
+   procedure Check_Count (Name : String; Doc : Docs.Document; Expected : Positive) is
    begin
-      Goldens.Check_Text
-        (Name, Expected'Image, Positive'(Docs.Count (Doc))'Image);
+      Goldens.Check_Text (Name, Expected'Image, Positive'(Docs.Count (Doc))'Image);
    end Check_Count;
 
    procedure Rich_Text is
       Doc, Loaded : Docs.Document;
-      A, B : Texts.Position;
+      A, B        : Texts.Position;
    begin
       Docs.Load (Doc, "Hello " & UTF_8 ("é🙂") & LF & "world");
       for F in Docs.Bold .. Docs.Faded loop
@@ -119,8 +116,7 @@ package body Document_Tests is
       --  Faded text is kept as <f>, and comes back faded.
       Docs.Load (Doc, "fade me");
       Docs.Set_Format (Doc, (1, 6), (1, 8), Docs.Faded, True);
-      Goldens.Check_Text
-        ("document-stored-faded", "<version>1</version><p>fade <f>me</f></p>", Docs.Stored (Doc));
+      Goldens.Check_Text ("document-stored-faded", "<version>1</version><p>fade <f>me</f></p>", Docs.Stored (Doc));
       Docs.Load_Stored (Loaded, Docs.Stored (Doc));
       pragma Assert (Docs.Has_Format (Loaded, (1, 6), (1, 8), Docs.Faded));
       pragma Assert (not Docs.Has_Format (Loaded, (1, 1), (1, 5), Docs.Faded));
@@ -147,7 +143,8 @@ package body Document_Tests is
          Docs.Load_Stored (Loaded, "<version>1</version><p><a h=""x&bad;"">y</a></p>");
          raise Program_Error with "a link with an unknown entity was accepted";
       exception
-         when Constraint_Error => null;
+         when Constraint_Error =>
+            null;
       end;
       --  A text with versions is kept with its other versions, and which it is.
       Docs.Load (Doc, "say it plain");
@@ -217,10 +214,10 @@ package body Document_Tests is
 
       --  Without a version, it is plain text, a paragraph to each line.
       Goldens.Check_Text
-        ("document-upgraded", "<version>1</version><p>one &lt;two&gt;</p><p></p><p>three</p>",
+        ("document-upgraded",
+         "<version>1</version><p>one &lt;two&gt;</p><p></p><p>three</p>",
          Docs.Upgraded ("one <two>" & ASCII.CR & LF & LF & "three"));
-      Goldens.Check_Text
-        ("document-upgraded-empty", "<version>1</version><p></p>", Docs.Upgraded (""));
+      Goldens.Check_Text ("document-upgraded-empty", "<version>1</version><p></p>", Docs.Upgraded (""));
       Goldens.Check_Text
         ("document-upgraded-kept", "<version>1</version><p>x</p>", Docs.Upgraded ("<version>1</version><p>x</p>"));
       Docs.Load_Stored (Loaded, "legacy plain text" & LF & "more");
@@ -228,8 +225,7 @@ package body Document_Tests is
       pragma Assert (Docs.Whole (Loaded) = "legacy plain text" & LF & "more");
       Goldens.Check_Text
         ("document-plain-stored", "a" & LF & "b", Docs.Plain_Stored ("<version>1</version><p>a</p><p>b</p>"));
-      Goldens.Check_Text
-        ("document-plain-stored-legacy", "a" & LF & "b", Docs.Plain_Stored ("a" & LF & "b"));
+      Goldens.Check_Text ("document-plain-stored-legacy", "a" & LF & "b", Docs.Plain_Stored ("a" & LF & "b"));
 
       --  Markup that is not well formed is rejected, and nothing changes.
       declare
@@ -255,7 +251,8 @@ package body Document_Tests is
                begin
                   Docs.Load_Stored (Loaded, Ada.Strings.Unbounded.To_String (Each));
                exception
-                  when Constraint_Error => Rejected := True;
+                  when Constraint_Error =>
+                     Rejected := True;
                end;
                pragma Assert (Rejected and then Docs.Whole (Loaded) = "kept");
             end;
@@ -271,58 +268,60 @@ package body Document_Tests is
       Docs.Load (Doc, "one" & ASCII.CR & LF & "two" & LF & LF & "four");
       Check ("document-loaded", Doc, "one" & LF & "two" & LF & LF & "four");
       Check_Count ("document-loaded-count", Doc, 4);
-      Goldens.Check_Text
-        ("document-loaded-state", " 0", Docs.State (Doc)'Image);
+      Goldens.Check_Text ("document-loaded-state", " 0", Docs.State (Doc)'Image);
    end Loading;
 
    procedure Byte_Order_Marks is
-      Doc : Docs.Document;
-      BOM : constant String :=
-        [Character'Val (16#EF#), Character'Val (16#BB#), Character'Val (16#BF#)];
-      Joiner : constant String :=
-        [Character'Val (16#E2#), Character'Val (16#81#), Character'Val (16#A0#)];
+      Doc    : Docs.Document;
+      BOM    : constant String := [Character'Val (16#EF#), Character'Val (16#BB#), Character'Val (16#BF#)];
+      Joiner : constant String := [Character'Val (16#E2#), Character'Val (16#81#), Character'Val (16#A0#)];
    begin
       --  A mark at the start of a paragraph, as CoreFoundation would drop.
       Docs.Load (Doc, BOM & "one" & LF & "two" & LF & BOM & "three");
-      Check ("document-bom-loaded", Doc,
-             Joiner & "one" & LF & "two" & LF & Joiner & "three");
+      Check ("document-bom-loaded", Doc, Joiner & "one" & LF & "two" & LF & Joiner & "three");
       Goldens.Check_Text
-        ("document-bom-units", " 4 3 6",
-         Docs.Length (Doc, 1)'Image & Docs.Length (Doc, 2)'Image
-         & Docs.Length (Doc, 3)'Image);
+        ("document-bom-units",
+         " 4 3 6",
+         Docs.Length (Doc, 1)'Image & Docs.Length (Doc, 2)'Image & Docs.Length (Doc, 3)'Image);
       Docs.Replace (Doc, (2, 1), (2, 1), BOM);
-      Check ("document-bom-typed", Doc,
-             Joiner & "one" & LF & Joiner & "two" & LF & Joiner & "three");
+      Check ("document-bom-typed", Doc, Joiner & "one" & LF & Joiner & "two" & LF & Joiner & "three");
    end Byte_Order_Marks;
 
    procedure Ill_Formed is
-      Doc : Docs.Document;
-      Bad : constant String :=
-        "a" & Character'Val (16#80#) & "b" & Character'Val (16#E0#) & Character'Val (16#80#)
-        & Character'Val (16#80#) & "c" & Character'Val (16#ED#) & Character'Val (16#A0#)
-        & Character'Val (16#80#) & Character'Val (16#F0#) & Character'Val (16#9F#);
+      Doc  : Docs.Document;
+      Bad  : constant String :=
+        "a"
+        & Character'Val (16#80#)
+        & "b"
+        & Character'Val (16#E0#)
+        & Character'Val (16#80#)
+        & Character'Val (16#80#)
+        & "c"
+        & Character'Val (16#ED#)
+        & Character'Val (16#A0#)
+        & Character'Val (16#80#)
+        & Character'Val (16#F0#)
+        & Character'Val (16#9F#);
       Held : CoreText.Strings.Text;
    begin
       --  Text from EPUBs, PDFs or speech need not be UTF-8: each bad byte is "?".
       Docs.Load (Doc, Bad & LF & "ok");
       Check ("document-ill-formed", Doc, "a?b???c???" & "??" & LF & "ok");
       Goldens.Check_Text
-        ("document-ill-formed-units", " 12 2",
-         Docs.Length (Doc, 1)'Image & Docs.Length (Doc, 2)'Image);
+        ("document-ill-formed-units", " 12 2", Docs.Length (Doc, 1)'Image & Docs.Length (Doc, 2)'Image);
 
       --  CoreFoundation agrees with the count it is held to.
       CoreText.Strings.Set (Held, Bad);
       Goldens.Check_Text
-        ("strings-ill-formed", Natural'Image (CoreText.UTF16_Length (Bad)),
+        ("strings-ill-formed",
+         Natural'Image (CoreText.UTF16_Length (Bad)),
          Natural'Image (CoreText.Strings.Length (Held)));
-      CoreText.Strings.Set
-        (Held, Character'Val (16#EF#) & Character'Val (16#BB#) & Character'Val (16#BF#) & "x");
-      Goldens.Check_Text
-        ("strings-bom", " 2", Natural'Image (CoreText.Strings.Length (Held)));
+      CoreText.Strings.Set (Held, Character'Val (16#EF#) & Character'Val (16#BB#) & Character'Val (16#BF#) & "x");
+      Goldens.Check_Text ("strings-bom", " 2", Natural'Image (CoreText.Strings.Length (Held)));
    end Ill_Formed;
 
    procedure Splicing is
-      Doc : Docs.Document;
+      Doc    : Docs.Document;
       Before : Docs.Version;
    begin
       Docs.Load (Doc, "alpha" & LF & "beta" & LF & "gamma" & LF & "delta");
@@ -330,18 +329,15 @@ package body Document_Tests is
       --  Across three paragraphs, with two in their place: at once.
       Before := Docs.Current (Doc);
       Docs.Replace (Doc, (1, 3), (3, 3), "X" & LF & "Y" & LF & "Z");
-      Check ("document-splice", Doc,
-             "alX" & LF & "Y" & LF & "Zmma" & LF & "delta");
-      Goldens.Check_Text
-        ("document-splice-one-change", " 1",
-         Docs.Version'Image (Docs.Current (Doc) - Before));
+      Check ("document-splice", Doc, "alX" & LF & "Y" & LF & "Zmma" & LF & "delta");
+      Goldens.Check_Text ("document-splice-one-change", " 1", Docs.Version'Image (Docs.Current (Doc) - Before));
       declare
          Done : constant Docs.Change := Docs.Change_After (Doc, Before);
       begin
          Goldens.Check_Text
-           ("document-splice-change", "( 3, 3)( 3, 2) 2 2 1",
-            Image (Done.To) & Image (Done.Ending) & Done.From_Units'Image
-            & Done.To_Units'Image & Done.End_Units'Image);
+           ("document-splice-change",
+            "( 3, 3)( 3, 2) 2 2 1",
+            Image (Done.To) & Image (Done.Ending) & Done.From_Units'Image & Done.To_Units'Image & Done.End_Units'Image);
       end;
 
       --  All of it away, and back.
@@ -351,16 +347,14 @@ package body Document_Tests is
          From, To : Texts.Position;
       begin
          Docs.Undo (Doc, From, To);
-         Check ("document-splice-all-undone", Doc,
-                "alX" & LF & "Y" & LF & "Zmma" & LF & "delta");
+         Check ("document-splice-all-undone", Doc, "alX" & LF & "Y" & LF & "Zmma" & LF & "delta");
          Goldens.Check_Text
-           ("document-splice-all-undone-range", "TRUE",
-            Boolean'Image (From = (1, 1) and then To = (4, 6)));
+           ("document-splice-all-undone-range", "TRUE", Boolean'Image (From = (1, 1) and then To = (4, 6)));
       end;
    end Splicing;
 
    procedure Ids is
-      Doc : Docs.Document;
+      Doc      : Docs.Document;
       From, To : Texts.Position;
    begin
       Docs.Load (Doc, "one" & LF & "two" & LF & "three");
@@ -372,18 +366,17 @@ package body Document_Tests is
          --  Joined, the second goes; the first keeps its id.
          Docs.Replace (Doc, (1, 4), (2, 1), "");
          Goldens.Check_Text
-           ("document-ids-joined", "TRUE",
+           ("document-ids-joined",
+            "TRUE",
             Boolean'Image
-              (Docs.Id (Doc, 1) = First and then Docs.Find (Doc, Second) = 0
-               and then Docs.Find (Doc, Third) = 2));
+              (Docs.Id (Doc, 1) = First and then Docs.Find (Doc, Second) = 0 and then Docs.Find (Doc, Third) = 2));
 
          --  Undone, the second is back, with its id.
          Docs.Undo (Doc, From, To);
          Goldens.Check_Text
-           ("document-ids-restored", "TRUE",
-            Boolean'Image
-              (Docs.Find (Doc, Second) = 2
-               and then Docs.Find (Doc, Third) = 3));
+           ("document-ids-restored",
+            "TRUE",
+            Boolean'Image (Docs.Find (Doc, Second) = 2 and then Docs.Find (Doc, Third) = 3));
 
          --  Broken in two, the first keeps its id, before the break; the
          --  new one is new; redone after undoing, it is the same again.
@@ -392,43 +385,38 @@ package body Document_Tests is
             Made : constant Texts.Paragraph_Id := Docs.Id (Doc, 2);
          begin
             Goldens.Check_Text
-              ("document-ids-split", "TRUE",
+              ("document-ids-split",
+               "TRUE",
                Boolean'Image
-                 (Docs.Id (Doc, 1) = First and then Made /= Second
-                  and then Made /= Third and then Made /= First));
+                 (Docs.Id (Doc, 1) = First and then Made /= Second and then Made /= Third and then Made /= First));
             Docs.Undo (Doc, From, To);
             Docs.Redo (Doc, From, To);
-            Goldens.Check_Text
-              ("document-ids-split-redone", "TRUE",
-               Boolean'Image (Docs.Id (Doc, 2) = Made));
+            Goldens.Check_Text ("document-ids-split-redone", "TRUE", Boolean'Image (Docs.Id (Doc, 2) = Made));
          end;
       end;
    end Ids;
 
    procedure Kinds is
-      Doc : Docs.Document;
+      Doc      : Docs.Document;
       From, To : Texts.Position;
-      Heading : constant Texts.Paragraph_Kind := 1;
+      Heading  : constant Texts.Paragraph_Kind := 1;
    begin
       Docs.Load (Doc, "Title" & LF & "Text");
       Docs.Set_Kind (Doc, 1, Heading);
       Docs.Undo (Doc, From, To);
-      Goldens.Check_Text
-        ("document-kind-undone", Texts.Plain'Image, Docs.Kind (Doc, 1)'Image);
+      Goldens.Check_Text ("document-kind-undone", Texts.Plain'Image, Docs.Kind (Doc, 1)'Image);
       Docs.Redo (Doc, From, To);
-      Goldens.Check_Text
-        ("document-kind-redone", Heading'Image, Docs.Kind (Doc, 1)'Image);
+      Goldens.Check_Text ("document-kind-redone", Heading'Image, Docs.Kind (Doc, 1)'Image);
 
       --  A paragraph that goes and comes back keeps its kind.
       Docs.Set_Kind (Doc, 2, Heading);
       Docs.Replace (Doc, (1, 6), (2, 5), "");
       Docs.Undo (Doc, From, To);
-      Goldens.Check_Text
-        ("document-kind-restored", Heading'Image, Docs.Kind (Doc, 2)'Image);
+      Goldens.Check_Text ("document-kind-restored", Heading'Image, Docs.Kind (Doc, 2)'Image);
    end Kinds;
 
    procedure Steps is
-      Doc : Docs.Document;
+      Doc      : Docs.Document;
       From, To : Texts.Position;
    begin
       Docs.Load (Doc, "Skua");
@@ -438,17 +426,14 @@ package body Document_Tests is
       Docs.Replace (Doc, (1, 1), (1, 1), "Great ");
       Docs.Set_Kind (Doc, 1, 3);
       Docs.Begin_Step (Doc);  --  nested: part of the same
-      Docs.Replace (Doc, Docs.Text_End (Doc), Docs.Text_End (Doc),
-                    LF & "Bonxie");
+      Docs.Replace (Doc, Docs.Text_End (Doc), Docs.Text_End (Doc), LF & "Bonxie");
       Docs.End_Step (Doc);
       Docs.End_Step (Doc);
       Check ("document-step-done", Doc, "Great Skua" & LF & "Bonxie");
 
       Docs.Undo (Doc, From, To);
       Check ("document-step-undone", Doc, "Skua");
-      Goldens.Check_Text
-        ("document-step-undone-kind", Texts.Plain'Image,
-         Docs.Kind (Doc, 1)'Image);
+      Goldens.Check_Text ("document-step-undone-kind", Texts.Plain'Image, Docs.Kind (Doc, 1)'Image);
       Docs.Redo (Doc, From, To);
       Check ("document-step-redone", Doc, "Great Skua" & LF & "Bonxie");
 
@@ -460,17 +445,15 @@ package body Document_Tests is
    end Steps;
 
    procedure Joining_Edits is
-      Doc : Docs.Document;
+      Doc      : Docs.Document;
       From, To : Texts.Position;
    begin
       Docs.Load (Doc, "");
       for C of String'("Bonxie") loop
-         Docs.Replace (Doc, Docs.Text_End (Doc), Docs.Text_End (Doc), [C],
-                       Undo_As => Docs.Typing);
+         Docs.Replace (Doc, Docs.Text_End (Doc), Docs.Text_End (Doc), [C], Undo_As => Docs.Typing);
       end loop;
       Docs.Seal (Doc);  --  as when the caret moves
-      Docs.Replace (Doc, Docs.Text_End (Doc), Docs.Text_End (Doc), "s",
-                    Undo_As => Docs.Typing);
+      Docs.Replace (Doc, Docs.Text_End (Doc), Docs.Text_End (Doc), "s", Undo_As => Docs.Typing);
       Docs.Undo (Doc, From, To);
       Check ("document-sealed", Doc, "Bonxie");
       Docs.Undo (Doc, From, To);
@@ -492,12 +475,9 @@ package body Document_Tests is
       for Index in 1 .. Text'Length + 1 loop
          if Docs.Is_Boundary (Doc, 1, Index) then
             declare
-               Expected : constant Natural :=
-                 Texts.UTF16_Length (Text (1 .. Index - 1));
+               Expected : constant Natural := Texts.UTF16_Length (Text (1 .. Index - 1));
             begin
-               if Docs.Units_Before (Doc, 1, Index) /= Expected
-                 or else Docs.Index_Of (Doc, 1, Expected) /= Index
-               then
+               if Docs.Units_Before (Doc, 1, Index) /= Expected or else Docs.Index_Of (Doc, 1, Expected) /= Index then
                   Wrong := Wrong + 1;
                end if;
             end;
@@ -506,13 +486,11 @@ package body Document_Tests is
       Goldens.Check_Text ("document-units", " 0", Wrong'Image);
 
       --  And again after an edit before the end.
-      Docs.Replace
-        (Doc, (1, 7 * Piece'Length + 1), (1, 7 * Piece'Length + 1), Piece);
+      Docs.Replace (Doc, (1, 7 * Piece'Length + 1), (1, 7 * Piece'Length + 1), Piece);
       Goldens.Check_Text
-        ("document-units-edited", Natural'Image (Texts.UTF16_Length
-                                                   (Docs.Text (Doc, 1))),
-         Natural'Image
-           (Docs.Units_Before (Doc, 1, Docs.Byte_Length (Doc, 1) + 1)));
+        ("document-units-edited",
+         Natural'Image (Texts.UTF16_Length (Docs.Text (Doc, 1))),
+         Natural'Image (Docs.Units_Before (Doc, 1, Docs.Byte_Length (Doc, 1) + 1)));
    end Units;
 
    procedure Against_A_String is
@@ -521,18 +499,18 @@ package body Document_Tests is
       Seed     : Long_Long_Integer := 1;
       Wrong    : Natural := 0;
 
-      function Piece (Which : Natural) return String is
-        (case Which is
-            when 0 => "",
-            when 1 => "x",
-            when 2 => "skua ",
-            when 3 => UTF_8 ("é日🐦"),
-            when 4 => [LF],
+      function Piece (Which : Natural) return String
+      is (case Which is
+            when 0      => "",
+            when 1      => "x",
+            when 2      => "skua ",
+            when 3      => UTF_8 ("é日🐦"),
+            when 4      => [LF],
             when others => "a" & LF & UTF_8 ("日本") & LF & "b");
 
       function Next (Below : Positive) return Natural is
       begin
-         Seed := (Seed * 1_103_515_245 + 12_345) mod 2 ** 31;
+         Seed := (Seed * 1_103_515_245 + 12_345) mod 2**31;
          return Natural (Seed / 7 mod Long_Long_Integer (Below));
       end Next;
 
@@ -550,14 +528,10 @@ package body Document_Tests is
       --  A position in the text at a character, near where the last edit
       --  was, usually: as typing goes.
       function Somewhere (Near : Texts.Position) return Texts.Position is
-         Para  : constant Positive :=
-           (if Next (4) = 0 then 1 + Next (Docs.Count (Doc))
-            else Near.Paragraph);
+         Para  : constant Positive := (if Next (4) = 0 then 1 + Next (Docs.Count (Doc)) else Near.Paragraph);
          Index : Positive :=
            (if Para = Near.Paragraph and then Next (3) > 0
-            then Positive'Min
-                   (Docs.Byte_Length (Doc, Para) + 1,
-                    Near.Index + Next (600))
+            then Positive'Min (Docs.Byte_Length (Doc, Para) + 1, Near.Index + Next (600))
             else 1 + Next (Docs.Byte_Length (Doc, Para) + 1));
       begin
          while not Docs.Is_Boundary (Doc, Para, Index) loop
@@ -576,8 +550,8 @@ package body Document_Tests is
          for I in Long'Range loop
             Long (I) := Character'Val (Character'Pos ('a') + I mod 26);
          end loop;
-         Expected := Ada.Strings.Unbounded.To_Unbounded_String
-           (Long & LF & Long (1 .. 700) & LF & UTF_8 ("日本語のテキスト"));
+         Expected :=
+           Ada.Strings.Unbounded.To_Unbounded_String (Long & LF & Long (1 .. 700) & LF & UTF_8 ("日本語のテキスト"));
          Docs.Load (Doc, Ada.Strings.Unbounded.To_String (Expected));
       end;
 
@@ -589,14 +563,13 @@ package body Document_Tests is
          begin
             if To < From or else Next (3) > 0 then
                To := From;  --  mostly typing
+
             end if;
-            Ada.Strings.Unbounded.Replace_Slice
-              (Expected, Offset (From), Offset (To) - 1, Added);
+            Ada.Strings.Unbounded.Replace_Slice (Expected, Offset (From), Offset (To) - 1, Added);
             Docs.Replace (Doc, From, To, Added);
             Last := Texts.End_After (From, Added);
 
-            if Docs.Whole (Doc) /= Ada.Strings.Unbounded.To_String (Expected)
-            then
+            if Docs.Whole (Doc) /= Ada.Strings.Unbounded.To_String (Expected) then
                Wrong := Wrong + 1;
             end if;
             --  The UTF-16 offsets, kept as far as asked for.
@@ -607,13 +580,8 @@ package body Document_Tests is
             begin
                if Docs.Length (Doc, Para) /= Texts.UTF16_Length (Text)
                  or else Docs.Units_Before (Doc, Para, Last.Index)
-                         /= Texts.UTF16_Length
-                              (Text (Text'First
-                                     .. Text'First + Last.Index - 2))
-                 or else Docs.Index_Of
-                           (Doc, Other.Paragraph,
-                            Docs.Units_Before
-                              (Doc, Other.Paragraph, Other.Index))
+                         /= Texts.UTF16_Length (Text (Text'First .. Text'First + Last.Index - 2))
+                 or else Docs.Index_Of (Doc, Other.Paragraph, Docs.Units_Before (Doc, Other.Paragraph, Other.Index))
                          /= Other.Index
                then
                   Wrong := Wrong + 1;
@@ -625,17 +593,19 @@ package body Document_Tests is
    end Against_A_String;
 
    procedure Mapping is
-      Done : constant Docs.Change :=
-        (From => (2, 3), To => (4, 5), Ending => (2, 7), others => <>);
+      Done : constant Docs.Change := (From => (2, 3), To => (4, 5), Ending => (2, 7), others => <>);
       --  Paragraphs 2 to 4 joined, with four bytes in place of what was
       --  between.
    begin
       Goldens.Check_Text
         ("document-map",
          "( 1, 9)( 2, 2)( 2, 3)( 2, 3)( 2, 7)( 2, 9)( 3, 4)",
-         Image (Docs.Map (Done, (1, 9))) & Image (Docs.Map (Done, (2, 2)))
-         & Image (Docs.Map (Done, (2, 9))) & Image (Docs.Map (Done, (3, 1)))
-         & Image (Docs.Map (Done, (4, 5))) & Image (Docs.Map (Done, (4, 7)))
+         Image (Docs.Map (Done, (1, 9)))
+         & Image (Docs.Map (Done, (2, 2)))
+         & Image (Docs.Map (Done, (2, 9)))
+         & Image (Docs.Map (Done, (3, 1)))
+         & Image (Docs.Map (Done, (4, 5)))
+         & Image (Docs.Map (Done, (4, 7)))
          & Image (Docs.Map (Done, (5, 4))));
    end Mapping;
 
@@ -655,15 +625,12 @@ package body Document_Tests is
             if Layouts.Is_Laid_Out (Laid, Para) then
                declare
                   Fresh : constant CoreText.Wrapping.Span_Vectors.Vector :=
-                    CoreText.Wrapping.Wrap
-                      (Font, Docs.Text (Doc, Para), Width);
+                    CoreText.Wrapping.Wrap (Font, Docs.Text (Doc, Para), Width);
                begin
                   --  All of them, or the first of them, as far as made.
                   if (if Layouts.Is_Complete (Laid, Para)
-                      then Natural (Fresh.Length)
-                           /= Layouts.Line_Count (Laid, Para)
-                      else Natural (Fresh.Length)
-                           < Layouts.Line_Count (Laid, Para))
+                      then Natural (Fresh.Length) /= Layouts.Line_Count (Laid, Para)
+                      else Natural (Fresh.Length) < Layouts.Line_Count (Laid, Para))
                   then
                      return False;
                   end if;
@@ -701,10 +668,8 @@ package body Document_Tests is
                return At_Index;
             end Aligned;
 
-            Where : constant Positive :=
-              Aligned (1 + (K * 7919) mod (Size + 1));
-            Cut   : constant Positive :=
-              Aligned (Natural'Min (Size + 1, Where + (K * 31) mod 40));
+            Where : constant Positive := Aligned (1 + (K * 7919) mod (Size + 1));
+            Cut   : constant Positive := Aligned (Natural'Min (Size + 1, Where + (K * 31) mod 40));
          begin
             if K mod 5 = 0 then
                Layouts.Sync (Laid, Doc);
@@ -715,27 +680,28 @@ package body Document_Tests is
             end if;
 
             case K mod 6 is
-               when 0 =>  --  break the paragraph
+               when 0      =>
+                  --  break the paragraph
                   Docs.Replace (Doc, (Para, Where), (Para, Where), [LF]);
-               when 1 =>  --  join it to the next
+
+               when 1      =>
+                  --  join it to the next
                   if Para < Docs.Count (Doc) then
-                     Docs.Replace
-                       (Doc, Docs.Paragraph_End (Doc, Para), (Para + 1, 1),
-                        "");
+                     Docs.Replace (Doc, Docs.Paragraph_End (Doc, Para), (Para + 1, 1), "");
                   end if;
-               when 2 =>  --  replace across paragraphs
+
+               when 2      =>
+                  --  replace across paragraphs
                   if Para + 2 <= Docs.Count (Doc) then
-                     Docs.Replace
-                       (Doc, (Para, Where), (Para + 2, 1),
-                        "one" & LF & "two ");
+                     Docs.Replace (Doc, (Para, Where), (Para + 2, 1), "one" & LF & "two ");
                   end if;
+
                when others =>
-                  Docs.Replace
-                    (Doc, (Para, Where), (Para, Cut),
-                     (if K mod 3 = 0 then "" else Filler (1 .. K mod 17)));
+                  Docs.Replace (Doc, (Para, Where), (Para, Cut), (if K mod 3 = 0 then "" else Filler (1 .. K mod 17)));
             end case;
 
-            if K mod 4 /= 0 then  --  sometimes two edits before syncing
+            if K mod 4 /= 0 then
+               --  sometimes two edits before syncing
                Layouts.Sync (Laid, Doc);
                if not Right then
                   Wrong := Wrong + 1;
@@ -753,12 +719,14 @@ package body Document_Tests is
             Sum := Sum + Layouts.Height (Laid, Para);
          end loop;
          Goldens.Check_Text
-           ("layout-heights-add-up", "TRUE",
+           ("layout-heights-add-up",
+            "TRUE",
             Boolean'Image
               (abs (Sum - Layouts.Total_Height (Laid)) < 0.01
                and then abs (Layouts.Top (Laid, Layouts.Count (Laid))
                              + Layouts.Height (Laid, Layouts.Count (Laid))
-                             - Sum) < 0.01));
+                             - Sum)
+                        < 0.01));
       end;
    end Lines_After_Edits;
 

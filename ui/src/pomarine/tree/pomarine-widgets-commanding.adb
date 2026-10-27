@@ -1,5 +1,6 @@
 with Pomarine.Widgets.Nodes;
 with Pomarine.Widgets.Queueing;
+
 package body Pomarine.Widgets.Commanding is
 
    use type Interfaces.Unsigned_32;
@@ -47,9 +48,7 @@ package body Pomarine.Widgets.Commanding is
       end loop;
    end Tell_All;
 
-   procedure Perform
-     (Item : in out Tree; Tag : Integer; Done : out Boolean)
-   is
+   procedure Perform (Item : in out Tree; Tag : Integer; Done : out Boolean) is
       Asking : Node_Index := (if Item.Focus /= 0 then Item.Focus else Item.Root);
    begin
       Done := False;

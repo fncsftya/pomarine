@@ -2,6 +2,7 @@ with Pomarine.Testing;
 with Pomarine.UI;
 
 --  What a model does to the view that is calling it (the hooks of Form_VM), at library level, as hooks must be.
+
 package Reentry is
 
    Window : access Pomarine.Testing.Session;

@@ -2,13 +2,16 @@ with Pomarine.View_Models;
 
 --  A model for the tests of the properties made of a model's own subprograms (Showing, Editing, Doing, and the rest),
 --  and of Observed_Model, which counts its changes for it.
+
 package Meter_VM is
    type Command is (Raise_Level);
    package Commands is new Pomarine.View_Models.Command_Models (Command);
    type Model is limited new Commands.Observed_Model with private;
 
-   overriding function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
+   overriding
+   function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
+   overriding
+   procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 
    function Level (Self : Model) return Float;
    procedure Set_Level (Self : in out Model; To : Float);

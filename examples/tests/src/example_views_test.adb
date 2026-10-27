@@ -15,11 +15,11 @@ procedure Example_Views_Test is
    use type Pomarine.View_Models.Version_Number;
 
    procedure Hello_Bindings is
-      Tree   : aliased Widgets.Tree;
-      Model  : aliased Greeter_VM.Model;
-      Screen : Greeter.UI.View (Tree'Access);
-      Window : Testing.Session;
-      Before : constant Pomarine.View_Models.Version_Number := Greeter_VM.Version (Model);
+      Tree     : aliased Widgets.Tree;
+      Model    : aliased Greeter_VM.Model;
+      Screen   : Greeter.UI.View (Tree'Access);
+      Window   : Testing.Session;
+      Before   : constant Pomarine.View_Models.Version_Number := Greeter_VM.Version (Model);
       Rejected : Boolean := False;
    begin
       pragma Assert (Greeter_VM.Count (Model) = 0);
@@ -28,7 +28,8 @@ procedure Example_Views_Test is
       begin
          Greeter_VM.Execute (Model, Greeter_VM.Say_Hello, 1);
       exception
-         when Ada.Assertions.Assertion_Error => Rejected := True;
+         when Ada.Assertions.Assertion_Error =>
+            Rejected := True;
       end;
       pragma Assert (Rejected and then Greeter_VM.Count (Model) = 0);
       pragma Assert (Greeter_VM.Version (Model) = Before);
@@ -75,8 +76,11 @@ procedure Example_Views_Test is
       pragma Assert (not Widgets.Is_Attached (Face));
       pragma Assert (not Widgets.Has_Root (Tree));
       Clock_Faces.Set_Time (Face, 9, 45, 10);
-      pragma Assert (Clock_Faces.Hours (Face) = 9 and then Clock_Faces.Minutes (Face) = 45
-                     and then Clock_Faces.Seconds (Face) = 10);
+      pragma
+        Assert
+          (Clock_Faces.Hours (Face) = 9
+             and then Clock_Faces.Minutes (Face) = 45
+             and then Clock_Faces.Seconds (Face) = 10);
    end Clock_Layout_And_Ownership;
 begin
    Hello_Bindings;

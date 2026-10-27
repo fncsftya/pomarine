@@ -4,25 +4,25 @@ package body Pomarine.Events is
 
    package Raw renames SDL3.Events;
 
-   function From_Raw (Item : Raw.Event) return Event is
-     ((Kind        => Event_Kind'Val (Raw.Event_Kind'Pos (Item.Kind)),
-       Time        => Milliseconds (Item.Time),
-       Key         => Key_Code (Item.Key),
-       Command     => Item.Command,
-       Control     => Item.Control,
-       Option      => Item.Option,
-       Shift       => Item.Shift,
-       Text        => Item.Text,
-       Text_Length => Item.Text_Length,
-       Cursor      => Item.Cursor,
-       Button      => Item.Button,
-       Clicks      => Item.Clicks,
-       Left_Held   => Item.Left_Held,
-       Wheel_X     => Item.Wheel_X,
-       Wheel_Y     => Item.Wheel_Y,
-       Scale       => Item.Scale,
-       Mouse_X     => Item.Mouse_X,
-       Mouse_Y     => Item.Mouse_Y));
+   function From_Raw (Item : Raw.Event) return Event
+   is ((Kind        => Event_Kind'Val (Raw.Event_Kind'Pos (Item.Kind)),
+        Time        => Milliseconds (Item.Time),
+        Key         => Key_Code (Item.Key),
+        Command     => Item.Command,
+        Control     => Item.Control,
+        Option      => Item.Option,
+        Shift       => Item.Shift,
+        Text        => Item.Text,
+        Text_Length => Item.Text_Length,
+        Cursor      => Item.Cursor,
+        Button      => Item.Button,
+        Clicks      => Item.Clicks,
+        Left_Held   => Item.Left_Held,
+        Wheel_X     => Item.Wheel_X,
+        Wheel_Y     => Item.Wheel_Y,
+        Scale       => Item.Scale,
+        Mouse_X     => Item.Mouse_X,
+        Mouse_Y     => Item.Mouse_Y));
    --  The kinds are the same, in the same order.
 
    function Text_Event (Text : String) return Event is
@@ -39,11 +39,14 @@ package body Pomarine.Events is
       return Result;
    end Editing_Event;
 
-   function System_Is_Dark return Boolean is (Raw.System_Is_Dark);
+   function System_Is_Dark return Boolean
+   is (Raw.System_Is_Dark);
 
-   function Command_Held return Boolean is (Raw.Command_Held);
+   function Command_Held return Boolean
+   is (Raw.Command_Held);
 
-   function Ticks return Milliseconds is (Milliseconds (Raw.Ticks));
+   function Ticks return Milliseconds
+   is (Milliseconds (Raw.Ticks));
 
    procedure Wake is
    begin

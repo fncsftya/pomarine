@@ -1,5 +1,6 @@
 --  Tests of what widgets say to a listener, and of the layout helpers that
 --  build them. See Goldens.
+
 package Listener_Tests is
 
    procedure Click;

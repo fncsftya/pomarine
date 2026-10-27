@@ -3,6 +3,7 @@ with Pomarine.Icons;
 with Pomarine.Widgets.Editors.Metrics;
 with Pomarine.Widgets.Editors.Choosers;
 with Pomarine.Widgets.Editors.Toolbars;
+
 package body Pomarine.Widgets.Editors.Links is
 
    package Docs renames Texts.Documents;
@@ -19,8 +20,10 @@ package body Pomarine.Widgets.Editors.Links is
    begin
       if Text_Areas.Is_Address (Said) then
          return Said;
-      elsif Said'Length > 0 and then Said'Length + 8 <= Docs.Link_Capacity
-        and then (for some C of Said => C = '.') and then (for all C of Said => C /= ':')
+      elsif Said'Length > 0
+        and then Said'Length + 8 <= Docs.Link_Capacity
+        and then (for some C of Said => C = '.')
+        and then (for all C of Said => C /= ':')
         and then Text_Areas.Is_Address ("https://" & Said)
       then
          return "https://" & Said;
@@ -28,11 +31,11 @@ package body Pomarine.Widgets.Editors.Links is
       return "";
    end Address_Of;
 
-   function Field_Address (Item : Editor) return String is
-     (if Item.Link_Parts = null then "" else Docs.Whole (Item.Link_Parts.Doc));
+   function Field_Address (Item : Editor) return String
+   is (if Item.Link_Parts = null then "" else Docs.Whole (Item.Link_Parts.Doc));
 
-   function Link_Acceptable (Item : Editor) return Boolean is
-     (Address_Of (Field_Address (Item)) /= "" or else (Item.Link_Had and then Trimmed (Field_Address (Item)) = ""));
+   function Link_Acceptable (Item : Editor) return Boolean
+   is (Address_Of (Field_Address (Item)) /= "" or else (Item.Link_Had and then Trimmed (Field_Address (Item)) = ""));
 
    procedure Build_Link (Item : in out Editor) is
       Pixels : constant Float := Density (Item);
@@ -62,12 +65,18 @@ package body Pomarine.Widgets.Editors.Links is
          Yoga.Nodes.Set_Width (Node (Field), Link_Field_Wide * Pixels);
          Yoga.Nodes.Set_Height (Node (Field), Button_High * Pixels);
       end;
-      Put_Button (Item, Item.Link_Box, Item.Link_Accept, Link_Field_Wide + 2.0 * Bubble_Pad, Button_Wide,
-                  "OK", "Accept");
+      Put_Button
+        (Item, Item.Link_Box, Item.Link_Accept, Link_Field_Wide + 2.0 * Bubble_Pad, Button_Wide, "OK", "Accept");
       Buttons.Set_Kind (Item.Link_Accept, Buttons.Primary);
       Buttons.Set_Icon (Item.Link_Accept, Pomarine.Icons.Check);
-      Put_Button (Item, Item.Link_Box, Item.Link_Cancel, Link_Field_Wide + 3.0 * Bubble_Pad + Button_Wide,
-                  Button_Wide, "X", "Cancel");
+      Put_Button
+        (Item,
+         Item.Link_Box,
+         Item.Link_Cancel,
+         Link_Field_Wide + 3.0 * Bubble_Pad + Button_Wide,
+         Button_Wide,
+         "X",
+         "Cancel");
       Buttons.Set_Icon (Item.Link_Cancel, Pomarine.Icons.Close);
       Request_Layout (Item);
    end Build_Link;
@@ -106,15 +115,23 @@ package body Pomarine.Widgets.Editors.Links is
       if Item.Linking then
          declare
             X, Y, Wide, High : Float;
-            Fine : constant Boolean := Link_Acceptable (Item);
-            Tall : constant Boolean := not Item.Link_Addresses.Is_Empty;
+            Fine             : constant Boolean := Link_Acceptable (Item);
+            Tall             : constant Boolean := not Item.Link_Addresses.Is_Empty;
          begin
             if Tall /= Item.Link_Tall then
                Show_Link_Sources (Item, Tall);
             end if;
             Text_Areas.Caret_Box (Item.Text, X, Y, Wide, High);
-            Place_Bubble (Item, Item.Link_Box, Link_Wide, X, Y, Y + High, Item.Link_Left, Item.Link_Top,
-                          High => (if Tall then Link_Tall_High else Bubble_High));
+            Place_Bubble
+              (Item,
+               Item.Link_Box,
+               Link_Wide,
+               X,
+               Y,
+               Y + High,
+               Item.Link_Left,
+               Item.Link_Top,
+               High => (if Tall then Link_Tall_High else Bubble_High));
             if Buttons.Is_Enabled (Item.Link_Accept) /= Fine then
                Buttons.Set_Enabled (Item.Link_Accept, Fine);
             end if;
@@ -132,7 +149,8 @@ package body Pomarine.Widgets.Editors.Links is
          declare
             R : constant Docs.Format_Run := Docs.Run (Doc.all, I);
          begin
-            if Docs."=" (R.Style, Docs.Linked) and then R.From < R.To
+            if Docs."=" (R.Style, Docs.Linked)
+              and then R.From < R.To
               and then Text_Areas.Is_Over_Range (Item.Text, R.From, R.To, X, Y)
             then
                return Ada.Strings.Unbounded.To_String (R.Name);
@@ -143,7 +161,7 @@ package body Pomarine.Widgets.Editors.Links is
    end Pointer_Link;
 
    function Link_Under (Item : in out Editor; Event : Pomarine.Events.Event) return String is
-      Pixels : constant Float := Density (Item);
+      Pixels  : constant Float := Density (Item);
       Where_X : constant Float := Event.Mouse_X * Pixels;
       Where_Y : constant Float := Event.Mouse_Y * Pixels;
    begin
@@ -163,9 +181,13 @@ package body Pomarine.Widgets.Editors.Links is
       First : Texts.Position := Text_Areas.Caret (Item.Text);
       Last  : Texts.Position := Text_Areas.Mark (Item.Text);
    begin
-      if Item.Linking or else Item.Writing or else not Is_Attached (Item)
-        or else not Text_Areas.Has_Selection (Item.Text) or else Text_Areas.Is_Read_Only (Item.Text)
-        or else Text_Areas.Is_Single_Line (Item.Text) or else Text_Areas.Is_Composing (Item.Text)
+      if Item.Linking
+        or else Item.Writing
+        or else not Is_Attached (Item)
+        or else not Text_Areas.Has_Selection (Item.Text)
+        or else Text_Areas.Is_Read_Only (Item.Text)
+        or else Text_Areas.Is_Single_Line (Item.Text)
+        or else Text_Areas.Is_Composing (Item.Text)
       then
          return;
       end if;
@@ -202,8 +224,10 @@ package body Pomarine.Widgets.Editors.Links is
    begin
       Close_Chooser (Item);
       Item.Linking := False;
-      if Keep and then Fine
-        and then Docs.Is_Position (Doc.all, Item.Link_From) and then Docs.Is_Position (Doc.all, Item.Link_To)
+      if Keep
+        and then Fine
+        and then Docs.Is_Position (Doc.all, Item.Link_From)
+        and then Docs.Is_Position (Doc.all, Item.Link_To)
       then
          Text_Areas.Select_Range (Item.Text, Item.Link_From, Item.Link_To);
          Text_Areas.Set_Link (Item.Text, Wanted);
