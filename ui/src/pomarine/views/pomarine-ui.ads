@@ -352,6 +352,29 @@ package Pomarine.UI is
    --  through Styled. So that a screen's parts are found where they are described, and not kept in a record
    --  beside it.
 
+   function Close_Look return Pomarine.Widgets.Buttons.Settings;
+   --  What the button that closes a dialog looks like, to make with the context's Button: a small X.
+
+   type Dialog_Size is record
+      Width  : Layouts.Length := Unset;
+      Height : Layouts.Length := Unset;
+   end record;
+   --  The size of a dialog's box. A height left unset is the content's.
+
+   function Dialog
+     (Title        : Label_Handle;
+      Close        : Button_Handle;
+      Content      : Layout_Array;
+      Size         : Dialog_Size;
+      Overlay_Name : String;
+      Border_Name  : String) return Layout
+   with Pre => Overlay_Name'Length > 0 and then Border_Name'Length > 0;
+   --  A dialog over all else, as a window's: a dark bar across the top with Title (make it with Ink =>
+   --  Themes.Bar_Ink) and Close at its right, then Content (one below the other), in an outlined, rounded box
+   --  of Size, in the middle of a scrim over all of the window. It takes no room in the layout of the screen.
+   --  The overlay and the box are found once mounted by their names (View.Named): the overlay to show and
+   --  hide, the box to be the focus scope.
+
    function Scroll
      (Content : Layout;
       Across  : Boolean := False;

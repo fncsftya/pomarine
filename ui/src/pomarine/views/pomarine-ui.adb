@@ -1,3 +1,4 @@
+with Pomarine.Icons;
 with Pomarine.Line_Texts;
 with Pomarine.UI.Arenas;
 with Pomarine.UI.Syncing;
@@ -1160,6 +1161,67 @@ package body Pomarine.UI is
       Height     : Layouts.Length := Unset;
       Appearance : Container_Look := Plain) return Layout
    is (Container (Column_Of, Items, Layouts.Column, Gap, Padding, Align, Spread, Grow, Width, Height, Appearance));
+
+   Dialog_Bar_Height : constant Layouts.Length := 30.0;
+   Dialog_Bar_Pad    : constant Layouts.Length := 8.0;
+   Dialog_Close_Size : constant Layouts.Length := 18.0;
+   Dialog_Close_Icon : constant Float := 11.0;
+
+   function Close_Look return Buttons.Settings
+   is (Buttons.Looks
+         ("Close",
+          Icon        => Pomarine.Icons.Shown (Pomarine.Icons.Close),
+          Icon_Points => Dialog_Close_Icon,
+          Focusable   => True));
+
+   function Dialog
+     (Title        : Label_Handle;
+      Close        : Button_Handle;
+      Content      : Layout_Array;
+      Size         : Dialog_Size;
+      Overlay_Name : String;
+      Border_Name  : String) return Layout
+   is
+      Bar : constant Layout :=
+        Styled
+          (Row
+             ([Place (Title, Grow => 1.0, Width => 0.0, Height => Dialog_Bar_Height, Exact => True),
+               Place (Close, Width => Dialog_Close_Size, Height => Dialog_Close_Size, Shrink => 0.0, Exact => True)],
+              Appearance => (Fill => Pomarine.Themes.Bar, others => <>)),
+           (Flow    => Layouts.Row,
+            Align   => Layouts.Center,
+            Height  => Dialog_Bar_Height,
+            Shrink  => 0.0,
+            Padding => (Left | Right => Dialog_Bar_Pad, others => <>),
+            others  => <>));
+
+      Border : constant Layout :=
+        Called
+          (Styled
+             (Column
+                (Layout_Array'[Bar] & Content,
+                 Appearance =>
+                   (Fill => Pomarine.Themes.Border, Radius => Pomarine.Themes.Large_Radius, Framed => True,
+                    others => <>)),
+              (Flow     => Layouts.Column,
+               Outlined => Layouts.On,
+               Width    => Size.Width,
+               Height   => Size.Height,
+               others   => <>)),
+           Border_Name);
+   begin
+      return
+        Called
+          (Styled
+             (Column ([Border], Appearance => (Fill => Pomarine.Themes.Scrim, others => <>)),
+              (Place    => Layouts.Absolute,
+               Position => (others => 0.0),
+               Flow     => Layouts.Column,
+               Spread   => Layouts.Center,
+               Align    => Layouts.Center,
+               others   => <>)),
+           Overlay_Name);
+   end Dialog;
 
    function Scroll
      (Content : Layout;
