@@ -2,8 +2,8 @@ package body Gallery_VM is
    package VM renames Pomarine.View_Models;
    use type VM.Version_Number;
 
-   overriding function Version (Self : Model) return VM.Version_Number is
-     (VM.Value (Self.Changed) + VM.Version (Self.Text) + VM.Version_Number (Tasks.Version (Self.Items)));
+   overriding function Parts_Version (Self : Model) return VM.Version_Number is
+     (VM.Version (Self.Text) + VM.Version_Number (Tasks.Version (Self.Items)));
 
    function Clicks (Self : Model) return Natural is (Self.Taps);
    function Summary (Self : Model) return String is
@@ -26,7 +26,7 @@ package body Gallery_VM is
    begin
       if Self.Ticked /= To then
          Self.Ticked := To;
-         VM.Bump (Self.Changed);
+         Mark_Changed (Self);
       end if;
    end Set_Notify;
 
@@ -39,12 +39,14 @@ package body Gallery_VM is
    function Selected (Self : Model) return Natural is (Tasks.Find (Self.Items, Self.Choice));
    function Rows (Self : in out Model) return not null access Tasks.Task_List is
      (Self.Items'Unchecked_Access);
+   function Row_Model (Self : in out Model) return not null access Pomarine.Models.List_Model'Class is
+     (Self.Items'Unchecked_Access);
 
    procedure Select_Item (Self : in out Model; Id : Natural) is
    begin
       if Self.Choice /= Id then
          Self.Choice := Id;
-         VM.Bump (Self.Changed);
+         Mark_Changed (Self);
       end if;
    end Select_Item;
 
@@ -69,7 +71,7 @@ package body Gallery_VM is
          when Pick_Size       => Index in 1 .. Size_Count,
          when Remove_Chosen   => Index = 0 and then Selected (Self) > 0);
 
-   overriding procedure Execute (Self : in out Model; What : Command; Index : Natural := 0) is
+   overriding procedure Perform (Self : in out Model; What : Command; Index : Natural := 0) is
    begin
       case What is
          when Click_Me       => Self.Taps := @ + 1;
@@ -80,6 +82,5 @@ package body Gallery_VM is
             Tasks.Delete (Self.Items, Selected (Self));
             Self.Choice := 0;
       end case;
-      VM.Bump (Self.Changed);
-   end Execute;
+   end Perform;
 end Gallery_VM;

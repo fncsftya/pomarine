@@ -1,5 +1,4 @@
 with Gallery_VM;
-with Tasks;
 with Pomarine.UI;
 with Pomarine.UI.Contexts;
 with Pomarine.Widgets.Badges;
@@ -39,15 +38,18 @@ package Gallery is
 
    package Gallery_UI is new UI.Contexts (Gallery_VM.Commands, Gallery_VM.Model);
 
-   package Summary_Adapter is new Gallery_UI.Read_Text (Gallery_VM.Summary);
-   package Greeting_Adapter is new Gallery_UI.Read_Text (Gallery_VM.Greeting);
-   package Name_Adapter is new Gallery_UI.Edit_Text (Gallery_VM.Name, Gallery_VM.Set_Name);
-   package Notify_Adapter is new Gallery_UI.Edit_Flag (Gallery_VM.Notify, Gallery_VM.Set_Notify);
-   package Compact_Adapter is new Gallery_UI.Read_Flag (Gallery_VM.Compact);
-   package Size_Adapter is new Gallery_UI.Indexed_Flag (Gallery_VM.Is_Size);
-   package Progress_Adapter is new Gallery_UI.Read_Fraction (Gallery_VM.Progress);
-   package Rows_Adapter is new Gallery_UI.Row_Source (Tasks.Task_List, Gallery_VM.Rows);
-   package Choice_Adapter is new Gallery_UI.Choice (Gallery_VM.Selected_Item, Gallery_VM.Select_Item);
+   Summary_Text  : constant Gallery_UI.Text_Property := Gallery_UI.Showing (Gallery_VM.Summary'Access);
+   Greeting_Text : constant Gallery_UI.Text_Property := Gallery_UI.Showing (Gallery_VM.Greeting'Access);
+   Name_Text     : constant Gallery_UI.Text_Property :=
+     Gallery_UI.Editing (Gallery_VM.Name'Access, Gallery_VM.Set_Name'Access);
+   Notify_Flag   : constant Gallery_UI.Flag_Property :=
+     Gallery_UI.Editing (Gallery_VM.Notify'Access, Gallery_VM.Set_Notify'Access);
+   Compact_Flag  : constant Gallery_UI.Flag_Property := Gallery_UI.Showing (Gallery_VM.Compact'Access);
+   Size_Flag     : constant Gallery_UI.Flag_Property := Gallery_UI.Showing (Gallery_VM.Is_Size'Access);
+   Progress_Done : constant Gallery_UI.Fraction_Property := Gallery_UI.Showing (Gallery_VM.Progress'Access);
+   Item_Rows     : constant Gallery_UI.Rows_Property := Gallery_UI.Listing (Gallery_VM.Row_Model'Access);
+   Item_Choice   : constant Gallery_UI.Choice_Property :=
+     Gallery_UI.Choosing (Gallery_VM.Selected_Item'Access, Gallery_VM.Select_Item'Access);
 
    type Specimens is limited record
       Slider  : Pomarine.Widgets.Sliders.Slider;

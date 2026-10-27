@@ -158,7 +158,7 @@ a program with assertions; none opens a window.
 cd examples/tests
 alr exec -- gprbuild -P todo_tests.gpr
 for t in todo_vm_test todo_view_test example_views_test ui_slice_test ui_ownership_test ui_unchecked_test \
-         ui_sync_test ui_reentry_test ui_text_test ui_list_test ui_controls_test gallery_vm_test gallery_view_test; do bin/$t; done
+         ui_sync_test ui_reentry_test ui_text_test ui_list_test ui_properties_test ui_controls_test gallery_vm_test gallery_view_test; do bin/$t; done
 bin/windows_test   # opens a real window for a moment: a turn at a time, title, size, theme, idle and close
 ```
 
@@ -222,6 +222,9 @@ bin/windows_test   # opens a real window for a moment: a turn at a time, title, 
   start, or where it was; a model that normalizes is shown as it said; an input method's composition is not given to
   the model, is not disturbed by the model's change, and puts it off until it ends (cancelled: the model's text; committed:
   the person's); Return during composition is not a submission, Return after a commit in the same turn submits it.
+* `ui_properties_test`: properties made of a model's own subprograms (an indexed text, a flag set by a check, an
+  action, a read-only and a writable fraction), controls placed in one step, and an `Observed_Model` that counts its
+  own changes and refuses a command it cannot do.
 * `ui_list_test`: a choice follows its item when rows are moved or others deleted, goes with it when it is deleted
   and is not given to the task that takes its row; the first focus is the entry (type with no click); a task added by
   Return is shown even far down the list, and one added by something else is not scrolled to; the names.

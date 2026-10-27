@@ -1,15 +1,15 @@
 with Tasks;
+with Pomarine.Models;
 with Pomarine.View_Models;
 
 --  Screen state and commands, independent of widgets and windows.
 package Todo_VM is
    type Command is (Add_Task, Toggle_Chosen, Remove_Chosen, Sweep_Done);
    package Commands is new Pomarine.View_Models.Command_Models (Command);
-   type Model is limited new Commands.Model with private;
+   type Model is limited new Commands.Observed_Model with private;
 
-   overriding function Version (Self : Model) return Pomarine.View_Models.Version_Number;
    overriding function Can_Execute (Self : Model; What : Command; Index : Natural := 0) return Boolean;
-   overriding procedure Execute (Self : in out Model; What : Command; Index : Natural := 0);
+   overriding procedure Perform (Self : in out Model; What : Command; Index : Natural := 0);
 
    function Count (Self : Model) return Natural;
    function Draft (Self : Model) return String;
@@ -35,13 +35,16 @@ package Todo_VM is
    function Summary (Self : Model) return String;
    function Rows (Self : in out Model) return not null access Tasks.Task_List;
    --  Borrowed by the list; Self must outlive the view. Mutate tasks through Execute.
+   function Row_Model (Self : in out Model) return not null access Pomarine.Models.List_Model'Class;
+   --  The same rows as a list model, for a binding (Listing).
 
 private
-   type Model is limited new Commands.Model with record
-      Items : aliased Tasks.Task_List;
-      Text  : Pomarine.View_Models.Text_Property;
+   type Model is limited new Commands.Observed_Model with record
+      Items  : aliased Tasks.Task_List;
+      Text   : Pomarine.View_Models.Text_Property;
       Choice : Natural := 0;
       --  The id of the chosen task.
-      Changed : Pomarine.View_Models.Change_Counter;
    end record;
+
+   overriding function Parts_Version (Self : Model) return Pomarine.View_Models.Version_Number;
 end Todo_VM;

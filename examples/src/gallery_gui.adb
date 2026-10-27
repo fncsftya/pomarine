@@ -1,22 +1,25 @@
 with Gallery;
 with Gallery_VM;
-with Pomarine.Widgets;
-with Pomarine.Windows;
+with Pomarine.UI.Run_Window;
 
 --  The general-purpose controls on one window: the buttons, fields, checks, radios, switch, slider, a select that
 --  opens its own menu, tabs, a stepper, a disclosure, list, menu, badge, chip, toast and tooltips (rest the pointer on
 --  the slider). The Popover and Dialog buttons open what floats over the window. Click, type and tab about to see how
 --  each answers. Close the window to end it.
 procedure Gallery_GUI is
-   Win    : Pomarine.Windows.Window;  --  before the tree that draws to it
-   Tree   : aliased Pomarine.Widgets.Tree;
-   Model  : aliased Gallery_VM.Model;     --  before the view that shows it
-   Parts  : Gallery.Specimens;            --  likewise
-   Screen : Gallery.UI.View (Tree'Access);
+   type Sheet is limited record
+      Model : aliased Gallery_VM.Model;
+      Parts : Gallery.Specimens;  --  the application's own widgets, as long as the view that places them
+   end record;
+
+   procedure Build (Screen : in out Gallery.UI.View; Data : not null access Sheet) is
+   begin
+      Gallery.Build (Screen, Data.Model'Access, Data.Parts);
+   end Build;
+
+   procedure Show is new Pomarine.UI.Run_Window (Sheet, Build);
+   Content : aliased Sheet;
 begin
-   Gallery_VM.Seed (Model);
-   Pomarine.Windows.Open (Win, Tree, "Pomarine gallery", Gallery.Width, Gallery.Initial_Height);
-   Gallery.Build (Screen, Model'Access, Parts);
-   Pomarine.Widgets.Set_Tab_Navigation (Tree, True);
-   Pomarine.Windows.Run (Win, Tree);
+   Gallery_VM.Seed (Content.Model);
+   Show (Content, "Pomarine gallery", Gallery.Width, Gallery.Initial_Height);
 end Gallery_GUI;

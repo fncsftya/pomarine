@@ -30,13 +30,8 @@ with Texts.Documents;
 --  The todo example in pomarine/examples is the model of how it reads:
 --
 --     function Task_Actions (Parent : Todo_UI.Context'Class) return UI.Layout is
---        Bound : aliased Todo_UI.Component (Parent'Access);
---        Done  : constant UI.Button_Handle := Bound.Button ("Done", Command => Toggle_Chosen);
---        Result : constant UI.Layout := UI.Row ([UI.Place (Done, Width => 70.0)], Gap => 8.0);
---     begin
---        Bound.Commit;
---        return Result;
---     end Task_Actions;
+--       (UI.Row ([Parent.Label (Task_Summary, Grow => 1.0),
+--                 Parent.Button ("Done", Toggle_Chosen, Width => 70.0)], Gap => 8.0));
 --
 --  ===== Ownership =====
 --

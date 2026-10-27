@@ -85,56 +85,46 @@ Replace `src/first_app.adb` with:
 ```ada
 with Greeter;
 with Greeter_VM;
-with Pomarine.Widgets;
-with Pomarine.Windows;
+with Pomarine.UI.Run_Window;
 
 procedure First_App is
-   Win    : Pomarine.Windows.Window;
-   Tree   : aliased Pomarine.Widgets.Tree;
-   Model  : aliased Greeter_VM.Model;
-   Screen : Greeter.UI.View (Tree'Access);
+   procedure Show is new Pomarine.UI.Run_Window (Greeter_VM.Model, Greeter.Build);
+   Model : aliased Greeter_VM.Model;
 begin
-   Pomarine.Windows.Open (Win, Tree, "My first app", 320, 160);
-   Greeter.Build (Screen, Model'Access);
-   Pomarine.Widgets.Set_Tab_Navigation (Tree, True);
-   Pomarine.Windows.Run (Win, Tree);
+   Show (Model, "My first app", 320, 160);
 end First_App;
 ```
 
 Run `alr build` and `alr run`. Click **Say hello**, or press Tab and Return. Close the window to finish.
 
-Declaration order is lifetime order: the window outlives the tree; the tree and model outlive the view.
-Ada finalizes them in reverse order. A borrowed control or document must also be declared before the view or
-editor that uses it. A view owns controls it creates through a context, but only borrows app-owned controls.
+`Run_Window` makes the window, the tree and the view in the order that is their lifetime order (the window
+outlives the tree, the tree outlives the view) and has `Greeter.Build` make the screen of the model, which the
+caller declares first, as it must outlive the view. A program that needs the pieces itself (a second window, a
+borrowed control kept beside the view) declares them as `Pomarine.Windows`, `Pomarine.Widgets.Tree` and
+`Pomarine.UI.View` say. A view owns controls it creates through a context, but only borrows app-owned controls.
 
 ## How the greeting changes
 
 Read `src/view_models/greeter_vm.ads` and `.adb`. `Greeter_VM.Model` derives from a command model. Its
 `Count` and `Message` queries describe state. `Can_Execute` permits the command only at index zero and while
-incrementing cannot overflow; `Execute` increments the count and bumps the change counter. The command
-model's inherited contract rejects an unavailable command. Its postcondition checks the resulting count.
-Keep rules and persistence here, independent of widgets, and bump a version only when state changes.
+incrementing cannot overflow; `Perform` increments the count, and the `Observed_Model` it derives from counts
+the change (`Mark_Changed`, which a property set by a widget calls itself) and refuses an unavailable command.
+Its postcondition checks the resulting count. Keep rules and persistence here, independent of widgets.
 
-Read `src/greeter.ads`. It instantiates `UI.Contexts` for that model and its commands, then instantiates
-`Read_Text` for the greeting. This adapter lets a label read model text when its watched version changes.
+Read `src/greeter.ads`. It instantiates `UI.Contexts` for that model and its commands, then makes a property of
+the model's own `Message` function with `Showing`. A label reads model text through it when its watched version
+changes.
 
-In `src/greeter.adb`, a component declares the controls and bindings together:
+In `src/greeter.adb`, `Build` binds the model and makes the controls and the layout in one expression:
 
 ```ada
-Bound   : aliased Controls.Component (Parent'Access);
-Message : constant UI.Label_Handle := Bound.Label (Greeting_Text.Property);
-Greet   : constant UI.Button_Handle :=
-  Bound.Button ("Say hello", Greeter_VM.Say_Hello,
-                Look => Pomarine.Widgets.Buttons.Primary, Focusable => True);
-Result  : constant UI.Layout :=
-  UI.Column ([UI.Place (Message, Width => 200.0, Height => 24.0),
-              UI.Place (Greet, Width => 120.0, Height => 32.0)],
-             Align => UI.Layouts.Center, Spread => UI.Layouts.Center,
-             Padding => 16.0, Gap => 12.0, Grow => 1.0);
+UI.Column ([Bound.Label (Greeting, Centered => True, Width => 200.0, Height => 24.0),
+            Bound.Button ("Say hello", Greeter_VM.Say_Hello, Look => Pomarine.Widgets.Buttons.Primary,
+                          Focusable => True, Width => 120.0, Height => 32.0)],
+           Align => UI.Layouts.Center, Spread => UI.Layouts.Center, Padding => 16.0, Gap => 12.0, Grow => 1.0);
 ```
 
-The component commits its declarations with `Bound.Commit`; `Build` binds the model, builds the layout once,
-and calls `UI.Mount`. Later turns refresh the affected bindings without rebuilding the component. Button
+`Build` builds the layout once and calls `UI.Mount`. Later turns refresh the affected bindings without rebuilding the component. Button
 availability follows `Can_Execute`. Geometry, focus, drawing and continuous gestures belong in the view.
 Layouts use points; the window supplies display density. Use `Grow` for flexible space instead of computing
 screen coordinates. See [UI.md](../UI.md) for fields, lists, indexed commands and borrowed controls.

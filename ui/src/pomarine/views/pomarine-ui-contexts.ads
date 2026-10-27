@@ -19,13 +19,12 @@ with Texts.Documents;
 --
 --     package Todo_UI is new Pomarine.UI.Contexts (Todo_VM.Commands, Todo_VM.Model);
 --
---  The adapters say how to read and write the model. Each is a generic
---  instantiated in a package too, so that what a binding keeps is a
---  pointer to something that is there as long as the program is, and
---  neither a local package nor a nested subprogram can be kept:
+--  A property says how to read and write the model, and is made of the model's own subprograms (see
+--  Properties from the model's own subprograms below), in one line:
 --
---     package Summary_Adapter is new Todo_UI.Read_Text (Get => Todo_VM.Summary);
---     Task_Summary : constant Todo_UI.Text_Property := Summary_Adapter.Property;
+--     Task_Summary : constant Todo_UI.Text_Property := Todo_UI.Showing (Todo_VM.Summary'Access);
+--
+--  (The adapter generics, each instantiated in a package of its own, are obsolescent.)
 --
 --  A Context is the view, the model and the scope that controls are made in.
 --  Bind gives the context of the view's root scope; a component declares a Component,
@@ -34,13 +33,8 @@ with Texts.Documents;
 --  if it does not:
 --
 --     function Task_Actions (Parent : Todo_UI.Context'Class) return UI.Layout is
---        Bound   : aliased Todo_UI.Component (Parent'Access);
---        Done    : constant UI.Button_Handle := Bound.Button ("Done", Command => Toggle_Chosen);
---        Result  : constant UI.Layout := UI.Row ([UI.Place (Done)]);
---     begin
---        Bound.Commit;
---        return Result;
---     end Task_Actions;
+--       (UI.Row ([Parent.Label (Task_Summary, Grow => 1.0),
+--                 Parent.Button ("Done", Toggle_Chosen, Width => 70.0)], Gap => 8.0));
 --
 --  A context is limited and borrows (a pointer to the model, the view by
 --  number): it cannot be kept in anything but a limited object, and what it
@@ -81,7 +75,8 @@ package Pomarine.UI.Contexts is
       with function Get (Item : Model) return String;
       with function Changes (Item : Model) return VM.Version_Number is Whole_Version;
    package Read_Text is
-      function Property return Text_Property;
+      function Property return Text_Property
+        with Obsolescent => "use Showing (Get'Access)";
       --  A text to show, never written.
    private
       type Adapter is new Text_Adapter with null record;
@@ -96,7 +91,8 @@ package Pomarine.UI.Contexts is
    generic
       with function Get (Item : Model; Index : Positive) return String;
    package Indexed_Text is
-      function Property return Text_Property;
+      function Property return Text_Property
+        with Obsolescent => "use Showing (Get'Access) of a function with an Index";
       --  A text to show for each of many (a card of a list): the model is asked for the one of Index, whole
       --  version, each turn.
    private
@@ -115,7 +111,8 @@ package Pomarine.UI.Contexts is
       with procedure Set (Item : in out Model; Value : String);
       with function Changes (Item : Model) return VM.Version_Number is Whole_Version;
    package Edit_Text is
-      function Property return Text_Property;
+      function Property return Text_Property
+        with Obsolescent => "use Editing (Get'Access, Set'Access)";
       --  A text to show and to be written by what the person types. Set may
       --  keep another text than it is given (normalize); what the model then
       --  says is shown.
@@ -138,7 +135,8 @@ package Pomarine.UI.Contexts is
    generic
       with function Get (Item : Model) return Natural;
    package Counter is
-      function Property return Count_Property;
+      function Property return Count_Property
+        with Obsolescent => "use Counting (Get'Access)";
       --  A number, to see whether it grew.
    private
       type Adapter is new Count_Adapter with null record;
@@ -156,7 +154,8 @@ package Pomarine.UI.Contexts is
       type Rows_Model is limited new Pomarine.Models.List_Model with private;
       with function Get (Item : in out Model) return not null access Rows_Model;
    package Row_Source is
-      function Property return Rows_Property;
+      function Property return Rows_Property
+        with Obsolescent => "use Listing (Get'Access), a function that returns the rows as a List_Model'Class";
       --  The rows a list shows (see Pomarine.Models): borrowed from the model.
    private
       type Adapter is new Rows_Adapter with null record;
@@ -178,7 +177,8 @@ package Pomarine.UI.Contexts is
       with procedure Set (Item : in out Model; Id : Natural);
       with function Changes (Item : Model) return VM.Version_Number is Whole_Version;
    package Choice is
-      function Property return Choice_Property;
+      function Property return Choice_Property
+        with Obsolescent => "use Choosing (Get'Access, Set'Access)";
       --  Which item is chosen, by its id (Pomarine.Models.List_Model.Row_Id; 0 for none), not
       --  by its place: the choice follows the item when others are removed or the rows are
       --  reordered, and is not given to whatever takes its place.
@@ -201,7 +201,8 @@ package Pomarine.UI.Contexts is
    generic
       with function Get (Item : Model) return Boolean;
    package Read_Flag is
-      function Property return Flag_Property;
+      function Property return Flag_Property
+        with Obsolescent => "use Showing (Get'Access)";
       --  A yes or no to show: whether a box is ticked, a control is shown. It is read at each turn,
       --  so a click that the model did not take is undone.
    private
@@ -215,7 +216,8 @@ package Pomarine.UI.Contexts is
    generic
       with function Get (Item : Model; Index : Positive) return Boolean;
    package Indexed_Flag is
-      function Property return Flag_Property;
+      function Property return Flag_Property
+        with Obsolescent => "use Showing (Get'Access) of a function with an Index";
       --  A yes or no for each of many (whether a card is shown, ticked).
    private
       type Adapter is new Flag_Adapter with null record;
@@ -230,7 +232,8 @@ package Pomarine.UI.Contexts is
       with function Get (Item : Model) return Boolean;
       with procedure Set (Item : in out Model; Value : Boolean);
    package Edit_Flag is
-      function Property return Flag_Property;
+      function Property return Flag_Property
+        with Obsolescent => "use Editing (Get'Access, Set'Access)";
       --  A yes or no to show, and to be written by what the person ticks.
    private
       type Adapter is new Flag_Adapter with null record;
@@ -251,7 +254,8 @@ package Pomarine.UI.Contexts is
    generic
       with function Get (Item : Model) return Float;
    package Read_Fraction is
-      function Property return Fraction_Property;
+      function Property return Fraction_Property
+        with Obsolescent => "use Showing (Get'Access)";
       --  How far on a job is, from 0.0 to 1.0 (a value outside is taken as the nearest end).
    private
       type Adapter is new Fraction_Adapter with null record;
@@ -264,7 +268,8 @@ package Pomarine.UI.Contexts is
       with function Get (Item : Model) return Float;
       with procedure Set (Item : in out Model; Value : Float);
    package Edit_Fraction is
-      function Property return Fraction_Property;
+      function Property return Fraction_Property
+        with Obsolescent => "use Editing (Get'Access, Set'Access)";
    private
       type Adapter is new Fraction_Adapter with null record;
       overriding function Current (Self : Adapter; Item : Model) return Float is (Get (Item));
@@ -288,7 +293,8 @@ package Pomarine.UI.Contexts is
       with function Allowed (Item : Model) return Boolean;
       with procedure Perform (Item : in out Model);
    package Command_Action is
-      function Property return Action_Property;
+      function Property return Action_Property
+        with Obsolescent => "use Doing (Allowed'Access, Perform'Access)";
       --  A command of the model that is a pair of subprograms: whether it can be done now (it
       --  turns the buttons that do it on and off), and doing it. Those of Commands, an enumeration's
       --  (Can_Execute, Execute), are used by naming the literal; this is for what is not one.
@@ -298,6 +304,62 @@ package Pomarine.UI.Contexts is
       overriding procedure Perform (Self : Adapter; Item : in out Model);
       Instance : aliased constant Adapter := (null record);
    end Command_Action;
+
+   --  Properties from the model's own subprograms
+   --
+   --  The packages above say how to read and write a model by an instantiation, in a package of its own, for
+   --  each property. These say it with the subprograms themselves, in one line, wherever a constant can be
+   --  declared (at library level: the subprograms must be, as 'Access wants):
+   --
+   --     Task_Draft : constant Todo_UI.Text_Property :=
+   --       Todo_UI.Editing (Todo_VM.Draft'Access, Todo_VM.Set_Draft'Access);
+   --
+   --  The view keeps what it needs in its own arena. Changes says what a text or a choice watches to see it was
+   --  changed; none, the model as a whole (Whole_Version).
+
+   type Text_Getter is access function (Item : Model) return String;
+   type Text_Each_Getter is access function (Item : Model; Index : Positive) return String;
+   type Text_Setter is access procedure (Item : in out Model; Value : String);
+   type Flag_Getter is access function (Item : Model) return Boolean;
+   type Flag_Each_Getter is access function (Item : Model; Index : Positive) return Boolean;
+   type Flag_Setter is access procedure (Item : in out Model; Value : Boolean);
+   type Fraction_Getter is access function (Item : Model) return Float;
+   type Fraction_Setter is access procedure (Item : in out Model; Value : Float);
+   type Count_Getter is access function (Item : Model) return Natural;
+   type Rows_Getter is access function (Item : in out Model)
+     return not null access Pomarine.Models.List_Model'Class;
+   type Choice_Setter is access procedure (Item : in out Model; Id : Natural);
+   type Action_Performer is access procedure (Item : in out Model);
+   type Version_Getter is access function (Item : Model) return VM.Version_Number;
+
+   function Showing (Get : not null Text_Getter; Changes : Version_Getter := null) return Text_Property;
+   --  A text to show, never written.
+   function Showing (Get : not null Text_Each_Getter) return Text_Property;
+   --  A text to show for each of many (a card of a list), whole version, each turn.
+   function Editing
+     (Get : not null Text_Getter; Set : not null Text_Setter; Changes : Version_Getter := null) return Text_Property;
+   --  A text to show and to be written by what the person types (as Edit_Text).
+
+   function Showing (Get : not null Flag_Getter) return Flag_Property;
+   function Showing (Get : not null Flag_Each_Getter) return Flag_Property;
+   function Editing (Get : not null Flag_Getter; Set : not null Flag_Setter) return Flag_Property;
+
+   function Showing (Get : not null Fraction_Getter) return Fraction_Property;
+   function Editing (Get : not null Fraction_Getter; Set : not null Fraction_Setter) return Fraction_Property;
+
+   function Counting (Get : not null Count_Getter) return Count_Property;
+   --  A number, to see whether it grew (as Counter).
+
+   function Listing (Get : not null Rows_Getter) return Rows_Property;
+   --  The rows a list shows, borrowed from the model (as Row_Source).
+
+   function Choosing
+     (Get : not null Count_Getter; Set : not null Choice_Setter; Changes : Version_Getter := null)
+      return Choice_Property;
+   --  The id of the chosen row, and how a choice is made (as Choice).
+
+   function Doing (Allowed : not null Flag_Getter; Perform : not null Action_Performer) return Action_Property;
+   --  A command that is no enumeration's (as Command_Action).
 
    --  Contexts
 
@@ -464,6 +526,202 @@ package Pomarine.UI.Contexts is
       Name      : String := "") return Pomarine.UI.List_Handle;
    --  A list of the model's rows (the existing model-backed rows) and the choice of one of them.
 
+   --  Controls placed in one step
+   --
+   --  Each is the control of the same name above together with the Place of it, so that a component is the
+   --  expression of its layout and a handle is kept only for what is wanted again later:
+   --
+   --     UI.Row ([Bound.Label (Task_Summary, Grow => 1.0),
+   --              Bound.Button ("Done", Toggle_Chosen, Width => 70.0)], Gap => 8.0)
+   --
+   --  Grow, Shrink, Width, Height, Margin and Align are those of Pomarine.UI.Place. Tooltip and Name (what an
+   --  assistive technology and a test call it) are said of the widget when they are not empty. The order in
+   --  which the controls of an expression are made is not defined, and does not matter: the tab key goes by
+   --  where they are placed.
+
+   function Label
+     (Self     : Context;
+      Text     : Text_Property;
+      Index    : Natural := 0;
+      Centered : Boolean := False;
+      Tooltip  : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function Label
+     (Self     : Context;
+      Caption  : String;
+      Centered : Boolean := False;
+      Tooltip  : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function Button
+     (Self      : Context;
+      Caption   : String;
+      Command   : Commands.Command;
+      Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
+      Index     : Natural := 0;
+      Focusable : Boolean := False;
+      Tooltip   : String := "";
+      Name      : String := "";
+      Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width     : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align     : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function Button
+     (Self    : Context;
+      Caption : String;
+      Action  : Action_Property;
+      Look    : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
+      Index   : Natural := 0;
+      Tooltip : String := "";
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function Text_Field
+     (Self            : Context;
+      Text            : Text_Property;
+      Submit          : Commands.Command;
+      Placeholder     : String := "";
+      Name            : String := "";
+      Focus_Initially : Boolean := False;
+      Replacing       : Replacement := Caret_At_End;
+      Index           : Natural := 0;
+      Grow            : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink          : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width           : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align           : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+     with Pre => Is_Writable (Text);
+   --  With Focus_Initially the field has the focus when the screen is mounted.
+
+   function Text_Field
+     (Self            : Context;
+      Text            : Text_Property;
+      Placeholder     : String := "";
+      Name            : String := "";
+      Focus_Initially : Boolean := False;
+      Replacing       : Replacement := Caret_At_End;
+      Index           : Natural := 0;
+      Grow            : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink          : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width           : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align           : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+     with Pre => Is_Writable (Text);
+
+   function Check
+     (Self    : Context;
+      Caption : String;
+      Checked : Flag_Property;
+      Command : Commands.Command;
+      Form    : Pomarine.Widgets.Checks.Kind := Pomarine.Widgets.Checks.Box;
+      Index   : Natural := 0;
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function Check
+     (Self    : Context;
+      Caption : String;
+      Checked : Flag_Property;
+      Form    : Pomarine.Widgets.Checks.Kind := Pomarine.Widgets.Checks.Box;
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+     with Pre => Is_Settable (Checked);
+
+   function Switch
+     (Self    : Context;
+      Caption : String;
+      On      : Flag_Property;
+      Command : Commands.Command;
+      Index   : Natural := 0;
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function Progress
+     (Self   : Context;
+      Done   : Fraction_Property;
+      Grow   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align  : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function List
+     (Self      : Context;
+      Rows      : Rows_Property;
+      Selection : Choice_Property;
+      Name      : String := "";
+      Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width     : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align     : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+
+   function List
+     (Self         : Context;
+      Rows         : Rows_Property;
+      Selection    : Choice_Property;
+      Reveal_After : Commands.Command;
+      Growth       : Count_Property;
+      Name         : String := "";
+      Grow         : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink       : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width        : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height       : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin       : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align        : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+   --  As above, and, after Reveal_After is done, if Growth has grown, the list is scrolled to its last row.
+
+   function Borrow_Widget
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Widget'Class;
+      Tooltip  : String := "";
+      Name     : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout;
+   --  A widget of any kind that the application keeps, placed (see Borrow_Widget below).
+
    --  Effects of the view
 
    procedure Focus_Initially (Self : Context; Target : Pomarine.UI.Focus_Target);
@@ -590,46 +848,70 @@ package Pomarine.UI.Contexts is
    --  The component succeeded: its scope joins the parent's, and stays provisionally until
    --  the screen is mounted. Controls can no longer be made through Item.
 
+   function Finish (Item : in out Component; Result : Pomarine.UI.Layout) return Pomarine.UI.Layout;
+   --  Commit, and Result: the end of a component that is one expression, `return Bound.Finish (UI.Row (...))`.
+   --  A component that needs no scope of its own to give up whole when it fails (most) makes its controls
+   --  through the context it is given and has no Component: see the notes above.
+
 private
 
    type Model_Ref is access all Model;
 
+   --  A property is an adapter of a package of the application's (Adapter), or the model's own subprograms
+   --  (the rest), from which the view makes the adapter in its arena when it binds the property.
+
    type Text_Property is record
       Adapter : Text_Adapter_Ref;
+      Get     : Text_Getter;
+      Each    : Text_Each_Getter;
+      Set     : Text_Setter;
+      Changes : Version_Getter;
    end record;
 
    type Count_Property is record
       Adapter : Count_Adapter_Ref;
+      Get     : Count_Getter;
    end record;
 
    type Rows_Property is record
       Adapter : Rows_Adapter_Ref;
+      Get     : Rows_Getter;
    end record;
 
    type Choice_Property is record
       Adapter : Choice_Adapter_Ref;
+      Get     : Count_Getter;
+      Set     : Choice_Setter;
+      Changes : Version_Getter;
    end record;
 
    type Flag_Property is record
       Adapter : Flag_Adapter_Ref;
+      Get     : Flag_Getter;
+      Each    : Flag_Each_Getter;
+      Set     : Flag_Setter;
    end record;
 
    type Fraction_Property is record
       Adapter : Fraction_Adapter_Ref;
+      Get     : Fraction_Getter;
+      Set     : Fraction_Setter;
    end record;
 
    function Is_Writable (Item : Fraction_Property) return Boolean is
-     (Item.Adapter /= null and then Item.Adapter.Can_Assign);
+     (if Item.Adapter /= null then Item.Adapter.Can_Assign else Item.Set /= null);
 
    type Action_Property is record
       Adapter : Action_Adapter_Ref;
+      Allowed : Flag_Getter;
+      Perform : Action_Performer;
    end record;
 
    function Is_Settable (Item : Flag_Property) return Boolean is
-     (Item.Adapter /= null and then Item.Adapter.Can_Assign);
+     (if Item.Adapter /= null then Item.Adapter.Can_Assign else Item.Set /= null);
 
    function Is_Writable (Item : Text_Property) return Boolean is
-     (Item.Adapter /= null and then Item.Adapter.Can_Assign);
+     (if Item.Adapter /= null then Item.Adapter.Can_Assign else Item.Set /= null);
 
    type Context is new Ada.Finalization.Limited_Controlled with record
       Number : Natural := 0;

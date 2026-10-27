@@ -115,6 +115,37 @@ package Pomarine.View_Models is
       --  Do it. Index is which of many, as the widget said (Event.Index): a
       --  row to open, a choice to take. 0 if it is not one of many.
 
+      type Observed_Model is abstract limited new Model with private;
+      --  A model that counts its own changes, so that it need not write Version and bump a counter: derive
+      --  from it, say how a command is done (Perform), and call Mark_Changed when something changed that no
+      --  command did (a property set by a widget). Execute is Perform and a Mark_Changed.
+
+      overriding function Version (Self : Observed_Model) return Version_Number;
+      --  The changes counted, and Parts_Version.
+
+      overriding function Can_Execute
+        (Self : Observed_Model; What : Command; Index : Natural := 0) return Boolean is (False);
+      --  Nothing is possible until the model says what is: override it.
+
+      function Parts_Version (Self : Observed_Model) return Version_Number is (0);
+      --  The versions of the parts that count themselves (a Text_Property, a list model): override it to
+      --  add them. Anything a part changes, changes the model.
+
+      procedure Mark_Changed (Self : in out Observed_Model);
+      --  Something changed.
+
+      procedure Perform (Self : in out Observed_Model; What : Command; Index : Natural := 0) is abstract;
+      --  Do What, as Execute says.
+
+      overriding procedure Execute (Self : in out Observed_Model; What : Command; Index : Natural := 0);
+      --  Perform it, then Mark_Changed.
+
+   private
+
+      type Observed_Model is abstract limited new Model with record
+         Changes : Version_Number := 0;
+      end record;
+
    end Command_Models;
 
 private

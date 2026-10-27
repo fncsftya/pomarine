@@ -9,26 +9,14 @@ settled by.
 
 ```ada
 function Task_Actions (Parent : Todo_UI.Context'Class) return UI.Layout is
-   Bound   : aliased Todo_UI.Component (Parent'Access);
-   Summary : constant UI.Label_Handle := Bound.Label (Text => Task_Summary);
-   Done    : constant UI.Layout := Command_Button (Bound, "Done", Toggle_Chosen, Width => 70.0);
-   Delete  : constant UI.Layout := Command_Button (Bound, "Delete", Remove_Chosen, Width => 70.0, Look => Danger);
-   Clear   : constant UI.Layout := Command_Button (Bound, "Clear done", Sweep_Done, Width => 100.0);
-   Result  : constant UI.Layout := UI.Row ([UI.Place (Summary, Grow => 1.0), Done, Delete, Clear], Gap => 8.0);
-begin
-   Bound.Commit;
-   return Result;
-end Task_Actions;
+  (UI.Row ([Parent.Label (Task_Summary, Grow => 1.0),
+            Parent.Button ("Done", Toggle_Chosen, Width => 70.0),
+            Parent.Button ("Delete", Remove_Chosen, Look => Danger, Width => 70.0),
+            Parent.Button ("Clear done", Sweep_Done, Width => 100.0)],
+           Gap => 8.0));
 
-function Task_Screen (Bound : Todo_UI.Context'Class) return UI.Layout is
-   Entry_Area : constant Entry_Part := Task_Entry (Bound);
-   Content    : constant Content_Part := Task_Content (Bound);
-   Actions    : constant UI.Layout := Task_Actions (Bound);
-begin
-   Bound.Focus_Initially (Entry_Area.Focus);
-   Bound.Reveal_After (Add_Task, Content.Reveal, Task_Count);
-   return UI.Column ([Entry_Area.Layout, Content.Layout, Actions], Padding => 12.0, Gap => 8.0);
-end Task_Screen;
+function Task_Screen (Parent : Todo_UI.Context'Class) return UI.Layout is
+  (UI.Column ([Task_Entry (Parent), Task_Content (Parent), Task_Actions (Parent)], Padding => 12.0, Gap => 8.0));
 
 procedure Build (Screen : in out UI.View; Model : not null access Todo_VM.Model) is
    Bound : constant Todo_UI.Context'Class := Todo_UI.Bind (Screen, Model);
@@ -38,8 +26,18 @@ begin
 end Build;
 ```
 
+and the model is bound by properties made of its own subprograms, one line each:
+
+```ada
+Task_Draft : constant Todo_UI.Text_Property := Todo_UI.Editing (Todo_VM.Draft'Access, Todo_VM.Set_Draft'Access);
+```
+
+and the program is `procedure Show is new Pomarine.UI.Run_Window (Todo_VM.Model, Todo.Build);` and
+`Show (Model, "Tasks", 640, 480)`.
+
 Nothing else is needed: no widget is a field of the application, there is no `Sync`, no command-routing callback
-and no validator. `Todo_GUI` declares the window, the tree, the model, and `Screen : Todo.UI.View (Tree'Access)`.
+and no validator. `Todo_GUI` declares the model and runs `Pomarine.UI.Run_Window`, which makes the window, the tree
+and the view in the order they must be.
 
 Where this differs from the first sketch, and why:
 
@@ -47,11 +45,19 @@ Where this differs from the first sketch, and why:
   which *is* a `Context` (so `Bound.Label (...)` is the same call in both) and Ada does not let a function that
   returns a tagged type be inherited without being overridden. So there are no primitives that return a
   context but `Bind`, which is class-wide.
-* A component declares its guard (`Bound : aliased ... Component (Parent'Access)`) and `Commit`s before the
-  return. A function cannot do something after its result, and the commit must be the last thing that can go
-  right.
-* A control is placed with `UI.Place (Handle, Width => ...)`: buttons have no size of their own, so the layout
-  says it (a button is 80 x 32 points, a field 38 high, a label 24 high, if it does not).
+* A component makes its controls through the context it is given, so a component is an expression: no guard, no
+  handles, no `Commit`. A component that must give up whole when it fails declares a guard (`Bound : aliased ...
+  Component (Parent'Access)`) and ends with `return Bound.Finish (Layout)` (or `Commit`, then the return): a
+  function cannot do something after its result, and the commit must be the last thing that can go right.
+* A control made by a context with a layout result (`Bound.Button ("Done", Cmd, Width => 70.0)`) is placed in the
+  same call, with the `Grow`, `Shrink`, `Width`, `Height`, `Margin` and `Align` of `UI.Place`, and an optional
+  `Tooltip` and `Name`: buttons have no size of their own, so the layout says it (a button is 80 x 32 points, a
+  field 38 high, a label 24 high, if it does not). The handle-returning forms stay for a control wanted again
+  (`Focus_Of`, `Reveal_Of`, `Widget_Of`), then `UI.Place (Handle, ...)`.
+* The focus a field has at the start (`Focus_Initially => True`) and the scrolling of a list to a task just added
+  (`Reveal_After`, `Growth`) are said of the control, so a component need not hand them up.
+* The order the controls of an expression are made in is not defined and does not matter: the tab key goes by
+  where they are placed.
 * Row's `Align` is `Center` unless said (it was what the old footer said by hand); Column's is not set.
 
 ## What is owned, and until when
@@ -62,7 +68,8 @@ Where this differs from the first sketch, and why:
 | Panels of the mounted screen, and the root | the `View`, in its mount arena | the mount fails, or the view goes |
 | Widgets the application borrows (`Borrow_*`) | the application | they are not touched but to take them out of the tree |
 | The model | **the caller** | it must outlive every use of the view |
-| Adapters (`Read_Text`, `Edit_Text`, `Counter`, `Row_Source`, `Choice`, `Command_Action`) | the program (library-level objects) | the program |
+| Properties (`Showing`, `Editing`, `Counting`, `Listing`, `Choosing`, `Doing`) | the program (constants of library-level subprograms); the view makes the adapter in the scope's arena | the scope |
+| Adapters (`Read_Text`, `Edit_Text`, `Counter`, `Row_Source`, `Choice`, `Command_Action`, obsolescent) | the program (library-level objects) | the program |
 | The tree | the caller, declared before the view | it outlives the view (an access discriminant) |
 
 **Arenas** (`Pomarine.UI.Arenas`) are subpools of one stateless pool: growing blocks that never move, so every
@@ -133,9 +140,9 @@ or `Foreign_Handle`, `Is_Live` says no, and `Check` says `Stale_Control`, `Forei
 built with assertions ignored and all checks off, shows it (TESTING.md). The places in the tables are used again by
 later controls, with another generation, so a stale handle never meets another control.
 
-A handle is not handed up. A component that must give its caller something (the first focus, a row to show) says
-so in its result, as `Entry_Part` and `Content_Part` do in the todo example: a layout and a `Focus_Target` or
-`Reveal_Target`, which can be used for those and for nothing else.
+A handle is not handed up. A component that must give its caller something the controls cannot say of themselves
+returns it in its result, a layout and a `Focus_Target` or `Reveal_Target`, which can be used for those and for
+nothing else; the todo example needs none, as `Focus_Initially` and `Reveal_After` are said of the controls.
 
 ## Layouts and `Mount`
 
@@ -213,7 +220,7 @@ A field is bound to a `Text_Property`: a getter, a setter, a version. The widget
 
 ### Lists
 
-A list shows the existing model-backed rows (`Pomarine.Models`): a `Row_Source` adapter hands the list the model's
+A list shows the existing model-backed rows (`Pomarine.Models`): a `Row_Source` adapter (or `Listing`) hands the list the model's
 rows, and nothing is copied. The selection is bound by **id**, not row (`Choice`: `Get` and `Set` of the id that
 `Row_Id` says): the list keeps the chosen id, the model keeps the chosen id, and the view says one to the other
 when either moves. So the choice stays with its item when others are deleted or the rows are moved, a row that
@@ -400,8 +407,16 @@ the host's responsibility; row descriptions do not yet bind commands or model ve
 Conditional component creation and removal driven by bindings, replacing a screen, keyed repeated components,
 and mounting more than one standalone screen into a view. A standalone view takes no more components once mounted (`Open_Scope` raises `Program_Error`);
 embedded views accept late components as described above.
-Reusable components that know no model at all would be generic over a context instance; the ones here
-(`Entry_Field`, `Command_Button`) take the bindings they need, in the instance of the screen.
+Reusable components that know no model at all would be generic over a context instance; a component takes the
+bindings it needs, in the instance of the screen.
+
+## Obsolescent
+
+The adapter generics (`Read_Text`, `Indexed_Text`, `Edit_Text`, `Counter`, `Row_Source`, `Choice`, `Read_Flag`,
+`Indexed_Flag`, `Edit_Flag`, `Read_Fraction`, `Edit_Fraction`, `Command_Action`) are obsolescent: their `Property`
+says what to use instead (`Showing`, `Editing`, `Counting`, `Listing`, `Choosing`, `Doing`; `Listing` wants the
+rows as a `List_Model'Class`). GNAT warns (`-gnatwj`) of each use, so a build of Bonxie lists what is left to
+move. GNAT cannot make the other warnings errors and leave those, so Bonxie's projects build with `-gnatwn`.
 
 ## Tests
 

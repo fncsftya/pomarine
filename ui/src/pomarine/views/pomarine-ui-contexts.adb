@@ -23,11 +23,11 @@ package body Pomarine.UI.Contexts is
    --  Adapters
 
    package body Read_Text is
-      function Property return Text_Property is ((Adapter => Instance'Access));
+      function Property return Text_Property is ((Adapter => Instance'Access, others => <>));
    end Read_Text;
 
    package body Edit_Text is
-      function Property return Text_Property is ((Adapter => Instance'Access));
+      function Property return Text_Property is ((Adapter => Instance'Access, others => <>));
       overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural) is
          pragma Unreferenced (Self, Index);
       begin
@@ -36,27 +36,27 @@ package body Pomarine.UI.Contexts is
    end Edit_Text;
 
    package body Counter is
-      function Property return Count_Property is ((Adapter => Instance'Access));
+      function Property return Count_Property is ((Adapter => Instance'Access, others => <>));
    end Counter;
 
    package body Row_Source is
-      function Property return Rows_Property is ((Adapter => Instance'Access));
+      function Property return Rows_Property is ((Adapter => Instance'Access, others => <>));
    end Row_Source;
 
    package body Indexed_Text is
-      function Property return Text_Property is ((Adapter => Instance'Access));
+      function Property return Text_Property is ((Adapter => Instance'Access, others => <>));
    end Indexed_Text;
 
    package body Indexed_Flag is
-      function Property return Flag_Property is ((Adapter => Instance'Access));
+      function Property return Flag_Property is ((Adapter => Instance'Access, others => <>));
    end Indexed_Flag;
 
    package body Read_Flag is
-      function Property return Flag_Property is ((Adapter => Instance'Access));
+      function Property return Flag_Property is ((Adapter => Instance'Access, others => <>));
    end Read_Flag;
 
    package body Edit_Flag is
-      function Property return Flag_Property is ((Adapter => Instance'Access));
+      function Property return Flag_Property is ((Adapter => Instance'Access, others => <>));
       overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural) is
          pragma Unreferenced (Self, Index);
       begin
@@ -65,11 +65,11 @@ package body Pomarine.UI.Contexts is
    end Edit_Flag;
 
    package body Read_Fraction is
-      function Property return Fraction_Property is ((Adapter => Instance'Access));
+      function Property return Fraction_Property is ((Adapter => Instance'Access, others => <>));
    end Read_Fraction;
 
    package body Edit_Fraction is
-      function Property return Fraction_Property is ((Adapter => Instance'Access));
+      function Property return Fraction_Property is ((Adapter => Instance'Access, others => <>));
       overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Float) is
       begin
          Set (Item, Value);
@@ -77,7 +77,7 @@ package body Pomarine.UI.Contexts is
    end Edit_Fraction;
 
    package body Command_Action is
-      function Property return Action_Property is ((Adapter => Instance'Access));
+      function Property return Action_Property is ((Adapter => Instance'Access, others => <>));
       overriding procedure Perform (Self : Adapter; Item : in out Model) is
          pragma Unreferenced (Self);
       begin
@@ -86,13 +86,282 @@ package body Pomarine.UI.Contexts is
    end Command_Action;
 
    package body Choice is
-      function Property return Choice_Property is ((Adapter => Instance'Access));
+      function Property return Choice_Property is ((Adapter => Instance'Access, others => <>));
       overriding procedure Choose (Self : Adapter; Item : in out Model; Id : Natural) is
          pragma Unreferenced (Self);
       begin
          Set (Item, Id);
       end Choose;
    end Choice;
+
+   --  Properties of the model's own subprograms. The view makes the adapter of one in its arena, when it binds.
+
+   function Showing (Get : not null Text_Getter; Changes : Version_Getter := null) return Text_Property is
+     ((Get => Get, Changes => Changes, others => <>));
+
+   function Showing (Get : not null Text_Each_Getter) return Text_Property is ((Each => Get, others => <>));
+
+   function Editing
+     (Get : not null Text_Getter; Set : not null Text_Setter; Changes : Version_Getter := null) return Text_Property
+   is ((Get => Get, Set => Set, Changes => Changes, others => <>));
+
+   function Showing (Get : not null Flag_Getter) return Flag_Property is ((Get => Get, others => <>));
+
+   function Showing (Get : not null Flag_Each_Getter) return Flag_Property is ((Each => Get, others => <>));
+
+   function Editing (Get : not null Flag_Getter; Set : not null Flag_Setter) return Flag_Property is
+     ((Get => Get, Set => Set, others => <>));
+
+   function Showing (Get : not null Fraction_Getter) return Fraction_Property is ((Get => Get, others => <>));
+
+   function Editing (Get : not null Fraction_Getter; Set : not null Fraction_Setter) return Fraction_Property is
+     ((Get => Get, Set => Set, others => <>));
+
+   function Counting (Get : not null Count_Getter) return Count_Property is ((Get => Get, others => <>));
+
+   function Listing (Get : not null Rows_Getter) return Rows_Property is ((Get => Get, others => <>));
+
+   function Choosing
+     (Get : not null Count_Getter; Set : not null Choice_Setter; Changes : Version_Getter := null)
+      return Choice_Property
+   is ((Get => Get, Set => Set, Changes => Changes, others => <>));
+
+   function Doing (Allowed : not null Flag_Getter; Perform : not null Action_Performer) return Action_Property is
+     ((Allowed => Allowed, Perform => Perform, others => <>));
+
+   type Pointer_Text is new Text_Adapter with record
+      Get     : Text_Getter;
+      Each    : Text_Each_Getter;
+      Set     : Text_Setter;
+      Changes : Version_Getter;
+   end record;
+
+   overriding function Current (Self : Pointer_Text; Item : Model; Index : Natural) return String;
+   overriding procedure Assign (Self : Pointer_Text; Item : in out Model; Value : String; Index : Natural);
+   overriding function Stamp (Self : Pointer_Text; Item : Model; Index : Natural) return VM.Version_Number;
+   overriding function Can_Assign (Self : Pointer_Text) return Boolean;
+
+   overriding function Current (Self : Pointer_Text; Item : Model; Index : Natural) return String is
+     (if Self.Each /= null then Self.Each (Item, Positive'Max (1, Index)) else Self.Get (Item));
+
+   overriding procedure Assign (Self : Pointer_Text; Item : in out Model; Value : String; Index : Natural) is
+      pragma Unreferenced (Index);
+   begin
+      if Self.Set /= null then
+         Self.Set (Item, Value);
+      end if;
+   end Assign;
+
+   overriding function Stamp (Self : Pointer_Text; Item : Model; Index : Natural) return VM.Version_Number is
+      pragma Unreferenced (Index);
+   begin
+      return (if Self.Changes /= null then Self.Changes (Item) else Whole_Version (Item));
+   end Stamp;
+
+   overriding function Can_Assign (Self : Pointer_Text) return Boolean is (Self.Set /= null);
+
+   type Pointer_Flag is new Flag_Adapter with record
+      Get  : Flag_Getter;
+      Each : Flag_Each_Getter;
+      Set  : Flag_Setter;
+   end record;
+
+   overriding function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean;
+   overriding procedure Assign (Self : Pointer_Flag; Item : in out Model; Value : Boolean; Index : Natural);
+   overriding function Can_Assign (Self : Pointer_Flag) return Boolean;
+
+   overriding function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean is
+     (if Self.Each /= null then Self.Each (Item, Positive'Max (1, Index)) else Self.Get (Item));
+
+   overriding procedure Assign (Self : Pointer_Flag; Item : in out Model; Value : Boolean; Index : Natural) is
+      pragma Unreferenced (Index);
+   begin
+      if Self.Set /= null then
+         Self.Set (Item, Value);
+      end if;
+   end Assign;
+
+   overriding function Can_Assign (Self : Pointer_Flag) return Boolean is (Self.Set /= null);
+
+   type Pointer_Fraction is new Fraction_Adapter with record
+      Get : Fraction_Getter;
+      Set : Fraction_Setter;
+   end record;
+
+   overriding function Current (Self : Pointer_Fraction; Item : Model) return Float;
+   overriding procedure Assign (Self : Pointer_Fraction; Item : in out Model; Value : Float);
+   overriding function Can_Assign (Self : Pointer_Fraction) return Boolean;
+
+   overriding function Current (Self : Pointer_Fraction; Item : Model) return Float is (Self.Get (Item));
+
+   overriding procedure Assign (Self : Pointer_Fraction; Item : in out Model; Value : Float) is
+   begin
+      if Self.Set /= null then
+         Self.Set (Item, Value);
+      end if;
+   end Assign;
+
+   overriding function Can_Assign (Self : Pointer_Fraction) return Boolean is (Self.Set /= null);
+
+   type Pointer_Count is new Count_Adapter with record
+      Get : Count_Getter;
+   end record;
+
+   overriding function Current (Self : Pointer_Count; Item : Model) return Natural is (Self.Get (Item));
+
+   type Pointer_Rows is new Rows_Adapter with record
+      Get : Rows_Getter;
+   end record;
+
+   overriding function Rows_Of (Self : Pointer_Rows; Item : in out Model) return Pomarine.Models.Model_Access is
+     (Self.Get (Item).all'Unrestricted_Access);
+
+   type Pointer_Choice is new Choice_Adapter with record
+      Get     : Count_Getter;
+      Set     : Choice_Setter;
+      Changes : Version_Getter;
+   end record;
+
+   overriding function Chosen (Self : Pointer_Choice; Item : Model) return Natural;
+   overriding procedure Choose (Self : Pointer_Choice; Item : in out Model; Id : Natural);
+   overriding function Stamp (Self : Pointer_Choice; Item : Model) return VM.Version_Number;
+
+   overriding function Chosen (Self : Pointer_Choice; Item : Model) return Natural is (Self.Get (Item));
+
+   overriding procedure Choose (Self : Pointer_Choice; Item : in out Model; Id : Natural) is
+   begin
+      Self.Set (Item, Id);
+   end Choose;
+
+   overriding function Stamp (Self : Pointer_Choice; Item : Model) return VM.Version_Number is
+     (if Self.Changes /= null then Self.Changes (Item) else Whole_Version (Item));
+
+   type Pointer_Action is new Action_Adapter with record
+      Allowed : Flag_Getter;
+      Perform : Action_Performer;
+   end record;
+
+   overriding function Allowed (Self : Pointer_Action; Item : Model) return Boolean;
+   overriding procedure Perform (Self : Pointer_Action; Item : in out Model);
+
+   overriding function Allowed (Self : Pointer_Action; Item : Model) return Boolean is (Self.Allowed (Item));
+
+   overriding procedure Perform (Self : Pointer_Action; Item : in out Model) is
+   begin
+      Self.Perform (Item);
+   end Perform;
+
+   type Pointer_Text_Store is access Pointer_Text;
+   for Pointer_Text_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+   type Pointer_Flag_Store is access Pointer_Flag;
+   for Pointer_Flag_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+   type Pointer_Fraction_Store is access Pointer_Fraction;
+   for Pointer_Fraction_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+   type Pointer_Count_Store is access Pointer_Count;
+   for Pointer_Count_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+   type Pointer_Rows_Store is access Pointer_Rows;
+   for Pointer_Rows_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+   type Pointer_Choice_Store is access Pointer_Choice;
+   for Pointer_Choice_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+   type Pointer_Action_Store is access Pointer_Action;
+   for Pointer_Action_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
+
+   --  The adapter of a property: its own, or one made in the arena Where.
+
+   function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Text_Property) return Text_Adapter_Ref is
+   begin
+      if Item.Adapter /= null then
+         return Item.Adapter;
+      end if;
+      pragma Assert (Item.Get /= null or else Item.Each /= null);
+      declare
+         Made : constant Pointer_Text_Store :=
+           new (Where) Pointer_Text'(Get => Item.Get, Each => Item.Each, Set => Item.Set, Changes => Item.Changes);
+      begin
+         return Made.all'Unchecked_Access;
+      end;
+   end Adapter_Of;
+
+   function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Flag_Property) return Flag_Adapter_Ref is
+   begin
+      if Item.Adapter /= null then
+         return Item.Adapter;
+      end if;
+      pragma Assert (Item.Get /= null or else Item.Each /= null);
+      declare
+         Made : constant Pointer_Flag_Store :=
+           new (Where) Pointer_Flag'(Get => Item.Get, Each => Item.Each, Set => Item.Set);
+      begin
+         return Made.all'Unchecked_Access;
+      end;
+   end Adapter_Of;
+
+   function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Fraction_Property) return Fraction_Adapter_Ref is
+   begin
+      if Item.Adapter /= null then
+         return Item.Adapter;
+      end if;
+      pragma Assert (Item.Get /= null);
+      declare
+         Made : constant Pointer_Fraction_Store := new (Where) Pointer_Fraction'(Get => Item.Get, Set => Item.Set);
+      begin
+         return Made.all'Unchecked_Access;
+      end;
+   end Adapter_Of;
+
+   function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Count_Property) return Count_Adapter_Ref is
+   begin
+      if Item.Adapter /= null then
+         return Item.Adapter;
+      end if;
+      pragma Assert (Item.Get /= null);
+      declare
+         Made : constant Pointer_Count_Store := new (Where) Pointer_Count'(Get => Item.Get);
+      begin
+         return Made.all'Unchecked_Access;
+      end;
+   end Adapter_Of;
+
+   function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Rows_Property) return Rows_Adapter_Ref is
+   begin
+      if Item.Adapter /= null then
+         return Item.Adapter;
+      end if;
+      pragma Assert (Item.Get /= null);
+      declare
+         Made : constant Pointer_Rows_Store := new (Where) Pointer_Rows'(Get => Item.Get);
+      begin
+         return Made.all'Unchecked_Access;
+      end;
+   end Adapter_Of;
+
+   function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Choice_Property) return Choice_Adapter_Ref is
+   begin
+      if Item.Adapter /= null then
+         return Item.Adapter;
+      end if;
+      pragma Assert (Item.Get /= null and then Item.Set /= null);
+      declare
+         Made : constant Pointer_Choice_Store :=
+           new (Where) Pointer_Choice'(Get => Item.Get, Set => Item.Set, Changes => Item.Changes);
+      begin
+         return Made.all'Unchecked_Access;
+      end;
+   end Adapter_Of;
+
+   function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Action_Property) return Action_Adapter_Ref is
+   begin
+      if Item.Adapter /= null then
+         return Item.Adapter;
+      end if;
+      pragma Assert (Item.Allowed /= null and then Item.Perform /= null);
+      declare
+         Made : constant Pointer_Action_Store :=
+           new (Where) Pointer_Action'(Allowed => Item.Allowed, Perform => Item.Perform);
+      begin
+         return Made.all'Unchecked_Access;
+      end;
+   end Adapter_Of;
 
    --  What is kept of a binding. Each is allocated in the arena of its scope, with
    --  pointers to the adapters (library level) and the model (borrowed), and the
@@ -811,7 +1080,7 @@ package body Pomarine.UI.Contexts is
       Made : constant Text_Store := new (Where) Text_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
-      Made.Text := Text.Adapter;
+      Made.Text := Adapter_Of (Where, Text);
       Made.Data := Self.Data;
       Made.Index := Index;
       Add_Binding (Home, Self.Scope, Made.all'Unchecked_Access);
@@ -829,7 +1098,7 @@ package body Pomarine.UI.Contexts is
       Made : constant Field_Store := new (Where) Field_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
-      Made.Text := Text.Adapter;
+      Made.Text := Adapter_Of (Where, Text);
       Made.Data := Self.Data;
       Made.Replacing := Replacing;
       Made.Index := Index;
@@ -854,9 +1123,9 @@ package body Pomarine.UI.Contexts is
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home, Self.Scope);
       Made : constant List_Store := new (Where) List_Binding;
    begin
-      Lists.Set_Model (Widget_Of (Home, Handle).all, Rows_Of (Rows.Adapter.all, Self.Data.all));
+      Lists.Set_Model (Widget_Of (Home, Handle).all, Rows_Of (Adapter_Of (Where, Rows).all, Self.Data.all));
       Made.Handle := Handle_Data (Handle);
-      Made.Choice := Selection.Adapter;
+      Made.Choice := Adapter_Of (Where, Selection);
       Made.Data := Self.Data;
       Add_Binding (Home, Self.Scope, Made.all'Unchecked_Access);
    end Wire_List;
@@ -912,7 +1181,7 @@ package body Pomarine.UI.Contexts is
    begin
       Wire_Command
         (Self, Home.all, Widget_Of (Home.all, Handle).all, Commands.Command'First, Index, Reflect => True,
-         Action => Action.Adapter);
+         Action => Adapter_Of (Arena_Of (Home.all, Self.Scope), Action));
       return Handle;
    end Button;
 
@@ -932,7 +1201,7 @@ package body Pomarine.UI.Contexts is
       Called (Home.all, Handle_Data (Handle), Field_Control, Name);
       Wire_Command
         (Self, Home.all, Widget_Of (Home.all, Handle).all, Commands.Command'First, 0, Reflect => False,
-         Action => Submit.Adapter);
+         Action => Adapter_Of (Arena_Of (Home.all, Self.Scope), Submit));
       return Handle;
    end Text_Field;
 
@@ -981,7 +1250,7 @@ package body Pomarine.UI.Contexts is
       Made.Kind := Kind;
       Made.Index := Index;
       Made.Availability := Availability;
-      Made.Flag := Flag.Adapter;
+      Made.Flag := Adapter_Of (Where, Flag);
       Made.Data := Self.Data;
       Add_Binding (Home, Self.Scope, Made.all'Unchecked_Access);
    end Wire_Flag;
@@ -1104,7 +1373,7 @@ package body Pomarine.UI.Contexts is
       Made   : constant Progress_Store := new (Where) Progress_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
-      Made.Done := Done.Adapter;
+      Made.Done := Adapter_Of (Where, Done);
       Made.Data := Self.Data;
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
       return Handle;
@@ -1119,7 +1388,7 @@ package body Pomarine.UI.Contexts is
    begin
       Require_Open (Home.all, Self.Scope);
       Made.Handle := Data_Of (Target);
-      Made.Flag := Raised.Adapter;
+      Made.Flag := Adapter_Of (Where, Raised);
       Made.Data := Self.Data;
       Made.Index := Index;
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
@@ -1133,7 +1402,7 @@ package body Pomarine.UI.Contexts is
    begin
       Require_Open (Home.all, Self.Scope);
       Made.Handle := Data_Of (Target);
-      Made.Flag := Shown.Adapter;
+      Made.Flag := Adapter_Of (Where, Shown);
       Made.Index := Index;
       Made.Data := Self.Data;
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
@@ -1147,7 +1416,7 @@ package body Pomarine.UI.Contexts is
    begin
       Require_Open (Home.all, Self.Scope);
       Made.Screen := Target;
-      Made.Flag := Shown.Adapter;
+      Made.Flag := Adapter_Of (Where, Shown);
       Made.Index := Index;
       Made.Data := Self.Data;
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
@@ -1187,7 +1456,7 @@ package body Pomarine.UI.Contexts is
       Require_Open (Home.all, Self.Scope);
       Require_Handle (Home.all, Data_Of (Target), List_Control);
       Made.Handle := Data_Of (Target);
-      Made.Count := Count.Adapter;
+      Made.Count := Adapter_Of (Where, Count);
       Made.Data := Self.Data;
       Made.After := (Model => Self.Data.all'Address, Which => Commands.Command'Pos (Command));
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
@@ -1231,7 +1500,7 @@ package body Pomarine.UI.Contexts is
       begin
          Made.Kind := Button_Control;
          Made.Handle := Handle_Data (Target);
-         Made.Text := Text.Adapter;
+         Made.Text := Adapter_Of (Where, Text);
          Made.Data := Self.Data;
          Made.Index := Index;
          Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
@@ -1454,7 +1723,7 @@ package body Pomarine.UI.Contexts is
       Made : constant Slider_Store := new (Where) Slider_Binding;
    begin
       Made.Handle := Handle_Data (Handle);
-      Made.Value := Value.Adapter;
+      Made.Value := Adapter_Of (Where, Value);
       Made.Data := Self.Data;
       Add_Binding (Home.all, Self.Scope, Made.all'Unchecked_Access);
       Home.Controls (Made.Handle.Slot).Handled := Widgets.Change;
@@ -1484,6 +1753,283 @@ package body Pomarine.UI.Contexts is
       return Handle;
    end Borrow_List;
 
+   --  Controls placed in one step
+
+   procedure Describe (Item : in out Widgets.Widget'Class; Tooltip : String; Name : String := "") is
+   begin
+      if Tooltip /= "" then
+         Widgets.Set_Tooltip (Item, Tooltip);
+      end if;
+      if Name /= "" then
+         Widgets.Set_Accessible_Name (Item, Name);
+      end if;
+   end Describe;
+
+   function Label
+     (Self     : Context;
+      Text     : Text_Property;
+      Index    : Natural := 0;
+      Centered : Boolean := False;
+      Tooltip  : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Home : constant not null View_Ref := View_Of (Self);
+      Made : constant Pomarine.UI.Label_Handle := Label (Self, Text, Index);
+   begin
+      if Centered then
+         Labels.Set_Centered (Widget_Of (Home.all, Made).all, True);
+      end if;
+      Describe (Widget_Of (Home.all, Made).all, Tooltip);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Label;
+
+   function Label
+     (Self     : Context;
+      Caption  : String;
+      Centered : Boolean := False;
+      Tooltip  : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Home : constant not null View_Ref := View_Of (Self);
+      Made : constant Pomarine.UI.Label_Handle := Label (Self, Caption);
+   begin
+      if Centered then
+         Labels.Set_Centered (Widget_Of (Home.all, Made).all, True);
+      end if;
+      Describe (Widget_Of (Home.all, Made).all, Tooltip);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Label;
+
+   function Button
+     (Self      : Context;
+      Caption   : String;
+      Command   : Commands.Command;
+      Look      : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
+      Index     : Natural := 0;
+      Focusable : Boolean := False;
+      Tooltip   : String := "";
+      Name      : String := "";
+      Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width     : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align     : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Home : constant not null View_Ref := View_Of (Self);
+      Made : constant Pomarine.UI.Button_Handle := Button (Self, Caption, Command, Look, Index, Focusable);
+   begin
+      Describe (Widget_Of (Home.all, Made).all, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Button;
+
+   function Button
+     (Self    : Context;
+      Caption : String;
+      Action  : Action_Property;
+      Look    : Pomarine.Widgets.Buttons.Kind := Pomarine.Widgets.Buttons.Normal;
+      Index   : Natural := 0;
+      Tooltip : String := "";
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Home : constant not null View_Ref := View_Of (Self);
+      Made : constant Pomarine.UI.Button_Handle := Button (Self, Caption, Action, Look, Index);
+   begin
+      Describe (Widget_Of (Home.all, Made).all, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Button;
+
+   function Text_Field
+     (Self            : Context;
+      Text            : Text_Property;
+      Submit          : Commands.Command;
+      Placeholder     : String := "";
+      Name            : String := "";
+      Focus_Initially : Boolean := False;
+      Replacing       : Replacement := Caret_At_End;
+      Index           : Natural := 0;
+      Grow            : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink          : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width           : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align           : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Field_Handle :=
+        Text_Field (Self, Text, Submit, Placeholder, Name, Replacing, Index);
+   begin
+      if Focus_Initially then
+         Contexts.Focus_Initially (Self, Pomarine.UI.Focus_Of (Made));
+      end if;
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Text_Field;
+
+   function Text_Field
+     (Self            : Context;
+      Text            : Text_Property;
+      Placeholder     : String := "";
+      Name            : String := "";
+      Focus_Initially : Boolean := False;
+      Replacing       : Replacement := Caret_At_End;
+      Index           : Natural := 0;
+      Grow            : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink          : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width           : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin          : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align           : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Field_Handle := Text_Field (Self, Text, Placeholder, Name, Replacing, Index);
+   begin
+      if Focus_Initially then
+         Contexts.Focus_Initially (Self, Pomarine.UI.Focus_Of (Made));
+      end if;
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Text_Field;
+
+   function Check
+     (Self    : Context;
+      Caption : String;
+      Checked : Flag_Property;
+      Command : Commands.Command;
+      Form    : Pomarine.Widgets.Checks.Kind := Pomarine.Widgets.Checks.Box;
+      Index   : Natural := 0;
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Check_Handle := Check (Self, Caption, Checked, Command, Form, Index, Name);
+   begin
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Check;
+
+   function Check
+     (Self    : Context;
+      Caption : String;
+      Checked : Flag_Property;
+      Form    : Pomarine.Widgets.Checks.Kind := Pomarine.Widgets.Checks.Box;
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Check_Handle := Check (Self, Caption, Checked, Form, Name);
+   begin
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Check;
+
+   function Switch
+     (Self    : Context;
+      Caption : String;
+      On      : Flag_Property;
+      Command : Commands.Command;
+      Index   : Natural := 0;
+      Name    : String := "";
+      Grow    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink  : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align   : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Switch_Handle := Switch (Self, Caption, On, Command, Index, Name);
+   begin
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Switch;
+
+   function Progress
+     (Self   : Context;
+      Done   : Fraction_Property;
+      Grow   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width  : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align  : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Progress_Handle := Progress (Self, Done);
+   begin
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Progress;
+
+   function List
+     (Self      : Context;
+      Rows      : Rows_Property;
+      Selection : Choice_Property;
+      Name      : String := "";
+      Grow      : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink    : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width     : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align     : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.List_Handle := List (Self, Rows, Selection, Name);
+   begin
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end List;
+
+   function List
+     (Self         : Context;
+      Rows         : Rows_Property;
+      Selection    : Choice_Property;
+      Reveal_After : Commands.Command;
+      Growth       : Count_Property;
+      Name         : String := "";
+      Grow         : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink       : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width        : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height       : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin       : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align        : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.List_Handle := List (Self, Rows, Selection, Name);
+   begin
+      Contexts.Reveal_After (Self, Reveal_After, Pomarine.UI.Reveal_Of (Made), Growth);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end List;
+
+   function Borrow_Widget
+     (Self     : Context;
+      Existing : in out Pomarine.Widgets.Widget'Class;
+      Tooltip  : String := "";
+      Name     : String := "";
+      Grow     : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Shrink   : Pomarine.UI.Layouts.Weight := Pomarine.UI.Layouts.Unchanged;
+      Width    : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Height   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Margin   : Pomarine.UI.Layouts.Length := Pomarine.UI.Unset;
+      Align    : Pomarine.UI.Align_Kind := Pomarine.UI.Layouts.As_Is) return Pomarine.UI.Layout
+   is
+      Made : constant Pomarine.UI.Widget_Handle := Borrow_Widget (Self, Existing);
+   begin
+      Describe (Existing, Tooltip, Name);
+      return Pomarine.UI.Place (Made, Grow, Shrink, Width, Height, Margin, Align);
+   end Borrow_Widget;
+
    --  Components
 
    overriding procedure Initialize (Item : in out Component) is
@@ -1508,5 +2054,11 @@ package body Pomarine.UI.Contexts is
       Commit_Scope (Home.all, Item.Scope);
       Item.Committed := True;
    end Commit;
+
+   function Finish (Item : in out Component; Result : Pomarine.UI.Layout) return Pomarine.UI.Layout is
+   begin
+      Commit (Item);
+      return Result;
+   end Finish;
 
 end Pomarine.UI.Contexts;

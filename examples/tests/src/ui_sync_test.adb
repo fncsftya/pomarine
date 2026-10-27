@@ -167,11 +167,9 @@ procedure UI_Sync_Test is
          Bound_3 : constant Todo.Todo_UI.Context'Class := Todo.Todo_UI.Bind (Screen, Items'Access);
          Part_1  : constant UI.Layout := Form_Parts.Form_Part (Bound_1, "A");
          Part_2  : constant UI.Layout := Form_Parts.Form_Part (Bound_2, "B");
-         Entry_3 : constant Todo.Entry_Part := Todo.Task_Entry (Bound_3);
-         List_3  : constant Todo.Content_Part := Todo.Task_Content (Bound_3);
-         Acts_3  : constant UI.Layout := Todo.Task_Actions (Bound_3);
          Part_3  : constant UI.Layout :=
-           UI.Column ([Entry_3.Layout, List_3.Layout, Acts_3], Height => 260.0, Gap => 8.0);
+           UI.Column ([Todo.Task_Entry (Bound_3), Todo.Task_Content (Bound_3), Todo.Task_Actions (Bound_3)],
+                      Height => 260.0, Gap => 8.0);
       begin
          UI.Mount (Screen, UI.Column ([Part_1, Part_2, Part_3], Gap => 4.0));
       end;

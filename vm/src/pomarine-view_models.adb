@@ -45,6 +45,26 @@ package body Pomarine.View_Models is
 
    end Properties;
 
+   package body Command_Models is
+
+      overriding function Version (Self : Observed_Model) return Version_Number is
+        (Self.Changes + Parts_Version (Observed_Model'Class (Self)));
+
+      procedure Mark_Changed (Self : in out Observed_Model) is
+      begin
+         Self.Changes := Self.Changes + 1;
+      end Mark_Changed;
+
+      overriding procedure Execute (Self : in out Observed_Model; What : Command; Index : Natural := 0) is
+      begin
+         --  The precondition of Model is not checked of a call through this one by every compiler, so it is here.
+         pragma Assert (Can_Execute (Observed_Model'Class (Self), What, Index), "command not possible now");
+         Perform (Observed_Model'Class (Self), What, Index);
+         Mark_Changed (Self);
+      end Execute;
+
+   end Command_Models;
+
    function Get (Self : Text_Property) return String is (Unbounded.To_String (Self.Current));
 
    function Version (Self : Text_Property) return Version_Number is (Value (Self.Count));

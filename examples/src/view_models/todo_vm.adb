@@ -2,13 +2,15 @@ package body Todo_VM is
    package VM renames Pomarine.View_Models;
    use type VM.Version_Number;
 
-   overriding function Version (Self : Model) return VM.Version_Number is
-     (VM.Value (Self.Changed) + VM.Version (Self.Text) + VM.Version_Number (Tasks.Version (Self.Items)));
+   overriding function Parts_Version (Self : Model) return VM.Version_Number is
+     (VM.Version (Self.Text) + VM.Version_Number (Tasks.Version (Self.Items)));
    function Count (Self : Model) return Natural is (Tasks.Count (Self.Items));
    function Draft (Self : Model) return String is (VM.Get (Self.Text));
    function Selected_Task (Self : Model) return Natural is (Self.Choice);
    function Selected (Self : Model) return Natural is (Tasks.Find (Self.Items, Self.Choice));
    function Rows (Self : in out Model) return not null access Tasks.Task_List is
+     (Self.Items'Unchecked_Access);
+   function Row_Model (Self : in out Model) return not null access Pomarine.Models.List_Model'Class is
      (Self.Items'Unchecked_Access);
    function Summary (Self : Model) return String is
      (Tasks.Open_Count (Self.Items)'Image & " of" & Count (Self)'Image & " left");
@@ -22,7 +24,7 @@ package body Todo_VM is
    begin
       if Self.Choice /= Id then
          Self.Choice := Id;
-         VM.Bump (Self.Changed);
+         Mark_Changed (Self);
       end if;
    end Select_Task;
 
@@ -46,7 +48,7 @@ package body Todo_VM is
            when Toggle_Chosen | Remove_Chosen => Selected (Self) > 0,
            when Sweep_Done => Tasks.Open_Count (Self.Items) < Count (Self)));
 
-   overriding procedure Execute (Self : in out Model; What : Command; Index : Natural := 0) is
+   overriding procedure Perform (Self : in out Model; What : Command; Index : Natural := 0) is
       pragma Unreferenced (Index);
    begin
       case What is
@@ -62,6 +64,5 @@ package body Todo_VM is
             Tasks.Clear_Done (Self.Items);
             Self.Choice := 0;
       end case;
-      VM.Bump (Self.Changed);
-   end Execute;
+   end Perform;
 end Todo_VM;
