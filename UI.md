@@ -69,7 +69,6 @@ Where this differs from the first sketch, and why:
 | Widgets the application borrows (`Borrow_*`) | the application | they are not touched but to take them out of the tree |
 | The model | **the caller** | it must outlive every use of the view |
 | Properties (`Showing`, `Editing`, `Counting`, `Listing`, `Choosing`, `Doing`) | the program (constants of library-level subprograms); the view makes the adapter in the scope's arena | the scope |
-| Adapters (`Read_Text`, `Edit_Text`, `Counter`, `Row_Source`, `Choice`, `Command_Action`, obsolescent) | the program (library-level objects) | the program |
 | The tree | the caller, declared before the view | it outlives the view (an access discriminant) |
 
 **Arenas** (`Pomarine.UI.Arenas`) are subpools of one stateless pool: growing blocks that never move, so every
@@ -86,11 +85,10 @@ until the view is *used*.
 **Accessibility, as far as it goes.** What Ada can check, it does:
 
 * A `View` has an access discriminant, the tree: `Screen : UI.View (Tree'Access)`. A view cannot outlive its tree.
-* `Pomarine.UI.Contexts` and every adapter generic are instantiated in packages. Instantiated in a subprogram,
-  `Contexts` is a compile error ("subpool access type has deeper accessibility level than pool"), and an
-  adapter a warning that `Program_Error` will be raised ("non-local pointer cannot point to local object",
-  which is an error in the Alire profiles, where warnings are errors). So a binding keeps a pointer to a
-  library-level adapter and nothing nested, and no callback is a closure over locals.
+* `Pomarine.UI.Contexts` is instantiated in a package. Instantiated in a subprogram, it is a compile error
+  ("subpool access type has deeper accessibility level than pool"). The subprograms of a property are named with
+  `'Access`, which the compiler allows only of library-level ones. So a binding keeps pointers to library-level
+  subprograms and nothing nested, and no callback is a closure over locals.
 * Handles, layouts and scopes are values that name a view, a slot and a generation, and are looked at before
   storage is (below).
 
@@ -177,11 +175,11 @@ what it showed; then, if anything changed, `Revalidate` the commands for the wid
 refreshes everything before the screen can be used. Later changes of the model are shown by the tree's `Update`
 (the existing UI-thread mechanism) without running a component again.
 
-* **Watches.** Each binding has its own `Version` (an adapter says which: a text's own, or the model's whole by
+* **Watches.** Each binding has its own `Version` (a property says which: a text's own, as `Changes`, or the model's whole by
   default), so a change of one is not a refresh of the others. A setter given what the model has is no change (the
   view-models' `Set` says so), and a widget given what it shows does nothing.
 * **Button captions.** `Bound.Caption_From (Button, Text_Property, Index => ...)` makes an owned or borrowed
-  button's label follow a versioned text adapter, including its accessible name when no explicit name was set.
+  button's label follow a versioned text property, including its accessible name when no explicit name was set.
   It retains the button's command and validates the handle's view and lifetime.
 * **Feedback.** What the view shows is never heard back as an edit: the field remembers the document's state and
   the text it last agreed with the model on, and the list the id it last agreed on.
@@ -193,7 +191,7 @@ refreshes everything before the screen can be used. Later changes of the model a
   person's edit is the model's first (collect goes before refresh); what the model then says is what is shown,
   so a model that normalizes (`Form_VM.Shouting`) is shown as it said it.
 * **Commands** are the model's `Command_Models` literals (`Button ("Done", Command => Toggle_Chosen)`), or, for one
-  that is no literal, a `Command_Action` adapter (`Allowed` and `Perform`, which the buttons that do it follow).
+  that is no literal, an action made by `Doing` (`Allowed` and `Perform`, which the buttons that do it follow).
   They are routed by binding: each widget's tag is the number of its command binding, never used twice
   in a view, and the validator and the event both look the binding up, which knows its model. So two contexts of
   one view, with models of one kind or of two, cannot be mixed up (`ui_sync_test`: two forms and a todo list in
@@ -220,7 +218,7 @@ A field is bound to a `Text_Property`: a getter, a setter, a version. The widget
 
 ### Lists
 
-A list shows the existing model-backed rows (`Pomarine.Models`): a `Row_Source` adapter (or `Listing`) hands the list the model's
+A list shows the existing model-backed rows (`Pomarine.Models`): a `Listing` property hands the list the model's
 rows, and nothing is copied. The selection is bound by **id**, not row (`Choice`: `Get` and `Set` of the id that
 `Row_Id` says): the list keeps the chosen id, the model keeps the chosen id, and the view says one to the other
 when either moves. So the choice stays with its item when others are deleted or the rows are moved, a row that
@@ -244,7 +242,7 @@ A borrowed widget that is in a tree already is an `Attachment_Conflict`.
 ## What building it found
 
 * **Prototype first.** Four mechanics were tried in a small program before the API was spelled: subpool arenas
-  that finalize their contents; adapters as library-level generics with `'Access` of a constant, and that a nested
+  that finalize their contents; adapters as library-level generics with `'Access` of a constant (since replaced by `'Access` of the model's own subprograms), and that a nested
   instantiation is refused; limited contexts with access discriminants (above); and a construction guard that
   rolls back when a *declaration* fails. The subpool needs a pool-specific access type (the compiler says "subpool
   cannot be used on general access type"), whose level is the pool's, and `new (Arenas.Make) T` finalizes in reverse
@@ -341,10 +339,9 @@ layout options as `Hold`. These widgets remain owned by the application. Editors
 can keep their configuration and gesture handlers while their placement becomes declarative. Calling
 `Put` again for the same widget reuses its control identity.
 
-Repeated cards pass their row through `Index` on the controls and bindings. `Indexed_Text` and
-`Indexed_Flag` adapt getters with a positive row argument; commands receive the control's index too.
+Repeated cards pass their row through `Index` on the controls and bindings. `Showing` of a getter with a positive row argument (`Text_Each_Getter`, `Flag_Each_Getter`) reads one row's text or flag; commands receive the control's index too.
 For example, `Bound.Label (Titles, Row)` and `Bound.Grip (Look, Open_Card, Row)` refer to the same row.
-Indexed adapters map an omitted index (0) to row 1, so pass an explicit positive index for repeated controls.
+Such properties map an omitted index (0) to row 1, so pass an explicit positive index for repeated controls.
 An index is a position, not a stable item identity: the model must still reject stale identities when rows
 can outlive their items. Keyed repeated components remain deferred.
 
@@ -409,14 +406,6 @@ and mounting more than one standalone screen into a view. A standalone view take
 embedded views accept late components as described above.
 Reusable components that know no model at all would be generic over a context instance; a component takes the
 bindings it needs, in the instance of the screen.
-
-## Obsolescent
-
-The adapter generics (`Read_Text`, `Indexed_Text`, `Edit_Text`, `Counter`, `Row_Source`, `Choice`, `Read_Flag`,
-`Indexed_Flag`, `Edit_Flag`, `Read_Fraction`, `Edit_Fraction`, `Command_Action`) are obsolescent: their `Property`
-says what to use instead (`Showing`, `Editing`, `Counting`, `Listing`, `Choosing`, `Doing`; `Listing` wants the
-rows as a `List_Model'Class`). GNAT warns (`-gnatwj`) of each use, so a build of Bonxie lists what is left to
-move. GNAT cannot make the other warnings errors and leave those, so Bonxie's projects build with `-gnatwn`.
 
 ## Tests
 

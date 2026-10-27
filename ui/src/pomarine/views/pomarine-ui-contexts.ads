@@ -24,8 +24,6 @@ with Texts.Documents;
 --
 --     Task_Summary : constant Todo_UI.Text_Property := Todo_UI.Showing (Todo_VM.Summary'Access);
 --
---  (The adapter generics, each instantiated in a package of its own, are obsolescent.)
---
 --  A Context is the view, the model and the scope that controls are made in.
 --  Bind gives the context of the view's root scope; a component declares a Component,
 --  which is a Context of a scope of its own, that stays if the component
@@ -53,269 +51,28 @@ package Pomarine.UI.Contexts is
    package VM renames Pomarine.View_Models;
    package Buttons renames Pomarine.Widgets.Buttons;
 
-   function Whole_Version (Item : Model) return VM.Version_Number is
-     (Commands.Version (Commands.Model'Class (Item)));
-   --  What an adapter watches unless it is given a version of its own.
-
-   --  Properties: how the model is read and written
-
-   type Text_Adapter is limited interface;
-   function Current (Self : Text_Adapter; Item : Model; Index : Natural) return String is abstract;
-   procedure Assign (Self : Text_Adapter; Item : in out Model; Value : String; Index : Natural) is abstract;
-   function Stamp (Self : Text_Adapter; Item : Model; Index : Natural) return VM.Version_Number is abstract;
-   --  Index is of which of many the control is (Pomarine.UI.Contexts.Label and the others take one); 0 if it
-   --  is not one of many.
-   function Can_Assign (Self : Text_Adapter) return Boolean is abstract;
-   type Text_Adapter_Ref is access constant Text_Adapter'Class;
-   --  Implemented by Read_Text and Edit_Text.
+   --  Properties: how the model is read and written, made of its own subprograms (below)
 
    type Text_Property is private;
-
-   generic
-      with function Get (Item : Model) return String;
-      with function Changes (Item : Model) return VM.Version_Number is Whole_Version;
-   package Read_Text is
-      function Property return Text_Property
-        with Obsolescent => "use Showing (Get'Access)";
-      --  A text to show, never written.
-   private
-      type Adapter is new Text_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return String is (Get (Item));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural) is null;
-      overriding function Stamp (Self : Adapter; Item : Model; Index : Natural) return VM.Version_Number is
-        (Changes (Item));
-      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
-      Instance : aliased constant Adapter := (null record);
-   end Read_Text;
-
-   generic
-      with function Get (Item : Model; Index : Positive) return String;
-   package Indexed_Text is
-      function Property return Text_Property
-        with Obsolescent => "use Showing (Get'Access) of a function with an Index";
-      --  A text to show for each of many (a card of a list): the model is asked for the one of Index, whole
-      --  version, each turn.
-   private
-      type Adapter is new Text_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return String is
-        (Get (Item, Positive'Max (1, Index)));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural) is null;
-      overriding function Stamp (Self : Adapter; Item : Model; Index : Natural) return VM.Version_Number is
-        (Whole_Version (Item));
-      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
-      Instance : aliased constant Adapter := (null record);
-   end Indexed_Text;
-
-   generic
-      with function Get (Item : Model) return String;
-      with procedure Set (Item : in out Model; Value : String);
-      with function Changes (Item : Model) return VM.Version_Number is Whole_Version;
-   package Edit_Text is
-      function Property return Text_Property
-        with Obsolescent => "use Editing (Get'Access, Set'Access)";
-      --  A text to show and to be written by what the person types. Set may
-      --  keep another text than it is given (normalize); what the model then
-      --  says is shown.
-   private
-      type Adapter is new Text_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return String is (Get (Item));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural);
-      overriding function Stamp (Self : Adapter; Item : Model; Index : Natural) return VM.Version_Number is
-        (Changes (Item));
-      overriding function Can_Assign (Self : Adapter) return Boolean is (True);
-      Instance : aliased constant Adapter := (null record);
-   end Edit_Text;
-
-   type Count_Adapter is limited interface;
-   function Current (Self : Count_Adapter; Item : Model) return Natural is abstract;
-   type Count_Adapter_Ref is access constant Count_Adapter'Class;
-
    type Count_Property is private;
-
-   generic
-      with function Get (Item : Model) return Natural;
-   package Counter is
-      function Property return Count_Property
-        with Obsolescent => "use Counting (Get'Access)";
-      --  A number, to see whether it grew.
-   private
-      type Adapter is new Count_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model) return Natural is (Get (Item));
-      Instance : aliased constant Adapter := (null record);
-   end Counter;
-
-   type Rows_Adapter is limited interface;
-   function Rows_Of (Self : Rows_Adapter; Item : in out Model) return Pomarine.Models.Model_Access is abstract;
-   type Rows_Adapter_Ref is access constant Rows_Adapter'Class;
-
    type Rows_Property is private;
-
-   generic
-      type Rows_Model is limited new Pomarine.Models.List_Model with private;
-      with function Get (Item : in out Model) return not null access Rows_Model;
-   package Row_Source is
-      function Property return Rows_Property
-        with Obsolescent => "use Listing (Get'Access), a function that returns the rows as a List_Model'Class";
-      --  The rows a list shows (see Pomarine.Models): borrowed from the model.
-   private
-      type Adapter is new Rows_Adapter with null record;
-      overriding function Rows_Of (Self : Adapter; Item : in out Model) return Pomarine.Models.Model_Access is
-        (Get (Item).all'Unrestricted_Access);
-      Instance : aliased constant Adapter := (null record);
-   end Row_Source;
-
-   type Choice_Adapter is limited interface;
-   function Chosen (Self : Choice_Adapter; Item : Model) return Natural is abstract;
-   procedure Choose (Self : Choice_Adapter; Item : in out Model; Id : Natural) is abstract;
-   function Stamp (Self : Choice_Adapter; Item : Model) return VM.Version_Number is abstract;
-   type Choice_Adapter_Ref is access constant Choice_Adapter'Class;
-
    type Choice_Property is private;
-
-   generic
-      with function Get (Item : Model) return Natural;
-      with procedure Set (Item : in out Model; Id : Natural);
-      with function Changes (Item : Model) return VM.Version_Number is Whole_Version;
-   package Choice is
-      function Property return Choice_Property
-        with Obsolescent => "use Choosing (Get'Access, Set'Access)";
-      --  Which item is chosen, by its id (Pomarine.Models.List_Model.Row_Id; 0 for none), not
-      --  by its place: the choice follows the item when others are removed or the rows are
-      --  reordered, and is not given to whatever takes its place.
-   private
-      type Adapter is new Choice_Adapter with null record;
-      overriding function Chosen (Self : Adapter; Item : Model) return Natural is (Get (Item));
-      overriding procedure Choose (Self : Adapter; Item : in out Model; Id : Natural);
-      overriding function Stamp (Self : Adapter; Item : Model) return VM.Version_Number is (Changes (Item));
-      Instance : aliased constant Adapter := (null record);
-   end Choice;
-
-   type Flag_Adapter is limited interface;
-   function Current (Self : Flag_Adapter; Item : Model; Index : Natural) return Boolean is abstract;
-   procedure Assign (Self : Flag_Adapter; Item : in out Model; Value : Boolean; Index : Natural) is abstract;
-   function Can_Assign (Self : Flag_Adapter) return Boolean is abstract;
-   type Flag_Adapter_Ref is access constant Flag_Adapter'Class;
-
    type Flag_Property is private;
-
-   generic
-      with function Get (Item : Model) return Boolean;
-   package Read_Flag is
-      function Property return Flag_Property
-        with Obsolescent => "use Showing (Get'Access)";
-      --  A yes or no to show: whether a box is ticked, a control is shown. It is read at each turn,
-      --  so a click that the model did not take is undone.
-   private
-      type Adapter is new Flag_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return Boolean is (Get (Item));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural) is null;
-      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
-      Instance : aliased constant Adapter := (null record);
-   end Read_Flag;
-
-   generic
-      with function Get (Item : Model; Index : Positive) return Boolean;
-   package Indexed_Flag is
-      function Property return Flag_Property
-        with Obsolescent => "use Showing (Get'Access) of a function with an Index";
-      --  A yes or no for each of many (whether a card is shown, ticked).
-   private
-      type Adapter is new Flag_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return Boolean is
-        (Get (Item, Positive'Max (1, Index)));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural) is null;
-      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
-      Instance : aliased constant Adapter := (null record);
-   end Indexed_Flag;
-
-   generic
-      with function Get (Item : Model) return Boolean;
-      with procedure Set (Item : in out Model; Value : Boolean);
-   package Edit_Flag is
-      function Property return Flag_Property
-        with Obsolescent => "use Editing (Get'Access, Set'Access)";
-      --  A yes or no to show, and to be written by what the person ticks.
-   private
-      type Adapter is new Flag_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model; Index : Natural) return Boolean is (Get (Item));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural);
-      overriding function Can_Assign (Self : Adapter) return Boolean is (True);
-      Instance : aliased constant Adapter := (null record);
-   end Edit_Flag;
-
-   type Fraction_Adapter is limited interface;
-   function Current (Self : Fraction_Adapter; Item : Model) return Float is abstract;
-   procedure Assign (Self : Fraction_Adapter; Item : in out Model; Value : Float) is null;
-   function Can_Assign (Self : Fraction_Adapter) return Boolean is abstract;
-   type Fraction_Adapter_Ref is access constant Fraction_Adapter'Class;
-
    type Fraction_Property is private;
-
-   generic
-      with function Get (Item : Model) return Float;
-   package Read_Fraction is
-      function Property return Fraction_Property
-        with Obsolescent => "use Showing (Get'Access)";
-      --  How far on a job is, from 0.0 to 1.0 (a value outside is taken as the nearest end).
-   private
-      type Adapter is new Fraction_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model) return Float is (Get (Item));
-      overriding function Can_Assign (Self : Adapter) return Boolean is (False);
-      Instance : aliased constant Adapter := (null record);
-   end Read_Fraction;
-
-   generic
-      with function Get (Item : Model) return Float;
-      with procedure Set (Item : in out Model; Value : Float);
-   package Edit_Fraction is
-      function Property return Fraction_Property
-        with Obsolescent => "use Editing (Get'Access, Set'Access)";
-   private
-      type Adapter is new Fraction_Adapter with null record;
-      overriding function Current (Self : Adapter; Item : Model) return Float is (Get (Item));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Float);
-      overriding function Can_Assign (Self : Adapter) return Boolean is (True);
-      Instance : aliased constant Adapter := (null record);
-   end Edit_Fraction;
+   type Action_Property is private;
 
    function Is_Writable (Item : Fraction_Property) return Boolean;
 
-   --  Commands that are not an enumeration's: what can be done, and doing it
-
-   type Action_Adapter is limited interface;
-   function Allowed (Self : Action_Adapter; Item : Model) return Boolean is abstract;
-   procedure Perform (Self : Action_Adapter; Item : in out Model) is abstract;
-   type Action_Adapter_Ref is access constant Action_Adapter'Class;
-
-   type Action_Property is private;
-
-   generic
-      with function Allowed (Item : Model) return Boolean;
-      with procedure Perform (Item : in out Model);
-   package Command_Action is
-      function Property return Action_Property
-        with Obsolescent => "use Doing (Allowed'Access, Perform'Access)";
-      --  A command of the model that is a pair of subprograms: whether it can be done now (it
-      --  turns the buttons that do it on and off), and doing it. Those of Commands, an enumeration's
-      --  (Can_Execute, Execute), are used by naming the literal; this is for what is not one.
-   private
-      type Adapter is new Action_Adapter with null record;
-      overriding function Allowed (Self : Adapter; Item : Model) return Boolean is (Allowed (Item));
-      overriding procedure Perform (Self : Adapter; Item : in out Model);
-      Instance : aliased constant Adapter := (null record);
-   end Command_Action;
-
    --  Properties from the model's own subprograms
    --
-   --  The packages above say how to read and write a model by an instantiation, in a package of its own, for
-   --  each property. These say it with the subprograms themselves, in one line, wherever a constant can be
-   --  declared (at library level: the subprograms must be, as 'Access wants):
+   --  How a model is read and written is said with its subprograms themselves, in one line, wherever a constant
+   --  can be declared (at library level: the subprograms must be, as 'Access wants):
    --
    --     Task_Draft : constant Todo_UI.Text_Property :=
    --       Todo_UI.Editing (Todo_VM.Draft'Access, Todo_VM.Set_Draft'Access);
    --
    --  The view keeps what it needs in its own arena. Changes says what a text or a choice watches to see it was
-   --  changed; none, the model as a whole (Whole_Version).
+   --  changed; none, the model as a whole.
 
    type Text_Getter is access function (Item : Model) return String;
    type Text_Each_Getter is access function (Item : Model; Index : Positive) return String;
@@ -857,11 +614,50 @@ private
 
    type Model_Ref is access all Model;
 
-   --  A property is an adapter of a package of the application's (Adapter), or the model's own subprograms
-   --  (the rest), from which the view makes the adapter in its arena when it binds the property.
+   --  How a binding reads and writes the model: the adapter of a property, made in the arena of its scope.
+
+   type Text_Adapter is limited interface;
+   function Current (Self : Text_Adapter; Item : Model; Index : Natural) return String is abstract;
+   procedure Assign (Self : Text_Adapter; Item : in out Model; Value : String; Index : Natural) is abstract;
+   function Stamp (Self : Text_Adapter; Item : Model; Index : Natural) return VM.Version_Number is abstract;
+   function Can_Assign (Self : Text_Adapter) return Boolean is abstract;
+   type Text_Adapter_Ref is access constant Text_Adapter'Class;
+
+   type Count_Adapter is limited interface;
+   function Current (Self : Count_Adapter; Item : Model) return Natural is abstract;
+   type Count_Adapter_Ref is access constant Count_Adapter'Class;
+
+   type Rows_Adapter is limited interface;
+   function Rows_Of (Self : Rows_Adapter; Item : in out Model) return Pomarine.Models.Model_Access is abstract;
+   type Rows_Adapter_Ref is access constant Rows_Adapter'Class;
+
+   type Choice_Adapter is limited interface;
+   function Chosen (Self : Choice_Adapter; Item : Model) return Natural is abstract;
+   procedure Choose (Self : Choice_Adapter; Item : in out Model; Id : Natural) is abstract;
+   function Stamp (Self : Choice_Adapter; Item : Model) return VM.Version_Number is abstract;
+   type Choice_Adapter_Ref is access constant Choice_Adapter'Class;
+
+   type Flag_Adapter is limited interface;
+   function Current (Self : Flag_Adapter; Item : Model; Index : Natural) return Boolean is abstract;
+   procedure Assign (Self : Flag_Adapter; Item : in out Model; Value : Boolean; Index : Natural) is abstract;
+   function Can_Assign (Self : Flag_Adapter) return Boolean is abstract;
+   type Flag_Adapter_Ref is access constant Flag_Adapter'Class;
+
+   type Fraction_Adapter is limited interface;
+   function Current (Self : Fraction_Adapter; Item : Model) return Float is abstract;
+   procedure Assign (Self : Fraction_Adapter; Item : in out Model; Value : Float) is null;
+   function Can_Assign (Self : Fraction_Adapter) return Boolean is abstract;
+   type Fraction_Adapter_Ref is access constant Fraction_Adapter'Class;
+
+   type Action_Adapter is limited interface;
+   function May_Perform (Self : Action_Adapter; Item : Model) return Boolean is abstract;
+   procedure Run_Action (Self : Action_Adapter; Item : in out Model) is abstract;
+   type Action_Adapter_Ref is access constant Action_Adapter'Class;
+
+   --  A property is the model's own subprograms, from which the view makes the adapter in its arena when it
+   --  binds the property.
 
    type Text_Property is record
-      Adapter : Text_Adapter_Ref;
       Get     : Text_Getter;
       Each    : Text_Each_Getter;
       Set     : Text_Setter;
@@ -869,49 +665,43 @@ private
    end record;
 
    type Count_Property is record
-      Adapter : Count_Adapter_Ref;
       Get     : Count_Getter;
    end record;
 
    type Rows_Property is record
-      Adapter : Rows_Adapter_Ref;
       Get     : Rows_Getter;
    end record;
 
    type Choice_Property is record
-      Adapter : Choice_Adapter_Ref;
       Get     : Count_Getter;
       Set     : Choice_Setter;
       Changes : Version_Getter;
    end record;
 
    type Flag_Property is record
-      Adapter : Flag_Adapter_Ref;
       Get     : Flag_Getter;
       Each    : Flag_Each_Getter;
       Set     : Flag_Setter;
    end record;
 
    type Fraction_Property is record
-      Adapter : Fraction_Adapter_Ref;
       Get     : Fraction_Getter;
       Set     : Fraction_Setter;
    end record;
 
    function Is_Writable (Item : Fraction_Property) return Boolean is
-     (if Item.Adapter /= null then Item.Adapter.Can_Assign else Item.Set /= null);
+     (Item.Set /= null);
 
    type Action_Property is record
-      Adapter : Action_Adapter_Ref;
       Allowed : Flag_Getter;
       Perform : Action_Performer;
    end record;
 
    function Is_Settable (Item : Flag_Property) return Boolean is
-     (if Item.Adapter /= null then Item.Adapter.Can_Assign else Item.Set /= null);
+     (Item.Set /= null);
 
    function Is_Writable (Item : Text_Property) return Boolean is
-     (if Item.Adapter /= null then Item.Adapter.Can_Assign else Item.Set /= null);
+     (Item.Set /= null);
 
    type Context is new Ada.Finalization.Limited_Controlled with record
       Number : Natural := 0;

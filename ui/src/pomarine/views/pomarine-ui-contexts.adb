@@ -20,79 +20,11 @@ package body Pomarine.UI.Contexts is
 
    use type Widgets.Widget_Access;
 
-   --  Adapters
+   --  How a binding reads and writes the model: the adapter of a property, made in the arena of its scope.
 
-   package body Read_Text is
-      function Property return Text_Property is ((Adapter => Instance'Access, others => <>));
-   end Read_Text;
-
-   package body Edit_Text is
-      function Property return Text_Property is ((Adapter => Instance'Access, others => <>));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : String; Index : Natural) is
-         pragma Unreferenced (Self, Index);
-      begin
-         Set (Item, Value);
-      end Assign;
-   end Edit_Text;
-
-   package body Counter is
-      function Property return Count_Property is ((Adapter => Instance'Access, others => <>));
-   end Counter;
-
-   package body Row_Source is
-      function Property return Rows_Property is ((Adapter => Instance'Access, others => <>));
-   end Row_Source;
-
-   package body Indexed_Text is
-      function Property return Text_Property is ((Adapter => Instance'Access, others => <>));
-   end Indexed_Text;
-
-   package body Indexed_Flag is
-      function Property return Flag_Property is ((Adapter => Instance'Access, others => <>));
-   end Indexed_Flag;
-
-   package body Read_Flag is
-      function Property return Flag_Property is ((Adapter => Instance'Access, others => <>));
-   end Read_Flag;
-
-   package body Edit_Flag is
-      function Property return Flag_Property is ((Adapter => Instance'Access, others => <>));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Boolean; Index : Natural) is
-         pragma Unreferenced (Self, Index);
-      begin
-         Set (Item, Value);
-      end Assign;
-   end Edit_Flag;
-
-   package body Read_Fraction is
-      function Property return Fraction_Property is ((Adapter => Instance'Access, others => <>));
-   end Read_Fraction;
-
-   package body Edit_Fraction is
-      function Property return Fraction_Property is ((Adapter => Instance'Access, others => <>));
-      overriding procedure Assign (Self : Adapter; Item : in out Model; Value : Float) is
-      begin
-         Set (Item, Value);
-      end Assign;
-   end Edit_Fraction;
-
-   package body Command_Action is
-      function Property return Action_Property is ((Adapter => Instance'Access, others => <>));
-      overriding procedure Perform (Self : Adapter; Item : in out Model) is
-         pragma Unreferenced (Self);
-      begin
-         Perform (Item);
-      end Perform;
-   end Command_Action;
-
-   package body Choice is
-      function Property return Choice_Property is ((Adapter => Instance'Access, others => <>));
-      overriding procedure Choose (Self : Adapter; Item : in out Model; Id : Natural) is
-         pragma Unreferenced (Self);
-      begin
-         Set (Item, Id);
-      end Choose;
-   end Choice;
+   function Whole_Version (Item : Model) return VM.Version_Number is
+     (Commands.Version (Commands.Model'Class (Item)));
+   --  What a text or a choice watches unless it is given a version of its own.
 
    --  Properties of the model's own subprograms. The view makes the adapter of one in its arena, when it binds.
 
@@ -115,19 +47,19 @@ package body Pomarine.UI.Contexts is
    function Showing (Get : not null Fraction_Getter) return Fraction_Property is ((Get => Get, others => <>));
 
    function Editing (Get : not null Fraction_Getter; Set : not null Fraction_Setter) return Fraction_Property is
-     ((Get => Get, Set => Set, others => <>));
+     ((Get => Get, Set => Set));
 
-   function Counting (Get : not null Count_Getter) return Count_Property is ((Get => Get, others => <>));
+   function Counting (Get : not null Count_Getter) return Count_Property is ((Get => Get));
 
-   function Listing (Get : not null Rows_Getter) return Rows_Property is ((Get => Get, others => <>));
+   function Listing (Get : not null Rows_Getter) return Rows_Property is ((Get => Get));
 
    function Choosing
      (Get : not null Count_Getter; Set : not null Choice_Setter; Changes : Version_Getter := null)
       return Choice_Property
-   is ((Get => Get, Set => Set, Changes => Changes, others => <>));
+   is ((Get => Get, Set => Set, Changes => Changes));
 
    function Doing (Allowed : not null Flag_Getter; Perform : not null Action_Performer) return Action_Property is
-     ((Allowed => Allowed, Perform => Perform, others => <>));
+     ((Allowed => Allowed, Perform => Perform));
 
    type Pointer_Text is new Text_Adapter with record
       Get     : Text_Getter;
@@ -241,15 +173,15 @@ package body Pomarine.UI.Contexts is
       Perform : Action_Performer;
    end record;
 
-   overriding function Allowed (Self : Pointer_Action; Item : Model) return Boolean;
-   overriding procedure Perform (Self : Pointer_Action; Item : in out Model);
+   overriding function May_Perform (Self : Pointer_Action; Item : Model) return Boolean;
+   overriding procedure Run_Action (Self : Pointer_Action; Item : in out Model);
 
-   overriding function Allowed (Self : Pointer_Action; Item : Model) return Boolean is (Self.Allowed (Item));
+   overriding function May_Perform (Self : Pointer_Action; Item : Model) return Boolean is (Self.Allowed (Item));
 
-   overriding procedure Perform (Self : Pointer_Action; Item : in out Model) is
+   overriding procedure Run_Action (Self : Pointer_Action; Item : in out Model) is
    begin
       Self.Perform (Item);
-   end Perform;
+   end Run_Action;
 
    type Pointer_Text_Store is access Pointer_Text;
    for Pointer_Text_Store'Storage_Pool use Pomarine.UI.Arenas.Pool;
@@ -270,9 +202,6 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Text_Property) return Text_Adapter_Ref is
    begin
-      if Item.Adapter /= null then
-         return Item.Adapter;
-      end if;
       pragma Assert (Item.Get /= null or else Item.Each /= null);
       declare
          Made : constant Pointer_Text_Store :=
@@ -284,9 +213,6 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Flag_Property) return Flag_Adapter_Ref is
    begin
-      if Item.Adapter /= null then
-         return Item.Adapter;
-      end if;
       pragma Assert (Item.Get /= null or else Item.Each /= null);
       declare
          Made : constant Pointer_Flag_Store :=
@@ -298,9 +224,6 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Fraction_Property) return Fraction_Adapter_Ref is
    begin
-      if Item.Adapter /= null then
-         return Item.Adapter;
-      end if;
       pragma Assert (Item.Get /= null);
       declare
          Made : constant Pointer_Fraction_Store := new (Where) Pointer_Fraction'(Get => Item.Get, Set => Item.Set);
@@ -311,9 +234,6 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Count_Property) return Count_Adapter_Ref is
    begin
-      if Item.Adapter /= null then
-         return Item.Adapter;
-      end if;
       pragma Assert (Item.Get /= null);
       declare
          Made : constant Pointer_Count_Store := new (Where) Pointer_Count'(Get => Item.Get);
@@ -324,9 +244,6 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Rows_Property) return Rows_Adapter_Ref is
    begin
-      if Item.Adapter /= null then
-         return Item.Adapter;
-      end if;
       pragma Assert (Item.Get /= null);
       declare
          Made : constant Pointer_Rows_Store := new (Where) Pointer_Rows'(Get => Item.Get);
@@ -337,9 +254,6 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Choice_Property) return Choice_Adapter_Ref is
    begin
-      if Item.Adapter /= null then
-         return Item.Adapter;
-      end if;
       pragma Assert (Item.Get /= null and then Item.Set /= null);
       declare
          Made : constant Pointer_Choice_Store :=
@@ -351,9 +265,6 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Action_Property) return Action_Adapter_Ref is
    begin
-      if Item.Adapter /= null then
-         return Item.Adapter;
-      end if;
       pragma Assert (Item.Allowed /= null and then Item.Perform /= null);
       declare
          Made : constant Pointer_Action_Store :=
@@ -919,13 +830,13 @@ package body Pomarine.UI.Contexts is
    --  Command
 
    overriding function Can_Execute (Item : Command_Binding; Index : Natural) return Boolean is
-     (if Item.Action /= null then Index = 0 and then Allowed (Item.Action.all, Item.Data.all)
+     (if Item.Action /= null then Index = 0 and then May_Perform (Item.Action.all, Item.Data.all)
       else Commands.Can_Execute (Commands.Model'Class (Item.Data.all), Commands.Command'Val (Item.Which), Index));
 
    overriding procedure Execute (Item : in out Command_Binding; Index : Natural) is
    begin
       if Item.Action /= null then
-         Perform (Item.Action.all, Item.Data.all);
+         Run_Action (Item.Action.all, Item.Data.all);
       else
          Commands.Execute (Commands.Model'Class (Item.Data.all), Commands.Command'Val (Item.Which), Index);
       end if;

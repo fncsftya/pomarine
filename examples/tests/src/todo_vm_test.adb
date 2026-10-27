@@ -23,7 +23,7 @@ begin
    Set_Draft (Item, "");
    Select_Row (Item, 0);
    pragma Assert (Version (Item) = Before);
-   Set_Draft (Item, (1 .. 10_000 => 'x'));
+   Set_Draft (Item, [1 .. 10_000 => 'x']);
    Before := Version (Item);
    Set_Draft (Item, Draft (Item));
    pragma Assert (Version (Item) = Before);

@@ -294,7 +294,7 @@ procedure UI_Controls_Test is
       declare
          Screen : UI.View (Tree'Access);
          Bound : constant Options.Context'Class := Options.Bind (Screen, Model'Access);
-         Knob : constant UI.Widget_Handle := Bound.Borrow_Slider (Slider, Options_UI.Editable_Fraction.Property);
+         Knob : constant UI.Widget_Handle := Bound.Borrow_Slider (Slider, Options_UI.Editable_Fraction);
          Choices : constant UI.Widget_Handle := Bound.Borrow_Widget (Menu);
          Rejected : Boolean := False;
       begin
@@ -400,16 +400,16 @@ procedure UI_Controls_Test is
          Owned : constant UI.Button_Handle := Bound.Button ("Old caption", Pick_Light);
          Indexed : constant UI.Button_Handle := Bound.Button ("Old indexed caption", Toggle_Sync);
          Elsewhere : constant UI.Button_Handle := Foreign.Button ("Other view", Pick_Dark);
-         Words : constant UI.Label_Handle := Bound.Label (Options_UI.Caption.Property);
+         Words : constant UI.Label_Handle := Bound.Label (Options_UI.Caption);
          Stale : UI.Button_Handle;
          Rejected : Boolean := False;
       begin
          Widgets.Buttons.Configure (Borrowed, Widgets.Buttons.Looks ("Old borrowed caption"));
-         Bound.Caption_From (Kept, Options_UI.Caption.Property);
-         Bound.Caption_From (Owned, Options_UI.Caption.Property);
+         Bound.Caption_From (Kept, Options_UI.Caption);
+         Bound.Caption_From (Owned, Options_UI.Caption);
          Bound.Caption_From (Indexed, Options_UI.Title, Index => 2);
          begin
-            Bound.Caption_From (Elsewhere, Options_UI.Caption.Property);
+            Bound.Caption_From (Elsewhere, Options_UI.Caption);
          exception
             when UI.Foreign_Handle => Rejected := True;
          end;
@@ -418,11 +418,11 @@ procedure UI_Controls_Test is
             Part : Options.Component (Bound'Access);
          begin
             Stale := Part.Button ("Rolled back", Pick_Dark);
-            Part.Caption_From (Stale, Options_UI.Caption.Property);
+            Part.Caption_From (Stale, Options_UI.Caption);
          end;
          Rejected := False;
          begin
-            Bound.Caption_From (Stale, Options_UI.Caption.Property);
+            Bound.Caption_From (Stale, Options_UI.Caption);
          exception
             when UI.Stale_Handle => Rejected := True;
          end;

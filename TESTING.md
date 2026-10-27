@@ -191,7 +191,7 @@ bin/windows_test   # opens a real window for a moment: a turn at a time, title, 
   each binding watches its own version (`Name_Reads`, `Status_Reads`: no read when nothing changed, the status not read
   for a change of the name); a model's change from elsewhere is not heard back as an edit; two forms and a todo list, three
   models of two kinds, in one view, with no command of one done by a button of another; a command that is no literal
-  of the model's enumeration (`Command_Action`).
+  of the model's enumeration (`Doing`).
 * `ui_controls_test`: radios and a switch follow the model, a click the model cannot take is put back, what is
   shown only while a job runs (`Show_When`) comes and goes, a progress bar follows the model, a styled
   column, a scroller and a borrowed widget of any kind are placed, and the handles go stale with the view.
@@ -212,7 +212,7 @@ bin/windows_test   # opens a real window for a moment: a turn at a time, title, 
   states, grow to 2,048 rows with 700-character labels, and accept an empty replacement. Replacing content
   during a press cancels that press: releasing it does not choose a row from the replacement.
 
-  Button captions follow versioned text adapters for owned and borrowed buttons, retain their commands,
+  Button captions follow versioned text properties for owned and borrowed buttons, retain their commands,
   accept indexed text, reject foreign/stale handles and detach with their view.
 * `ui_reentry_test`: an event that comes while the view is in the middle of a pass is kept and run as a turn
   of its own when the pass is done (`Queued_Events`), and not inside it; a model that raises leaves the view able to
