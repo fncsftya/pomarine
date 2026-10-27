@@ -9,3 +9,4 @@ native/lib/
 native/obj/
 native/alire/
 native/rust/target/
+docs/api/

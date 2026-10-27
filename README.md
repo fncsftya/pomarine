@@ -147,3 +147,10 @@ alr run first_app
 See [Build your first Pomarine app](docs/getting-started.md) for prerequisites, setup, and a walkthrough.
 Explore [examples](examples/) for more applications, [UI.md](UI.md) for the UI API, and
 [TESTING.md](TESTING.md) for testing.
+
+The [API reference](docs/api/index.html) is generated with GNATdoc. To regenerate it, install
+`gnatdoc_bin` with Alire and run the following from the Pomarine directory:
+
+```sh
+alr exec -- gnatdoc -P pomarine.gpr -O docs/api
+```
