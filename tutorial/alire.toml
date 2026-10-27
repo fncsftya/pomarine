@@ -1,0 +1,31 @@
+name = "first_app"
+description = "Reference implementation for the Pomarine tutorial"
+version = "0.1.0-dev"
+licenses = "MIT"
+executables = ["first_app", "capture"]
+
+[available.'case(os)']
+macos = true
+'...' = false
+
+[[depends-on]]
+pomarine_ui = "*"
+pomarine_vm = "*"
+pomarine_testing = "*"
+
+[[pins]]
+pomarine = { path = ".." }
+pomarine_ui = { path = "../ui" }
+pomarine_vm = { path = "../vm" }
+pomarine_testing = { path = "../testing" }
+pomarine_model = { path = "../model" }
+coretext = { path = "../coretext" }
+sdl3 = { path = "../sdl3" }
+texts = { path = "../texts" }
+typeset = { path = "../typeset" }
+yoga = { path = "../yoga" }
+
+[build-switches]
+"*".ada_version = "Ada2022"
+"*".contracts = "Yes"
+"*".runtime_checks = "Everything"
