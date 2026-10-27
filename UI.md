@@ -339,6 +339,10 @@ layout options as `Hold`. These widgets remain owned by the application. Editors
 can keep their configuration and gesture handlers while their placement becomes declarative. Calling
 `Put` again for the same widget reuses its control identity.
 
+A radio group needs no predicate or constant per option: instantiate `Choosing_Among (Enumeration, Getter)` once per
+enumeration and say `Theme_Is.Is_Value (Dark)` where the option is declared (a `Flag_Property` that is true while the
+getter returns that value).
+
 Repeated cards pass their row through `Index` on the controls and bindings. `Showing` of a getter with a positive row argument (`Text_Each_Getter`, `Flag_Each_Getter`) reads one row's text or flag; commands receive the control's index too.
 For example, `Bound.Label (Titles, Row)` and `Bound.Grip (Look, Open_Card, Row)` refer to the same row.
 Such properties map an omitted index (0) to row 1, so pass an explicit positive index for repeated controls.

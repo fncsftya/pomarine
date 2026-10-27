@@ -44,6 +44,13 @@ package body Pomarine.UI.Contexts is
    function Editing (Get : not null Flag_Getter; Set : not null Flag_Setter) return Flag_Property is
      ((Get => Get, Set => Set, others => <>));
 
+   package body Choosing_Among is
+      function Position (Item : Model) return Natural is (Choice'Pos (Get (Item)));
+
+      function Is_Value (Value : Choice) return Flag_Property is
+        ((Pick => Position'Access, Want => Choice'Pos (Value), others => <>));
+   end Choosing_Among;
+
    function Showing (Get : not null Fraction_Getter) return Fraction_Property is ((Get => Get, others => <>));
 
    function Editing (Get : not null Fraction_Getter; Set : not null Fraction_Setter) return Fraction_Property is
@@ -96,6 +103,8 @@ package body Pomarine.UI.Contexts is
       Get  : Flag_Getter;
       Each : Flag_Each_Getter;
       Set  : Flag_Setter;
+      Pick : access function (Item : Model) return Natural;
+      Want : Natural := 0;
    end record;
 
    overriding function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean;
@@ -103,7 +112,9 @@ package body Pomarine.UI.Contexts is
    overriding function Can_Assign (Self : Pointer_Flag) return Boolean;
 
    overriding function Current (Self : Pointer_Flag; Item : Model; Index : Natural) return Boolean is
-     (if Self.Each /= null then Self.Each (Item, Positive'Max (1, Index)) else Self.Get (Item));
+     (if Self.Pick /= null then Self.Pick (Item) = Self.Want
+      elsif Self.Each /= null then Self.Each (Item, Positive'Max (1, Index))
+      else Self.Get (Item));
 
    overriding procedure Assign (Self : Pointer_Flag; Item : in out Model; Value : Boolean; Index : Natural) is
       pragma Unreferenced (Index);
@@ -213,10 +224,11 @@ package body Pomarine.UI.Contexts is
 
    function Adapter_Of (Where : Subpools.Subpool_Handle; Item : Flag_Property) return Flag_Adapter_Ref is
    begin
-      pragma Assert (Item.Get /= null or else Item.Each /= null);
+      pragma Assert (Item.Get /= null or else Item.Each /= null or else Item.Pick /= null);
       declare
          Made : constant Pointer_Flag_Store :=
-           new (Where) Pointer_Flag'(Get => Item.Get, Each => Item.Each, Set => Item.Set);
+           new (Where) Pointer_Flag'
+             (Get => Item.Get, Each => Item.Each, Set => Item.Set, Pick => Item.Pick, Want => Item.Want);
       begin
          return Made.all'Unchecked_Access;
       end;

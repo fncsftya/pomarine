@@ -103,6 +103,16 @@ package Pomarine.UI.Contexts is
    function Showing (Get : not null Flag_Each_Getter) return Flag_Property;
    function Editing (Get : not null Flag_Getter; Set : not null Flag_Setter) return Flag_Property;
 
+   generic
+      type Choice is (<>);
+      with function Get (Item : Model) return Choice;
+   package Choosing_Among is
+      function Is_Value (Value : Choice) return Flag_Property;
+      --  True while the model's enumeration is Value, for one option of a radio group:
+      --     Theme : package is new Todo_UI.Choosing_Among (Themes, Todo_VM.Theme);
+      --     Todo_UI.Radio ("Dark", Theme.Is_Value (Dark), ...)
+   end Choosing_Among;
+
    function Showing (Get : not null Fraction_Getter) return Fraction_Property;
    function Editing (Get : not null Fraction_Getter; Set : not null Fraction_Setter) return Fraction_Property;
 
@@ -698,6 +708,8 @@ private
       Get     : Flag_Getter;
       Each    : Flag_Each_Getter;
       Set     : Flag_Setter;
+      Pick    : access function (Item : Model) return Natural;
+      Want    : Natural := 0;
    end record;
 
    type Fraction_Property is record
