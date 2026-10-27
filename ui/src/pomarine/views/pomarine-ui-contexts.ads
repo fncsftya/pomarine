@@ -140,6 +140,10 @@ package Pomarine.UI.Contexts is
    --  context too). The model must be there as long as the view is used (see
    --  Pomarine.UI).
 
+   function Bind (Screen : in out Pomarine.UI.View; Data : in out Model) return Context'Class;
+   --  As above, for a model that is not aliased, or reached through an object that is not: the access is
+   --  taken here, so that no caller needs Unrestricted_Access. The same lifetime rule holds.
+
    function Scope_Of (Item : Context) return Pomarine.UI.Scope_Ref;
 
    function Is_Open (Item : Context) return Boolean;

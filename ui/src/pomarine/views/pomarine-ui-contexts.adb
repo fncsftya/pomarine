@@ -947,6 +947,9 @@ package body Pomarine.UI.Contexts is
               Scope  => Root_Scope (Screen));
    end Bind;
 
+   function Bind (Screen : in out Pomarine.UI.View; Data : in out Model) return Context'Class is
+     (Bind (Screen, Data'Unrestricted_Access));
+
    function Scope_Of (Item : Context) return Pomarine.UI.Scope_Ref is (Item.Scope);
 
    function View_Of (Self : Context'Class) return not null View_Ref is
