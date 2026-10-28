@@ -178,6 +178,22 @@ package body Field_Tests is
       Check (Item, "field-long-start");
    end Long_Line;
 
+   procedure Fits_After_Scrolling is
+      Item, Fresh   : Fixture;
+      Before, After : Images.Image;
+   begin
+      Open (Item);
+      Type_In (Item, "A long line of text that extends well beyond the width of this field");
+      Press (Item, Events.Key_A, Command => True);
+      Type_In (Item, "https://claude.ai/new");
+      Draw (Item, After);
+
+      Open (Fresh);
+      Type_In (Fresh, "https://claude.ai/new");
+      Draw (Fresh, Before);
+      Goldens.Check_Same ("field-fits-after-scrolling", Before, After);
+   end Fits_After_Scrolling;
+
    procedure Clicking is
       Item : Fixture;
    begin

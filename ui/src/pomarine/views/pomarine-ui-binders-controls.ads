@@ -24,10 +24,8 @@ package Pomarine.UI.Binders.Controls is
       Ink   : Pomarine.Themes.Slot) return Pomarine.UI.Label_Handle;
 
    function Label
-     (Self    : Context'Class;
-      Caption : String;
-      Style   : Pomarine.Line_Texts.Style;
-      Ink     : Pomarine.Themes.Slot) return Pomarine.UI.Label_Handle;
+     (Self : Context'Class; Caption : String; Style : Pomarine.Line_Texts.Style; Ink : Pomarine.Themes.Slot)
+      return Pomarine.UI.Label_Handle;
 
    function Button
      (Self      : Context'Class;
@@ -52,11 +50,8 @@ package Pomarine.UI.Binders.Controls is
       Reflect : Boolean) return Pomarine.UI.Button_Handle;
 
    function Grip
-     (Self  : Context'Class;
-      Look  : Pomarine.UI.Grip_Look;
-      Which : Natural;
-      Index : Natural;
-      Name  : String) return Pomarine.UI.Grip_Handle;
+     (Self : Context'Class; Look : Pomarine.UI.Grip_Look; Which : Natural; Index : Natural; Name : String)
+      return Pomarine.UI.Grip_Handle;
 
    function Plain_Grip (Self : Context'Class; Look : Pomarine.UI.Grip_Look) return Pomarine.UI.Grip_Handle;
 
@@ -113,14 +108,11 @@ package Pomarine.UI.Binders.Controls is
       Index   : Natural;
       Name    : String) return Pomarine.UI.Switch_Handle;
 
-   function Progress
-     (Self : Context'Class; Done : not null Fraction_Adapter_Ref) return Pomarine.UI.Progress_Handle;
+   function Progress (Self : Context'Class; Done : not null Fraction_Adapter_Ref) return Pomarine.UI.Progress_Handle;
 
    function List
-     (Self      : Context'Class;
-      Rows      : not null Rows_Adapter_Ref;
-      Selection : not null Choice_Adapter_Ref;
-      Name      : String) return Pomarine.UI.List_Handle;
+     (Self : Context'Class; Rows : not null Rows_Adapter_Ref; Selection : not null Choice_Adapter_Ref; Name : String)
+      return Pomarine.UI.List_Handle;
 
    --  What a control is made to do, or to show
 
@@ -131,43 +123,27 @@ package Pomarine.UI.Binders.Controls is
      (Self : Context'Class; Target : Pomarine.UI.Layout; Shown : not null Flag_Adapter_Ref; Index : Natural);
 
    procedure Enabled_When
-     (Self    : Context'Class;
-      Target  : Pomarine.UI.Button_Handle;
-      Allowed : not null Flag_Adapter_Ref;
-      Index   : Natural);
+     (Self : Context'Class; Target : Pomarine.UI.Button_Handle; Allowed : not null Flag_Adapter_Ref; Index : Natural);
 
    procedure Selected_When
-     (Self     : Context'Class;
-      Target   : Pomarine.UI.Button_Handle;
-      Selected : not null Flag_Adapter_Ref;
-      Index    : Natural);
+     (Self : Context'Class; Target : Pomarine.UI.Button_Handle; Selected : not null Flag_Adapter_Ref; Index : Natural);
 
    procedure Focus_When
-     (Self   : Context'Class;
-      Target : Pomarine.UI.Focus_Target;
-      Raised : not null Flag_Adapter_Ref;
-      Index  : Natural);
+     (Self : Context'Class; Target : Pomarine.UI.Focus_Target; Raised : not null Flag_Adapter_Ref; Index : Natural);
 
    procedure Focus_Initially (Self : Context'Class; Target : Pomarine.UI.Focus_Target);
 
    procedure Reveal_After
-     (Self   : Context'Class;
-      Which  : Natural;
-      Target : Pomarine.UI.Reveal_Target;
-      Count  : not null Count_Adapter_Ref);
+     (Self : Context'Class; Which : Natural; Target : Pomarine.UI.Reveal_Target; Count : not null Count_Adapter_Ref);
 
    procedure Caption_From
-     (Self   : Context'Class;
-      Target : Pomarine.UI.Button_Handle;
-      Text   : not null Text_Adapter_Ref;
-      Index  : Natural);
+     (Self : Context'Class; Target : Pomarine.UI.Button_Handle; Text : not null Text_Adapter_Ref; Index : Natural);
 
    --  Controls the application already owns
 
    function Borrow_Label
-     (Self     : Context'Class;
-      Existing : in out Pomarine.Widgets.Labels.Label;
-      Text     : not null Text_Adapter_Ref) return Pomarine.UI.Label_Handle;
+     (Self : Context'Class; Existing : in out Pomarine.Widgets.Labels.Label; Text : not null Text_Adapter_Ref)
+      return Pomarine.UI.Label_Handle;
 
    function Borrow_Button
      (Self     : Context'Class;
@@ -184,9 +160,8 @@ package Pomarine.UI.Binders.Controls is
       Replacing : Replacement) return Pomarine.UI.Field_Handle;
 
    function Borrow_Slider
-     (Self     : Context'Class;
-      Existing : in out Pomarine.Widgets.Sliders.Slider;
-      Value    : not null Fraction_Adapter_Ref) return Pomarine.UI.Widget_Handle;
+     (Self : Context'Class; Existing : in out Pomarine.Widgets.Sliders.Slider; Value : not null Fraction_Adapter_Ref)
+      return Pomarine.UI.Widget_Handle;
 
    function Borrow_Widget
      (Self : Context'Class; Existing : in out Pomarine.Widgets.Widget'Class) return Pomarine.UI.Widget_Handle;

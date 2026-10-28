@@ -193,6 +193,9 @@ package body Pomarine.Text_Areas.Drawing is
       --  outline is the colour of its ground, has none to round.
    begin
       Catch_Up (Item);
+      if Item.Single then
+         Reveal (Item);
+      end if;
       Pomarine.Boxes.Fill_Round
         (Target,
          (if Item.Focused then Colors (Themes.Focus) else Colors (Themes.Border)),

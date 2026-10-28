@@ -258,8 +258,8 @@ package body Pomarine.UI.Contexts is
       pragma Assert (Item.Get /= null or else Item.Each /= null);
       declare
          Made : constant Pointer_Text_Store :=
-           new (Binders.Arena (Self))
-             Pointer_Text'(Get => Item.Get, Each => Item.Each, Set => Item.Set, Changes => Item.Changes);
+           new (Binders.Arena (Self)) Pointer_Text'
+             (Get => Item.Get, Each => Item.Each, Set => Item.Set, Changes => Item.Changes);
       begin
          return Made.all'Unchecked_Access;
       end;
@@ -270,8 +270,8 @@ package body Pomarine.UI.Contexts is
       pragma Assert (Item.Get /= null or else Item.Each /= null or else Item.Pick /= null);
       declare
          Made : constant Pointer_Flag_Store :=
-           new (Binders.Arena (Self))
-             Pointer_Flag'(Get => Item.Get, Each => Item.Each, Set => Item.Set, Pick => Item.Pick, Want => Item.Want);
+           new (Binders.Arena (Self)) Pointer_Flag'
+             (Get => Item.Get, Each => Item.Each, Set => Item.Set, Pick => Item.Pick, Want => Item.Want);
       begin
          return Made.all'Unchecked_Access;
       end;
@@ -418,14 +418,15 @@ package body Pomarine.UI.Contexts is
       Replacing   : Replacement := Caret_At_End;
       Index       : Natural := 0) return Pomarine.UI.Field_Handle is
    begin
-      return Controls.Text_Field
-        (Self,
-         Adapter_Of (Self, Text),
-         Adapter_Of (Self, Submit),
-         Placeholder,
-         Name,
-         Binders.Replacement (Replacing),
-         Index);
+      return
+        Controls.Text_Field
+          (Self,
+           Adapter_Of (Self, Text),
+           Adapter_Of (Self, Submit),
+           Placeholder,
+           Name,
+           Binders.Replacement (Replacing),
+           Index);
    end Text_Field;
 
    function Text_Field
@@ -436,13 +437,8 @@ package body Pomarine.UI.Contexts is
       Replacing   : Replacement := Caret_At_End;
       Index       : Natural := 0) return Pomarine.UI.Field_Handle is
    begin
-      return Controls.Text_Field
-        (Self,
-         Adapter_Of (Self, Text),
-         Placeholder,
-         Name,
-         Binders.Replacement (Replacing),
-         Index);
+      return
+        Controls.Text_Field (Self, Adapter_Of (Self, Text), Placeholder, Name, Binders.Replacement (Replacing), Index);
    end Text_Field;
 
    function Text_Field
@@ -454,14 +450,15 @@ package body Pomarine.UI.Contexts is
       Replacing   : Replacement := Caret_At_End;
       Index       : Natural := 0) return Pomarine.UI.Field_Handle is
    begin
-      return Controls.Text_Field
-        (Self,
-         Adapter_Of (Self, Text),
-         Commands.Command'Pos (Submit),
-         Placeholder,
-         Name,
-         Binders.Replacement (Replacing),
-         Index);
+      return
+        Controls.Text_Field
+          (Self,
+           Adapter_Of (Self, Text),
+           Commands.Command'Pos (Submit),
+           Placeholder,
+           Name,
+           Binders.Replacement (Replacing),
+           Index);
    end Text_Field;
 
    procedure Enabled_When
@@ -485,14 +482,8 @@ package body Pomarine.UI.Contexts is
       Index   : Natural := 0;
       Name    : String := "") return Pomarine.UI.Check_Handle is
    begin
-      return Controls.Check
-        (Self,
-         Caption,
-         Adapter_Of (Self, Checked),
-         Commands.Command'Pos (Command),
-         Form,
-         Index,
-         Name);
+      return
+        Controls.Check (Self, Caption, Adapter_Of (Self, Checked), Commands.Command'Pos (Command), Form, Index, Name);
    end Check;
 
    function Check
@@ -557,8 +548,7 @@ package body Pomarine.UI.Contexts is
       Controls.Focus_When (Self, Target, Adapter_Of (Self, Raised), Index);
    end Focus_When;
 
-   procedure Show_When
-     (Self : Context; Target : Pomarine.UI.Control_Ref; Shown : Flag_Property; Index : Natural := 0)
+   procedure Show_When (Self : Context; Target : Pomarine.UI.Control_Ref; Shown : Flag_Property; Index : Natural := 0)
    is
    begin
       Controls.Show_When (Self, Target, Adapter_Of (Self, Shown), Index);
@@ -660,12 +650,7 @@ package body Pomarine.UI.Contexts is
       Index_From_Event : Boolean := False) is
    begin
       Controls.On_Editor_Event
-        (Self,
-         Target,
-         Binders.Editor_Hook (Hook),
-         Commands.Command'Pos (Command),
-         Index,
-         Index_From_Event);
+        (Self, Target, Binders.Editor_Hook (Hook), Commands.Command'Pos (Command), Index, Index_From_Event);
    end On_Editor_Event;
 
    procedure On_Canvas_Event
@@ -677,12 +662,7 @@ package body Pomarine.UI.Contexts is
       Index_From_Event : Boolean := False) is
    begin
       Controls.On_Canvas_Event
-        (Self,
-         Target,
-         Binders.Canvas_Hook (Hook),
-         Commands.Command'Pos (Command),
-         Index,
-         Index_From_Event);
+        (Self, Target, Binders.Canvas_Hook (Hook), Commands.Command'Pos (Command), Index, Index_From_Event);
    end On_Canvas_Event;
 
    procedure On_List_Actions (Self : Context; Target : Pomarine.UI.Widget_Handle; Actions : List_Actions) is

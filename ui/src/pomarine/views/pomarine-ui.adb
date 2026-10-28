@@ -1201,7 +1201,9 @@ package body Pomarine.UI is
              (Column
                 (Layout_Array'[Bar] & Content,
                  Appearance =>
-                   (Fill => Pomarine.Themes.Border, Radius => Pomarine.Themes.Large_Radius, Framed => True,
+                   (Fill   => Pomarine.Themes.Border,
+                    Radius => Pomarine.Themes.Large_Radius,
+                    Framed => True,
                     others => <>)),
               (Flow     => Layouts.Column,
                Outlined => Layouts.On,

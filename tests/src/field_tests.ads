@@ -8,6 +8,7 @@ package Field_Tests is
    procedure Returning;
    procedure Pasting;
    procedure Long_Line;
+   procedure Fits_After_Scrolling;
    procedure Clicking;
    procedure Up_And_Down;
 

@@ -857,10 +857,8 @@ package body Pomarine.UI.Binders.Controls is
    end Label;
 
    function Label
-     (Self    : Context'Class;
-      Caption : String;
-      Style   : Pomarine.Line_Texts.Style;
-      Ink     : Pomarine.Themes.Slot) return Pomarine.UI.Label_Handle
+     (Self : Context'Class; Caption : String; Style : Pomarine.Line_Texts.Style; Ink : Pomarine.Themes.Slot)
+      return Pomarine.UI.Label_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Label_Handle := New_Label (Home.all, Self.Scope);
@@ -914,11 +912,8 @@ package body Pomarine.UI.Binders.Controls is
    end Button;
 
    function Grip
-     (Self  : Context'Class;
-      Look  : Pomarine.UI.Grip_Look;
-      Which : Natural;
-      Index : Natural;
-      Name  : String) return Pomarine.UI.Grip_Handle
+     (Self : Context'Class; Look : Pomarine.UI.Grip_Look; Which : Natural; Index : Natural; Name : String)
+      return Pomarine.UI.Grip_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Grip_Handle := New_Grip (Home.all, Self.Scope, Look);
@@ -956,8 +951,7 @@ package body Pomarine.UI.Binders.Controls is
    begin
       Wire_Field (Self, Home.all, Handle, Text, Replacing, Index);
       Called (Home.all, Handle_Data (Handle), Field_Control, Name);
-      Wire_Command
-        (Self, Home.all, Widget_Of (Home.all, Handle).all, 0, 0, Reflect => False, Action => Submit);
+      Wire_Command (Self, Home.all, Widget_Of (Home.all, Handle).all, 0, 0, Reflect => False, Action => Submit);
       return Handle;
    end Text_Field;
 
@@ -1017,10 +1011,7 @@ package body Pomarine.UI.Binders.Controls is
    end Wire_Flag;
 
    procedure Enabled_When
-     (Self    : Context'Class;
-      Target  : Pomarine.UI.Button_Handle;
-      Allowed : not null Flag_Adapter_Ref;
-      Index   : Natural)
+     (Self : Context'Class; Target : Pomarine.UI.Button_Handle; Allowed : not null Flag_Adapter_Ref; Index : Natural)
    is
       Home : constant not null View_Ref := View_Of (Self);
    begin
@@ -1029,10 +1020,7 @@ package body Pomarine.UI.Binders.Controls is
    end Enabled_When;
 
    procedure Selected_When
-     (Self     : Context'Class;
-      Target   : Pomarine.UI.Button_Handle;
-      Selected : not null Flag_Adapter_Ref;
-      Index    : Natural)
+     (Self : Context'Class; Target : Pomarine.UI.Button_Handle; Selected : not null Flag_Adapter_Ref; Index : Natural)
    is
       Home : constant not null View_Ref := View_Of (Self);
    begin
@@ -1090,9 +1078,7 @@ package body Pomarine.UI.Binders.Controls is
       return Handle;
    end Switch;
 
-   function Progress
-     (Self : Context'Class; Done : not null Fraction_Adapter_Ref) return Pomarine.UI.Progress_Handle
-   is
+   function Progress (Self : Context'Class; Done : not null Fraction_Adapter_Ref) return Pomarine.UI.Progress_Handle is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Progress_Handle := New_Progress (Home.all, Self.Scope);
       Where  : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
@@ -1106,10 +1092,7 @@ package body Pomarine.UI.Binders.Controls is
    end Progress;
 
    procedure Focus_When
-     (Self   : Context'Class;
-      Target : Pomarine.UI.Focus_Target;
-      Raised : not null Flag_Adapter_Ref;
-      Index  : Natural)
+     (Self : Context'Class; Target : Pomarine.UI.Focus_Target; Raised : not null Flag_Adapter_Ref; Index : Natural)
    is
       Home  : constant not null View_Ref := View_Of (Self);
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
@@ -1154,10 +1137,8 @@ package body Pomarine.UI.Binders.Controls is
    end Show_When;
 
    function List
-     (Self      : Context'Class;
-      Rows      : not null Rows_Adapter_Ref;
-      Selection : not null Choice_Adapter_Ref;
-      Name      : String) return Pomarine.UI.List_Handle
+     (Self : Context'Class; Rows : not null Rows_Adapter_Ref; Selection : not null Choice_Adapter_Ref; Name : String)
+      return Pomarine.UI.List_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.List_Handle := New_List (Home.all, Self.Scope);
@@ -1175,10 +1156,7 @@ package body Pomarine.UI.Binders.Controls is
    end Focus_Initially;
 
    procedure Reveal_After
-     (Self   : Context'Class;
-      Which  : Natural;
-      Target : Pomarine.UI.Reveal_Target;
-      Count  : not null Count_Adapter_Ref)
+     (Self : Context'Class; Which : Natural; Target : Pomarine.UI.Reveal_Target; Count : not null Count_Adapter_Ref)
    is
       Home  : constant not null View_Ref := View_Of (Self);
       Where : constant Subpools.Subpool_Handle := Arena_Of (Home.all, Self.Scope);
@@ -1196,9 +1174,8 @@ package body Pomarine.UI.Binders.Controls is
    --  Borrowing
 
    function Borrow_Label
-     (Self     : Context'Class;
-      Existing : in out Labels.Label;
-      Text     : not null Text_Adapter_Ref) return Pomarine.UI.Label_Handle
+     (Self : Context'Class; Existing : in out Labels.Label; Text : not null Text_Adapter_Ref)
+      return Pomarine.UI.Label_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Label_Handle := Pomarine.UI.Borrow_Label (Home.all, Self.Scope, Existing);
@@ -1222,10 +1199,7 @@ package body Pomarine.UI.Binders.Controls is
    end Borrow_Button;
 
    procedure Caption_From
-     (Self   : Context'Class;
-      Target : Pomarine.UI.Button_Handle;
-      Text   : not null Text_Adapter_Ref;
-      Index  : Natural)
+     (Self : Context'Class; Target : Pomarine.UI.Button_Handle; Text : not null Text_Adapter_Ref; Index : Natural)
    is
       Home : constant not null View_Ref := View_Of (Self);
    begin
@@ -1498,9 +1472,8 @@ package body Pomarine.UI.Binders.Controls is
    end On_List_Actions;
 
    function Borrow_Slider
-     (Self     : Context'Class;
-      Existing : in out Widgets.Sliders.Slider;
-      Value    : not null Fraction_Adapter_Ref) return Pomarine.UI.Widget_Handle
+     (Self : Context'Class; Existing : in out Widgets.Sliders.Slider; Value : not null Fraction_Adapter_Ref)
+      return Pomarine.UI.Widget_Handle
    is
       Home   : constant not null View_Ref := View_Of (Self);
       Handle : constant Pomarine.UI.Widget_Handle := Pomarine.UI.Borrow_Widget (Home.all, Self.Scope, Existing);

@@ -100,6 +100,7 @@ begin
    Run ("field-return", Field_Tests.Returning'Access);
    Run ("field-paste", Field_Tests.Pasting'Access);
    Run ("field-long", Field_Tests.Long_Line'Access);
+   Run ("field-fits-after-scrolling", Field_Tests.Fits_After_Scrolling'Access);
    Run ("field-click", Field_Tests.Clicking'Access);
    Run ("field-up-down", Field_Tests.Up_And_Down'Access);
 

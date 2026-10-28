@@ -132,7 +132,16 @@ package body Pomarine.Text_Areas.Core is
             X, Y, Wide, Tall : Float;
             Least            : constant Float := Item.Left + Inset (Item) + Lead_Room (Item);
             Most             : constant Float := Item.Left + Item.Width - Inset (Item) - Trail_Room (Item);
+            Last             : constant Position := Last_Position (Item);
+            Last_Line        : constant Positive := Line_Of (Item, Last);
+            End_Across       : constant Float :=
+              Layouts.Caret_Offset (Item.Laid, Item.Doc.all, Last.Paragraph, Last_Line, Units (Item, Last))
+              * Scale (Item);
          begin
+            if End_Across <= Most - Least then
+               Item.Across_Scroll := 0.0;
+               return;
+            end if;
             Measure_Caret (Item, X, Y, Wide, Tall);
             if X < Least then
                Item.Across_Scroll := Float'Max (0.0, Item.Across_Scroll - (Least - X));
