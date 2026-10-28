@@ -18,9 +18,8 @@ private package Pomarine.Widgets.Editors.Metrics is
    Tool_Wide        : constant Float := 64.0;
    Edit_Left        : constant Float :=
      Toolbar_Left + 4.0 * Button_Wide + 3.0 * Button_Gap + Divider_Gap + 1.0 + Divider_Gap;
-   Lists_End        : constant Float := Edit_Left + 5.0 * Button_Wide + 4.0 * Button_Gap;
    Edit_End         : constant Float := Edit_Left + 6.0 * Button_Wide + 5.0 * Button_Gap;
-   --  The editing buttons but the last, Link, which is left out first when it is narrow.
+   --  The editing buttons, all six: they are in the popover together when the toolbar is too narrow.
    Family_Wide      : constant Float := 112.0;
    Family_Menu_Wide : constant Float := 240.0;
    --  The menu of families is wider than the select, to show more of their names.

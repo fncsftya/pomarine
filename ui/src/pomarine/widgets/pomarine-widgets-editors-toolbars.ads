@@ -14,6 +14,14 @@ private package Pomarine.Widgets.Editors.Toolbars is
 
    procedure Refresh_Toolbar (Item : in out Editor);
 
+   procedure Toggle_More (Item : in out Editor);
+   --  Open the popover of the toolbar's sections that did not fit, or close it.
+
+   procedure Close_More (Item : in out Editor);
+
+   function Over_More (Item : Editor) return Boolean;
+   --  Whether the pointer is over the popover, or a control in it, while it is open.
+
    procedure Update_Toolbar (Item : in out Editor);
    --  Show the toolbar's buttons if it is to have them, and hide them if not.
 

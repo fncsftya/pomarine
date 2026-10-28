@@ -516,7 +516,7 @@ package body Widget_Tests is
       --  which the text is, and the layout does not move.
       Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
-      Check_Flag ("widgets-toolbar-buttons", True, Visible_Buttons = 9);
+      Check_Flag ("widgets-toolbar-buttons", True, Visible_Buttons = 5);
       Check_Flag ("widgets-toolbar-same-height", True, Widgets.Height_Of (Item.Page) = Height_Before);
       Check_Flag
         ("widgets-toolbar-room",
@@ -525,7 +525,7 @@ package body Widget_Tests is
       Check_Painted (Item, "widgets-toolbar");
       Widgets.Release_Focus (Item.Page);
       Widgets.Layout (Item.Tree, Item.Target);
-      Check_Flag ("widgets-toolbar-unfocused", True, Visible_Buttons = 9);
+      Check_Flag ("widgets-toolbar-unfocused", True, Visible_Buttons = 5);
       Check_Painted (Item, "widgets-toolbar-unfocused");
 
       --  A button formats the selection, and the text keeps the focus.
@@ -582,6 +582,72 @@ package body Widget_Tests is
 
    function Key (Which : Events.Key_Code; Command : Boolean := False) return Events.Event
    is ((Kind => Events.Key_Down, Key => Which, Command => Command, others => <>));
+
+   procedure Toolbar_More is
+      Item  : Fixture;
+      Lines : aliased Pomarine.Line_Texts.Drawer;
+      Moved : Boolean;
+
+      function Visible_Child (Rank : Positive) return Widgets.Widget_Access is
+         Seen : Natural := 0;
+      begin
+         for Each in 1 .. Widgets.Child_Count (Item.Page) loop
+            if Widgets.Is_Visible (Widgets.Child_At (Item.Page, Each).all) then
+               Seen := Seen + 1;
+               if Seen = Rank then
+                  return Widgets.Child_At (Item.Page, Each);
+               end if;
+            end if;
+         end loop;
+         return null;
+      end Visible_Child;
+
+      function Visible_Total return Natural is
+         Count : Natural := 0;
+      begin
+         for Each in 1 .. Widgets.Child_Count (Item.Page) loop
+            if Widgets.Is_Visible (Widgets.Child_At (Item.Page, Each).all) then
+               Count := Count + 1;
+            end if;
+         end loop;
+         return Count;
+      end Visible_Total;
+
+      procedure Click_On (Part : Widgets.Widget_Access) is
+         X : constant Float := (Widgets.Left_Of (Part.all) + Widgets.Width_Of (Part.all) / 2.0) / Density;
+         Y : constant Float := (Widgets.Top_Of (Part.all) + Widgets.Height_Of (Part.all) / 2.0) / Density;
+      begin
+         Send (Item, Press (X, Y), Taken => True);
+         Send (Item, Release (X, Y), Taken => True);
+         Widgets.Layout (Item.Tree, Item.Target);
+      end Click_On;
+   begin
+      Open (Item, "one" & ASCII.LF & "two");
+      Widgets.Set_Line_Texts (Item.Tree, Lines);
+      Pomarine.Widgets.Editors.Set_Toolbar (Item.Page);
+      Widgets.Layout (Item.Tree, Item.Target);
+
+      --  Too narrow for all of the sections: B I U S, and a button of the rest, with nothing else.
+      Check_Flag ("widgets-more-button", True, Visible_Total = 5);
+
+      --  Pressed, the rest is in a popover, which stays while one of its buttons is used.
+      Click_On (Visible_Child (5));
+      Check_Flag ("widgets-more-open", True, Visible_Total = 4 + 1 + 1 + 6 + 3);
+      Check_Painted (Item, "widgets-toolbar-more");
+      Pomarine.Text_Areas.Select_Range (Pomarine.Widgets.Editors.Area (Item.Page).all, (1, 1), (1, 2));
+      declare
+         Bullets : constant Widgets.Widget_Access := Visible_Child (7);
+      begin
+         Click_On (Bullets);
+      end;
+      Check_Flag ("widgets-more-kept", True, Visible_Total = 4 + 1 + 1 + 6 + 3);
+
+      --  A press outside it, in the text, lets it go.
+      Widgets.Dispatch (Item.Tree, Move (24.0, 150.0), Moved);
+      Send (Item, Press (24.0, 150.0), Taken => True);
+      Widgets.Layout (Item.Tree, Item.Target);
+      Check_Flag ("widgets-more-closed", True, Visible_Total = 5);
+   end Toolbar_More;
 
    procedure Toolbar_Tools is
       Item    : Fixture;

@@ -14,6 +14,7 @@ package Widget_Tests is
    procedure Resized;
    procedure Tree_Walk;
    procedure Toolbar;
+   procedure Toolbar_More;
    procedure Toolbar_Tools;
    procedure Toolbar_Editing;
    procedure Toolbar_Fonts;

@@ -44,17 +44,16 @@ package body Pomarine.Widgets.Editors.Choosers is
       Pixels : constant Float := Density (Item);
       Left   : constant Float :=
         (case Which is
-           when Pick_Family => Font_Left,
-           when Pick_Size   => Size_Left,
-           when Pick_Source => Float (Item.Link_Left) / Pixels,
-           when others      => Style_Left);
+           when Pick_Family .. Pick_Style => Item.Select_Left (Which),
+           when others                    => Float (Item.Link_Left) / Pixels);
       Wide   : constant Float :=
         (case Which is
            when Pick_Family => Family_Wide,
            when Pick_Size   => Size_Wide,
            when Pick_Source => Link_Wide - 2.0 * Bubble_Pad,
            when others      => Style_Wide);
-      Top    : Float := Toolbar_Top + Button_High + Tip_Gap;
+      Top    : Float :=
+        (if Which in Pick_Family .. Pick_Style then Item.Select_Top (Which) else Toolbar_Top) + Button_High + Tip_Gap;
       Rows   : Menus.Row_Vectors.Vector;
    begin
       if Item.Choosing = Which then

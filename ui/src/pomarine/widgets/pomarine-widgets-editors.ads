@@ -50,6 +50,10 @@ package Pomarine.Widgets.Editors is
    with Post => Is_Configured (Item);
    --  As Pomarine.Text_Areas.Configure. Do it before the layout.
 
+   function Prose_Spacing (Size : Float) return Float
+   is (0.35 * Size);
+   --  The space between paragraphs of prose of a font Size, for every editor of prose to have the same.
+
    function Is_Configured (Item : Editor) return Boolean;
 
    subtype Shared_Access is Pomarine.Text_Areas.Shared_Access;
@@ -326,6 +330,11 @@ private
    type Choice is (Nothing, Pick_Family, Pick_Size, Pick_Style, Pick_Source);
    --  Which of the font controls has its menu open.
 
+   type Select_Spots is array (Choice range Pick_Family .. Pick_Style) of Float;
+
+   type Tool_Spots is array (Tool_Number) of Float;
+   --  Where, in points, a font control or a tool button is: in the toolbar, or in the popover of what did not fit.
+
    type Editor is new Widget and Listener with record
       Text                            : aliased Pomarine.Text_Areas.Text_Area;
       Tool_Hook                       : Posted_Hook;
@@ -345,6 +354,14 @@ private
       --  style buttons. Hovering one shows Tip, below it.
       Editing                         : Edit_Buttons;
       Family_Box, Size_Box, Style_Box : Pomarine.Widgets.Selects.Select_Field;
+      Select_Left, Select_Top         : Select_Spots := [others => 0.0];
+      Tool_Left_At, Tool_Top_At       : Tool_Spots := [others => 0.0];
+      More_Button                     : Pomarine.Widgets.Buttons.Button;
+      More_Panel                      : Pomarine.Widgets.Panels.Panel;
+      More_Open                       : Boolean := False;
+      More_Key                        : Integer := -1;
+      --  The button at the right of a toolbar too narrow for its sections, the popover of those left out, whether it
+      --  is open, and the sections and width it was laid out for.
       Chooser                         : Pomarine.Widgets.Menus.Menu;
       Choosing                        : Choice := Nothing;
       Face                            : String (1 .. Family_Capacity) := [others => ' '];

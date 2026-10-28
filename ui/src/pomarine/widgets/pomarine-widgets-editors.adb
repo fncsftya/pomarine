@@ -314,7 +314,9 @@ package body Pomarine.Widgets.Editors is
             end if;
 
          when Click  =>
-            if Is_Attached (Self.Family_Box) and then Source'Address = Self.Family_Box'Address then
+            if Is_Attached (Self.More_Button) and then Source'Address = Self.More_Button'Address then
+               Toggle_More (Self);
+            elsif Is_Attached (Self.Family_Box) and then Source'Address = Self.Family_Box'Address then
                Open_Chooser (Self, Pick_Family);
             elsif Is_Attached (Self.Size_Box) and then Source'Address = Self.Size_Box'Address then
                Open_Chooser (Self, Pick_Size);
@@ -571,6 +573,18 @@ package body Pomarine.Widgets.Editors is
          then
             Close_Chooser (Item);
          end if;
+         if Item.More_Open then
+            if Event.Kind = Pomarine.Events.Mouse_Down and then not Over_More (Item) then
+               Close_More (Item);
+            elsif Event.Kind = Pomarine.Events.Key_Down
+              and then Event.Key = Pomarine.Events.Key_Escape
+              and then Item.Choosing = Nothing
+              and then not Item.Linking
+            then
+               Close_More (Item);
+               Handled := True;
+            end if;
+         end if;
          if Item.Linking
            and then Event.Kind = Pomarine.Events.Mouse_Down
            and then not Is_Hovered (Item.Link_Box)
@@ -784,6 +798,7 @@ package body Pomarine.Widgets.Editors is
          Text_Areas.Set_Focus (Item.Text, Focused);
          if not Focused then
             Close_Chooser (Item);
+            Close_More (Item);
             Close_Cycle (Item);
             Refresh_Bubbles (Item);
          end if;

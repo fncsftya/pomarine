@@ -213,6 +213,7 @@ begin
    Run ("widgets-resized", Widget_Tests.Resized'Access);
    Run ("widgets-walk", Widget_Tests.Tree_Walk'Access);
    Run ("widgets-toolbar", Widget_Tests.Toolbar'Access);
+   Run ("widgets-toolbar-more", Widget_Tests.Toolbar_More'Access);
    Run ("widgets-toolbar-tools", Widget_Tests.Toolbar_Tools'Access);
    Run ("widgets-toolbar-editing", Widget_Tests.Toolbar_Editing'Access);
    Run ("widgets-toolbar-fonts", Widget_Tests.Toolbar_Fonts'Access);
