@@ -19,7 +19,8 @@ package body Pomarine.Text_Areas.Core is
    end Restart_Blink;
 
    procedure Catch_Up (Item : in out Text_Area) is
-      Seen : Docs.Version renames Item.Seen;
+      Seen         : Docs.Version renames Item.Seen;
+      Relayout_Top : Boolean := False;
    begin
       if Item.Serial /= Docs.Serial (Item.Doc.all) or else Seen < Docs.Oldest (Item.Doc.all) then
          --  Too far behind: from the start.
@@ -63,7 +64,13 @@ package body Pomarine.Text_Areas.Core is
                   Item.Offset :=
                     Item.Offset + Layouts.Top (Item.Laid, Item.Anchor) - Layouts.Top (Item.Laid, Done.From.Paragraph);
                end if;
-               Item.Anchor := Moved_To.Paragraph;
+               if Item.Anchor = 1 and then Item.Offset = 0.0 and then Done.From = (1, 1) then
+                  --  The top of the document stays visible when text is inserted there.
+                  Item.Anchor := 1;
+                  Relayout_Top := Relayout_Top or else Moved_To.Paragraph > 1;
+               else
+                  Item.Anchor := Moved_To.Paragraph;
+               end if;
             end;
          end loop;
       end if;
@@ -72,6 +79,9 @@ package body Pomarine.Text_Areas.Core is
       end if;
       Seen := Docs.Current (Item.Doc.all);
       Layouts.Sync (Item.Laid, Item.Doc.all);
+      if Relayout_Top then
+         Layouts.Lay_Out (Item.Laid, Item.Doc.all, 1);
+      end if;
       Item.Anchor := Positive'Min (Item.Anchor, Count (Item));
       pragma Assert (Is_Position (Item, Item.At_Caret));
       pragma Assert (Is_Position (Item, Item.At_Mark));

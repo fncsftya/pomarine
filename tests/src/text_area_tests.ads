@@ -12,6 +12,7 @@ package Text_Area_Tests is
    procedure Up_And_Down;
    procedure Text_End;
    procedure Scrolled;
+   procedure Insert_At_Top;
    procedure Clicked;
    procedure Escape;
    procedure Zoomed;

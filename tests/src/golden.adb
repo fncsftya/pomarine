@@ -75,6 +75,7 @@ begin
    Run ("textarea-up-down", Text_Area_Tests.Up_And_Down'Access);
    Run ("textarea-end", Text_Area_Tests.Text_End'Access);
    Run ("textarea-scrolled", Text_Area_Tests.Scrolled'Access);
+   Run ("textarea-insert-at-top", Text_Area_Tests.Insert_At_Top'Access);
    Run ("textarea-clicked", Text_Area_Tests.Clicked'Access);
    Run ("textarea-escape", Text_Area_Tests.Escape'Access);
    Run ("textarea-zoomed", Text_Area_Tests.Zoomed'Access);

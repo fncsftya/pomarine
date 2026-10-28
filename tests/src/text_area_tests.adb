@@ -232,6 +232,22 @@ package body Text_Area_Tests is
       Check (Item, "textarea-joining");
    end Joining;
 
+   procedure Insert_At_Top is
+      Item              : Fixture;
+      X, Y, W, H, First : Float;
+   begin
+      Open (Item, Sample);
+      Text_Areas.Caret_Box (Item.Area, X, First, W, H);
+      Press (Item, Events.Key_Return);
+      Text_Areas.Caret_Box (Item.Area, X, Y, W, H);
+      pragma
+        Assert
+          (Text_Areas.Scroll_Top (Item.Area) = 0.0,
+           "insertion moved the top of the view:" & Float'Image (Text_Areas.Scroll_Top (Item.Area)));
+      pragma Assert (Y > First, "the original first line did not move down");
+      Goldens.Check_Text ("textarea-insert-at-top-text", ASCII.LF & Sample, Docs.Whole (Item.Doc));
+   end Insert_At_Top;
+
    procedure Clusters is
       Item : Fixture;
    begin
