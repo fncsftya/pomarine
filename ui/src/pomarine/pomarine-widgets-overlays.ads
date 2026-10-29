@@ -69,4 +69,13 @@ package Pomarine.Widgets.Overlays is
 
    function Presented_Count (Home : Tree) return Natural;
 
+   type Area is record
+      Left, Top, Wide, High : Float := 0.0;
+   end record;
+   --  In pixels from the window's top left; empty if Wide or High is 0.
+
+   procedure Overlap (Home : Tree; Within : Area; Hole : out Area; Modal : out Boolean);
+   --  What the presented content takes of Within: Hole is the smallest area that holds the parts of it that overlap
+   --  Within (empty if none), and Modal whether any of it is modal, which dims all of the window.
+
 end Pomarine.Widgets.Overlays;

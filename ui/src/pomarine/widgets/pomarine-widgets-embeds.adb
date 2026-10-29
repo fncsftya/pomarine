@@ -1,11 +1,31 @@
-with Pomarine.Widgets.Overlays;
-
 package body Pomarine.Widgets.Embeds is
 
    use type Semantics.Role;
+   use type Overlays.Area;
 
-   procedure Tell_Host (Item : in out Embed);
-   --  Say where the view is and whether it shows, if that is not what the host was last told.
+   function Union (A, B : Overlays.Area) return Overlays.Area;
+   --  The smallest area that holds both; the other if one is empty.
+
+   procedure Tell_Host (Item : in out Embed; Hole : Overlays.Area := (others => <>));
+   --  Say where the view is, whether it shows and where it has a hole, if that is not what the host was last told.
+
+   function Union (A, B : Overlays.Area) return Overlays.Area is
+      Left   : Float;
+      Top    : Float;
+      Right  : Float;
+      Bottom : Float;
+   begin
+      if A.Wide <= 0.0 or else A.High <= 0.0 then
+         return B;
+      elsif B.Wide <= 0.0 or else B.High <= 0.0 then
+         return A;
+      end if;
+      Left := Float'Min (A.Left, B.Left);
+      Top := Float'Min (A.Top, B.Top);
+      Right := Float'Max (A.Left + A.Wide, B.Left + B.Wide);
+      Bottom := Float'Max (A.Top + A.High, B.Top + B.High);
+      return (Left => Left, Top => Top, Wide => Right - Left, High => Bottom - Top);
+   end Union;
 
    procedure Set_Host (Item : in out Embed; To : Host_Access) is
    begin
@@ -27,23 +47,38 @@ package body Pomarine.Widgets.Embeds is
    function Is_Covered (Item : Embed) return Boolean
    is (Item.Covered);
 
+   procedure Set_Cut_Out (Item : in out Embed; Over : Widget'Class) is
+   begin
+      Item.Cut_Id := Id_Of (Over);
+   end Set_Cut_Out;
+
+   procedure Clear_Cut_Out (Item : in out Embed) is
+   begin
+      Item.Cut_Id := No_Node;
+   end Clear_Cut_Out;
+
    function Is_Showing_View (Item : Embed) return Boolean
    is (Item.Showing);
 
-   procedure Tell_Host (Item : in out Embed) is
+   procedure Tell_Host (Item : in out Embed; Hole : Overlays.Area := (others => <>)) is
       Scale : constant Float := Density (Item);
       Left  : constant Float := Item.Left / Scale;
       Top   : constant Float := Item.Top / Scale;
       Wide  : constant Float := Item.Wide / Scale;
       High  : constant Float := Item.High / Scale;
+      Cut   : constant Overlays.Area :=
+        (Left => Hole.Left / Scale, Top => Hole.Top / Scale, Wide => Hole.Wide / Scale, High => Hole.High / Scale);
+      Moved : Boolean := False;
    begin
-      if Item.View /= null
-        and then (not Item.Told
-                  or else Left /= Item.Told_Left
-                  or else Top /= Item.Told_Top
-                  or else Wide /= Item.Told_Wide
-                  or else High /= Item.Told_High
-                  or else Item.Showing /= Item.Told_Showing)
+      if Item.View = null then
+         return;
+      end if;
+      if not Item.Told
+        or else Left /= Item.Told_Left
+        or else Top /= Item.Told_Top
+        or else Wide /= Item.Told_Wide
+        or else High /= Item.Told_High
+        or else Item.Showing /= Item.Told_Showing
       then
          Item.View.Place (Left, Top, Wide, High, Item.Showing);
          Item.Told := True;
@@ -52,6 +87,12 @@ package body Pomarine.Widgets.Embeds is
          Item.Told_Wide := Wide;
          Item.Told_High := High;
          Item.Told_Showing := Item.Showing;
+         Moved := True;
+      end if;
+      --  The hole is kept by where the view is, so it is told again when the view is moved.
+      if Cut /= Item.Told_Cut or else (Moved and then Cut.Wide > 0.0) then
+         Item.View.Cut_Out (Cut.Left, Cut.Top, Cut.Wide, Cut.High);
+         Item.Told_Cut := Cut;
       end if;
    end Tell_Host;
 
@@ -86,19 +127,32 @@ package body Pomarine.Widgets.Embeds is
    overriding
    procedure Update (Item : in out Embed; Now : Pomarine.Events.Milliseconds) is
       pragma Unreferenced (Now);
-      Show : Boolean;
+      Show  : Boolean;
+      Hole  : Overlays.Area;
+      Modal : Boolean;
    begin
       if Item.View = null or else not Is_Attached (Item) then
          return;
       end if;
-      Show := Is_Showing (Item) and then not Item.Covered and then Overlays.Presented_Count (Tree_Of (Item).all) = 0;
+      Overlays.Overlap
+        (Tree_Of (Item).all, (Left => Item.Left, Top => Item.Top, Wide => Item.Wide, High => Item.High), Hole, Modal);
+      if Is_Live (Tree_Of (Item).all, Item.Cut_Id) then
+         declare
+            Box : Spot renames Tree_Of (Item).Nodes.Spot (Item.Cut_Id.Slot);
+         begin
+            if Box.Visible and then Box.Wide > 0.0 and then Box.High > 0.0 then
+               Hole := Union (Hole, (Left => Box.Left, Top => Box.Top, Wide => Box.Wide, High => Box.High));
+            end if;
+         end;
+      end if;
+      Show := Is_Showing (Item) and then not Item.Covered and then not Modal;
       if Show /= Item.Showing then
          Item.Showing := Show;
          if not Show and then Has_Focus (Item) then
             Release_Focus (Item);
          end if;
       end if;
-      Tell_Host (Item);
+      Tell_Host (Item, (if Show then Hole else (others => <>)));
       if Show then
          if Item.View.Has_Keyboard then
             if not Has_Focus (Item) then

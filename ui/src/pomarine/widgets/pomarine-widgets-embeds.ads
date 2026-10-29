@@ -1,10 +1,12 @@
 with Pomarine.Semantics;
+with Pomarine.Widgets.Overlays;
 with SDL3.Painters;
 
 --  A place in the window for a view of the system's own, such as a web page, which is drawn by the system over the
 --  window's content and not by the tree: it cannot be drawn into, and it is above whatever the tree draws there.
 --  The widget stands for it. It keeps the view where the widget is, and hides it while what the tree draws is to be
---  seen over it (a menu, a dialog: any overlay presented, or the widget hidden), and has the keyboard go where the
+--  seen over it (a modal overlay presented, or the widget hidden), and leaves a hole in it for what else overlaps it (a
+--  menu, a tooltip), and has the keyboard go where the
 --  person has pointed: the view takes it when pressed (the tree never hears of that press), and the tree takes it
 --  back when another widget is given the focus.
 --
@@ -22,6 +24,10 @@ package Pomarine.Widgets.Embeds is
    procedure Place (Self : in out Host; Left, Top, Wide, High : Float; Showing : Boolean) is abstract;
    --  Put the view at Left, Top (points, from the window's top left), Wide x High, and show it or hide it. Called
    --  when any of these changes, and so not for each frame.
+
+   procedure Cut_Out (Self : in out Host; Left, Top, Wide, High : Float) is null;
+   --  Leave the view a hole, in the same points, for what is drawn over it to show through; none if Wide or High is
+   --  0. Called when it changes.
 
    procedure Give_Keyboard (Self : in out Host; To_View : Boolean) is abstract;
    --  The keyboard is to be the view's (True), or the tree's.
@@ -47,6 +53,12 @@ package Pomarine.Widgets.Embeds is
    --  layer of its own that covers the window), is over the view: it is hidden while To.
 
    function Is_Covered (Item : Embed) return Boolean;
+
+   procedure Set_Cut_Out (Item : in out Embed; Over : Widget'Class);
+   --  Say that Over, a widget of the application's that is over the view and not an overlay, is to show through it
+   --  (a hole in the view) while it is visible, instead of the view being hidden.
+
+   procedure Clear_Cut_Out (Item : in out Embed);
 
    function Is_Showing_View (Item : Embed) return Boolean;
    --  Whether the view was last asked to be shown: the widget is showing, and nothing is presented over the tree.
@@ -96,6 +108,9 @@ private
       Told_Wide     : Float := 0.0;
       Told_High     : Float := 0.0;
       Told_Showing  : Boolean := False;
+      Cut_Id        : Node_Id := No_Node;
+      --  The widget of the application's that shows through, and the hole the host was last told.
+      Told_Cut      : Overlays.Area;
       Shortcut_Hook : Posted_Hook;
    end record;
 
