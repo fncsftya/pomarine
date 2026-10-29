@@ -150,7 +150,8 @@ package body Pomarine.Widgets.Frames is
          --  The title is text, in the field's place, until it is to be
          --  edited.
          Grips.Set_Hover_Outline (Item.Title_Area, Themes.Rule);
-         Set_Flex_Shrink (Node (Item.Title_Area), 0.0);
+         Set_Flex_Shrink (Node (Item.Title_Area), 1.0);
+         Set_Flex_Shrink (Node (Item.Title_Label), 1.0);
          Set_Flex_Direction (Node (Item.Title_Area), Yoga.Row);
          Set_Align_Items (Node (Item.Title_Area), Yoga.Center);
          --  Nothing: the bar is held there.
@@ -163,6 +164,10 @@ package body Pomarine.Widgets.Frames is
          Buttons.Set_Label (Item.Minimize_Button, "Min");
          Buttons.Set_Icon (Item.Minimize_Button, Icons.Minimize);
          Buttons.Set_Icon_Size (Item.Minimize_Button, Bar_Icon_Size);
+      end if;
+      Set_Flex_Shrink (Node (Item.Close_Button), 0.0);
+      if Item.Docked then
+         Set_Flex_Shrink (Node (Item.Minimize_Button), 0.0);
       end if;
       Buttons.Set_Label (Item.Close_Button, "Close");
       Buttons.Set_Icon (Item.Close_Button, Icons.Close);
